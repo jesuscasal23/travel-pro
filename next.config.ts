@@ -14,8 +14,8 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
-      // Mapbox tiles, Mapbox Static Images API (for PDF), local assets
-      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com",
+      // Mapbox tiles, CARTO basemap sprites/glyphs, local assets
+      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",
       // External API connections
       [
         "connect-src 'self'",
@@ -32,6 +32,9 @@ const securityHeaders = [
         "https://sentry.io",
         // Resend email (server-side only, but include for CSP completeness)
         "https://api.resend.com",
+        // CARTO basemap tiles (used by MapLibre RouteMap — style JSON + vector tiles)
+        "https://basemaps.cartocdn.com",
+        "https://*.basemaps.cartocdn.com",
       ].join(" "),
       // MapLibre GL uses Web Workers via blob: URLs
       "worker-src blob:",
