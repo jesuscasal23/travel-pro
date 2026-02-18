@@ -12,16 +12,27 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
+import { selectRoute } from "./prompts/route-selector";
 import { enrichVisa, enrichWeather } from "./enrichment";
+import { optimizeFlights } from "@/lib/flights/optimizer";
+import { parseIataCode } from "@/lib/affiliate/link-generator";
 import type { UserProfile, TripIntent, Itinerary } from "@/types";
+import type { CityWithDays, FlightSkeleton } from "@/lib/flights/types";
 
 // ============================================================
 // Clients
 // ============================================================
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+let _anthropic: Anthropic | undefined;
+
+function getAnthropic(): Anthropic {
+  if (!_anthropic) {
+    _anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+  }
+  return _anthropic;
+}
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -64,6 +75,7 @@ const cityStopSchema = z.object({
   lng: z.number(),
   days: z.number(),
   countryCode: z.string(),
+  iataCode: z.string().optional(),
 });
 
 const budgetSchema = z.object({
@@ -113,7 +125,7 @@ export function extractJSON(text: string): string {
 // ============================================================
 
 async function callClaude(userPrompt: string): Promise<string> {
-  const message = await anthropic.messages.create({
+  const message = await getAnthropic().messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 8000,
     temperature: 0.7,
@@ -195,8 +207,48 @@ export async function generateItinerary(
   profile: UserProfile,
   tripIntent: TripIntent
 ): Promise<Itinerary> {
-  // Stage 1: Assemble prompt
-  const userPrompt = assemblePrompt(profile, tripIntent);
+  // Stage A: Route selection (Haiku — fast + cheap)
+  let cities: CityWithDays[] | undefined;
+  let skeleton: FlightSkeleton | undefined;
+
+  try {
+    console.log("[pipeline] Stage A: Selecting route with Haiku");
+    cities = await selectRoute(profile, tripIntent, getAnthropic());
+    console.log(`[pipeline] Stage A complete: ${cities.map(c => c.city).join(", ")}`);
+
+    // Stage B: Flight price optimization (Amadeus)
+    const homeIata = parseIataCode(profile.homeAirport);
+    const durationDays =
+      tripIntent.dateStart && tripIntent.dateEnd
+        ? Math.round(
+            (new Date(tripIntent.dateEnd).getTime() -
+              new Date(tripIntent.dateStart).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        : 21;
+
+    console.log("[pipeline] Stage B: Optimizing flight prices");
+    skeleton = await optimizeFlights(
+      homeIata,
+      cities,
+      tripIntent.dateStart || new Date().toISOString().slice(0, 10),
+      durationDays,
+      tripIntent.travelers
+    );
+    console.log(
+      `[pipeline] Stage B complete: €${skeleton.totalFlightCost} total flights`
+    );
+  } catch (e) {
+    console.warn(
+      "[pipeline] Route/flight optimization failed, falling back to AI estimation:",
+      e instanceof Error ? e.message : e
+    );
+    cities = undefined;
+    skeleton = undefined;
+  }
+
+  // Stage 1: Assemble prompt (inject skeleton when available)
+  const userPrompt = assemblePrompt(profile, tripIntent, skeleton, cities);
 
   // Stage 2: Call Claude
   console.log("[pipeline] Calling Claude for trip:", tripIntent.id);
@@ -219,6 +271,10 @@ export async function generateItinerary(
     ...parsed,
     visaData,
     weatherData,
+    // Attach real flight legs when optimization succeeded (skeleton.totalFlightCost > 0)
+    ...(skeleton && skeleton.totalFlightCost > 0
+      ? { flightLegs: skeleton.legs }
+      : {}),
   };
 
   await storeItinerary(tripIntent.id, itinerary);

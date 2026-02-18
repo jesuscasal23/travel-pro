@@ -8,6 +8,8 @@ import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
+import { buildFlightLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
+import { useTripStore } from "@/stores/useTripStore";
 
 type Params = Promise<{ id: string }>;
 
@@ -17,7 +19,8 @@ export default function SummaryPage({ params }: { params: Params }) {
   const [isSharing, setIsSharing] = useState(false);
   const posthog = usePostHog();
   const itinerary = useItinerary();
-  const { route, days, budget, visaData, weatherData } = itinerary;
+  const { route, days, budget, visaData, weatherData, flightLegs } = itinerary;
+  const travelers = useTripStore((s) => s.travelers);
 
   // Derive trip metadata
   const countries = [...new Set(route.map((r) => r.country))];
@@ -244,23 +247,102 @@ export default function SummaryPage({ params }: { params: Params }) {
           </div>
         </motion.div>
 
-        {/* Book Your Trip */}
+        {/* Flight Legs — real prices when optimization ran, generic link otherwise */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           className="mt-8"
         >
-          <h2 className="font-semibold text-foreground mb-4">Book Your Trip</h2>
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-foreground">Flights</h2>
+            {flightLegs ? (
+              <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">
+                Optimized prices
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                Estimated
+              </span>
+            )}
+          </div>
+
+          {flightLegs ? (
+            <div className="space-y-2">
+              {flightLegs.map((leg, i) => {
+                const skyscannerUrl = buildFlightLink(
+                  { fromIata: leg.fromIata, toIata: leg.toIata, departureDate: leg.departureDate },
+                  travelers ?? 1
+                );
+                const trackedUrl = buildTrackedLink({
+                  provider: "skyscanner",
+                  type: "flight",
+                  itineraryId: id,
+                  dest: skyscannerUrl,
+                });
+                return (
+                  <a
+                    key={i}
+                    href={trackedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3 border border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">✈️</span>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">
+                          {leg.fromCity} → {leg.toCity}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {leg.departureDate} · {leg.duration} · {leg.airline}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-foreground">
+                        €{Math.round(leg.price).toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                        Skyscanner →
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          ) : (
+            <a
+              href={buildTrackedLink({ provider: "skyscanner", type: "flight", itineraryId: id, dest: "https://www.skyscanner.com" })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-border rounded-xl p-4 hover:border-primary hover:bg-primary/5 transition-all duration-200 group block"
+            >
+              <div className="text-2xl mb-2">✈️</div>
+              <div className="font-medium text-sm text-foreground">Search Flights</div>
+              <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                Skyscanner &rarr;
+              </div>
+            </a>
+          )}
+        </motion.div>
+
+        {/* Hotels + Activities */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-4"
+        >
+          <h2 className="font-semibold text-foreground mb-4">Hotels &amp; Activities</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
             {[
-              { name: "Flights", provider: "Skyscanner", emoji: "✈️", url: "https://www.skyscanner.com" },
-              { name: "Hotels", provider: "Booking.com", emoji: "🏨", url: "https://www.booking.com" },
-              { name: "Activities", provider: "GetYourGuide", emoji: "🎫", url: "https://www.getyourguide.com" },
+              { name: "Hotels", provider: "Booking.com", emoji: "🏨", provider_key: "booking" as const, type: "hotel" as const, dest: "https://www.booking.com" },
+              { name: "Activities", provider: "GetYourGuide", emoji: "🎫", provider_key: "getyourguide" as const, type: "activity" as const, dest: "https://www.getyourguide.com" },
             ].map((item) => (
               <a
                 key={item.name}
-                href={item.url}
+                href={buildTrackedLink({ provider: item.provider_key, type: item.type, itineraryId: id, dest: item.dest })}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border border-border rounded-xl p-4 hover:border-primary hover:bg-primary/5 transition-all duration-200 group block"

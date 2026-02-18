@@ -20,12 +20,18 @@ const securityHeaders = [
       // External API connections
       [
         "connect-src 'self'",
+        // MapLibre GL loads its WASM module via a data: URI
+        "data:",
         "https://api.mapbox.com",
         "https://events.mapbox.com",
         "https://*.supabase.co",
         "https://api.open-meteo.com",
         // PostHog analytics (EU region)
+        // eu.posthog.com: main API / rewrites proxy target
+        // eu.i.posthog.com: SDK data ingestion endpoint (flags, capture, etc.)
+        // eu-assets.i.posthog.com: PostHog static assets / survey bundles
         "https://eu.posthog.com",
+        "https://eu.i.posthog.com",
         "https://eu-assets.i.posthog.com",
         // Sentry error reporting (*.de.sentry.io for EU region ingest)
         "https://*.sentry.io",
@@ -36,6 +42,9 @@ const securityHeaders = [
         // CARTO basemap tiles (used by MapLibre RouteMap — style JSON + vector tiles)
         "https://basemaps.cartocdn.com",
         "https://*.basemaps.cartocdn.com",
+        // Amadeus flight search API (sandbox + production)
+        "https://test.api.amadeus.com",
+        "https://api.amadeus.com",
       ].join(" "),
       // MapLibre GL uses Web Workers via blob: URLs
       "worker-src blob:",

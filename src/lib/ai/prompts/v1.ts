@@ -6,6 +6,7 @@
 // ============================================================
 
 import type { UserProfile, TripIntent } from "@/types";
+import type { CityWithDays, FlightSkeleton } from "@/lib/flights/types";
 
 // ============================================================
 // System Prompt
@@ -55,7 +56,18 @@ The route must make geographic sense (minimise backtracking). For each city stop
 // Prompt Assembly
 // ============================================================
 
-export function assemblePrompt(profile: UserProfile, intent: TripIntent): string {
+/** Format a YYYY-MM-DD date as a short human string (e.g. "Oct 2"). */
+function fmtDate(iso: string): string {
+  const d = new Date(iso + "T00:00:00Z");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+export function assemblePrompt(
+  profile: UserProfile,
+  intent: TripIntent,
+  skeleton?: FlightSkeleton,
+  cities?: CityWithDays[]
+): string {
   const durationDays = intent.dateStart && intent.dateEnd
     ? Math.round((new Date(intent.dateEnd).getTime() - new Date(intent.dateStart).getTime()) / (1000 * 60 * 60 * 24))
     : 21;
@@ -73,6 +85,34 @@ export function assemblePrompt(profile: UserProfile, intent: TripIntent): string
     mix: "a balanced mix of culture, food, nature, and some adventure",
   };
 
+  // ── Build flight skeleton block (when Amadeus optimization succeeded) ──
+  const skeletonBlock = skeleton && cities
+    ? `
+**FLIGHT SCHEDULE (pre-computed — use these exact dates and costs):**
+${skeleton.legs
+  .map(
+    (leg, i) =>
+      `${i + 1}. ${fmtDate(leg.departureDate)}: ${leg.fromCity} (${leg.fromIata}) → ${leg.toCity} (${leg.toIata}) — €${Math.round(leg.price).toLocaleString()}, ${leg.duration}, ${leg.airline}`
+  )
+  .join("\n")}
+Total flights: €${Math.round(skeleton.totalFlightCost).toLocaleString()} — set budget.flights to this exact number.
+
+**CITY SCHEDULE (use exactly these cities and day counts):**
+${cities
+  .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${skeleton.dayAssignment[i]} days, airport: ${c.iataCode}`)
+  .join("\n")}
+Set iataCode on each route city to the airport codes above.`
+    : "";
+
+  // When skeleton is provided, city selection is already done; otherwise ask Claude to choose.
+  const cityRequirement = skeleton && cities
+    ? "Use EXACTLY the cities listed in the CITY SCHEDULE above — do not add or remove cities."
+    : "1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip";
+
+  const budgetRequirement = skeleton
+    ? `Make the accommodation, food, activities, and transport breakdown realistic — budget.flights is already fixed at €${Math.round(skeleton.totalFlightCost).toLocaleString()}`
+    : "6. Make the budget breakdown realistic for the travel style and number of travelers";
+
   return `Plan a ${durationDays}-day trip for ${intent.travelers} traveler(s) with the following details:
 
 **Traveler Profile:**
@@ -88,14 +128,14 @@ export function assemblePrompt(profile: UserProfile, intent: TripIntent): string
 - Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)
 - Trip vibe: ${vibeDescriptions[intent.vibe] ?? intent.vibe}
 - Flexible dates: ${intent.flexibleDates ? "yes (±3 days)" : "no"}
-
+${skeletonBlock}
 **Requirements:**
-1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip
+${cityRequirement}
 2. Allocate days per city proportionally (longer stays in richer destinations)
 3. Plan 3–4 activities per day with FULL detail (name, category, icon, why, duration, plus tip/food/cost where applicable)
 4. Include realistic travel days when moving between cities (flight/train/bus with cost and duration)
 5. Tailor activity choices to the traveler's stated interests and travel style
-6. Make the budget breakdown realistic for the travel style and number of travelers
+${budgetRequirement}
 7. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
 
 Return ONLY this JSON structure (no wrapping, no markdown):
@@ -109,7 +149,8 @@ Return ONLY this JSON structure (no wrapping, no markdown):
       "lat": 35.68,
       "lng": 139.69,
       "days": 5,
-      "countryCode": "JP"
+      "countryCode": "JP",
+      "iataCode": "NRT"
     }
   ],
   "days": [

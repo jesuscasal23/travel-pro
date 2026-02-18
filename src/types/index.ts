@@ -11,6 +11,19 @@ export interface CityStop {
   lng: number;
   days: number;
   countryCode: string;
+  iataCode?: string; // main international airport (populated when flight optimization runs)
+}
+
+/** A real flight leg stored in the itinerary after price optimization */
+export interface ItineraryFlightLeg {
+  fromCity: string;
+  toCity: string;
+  fromIata: string;
+  toIata: string;
+  departureDate: string; // YYYY-MM-DD
+  price: number;         // EUR, total for all travelers
+  duration: string;      // e.g. "12h 30m"
+  airline: string;
 }
 
 /** A single activity within a day */
@@ -112,6 +125,8 @@ export interface Itinerary {
   budget: TripBudget;
   visaData: VisaInfo[];
   weatherData: CityWeather[];
+  /** Real flight legs populated when Amadeus optimization succeeds */
+  flightLegs?: ItineraryFlightLeg[];
 }
 
 /** Profile data collected during onboarding */
