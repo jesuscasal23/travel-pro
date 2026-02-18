@@ -68,7 +68,7 @@ export default function OnboardingPage() {
         <StepProgress step={step} totalSteps={TOTAL_STEPS} />
 
         {/* Step content */}
-        <div className="overflow-hidden relative -mx-1 px-1">
+        <div className="overflow-x-clip overflow-y-visible relative -mx-1 px-1">
           <AnimatePresence mode="wait" custom={direction}>
 
             {/* Step 1 — Where are you from? */}

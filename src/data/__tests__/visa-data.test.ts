@@ -33,15 +33,17 @@ describe("VISA_INDEX — structure", () => {
   });
 
   it("all cell values are non-empty strings", () => {
+    // ~39k pairs × 3 expect() calls is too slow — collect violations in a
+    // single pass and assert once at the end.
+    const bad: string[] = [];
     for (const [passport, dests] of Object.entries(VISA_INDEX)) {
       for (const [dest, val] of Object.entries(dests)) {
-        expect(typeof val).toBe("string");
-        expect(val.length).toBeGreaterThan(0);
-        // Sanity: no undefined sneaked in
-        expect(val).not.toBe("undefined");
-        void passport; void dest;
+        if (typeof val !== "string" || val.length === 0 || val === "undefined") {
+          bad.push(`${passport}→${dest}: ${JSON.stringify(val)}`);
+        }
       }
     }
+    expect(bad).toEqual([]);
   });
 });
 
