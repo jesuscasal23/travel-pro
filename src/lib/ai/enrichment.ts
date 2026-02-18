@@ -7,6 +7,9 @@
 
 import { Redis } from "@upstash/redis";
 import type { CityStop, VisaInfo, CityWeather } from "@/types";
+import { VISA_INDEX } from "@/data/visa-index";
+import { VISA_OFFICIAL_URLS } from "@/data/visa-official-urls";
+import { NATIONALITY_TO_ISO2 } from "@/data/nationality-to-iso2";
 
 // ============================================================
 // Redis client (lazy — only instantiated if env vars are set)
@@ -25,69 +28,60 @@ function getRedis(): Redis | null {
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 // ============================================================
-// Visa Enrichment — Phase 0: German passport only
-// Matches the shape of the future Travel Buddy API response
+// Visa Enrichment — Passport Index static dataset (199 passports × 227 destinations)
 // ============================================================
 
-const VISA_DATA_DE: Record<string, Omit<VisaInfo, "country" | "countryCode" | "icon" | "label">> = {
-  JP: {
-    requirement: "visa-free",
-    maxStayDays: 90,
-    notes: "No visa required for stays under 90 days.",
-  },
-  VN: {
-    requirement: "e-visa",
-    maxStayDays: 30,
-    processingDays: 5,
-    notes: "E-visa required. Apply online at least 5 business days before travel.",
-  },
-  TH: {
-    requirement: "visa-free",
-    maxStayDays: 30,
-    notes: "Visa exemption for stays under 30 days.",
-  },
-};
-
-const COUNTRY_NAMES: Record<string, string> = {
-  JP: "Japan",
-  VN: "Vietnam",
-  TH: "Thailand",
-  KR: "South Korea",
-  TW: "Taiwan",
-  CN: "China",
-  ID: "Indonesia",
-  PH: "Philippines",
-  KH: "Cambodia",
-  MM: "Myanmar",
-  LA: "Laos",
-  SG: "Singapore",
-  MY: "Malaysia",
-};
-
-function buildVisaLabel(info: Omit<VisaInfo, "country" | "countryCode" | "icon" | "label">): string {
-  if (info.requirement === "visa-free") {
-    return `Visa-free (${info.maxStayDays} days)`;
+// Map Passport Index cell value → VisaInfo fields
+function parseRequirement(raw: string): {
+  requirement: VisaInfo["requirement"];
+  maxStayDays: number;
+  label: string;
+  icon: string;
+  notes: string;
+} {
+  if (raw === "-1") {
+    return { requirement: "visa-free", maxStayDays: 365, label: "Own country", icon: "🏠", notes: "This is your home country." };
   }
-  if (info.requirement === "e-visa") {
-    return `E-visa required (${info.maxStayDays} days${info.processingDays ? `, apply ${info.processingDays} days ahead` : ""})`;
+  if (raw === "no admission") {
+    return { requirement: "no-admission", maxStayDays: 0, label: "No admission", icon: "🚫", notes: "Entry not permitted with this passport." };
   }
-  return "Visa required — check embassy";
-}
-
-function buildVisaIcon(requirement: VisaInfo["requirement"]): string {
-  if (requirement === "visa-free") return "✅";
-  if (requirement === "e-visa") return "⚠️";
-  return "🛂";
+  if (raw === "visa required") {
+    return { requirement: "visa-required", maxStayDays: 0, label: "Visa required", icon: "🛂", notes: "A visa must be obtained from the embassy before travel." };
+  }
+  if (raw === "visa on arrival") {
+    return { requirement: "visa-on-arrival", maxStayDays: 30, label: "Visa on arrival", icon: "🛬", notes: "Visa available on arrival. Carry proof of onward travel and sufficient funds." };
+  }
+  if (raw === "e-visa") {
+    return { requirement: "e-visa", maxStayDays: 30, label: "E-visa required", icon: "💻", notes: "Apply online before travel. Processing times vary — apply at least 5–7 days ahead." };
+  }
+  if (raw === "eta") {
+    return { requirement: "eta", maxStayDays: 90, label: "ETA required", icon: "📱", notes: "Electronic Travel Authorisation required. Apply online — usually approved within minutes." };
+  }
+  if (raw === "visa free") {
+    return { requirement: "visa-free", maxStayDays: 0, label: "Visa-free", icon: "✅", notes: "No visa required. Check destination country for exact entry conditions." };
+  }
+  // Numeric string = visa-free days
+  const days = parseInt(raw, 10);
+  if (!isNaN(days)) {
+    return { requirement: "visa-free", maxStayDays: days, label: `Visa-free (${days} days)`, icon: "✅", notes: `No visa required for stays up to ${days} days.` };
+  }
+  // Unknown fallback
+  return { requirement: "visa-required", maxStayDays: 0, label: "Check embassy", icon: "🛂", notes: "Requirements unknown — check the official embassy website." };
 }
 
 /**
  * Enrich visa data for each unique country in the route.
- * Phase 0: only German passport; unknown countries get a placeholder.
+ * Uses the Passport Index static dataset (199 passports × 227 destinations).
  */
 export async function enrichVisa(
   passportCountry: string,
   route: CityStop[]
 ): Promise<VisaInfo[]> {
+  // Resolve nationality string → ISO-2 passport code
+  const passportISO2 =
+    NATIONALITY_TO_ISO2[passportCountry] ??
+    (passportCountry.length === 2 ? passportCountry.toUpperCase() : null);
+
   // Deduplicate by countryCode
   const seen = new Set<string>();
   const uniqueCountries = route.filter((stop) => {
@@ -97,33 +91,37 @@ export async function enrichVisa(
   });
 
   return uniqueCountries.map((stop) => {
-    // Phase 0: only German passport data is hardcoded
-    const isGerman =
-      passportCountry === "German" ||
-      passportCountry === "Germany" ||
-      passportCountry === "DE";
+    const destISO2 = stop.countryCode;
+    const source = VISA_OFFICIAL_URLS[destISO2] ?? {
+      url: "https://www.timatic.iata.org",
+      label: "IATA Timatic",
+    };
 
-    const data = isGerman ? VISA_DATA_DE[stop.countryCode] : undefined;
+    // Look up in the index
+    const raw = passportISO2 ? VISA_INDEX[passportISO2]?.[destISO2] : undefined;
 
-    if (data) {
+    if (raw) {
+      const parsed = parseRequirement(raw);
       return {
-        country: COUNTRY_NAMES[stop.countryCode] ?? stop.country,
-        countryCode: stop.countryCode,
-        ...data,
-        icon: buildVisaIcon(data.requirement),
-        label: buildVisaLabel(data),
+        country: stop.country,
+        countryCode: destISO2,
+        ...parsed,
+        sourceUrl: source.url,
+        sourceLabel: source.label,
       };
     }
 
-    // Fallback for unsupported passport / country combos
+    // Passport not found in index — generic fallback
     return {
-      country: COUNTRY_NAMES[stop.countryCode] ?? stop.country,
-      countryCode: stop.countryCode,
+      country: stop.country,
+      countryCode: destISO2,
       requirement: "visa-required" as const,
-      maxStayDays: 30,
-      notes: "Check official embassy website for current requirements.",
+      maxStayDays: 0,
+      notes: "We don't have data for this passport. Check the official embassy website.",
       icon: "🛂",
-      label: "Check embassy requirements",
+      label: "Check embassy",
+      sourceUrl: source.url,
+      sourceLabel: source.label,
     };
   });
 }

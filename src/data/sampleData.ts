@@ -244,19 +244,25 @@ export const sampleBudget: TripBudget = {
 export const sampleVisas: VisaInfo[] = [
   {
     country: "Japan", countryCode: "JP", requirement: "visa-free",
-    maxStayDays: 90, notes: "No visa required for stays under 90 days.",
+    maxStayDays: 90, notes: "No visa required for stays up to 90 days.",
     icon: "✅", label: "Visa-free (90 days)",
+    sourceUrl: "https://www.mofa.go.jp/j_info/visit/visa/index.html",
+    sourceLabel: "Japan MOFA",
   },
   {
     country: "Vietnam", countryCode: "VN", requirement: "e-visa",
     maxStayDays: 30, processingDays: 5,
-    notes: "E-visa required. Apply online at least 5 business days before travel.",
-    icon: "⚠️", label: "E-visa required (30 days, apply 5 days ahead)",
+    notes: "Apply online before travel. Processing times vary — apply at least 5–7 days ahead.",
+    icon: "💻", label: "E-visa required",
+    sourceUrl: "https://evisa.xuatnhapcanh.gov.vn",
+    sourceLabel: "Vietnam Official E-Visa Portal",
   },
   {
     country: "Thailand", countryCode: "TH", requirement: "visa-free",
-    maxStayDays: 30, notes: "Visa exemption for stays under 30 days.",
+    maxStayDays: 30, notes: "No visa required for stays up to 30 days.",
     icon: "✅", label: "Visa-free (30 days)",
+    sourceUrl: "https://www.thaievisa.go.th",
+    sourceLabel: "Thailand e-Visa",
   },
 ];
 

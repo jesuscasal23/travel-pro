@@ -65,12 +65,14 @@ export interface TripBudget {
 export interface VisaInfo {
   country: string;
   countryCode: string;
-  requirement: "visa-free" | "e-visa" | "visa-required";
+  requirement: "visa-free" | "visa-on-arrival" | "e-visa" | "eta" | "visa-required" | "no-admission";
   maxStayDays: number;
   processingDays?: number;
   notes: string;
   icon: string; // emoji
   label: string;
+  sourceUrl: string;    // official government immigration URL
+  sourceLabel: string;  // human-readable label for the source link
 }
 
 /** Weather data for a city */

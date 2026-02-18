@@ -13,14 +13,41 @@ import { useTripStore } from "@/stores/useTripStore";
 
 type Params = Promise<{ id: string }>;
 
+function VisaDisclaimer() {
+  return (
+    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+      <strong>Important:</strong> Visa rules change frequently. This information is sourced from{" "}
+      <a href="https://passportindex.org" target="_blank" rel="noopener noreferrer" className="underline">
+        Passport Index
+      </a>{" "}
+      and may not reflect the latest requirements. Always verify with the official immigration authority
+      before booking or travelling. Travel Pro accepts no responsibility for the accuracy of this information.
+    </div>
+  );
+}
+
 export default function SummaryPage({ params }: { params: Params }) {
   const { id } = use(params);
   const [copied, setCopied] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const posthog = usePostHog();
   const itinerary = useItinerary();
-  const { route, days, budget, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
   const travelers = useTripStore((s) => s.travelers);
+
+  // Early return for null itinerary — all hooks must be called above this line
+  if (!itinerary) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar isAuthenticated />
+        <div className="pt-32 text-center">
+          <p className="text-lg text-muted-foreground mb-4">Trip not found.</p>
+          <Link href="/dashboard" className="btn-primary inline-block">Back to dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { route, days, budget, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
 
   // Savings from date optimisation
   const flightTotal = flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
@@ -230,13 +257,20 @@ export default function SummaryPage({ params }: { params: Params }) {
                     <span className="font-medium text-sm text-foreground">{visa.country}</span>
                     <span className="text-xs text-muted-foreground">{visa.label}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    {visa.notes}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{visa.notes}</p>
+                  <a
+                    href={visa.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline mt-1 inline-block"
+                  >
+                    Verify: {visa.sourceLabel} →
+                  </a>
                 </div>
               </div>
             ))}
           </div>
+          <VisaDisclaimer />
         </motion.div>
 
         {/* Weather overview */}
