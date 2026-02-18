@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useState, useRef, useCallback } from "react";
+import { use, useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { Edit3, Download, ChevronUp, ChevronDown, Clock, Plane } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
 import RouteMapFallback from "@/components/map/RouteMapFallback";
@@ -36,10 +37,16 @@ export default function TripPage({ params }: { params: Params }) {
   const itinerary = useItinerary();
   const { route, days, budget, visaData, weatherData } = itinerary;
 
+  const posthog = usePostHog();
   const [activeCityIndex, setActiveCityIndex] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"visa" | "weather" | "budget">("visa");
   const dayRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    posthog?.capture("itinerary_viewed", { trip_id: id, city_count: route.length });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // Derive trip metadata from itinerary
   const countries = [...new Set(route.map((r) => r.country))];

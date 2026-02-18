@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Plane, Share2 } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
@@ -13,6 +14,8 @@ type Params = Promise<{ id: string }>;
 export default function SummaryPage({ params }: { params: Params }) {
   const { id } = use(params);
   const [copied, setCopied] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const posthog = usePostHog();
   const itinerary = useItinerary();
   const { route, days, budget, visaData, weatherData } = itinerary;
 
@@ -23,17 +26,28 @@ export default function SummaryPage({ params }: { params: Params }) {
   const firstDate = days[0]?.date ?? "";
   const lastDate = days[days.length - 1]?.date ?? "";
 
-  const handleShareLink = () => {
-    navigator.clipboard
-      .writeText(`${window.location.origin}/trip/${id}`)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
-      })
-      .catch(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
-      });
+  const handleShareLink = async () => {
+    setIsSharing(true);
+    try {
+      // Get (or create) the public share token
+      const res = await fetch(`/api/v1/trips/${id}/share`);
+      let shareUrl = `${window.location.origin}/trip/${id}`;
+      if (res.ok) {
+        const { shareToken } = await res.json();
+        if (shareToken) {
+          shareUrl = `${window.location.origin}/share/${shareToken}`;
+          posthog?.capture("share_link_created", { trip_id: id });
+        }
+      }
+      await navigator.clipboard.writeText(shareUrl);
+      posthog?.capture("share_link_copied", { trip_id: id, shareUrl });
+    } catch {
+      // Fall back gracefully
+    } finally {
+      setIsSharing(false);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    }
   };
 
   const today = new Date().toLocaleDateString("en-GB", {
@@ -57,22 +71,25 @@ export default function SummaryPage({ params }: { params: Params }) {
             &larr; Back to itinerary
           </Link>
           <div className="flex gap-3">
-            <PDFDownloadButton
-              days={days}
-              route={route}
-              budget={budget}
-              visas={visaData}
-              weather={weatherData}
-              tripTitle={tripTitle}
-              tripSubtitle={`${firstDate} – ${lastDate} · ${totalDays} days`}
-              fileName={`TravelPro-${countries.join("-")}.pdf`}
-            />
+            <div onClick={() => posthog?.capture("pdf_export_clicked", { trip_id: id })}>
+              <PDFDownloadButton
+                days={days}
+                route={route}
+                budget={budget}
+                visas={visaData}
+                weather={weatherData}
+                tripTitle={tripTitle}
+                tripSubtitle={`${firstDate} – ${lastDate} · ${totalDays} days`}
+                fileName={`TravelPro-${countries.join("-")}.pdf`}
+              />
+            </div>
             <button
               onClick={handleShareLink}
-              className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5"
+              disabled={isSharing}
+              className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5 disabled:opacity-60"
             >
               <Share2 className="w-4 h-4" />
-              {copied ? "Copied!" : "Share Link"}
+              {isSharing ? "Getting link..." : copied ? "Copied!" : "Share Link"}
             </button>
           </div>
         </div>

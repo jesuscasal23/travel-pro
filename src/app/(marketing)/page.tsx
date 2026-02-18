@@ -24,6 +24,12 @@ const features = [
     description:
       "Know your visa requirements and estimated costs before you book",
   },
+  {
+    emoji: "🧳",
+    title: "Zero Throwaway Work",
+    description:
+      "Every edit refines your plan and builds on the last version — nothing gets lost",
+  },
 ];
 
 const testimonials = [
@@ -175,7 +181,7 @@ export default function LandingPage() {
       {/* Feature Cards Section */}
       <section className="py-20 bg-secondary">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -289,13 +295,17 @@ export default function LandingPage() {
             © 2026 Travel Pro. AI-powered travel planning.
           </span>
           <div className="flex gap-6">
-            {["About", "Privacy", "Contact"].map((link) => (
+            {[
+              { label: "About", href: "#" },
+              { label: "Privacy", href: "/privacy" },
+              { label: "Contact", href: "mailto:hello@travelpro.app" },
+            ].map(({ label, href }) => (
               <a
-                key={link}
-                href="#"
+                key={label}
+                href={href}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                {link}
+                {label}
               </a>
             ))}
           </div>

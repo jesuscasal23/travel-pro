@@ -1,7 +1,7 @@
 // ============================================================
 // Travel Pro — GET/POST /api/trips
 //
-// GET  — List all trips with itineraries (newest first)
+// GET  — List all trips with active itinerary (newest first)
 // POST — Create a new trip (optionally with itinerary data)
 // ============================================================
 
@@ -30,7 +30,13 @@ export async function GET() {
   try {
     const trips = await getPrisma().trip.findMany({
       orderBy: { createdAt: "desc" },
-      include: { itinerary: true },
+      include: {
+        itineraries: {
+          where: { isActive: true },
+          orderBy: { version: "desc" },
+          take: 1,
+        },
+      },
     });
 
     return NextResponse.json({ trips });
@@ -79,15 +85,18 @@ export async function POST(req: NextRequest) {
         travelers,
         ...(itineraryData
           ? {
-              itinerary: {
-                create: {
-                  data: itineraryData,
-                },
+              itineraries: {
+                create: { data: itineraryData },
               },
             }
           : {}),
       },
-      include: { itinerary: true },
+      include: {
+        itineraries: {
+          where: { isActive: true },
+          take: 1,
+        },
+      },
     });
 
     return NextResponse.json({ trip }, { status: 201 });

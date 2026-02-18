@@ -1,9 +1,9 @@
 // ============================================================
 // Travel Pro — GET/PUT/DELETE /api/trips/[id]
 //
-// GET    — Fetch a single trip by ID (with itinerary)
+// GET    — Fetch a single trip by ID (with active itinerary)
 // PUT    — Upsert itinerary data for a trip
-// DELETE — Delete a trip and its itinerary
+// DELETE — Delete a trip and its itineraries
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -29,7 +29,13 @@ export async function GET(
   try {
     const trip = await getPrisma().trip.findUnique({
       where: { id },
-      include: { itinerary: true },
+      include: {
+        itineraries: {
+          where: { isActive: true },
+          orderBy: { version: "desc" },
+          take: 1,
+        },
+      },
     });
 
     if (!trip) {
@@ -75,18 +81,24 @@ export async function PUT(
   const { itineraryData } = parsed.data;
 
   try {
-    // Verify the trip exists
     const trip = await getPrisma().trip.findUnique({ where: { id } });
     if (!trip) {
       return NextResponse.json({ error: "Trip not found" }, { status: 404 });
     }
 
-    // Upsert the itinerary
-    const itinerary = await getPrisma().itinerary.upsert({
-      where: { tripId: id },
-      create: { tripId: id, data: itineraryData },
-      update: { data: itineraryData },
+    // Find existing active itinerary or create a new one
+    const existing = await getPrisma().itinerary.findFirst({
+      where: { tripId: id, isActive: true },
     });
+
+    const itinerary = existing
+      ? await getPrisma().itinerary.update({
+          where: { id: existing.id },
+          data: { data: itineraryData },
+        })
+      : await getPrisma().itinerary.create({
+          data: { tripId: id, data: itineraryData },
+        });
 
     return NextResponse.json({ itinerary });
   } catch (error) {
@@ -107,13 +119,11 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    // Verify the trip exists
     const trip = await getPrisma().trip.findUnique({ where: { id } });
     if (!trip) {
       return NextResponse.json({ error: "Trip not found" }, { status: 404 });
     }
 
-    // Delete itinerary first (if exists), then delete the trip
     await getPrisma().itinerary.deleteMany({ where: { tripId: id } });
     await getPrisma().trip.delete({ where: { id } });
 

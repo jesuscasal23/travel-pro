@@ -1,30 +1,42 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
-  // Prevent the page from being embedded in an iframe (clickjacking protection)
   { key: "X-Frame-Options", value: "DENY" },
-  // Prevent MIME-type sniffing
   { key: "X-Content-Type-Options", value: "nosniff" },
-  // Limit referrer information sent to third-party sites
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // Disable browser features not used by this app
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Next.js App Router requires unsafe-inline for its runtime scripts.
-      // unsafe-eval is needed by Next.js in development; consider removing in production builds.
+      // Next.js App Router requires unsafe-inline; unsafe-eval needed in dev
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
-      // Mapbox tiles and local assets
-      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org",
-      // External API connections: Mapbox, Supabase, Open-Meteo weather
-      "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.supabase.co https://api.open-meteo.com",
-      // Mapbox GL uses Web Workers via blob: URLs
+      // Mapbox tiles, Mapbox Static Images API (for PDF), local assets
+      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com",
+      // External API connections
+      [
+        "connect-src 'self'",
+        "https://api.mapbox.com",
+        "https://events.mapbox.com",
+        "https://*.supabase.co",
+        "https://api.open-meteo.com",
+        // PostHog analytics (EU region)
+        "https://eu.posthog.com",
+        "https://eu-assets.i.posthog.com",
+        // Sentry error reporting (*.de.sentry.io for EU region ingest)
+        "https://*.sentry.io",
+        "https://*.de.sentry.io",
+        "https://sentry.io",
+        // Resend email (server-side only, but include for CSP completeness)
+        "https://api.resend.com",
+      ].join(" "),
+      // MapLibre GL uses Web Workers via blob: URLs
       "worker-src blob:",
-      "font-src 'self'",
+      "font-src 'self' https://fonts.gstatic.com",
+      "frame-src 'none'",
     ].join("; "),
   },
 ];
@@ -38,6 +50,31 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // PostHog rewrites to avoid ad blockers (optional but recommended)
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://eu.posthog.com/:path*",
+      },
+    ];
+  },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Upload source maps during Vercel build (SENTRY_AUTH_TOKEN must be set)
+  silent: !process.env.CI,
+  // Automatically tree-shake Sentry logger in production
+  disableLogger: true,
+  // Hide source maps from the public bundle after upload
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+});

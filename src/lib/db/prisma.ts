@@ -17,3 +17,14 @@ export function getPrisma(): PrismaClient {
 
   return client;
 }
+
+/**
+ * Named export convenience alias.
+ * Uses a Proxy so PrismaClient is only instantiated on first property access,
+ * keeping the build-time safety guarantee.
+ */
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return Reflect.get(getPrisma(), prop);
+  },
+});
