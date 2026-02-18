@@ -127,6 +127,8 @@ export interface Itinerary {
   weatherData: CityWeather[];
   /** Real flight legs populated when Amadeus optimization succeeds */
   flightLegs?: ItineraryFlightLeg[];
+  /** Average cost across all evaluated date combinations — used to show savings vs optimized cost */
+  flightBaselineCost?: number;
 }
 
 /** Profile data collected during onboarding */

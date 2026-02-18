@@ -19,8 +19,15 @@ export default function SummaryPage({ params }: { params: Params }) {
   const [isSharing, setIsSharing] = useState(false);
   const posthog = usePostHog();
   const itinerary = useItinerary();
-  const { route, days, budget, visaData, weatherData, flightLegs } = itinerary;
+  const { route, days, budget, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
   const travelers = useTripStore((s) => s.travelers);
+
+  // Savings from date optimisation
+  const flightTotal = flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
+  const savedAmount =
+    flightBaselineCost && flightTotal > 0 && flightBaselineCost > flightTotal
+      ? Math.round(flightBaselineCost - flightTotal)
+      : null;
 
   // Derive trip metadata
   const countries = [...new Set(route.map((r) => r.country))];
@@ -256,16 +263,28 @@ export default function SummaryPage({ params }: { params: Params }) {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-foreground">Flights</h2>
-            {flightLegs ? (
-              <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">
-                Optimized prices
-              </span>
-            ) : (
-              <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                Estimated
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {savedAmount && (
+                <span className="text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                  Saved ~€{savedAmount.toLocaleString()}
+                </span>
+              )}
+              {flightLegs ? (
+                <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">
+                  Optimized prices
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                  Estimated
+                </span>
+              )}
+            </div>
           </div>
+          {savedAmount && (
+            <p className="text-xs text-muted-foreground mb-3">
+              Date optimisation found a combination ~€{savedAmount.toLocaleString()} cheaper than the average across all valid date options.
+            </p>
+          )}
 
           {flightLegs ? (
             <div className="space-y-2">

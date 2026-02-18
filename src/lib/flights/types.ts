@@ -40,4 +40,6 @@ export interface FlightSkeleton {
   legs: OptimizedLeg[];     // outbound + inter-city + return
   totalFlightCost: number;  // sum of all leg prices in EUR
   dayAssignment: number[];  // days per city (same order as cities input)
+  /** Average cost across all valid date assignments; absent when only one assignment exists */
+  baselineCost?: number;
 }

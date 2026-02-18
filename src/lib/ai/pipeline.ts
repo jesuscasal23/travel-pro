@@ -273,7 +273,10 @@ export async function generateItinerary(
     weatherData,
     // Attach real flight legs when optimization succeeded (skeleton.totalFlightCost > 0)
     ...(skeleton && skeleton.totalFlightCost > 0
-      ? { flightLegs: skeleton.legs }
+      ? {
+          flightLegs: skeleton.legs,
+          ...(skeleton.baselineCost ? { flightBaselineCost: skeleton.baselineCost } : {}),
+        }
       : {}),
   };
 

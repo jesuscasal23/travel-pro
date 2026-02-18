@@ -121,6 +121,8 @@ export async function optimizeFlights(
   // ── Find cheapest feasible assignment ───────────────────────
   let bestCost = Infinity;
   let bestAssignment = assignments[0];
+  let validCostSum = 0;
+  let validCostCount = 0;
 
   for (const assignment of assignments) {
     let cost = 0;
@@ -145,11 +147,20 @@ export async function optimizeFlights(
     const ret = priceMap.get(`${cities[N - 1].iataCode}:${homeIata}:${returnDate}`);
     if (!ret) { ok = false; } else cost += ret.price;
 
-    if (ok && cost < bestCost) {
-      bestCost = cost;
-      bestAssignment = assignment;
+    if (ok) {
+      validCostSum += cost;
+      validCostCount++;
+      if (cost < bestCost) {
+        bestCost = cost;
+        bestAssignment = assignment;
+      }
     }
   }
+
+  // Average cost across all valid assignments — baseline for savings display
+  const averageCost = validCostCount > 1
+    ? Math.round(validCostSum / validCostCount)
+    : undefined;
 
   // ── Build leg objects ────────────────────────────────────────
   function makeLeg(
@@ -211,5 +222,9 @@ export async function optimizeFlights(
     legs,
     totalFlightCost: bestCost === Infinity ? 0 : bestCost,
     dayAssignment: bestAssignment,
+    // Only set when we actually found a cheaper combination than average
+    ...(averageCost !== undefined && bestCost !== Infinity && averageCost > bestCost
+      ? { baselineCost: averageCost }
+      : {}),
   };
 }
