@@ -8,6 +8,7 @@ import type {
   Airport,
   Region,
   InterestOption,
+  Itinerary,
 } from "@/types";
 
 // ============================================================
@@ -273,6 +274,18 @@ export const sampleWeather: CityWeather[] = [
   { city: "Chiang Mai", temp: "29°C", condition: "Warm", icon: "☀️" },
   { city: "Phuket", temp: "31°C", condition: "Tropical", icon: "🌴" },
 ];
+
+// ============================================================
+// Full sample itinerary — combines all pieces for demo fallback
+// ============================================================
+
+export const sampleFullItinerary: Itinerary = {
+  route: sampleRoute,
+  days: sampleItinerary,
+  budget: sampleBudget,
+  visaData: sampleVisas,
+  weatherData: sampleWeather,
+};
 
 // ============================================================
 // Dashboard — saved trips

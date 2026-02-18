@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
-import { regions } from "@/data/sampleData";
+import { regions, sampleFullItinerary } from "@/data/sampleData";
 import { Badge } from "@/components/ui";
 import { Navbar } from "@/components/Navbar";
-import type { TripVibe } from "@/types";
+import type { TripVibe, Itinerary } from "@/types";
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
@@ -45,14 +45,24 @@ export default function PlanPage() {
     travelers, setTravelers,
     isGenerating, setIsGenerating,
     generationStep, setGenerationStep,
+    nationality, homeAirport, travelStyle, interests,
+    setCurrentTripId, setItinerary,
   } = useTripStore();
+
+  // Ref to hold the API result while animation plays
+  const apiResultRef = useRef<Itinerary | null>(null);
+  const apiDoneRef = useRef(false);
 
   // Advance generation steps and navigate when done
   useEffect(() => {
     if (!isGenerating) return;
     if (generationStep >= 5) {
       const timeout = setTimeout(() => {
-        router.push("/trip/japan-vietnam-thailand-2026");
+        // Store whichever itinerary we got (API result or sample fallback)
+        const itinerary = apiResultRef.current ?? sampleFullItinerary;
+        setItinerary(itinerary);
+        const tripId = useTripStore.getState().currentTripId || "japan-vietnam-thailand-2026";
+        router.push(`/trip/${tripId}`);
       }, 600);
       return () => clearTimeout(timeout);
     }
@@ -60,11 +70,55 @@ export default function PlanPage() {
       setGenerationStep(generationStep + 1);
     }, 3500);
     return () => clearInterval(interval);
-  }, [isGenerating, generationStep, setGenerationStep, router]);
+  }, [isGenerating, generationStep, setGenerationStep, setItinerary, router]);
+
+  const callGenerateAPI = useCallback(async () => {
+    const tripId = `trip-${Date.now()}`;
+    setCurrentTripId(tripId);
+
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            nationality,
+            homeAirport,
+            travelStyle,
+            interests,
+          },
+          tripIntent: {
+            id: tripId,
+            region,
+            dateStart,
+            dateEnd,
+            flexibleDates,
+            budget,
+            vibe,
+            travelers,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.itinerary) {
+          apiResultRef.current = data.itinerary;
+        }
+      } else {
+        console.warn("[plan] API returned error, will use sample data");
+      }
+    } catch (err) {
+      console.warn("[plan] API call failed, will use sample data:", err);
+    }
+    apiDoneRef.current = true;
+  }, [nationality, homeAirport, travelStyle, interests, region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers, setCurrentTripId]);
 
   const handleGenerate = () => {
     setIsGenerating(true);
     setGenerationStep(0);
+    // Fire API call in background — animation plays regardless
+    callGenerateAPI();
   };
 
   const dayCount = (() => {

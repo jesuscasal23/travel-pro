@@ -6,60 +6,55 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { Edit3, Download, ChevronUp, ChevronDown, Clock, Plane } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import {
-  sampleRoute,
-  sampleItinerary,
-  sampleBudget,
-  sampleVisas,
-  sampleWeather,
-} from "@/data/sampleData";
+import { useItinerary } from "@/hooks/useItinerary";
 import RouteMapFallback from "@/components/map/RouteMapFallback";
+import type { CityStop } from "@/types";
 
 // Mapbox map loaded only on the client — mapbox-gl does not support SSR
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
   ssr: false,
   loading: () => (
-    <RouteMapFallback
-      cities={sampleRoute}
-      activeCityIndex={null}
-      onCityClick={() => {}}
-    />
+    <div className="w-full h-64 bg-secondary rounded-xl flex items-center justify-center text-muted-foreground">
+      Loading map...
+    </div>
   ),
 });
 
-// City → timeline dot color
-const getCityColor = (city: string): string => {
-  const map: Record<string, string> = {
-    Tokyo: "bg-primary",
-    Kyoto: "bg-primary",
-    Hanoi: "bg-accent",
-    "Ha Long Bay": "bg-accent",
-    Bangkok: "bg-primary",
-    "Chiang Mai": "bg-primary",
-    Phuket: "bg-accent",
-  };
-  return map[city] ?? "bg-primary";
+// City → timeline dot color based on country
+const getCityColor = (city: string, route: CityStop[]): string => {
+  const stop = route.find((r) => r.city === city);
+  if (!stop) return "bg-primary";
+  const countries = [...new Set(route.map((r) => r.country))];
+  const countryIdx = countries.indexOf(stop.country);
+  return countryIdx % 2 === 0 ? "bg-primary" : "bg-accent";
 };
 
 type Params = Promise<{ id: string }>;
 
 export default function TripPage({ params }: { params: Params }) {
   const { id } = use(params);
+  const itinerary = useItinerary();
+  const { route, days, budget, visaData, weatherData } = itinerary;
 
   const [activeCityIndex, setActiveCityIndex] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"visa" | "weather" | "budget">("visa");
   const dayRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Derive trip metadata from itinerary
+  const countries = [...new Set(route.map((r) => r.country))];
+  const tripTitle = countries.join(", ");
+  const totalDays = days.length;
+
   // Map pin click → set active city + scroll timeline to first day of that city
   const handleCityClick = useCallback((index: number) => {
     setActiveCityIndex(index);
-    const city = sampleRoute[index]?.city;
-    const dayIndex = sampleItinerary.findIndex((d) => d.city === city);
+    const city = route[index]?.city;
+    const dayIndex = days.findIndex((d) => d.city === city);
     if (dayIndex >= 0) {
       dayRefs.current[dayIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, []);
+  }, [route, days]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,10 +63,10 @@ export default function TripPage({ params }: { params: Params }) {
       {/* Fixed top bar — sits below navbar (top-16) */}
       <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-foreground">Japan, Vietnam &amp; Thailand</h1>
+          <h1 className="text-lg font-bold text-foreground">{tripTitle}</h1>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">
-              22 days · 3 countries · Est. €8,400
+              {totalDays} days · {countries.length} {countries.length === 1 ? "country" : "countries"} · Est. €{budget.total.toLocaleString()}
             </span>
             <Link
               href={`/trip/${id}/edit`}
@@ -95,7 +90,7 @@ export default function TripPage({ params }: { params: Params }) {
         {/* Left panel — 40%, sticky */}
         <div className="lg:w-[40%] bg-secondary p-6 lg:sticky lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)] overflow-auto">
           <RouteMap
-            cities={sampleRoute}
+            cities={route}
             activeCityIndex={activeCityIndex}
             onCityClick={handleCityClick}
           />
@@ -140,7 +135,7 @@ export default function TripPage({ params }: { params: Params }) {
                 {/* Visa tab */}
                 {activeTab === "visa" && (
                   <div className="space-y-2">
-                    {sampleVisas.map((visa) => (
+                    {visaData.map((visa) => (
                       <div
                         key={visa.countryCode}
                         className="flex items-center gap-3 p-3 bg-background rounded-lg"
@@ -158,7 +153,7 @@ export default function TripPage({ params }: { params: Params }) {
                 {/* Weather tab */}
                 {activeTab === "weather" && (
                   <div className="space-y-2">
-                    {sampleWeather.map((w) => (
+                    {weatherData.map((w) => (
                       <div
                         key={w.city}
                         className="flex items-center justify-between p-3 bg-background rounded-lg"
@@ -179,7 +174,7 @@ export default function TripPage({ params }: { params: Params }) {
                 {/* Budget tab */}
                 {activeTab === "budget" && (
                   <div className="space-y-3">
-                    {(Object.entries(sampleBudget) as [string, number][])
+                    {(Object.entries(budget) as [string, number][])
                       .filter(([k]) => k !== "total" && k !== "budget")
                       .map(([key, value]) => (
                         <div key={key} className="space-y-1">
@@ -192,7 +187,7 @@ export default function TripPage({ params }: { params: Params }) {
                           <div className="h-2 bg-background rounded-full overflow-hidden">
                             <div
                               className="h-full bg-primary rounded-full"
-                              style={{ width: `${(value / sampleBudget.budget) * 100}%` }}
+                              style={{ width: `${(value / budget.budget) * 100}%` }}
                             />
                           </div>
                         </div>
@@ -200,11 +195,13 @@ export default function TripPage({ params }: { params: Params }) {
                     <div className="pt-3 border-t border-border flex justify-between">
                       <span className="font-semibold text-foreground">Total</span>
                       <span className="font-bold text-foreground">
-                        €{sampleBudget.total.toLocaleString()}
+                        €{budget.total.toLocaleString()}
                       </span>
                     </div>
                     <div className="text-sm text-primary font-medium">
-                      ✓ €{(sampleBudget.budget - sampleBudget.total).toLocaleString()} under budget
+                      {budget.budget - budget.total > 0
+                        ? `✓ €${(budget.budget - budget.total).toLocaleString()} under budget`
+                        : `⚠ €${(budget.total - budget.budget).toLocaleString()} over budget`}
                     </div>
                   </div>
                 )}
@@ -220,8 +217,8 @@ export default function TripPage({ params }: { params: Params }) {
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
 
             <div className="space-y-6">
-              {sampleItinerary.map((day, i) => {
-                const cityIndex = sampleRoute.findIndex((c) => c.city === day.city);
+              {days.map((day, i) => {
+                const cityIndex = route.findIndex((c) => c.city === day.city);
                 const isActive = activeCityIndex !== null && activeCityIndex === cityIndex;
 
                 return (
@@ -235,7 +232,7 @@ export default function TripPage({ params }: { params: Params }) {
                   >
                     {/* City-colored dot on timeline line */}
                     <div
-                      className={`absolute left-2.5 top-3 w-3 h-3 rounded-full ring-2 ring-background ${getCityColor(day.city)}`}
+                      className={`absolute left-2.5 top-3 w-3 h-3 rounded-full ring-2 ring-background ${getCityColor(day.city, route)}`}
                     />
 
                     {/* Travel day banner */}

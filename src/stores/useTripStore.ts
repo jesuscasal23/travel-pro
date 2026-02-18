@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TravelStyle, TripVibe } from "@/types";
+import type { TravelStyle, TripVibe, Itinerary } from "@/types";
 
 interface TripStoreState {
   // Onboarding
@@ -23,6 +23,10 @@ interface TripStoreState {
   // Generation
   isGenerating: boolean;
   generationStep: number;
+
+  // Result
+  currentTripId: string;
+  itinerary: Itinerary | null;
 
   // Display
   displayName: string;
@@ -50,6 +54,10 @@ interface TripStoreActions {
   setIsGenerating: (generating: boolean) => void;
   setGenerationStep: (step: number) => void;
 
+  // Result
+  setCurrentTripId: (id: string) => void;
+  setItinerary: (itinerary: Itinerary | null) => void;
+
   // Display
   setDisplayName: (name: string) => void;
 
@@ -68,6 +76,8 @@ const initialPlanState = {
   travelers: 2,
   isGenerating: false,
   generationStep: 0,
+  currentTripId: "",
+  itinerary: null,
 };
 
 export const useTripStore = create<TripStoreState & TripStoreActions>()(
@@ -109,6 +119,10 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Generation actions
       setIsGenerating: (generating) => set({ isGenerating: generating }),
       setGenerationStep: (step) => set({ generationStep: step }),
+
+      // Result actions
+      setCurrentTripId: (id) => set({ currentTripId: id }),
+      setItinerary: (itinerary) => set({ itinerary }),
 
       // Display
       setDisplayName: (name) => set({ displayName: name }),

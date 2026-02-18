@@ -5,19 +5,22 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Plane, Share2, Download } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import {
-  sampleRoute,
-  sampleItinerary,
-  sampleBudget,
-  sampleVisas,
-  sampleWeather,
-} from "@/data/sampleData";
+import { useItinerary } from "@/hooks/useItinerary";
 
 type Params = Promise<{ id: string }>;
 
 export default function SummaryPage({ params }: { params: Params }) {
   const { id } = use(params);
   const [copied, setCopied] = useState(false);
+  const itinerary = useItinerary();
+  const { route, days, budget, visaData, weatherData } = itinerary;
+
+  // Derive trip metadata
+  const countries = [...new Set(route.map((r) => r.country))];
+  const tripTitle = countries.join(", ");
+  const totalDays = days.length;
+  const firstDate = days[0]?.date ?? "";
+  const lastDate = days[days.length - 1]?.date ?? "";
 
   const handleShareLink = () => {
     navigator.clipboard
@@ -27,7 +30,6 @@ export default function SummaryPage({ params }: { params: Params }) {
         setTimeout(() => setCopied(false), 3000);
       })
       .catch(() => {
-        // Fallback for environments where clipboard API is unavailable
         setCopied(true);
         setTimeout(() => setCopied(false), 3000);
       });
@@ -55,7 +57,7 @@ export default function SummaryPage({ params }: { params: Params }) {
             href={`/trip/${id}`}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Back to itinerary
+            &larr; Back to itinerary
           </Link>
           <div className="flex gap-3">
             <button
@@ -76,8 +78,10 @@ export default function SummaryPage({ params }: { params: Params }) {
 
         {/* Title block */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-foreground">Japan, Vietnam &amp; Thailand</h1>
-          <p className="text-muted-foreground mt-1">Oct 1 – Oct 22, 2026 · 22 days · 2 travelers</p>
+          <h1 className="text-3xl font-bold text-foreground">{tripTitle}</h1>
+          <p className="text-muted-foreground mt-1">
+            {firstDate} &ndash; {lastDate} &middot; {totalDays} days
+          </p>
         </motion.div>
 
         {/* Route overview card */}
@@ -89,7 +93,7 @@ export default function SummaryPage({ params }: { params: Params }) {
         >
           <h2 className="font-semibold text-foreground mb-4">Route</h2>
           <div className="flex items-center gap-2 flex-wrap">
-            {sampleRoute.map((city, i) => (
+            {route.map((city, i) => (
               <div key={city.id} className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
                   <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -98,7 +102,7 @@ export default function SummaryPage({ params }: { params: Params }) {
                   <span className="text-sm font-medium text-foreground">{city.city}</span>
                   <span className="text-xs text-muted-foreground">({city.days}d)</span>
                 </div>
-                {i < sampleRoute.length - 1 && (
+                {i < route.length - 1 && (
                   <Plane className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                 )}
               </div>
@@ -126,14 +130,14 @@ export default function SummaryPage({ params }: { params: Params }) {
                 </tr>
               </thead>
               <tbody>
-                {sampleItinerary.map((day) => (
+                {days.map((day) => (
                   <tr key={day.day} className="border-t border-border">
                     <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{day.day}</td>
                     <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{day.city}</td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                       {day.isTravel && (
                         <span className="text-primary text-xs mr-2">
-                          ✈ {day.travelFrom} → {day.travelTo}
+                          ✈ {day.travelFrom} &rarr; {day.travelTo}
                         </span>
                       )}
                       <span className="text-xs">
@@ -156,21 +160,23 @@ export default function SummaryPage({ params }: { params: Params }) {
         >
           <h2 className="font-semibold text-foreground mb-4">Budget Breakdown</h2>
           <div className="space-y-2">
-            {(Object.entries(sampleBudget) as [string, number][])
+            {(Object.entries(budget) as [string, number][])
               .filter(([k]) => k !== "total" && k !== "budget")
               .map(([key, value]) => (
                 <div key={key} className="flex justify-between text-sm">
                   <span className="capitalize text-muted-foreground">{key}</span>
-                  <span className="font-medium text-foreground">€{value.toLocaleString()}</span>
+                  <span className="font-medium text-foreground">&euro;{value.toLocaleString()}</span>
                 </div>
               ))}
           </div>
           <div className="pt-3 mt-2 border-t border-border flex justify-between">
             <span className="font-bold text-foreground">Total</span>
-            <span className="font-bold text-foreground">€{sampleBudget.total.toLocaleString()}</span>
+            <span className="font-bold text-foreground">&euro;{budget.total.toLocaleString()}</span>
           </div>
           <div className="mt-2 text-sm text-primary font-medium">
-            ✓ €{(sampleBudget.budget - sampleBudget.total).toLocaleString()} under budget
+            {budget.budget - budget.total > 0
+              ? `✓ €${(budget.budget - budget.total).toLocaleString()} under budget`
+              : `⚠ €${(budget.total - budget.budget).toLocaleString()} over budget`}
           </div>
         </motion.div>
 
@@ -183,7 +189,7 @@ export default function SummaryPage({ params }: { params: Params }) {
         >
           <h2 className="font-semibold text-foreground mb-4">Visa Requirements</h2>
           <div className="space-y-3">
-            {sampleVisas.map((visa) => (
+            {visaData.map((visa) => (
               <div key={visa.countryCode} className="flex items-start gap-3">
                 <span className="text-xl flex-shrink-0">{visa.icon}</span>
                 <div className="flex-1 min-w-0">
@@ -209,7 +215,7 @@ export default function SummaryPage({ params }: { params: Params }) {
         >
           <h2 className="font-semibold text-foreground mb-4">Weather Overview</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {sampleWeather.map((w) => (
+            {weatherData.map((w) => (
               <div key={w.city} className="text-center p-3 bg-secondary rounded-lg">
                 <div className="text-2xl mb-1">{w.icon}</div>
                 <div className="text-xs font-semibold text-foreground">{w.city}</div>
@@ -244,7 +250,7 @@ export default function SummaryPage({ params }: { params: Params }) {
                 <div className="text-2xl mb-2">{item.emoji}</div>
                 <div className="font-medium text-sm text-foreground">{item.name}</div>
                 <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                  {item.provider} →
+                  {item.provider} &rarr;
                 </div>
               </a>
             ))}
@@ -253,7 +259,7 @@ export default function SummaryPage({ params }: { params: Params }) {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-muted-foreground">
-          <p>Generated by Travel Pro — travelpro.app</p>
+          <p>Generated by Travel Pro &mdash; travelpro.app</p>
           <p>Generated on {today}</p>
         </div>
       </div>
@@ -266,7 +272,7 @@ export default function SummaryPage({ params }: { params: Params }) {
           exit={{ opacity: 0, y: 16 }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-foreground text-background px-5 py-2.5 rounded-lg text-sm font-medium shadow-lg z-50 whitespace-nowrap"
         >
-          Link copied! ✅
+          Link copied!
         </motion.div>
       )}
     </div>

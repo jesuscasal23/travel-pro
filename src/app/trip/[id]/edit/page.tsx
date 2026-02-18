@@ -5,16 +5,17 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, GripVertical, Minus, Plus, X, Save } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { sampleRoute, sampleBudget } from "@/data/sampleData";
+import { useItinerary } from "@/hooks/useItinerary";
 import type { CityStop } from "@/types";
 
 type Params = Promise<{ id: string }>;
 
 export default function EditPage({ params }: { params: Params }) {
   const { id } = use(params);
+  const itinerary = useItinerary();
 
   // Local copy of cities — modifications don't persist for Phase 0
-  const [cities, setCities] = useState<CityStop[]>([...sampleRoute]);
+  const [cities, setCities] = useState<CityStop[]>([...itinerary.route]);
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
 
   const updateDays = (cityId: string, delta: number) => {
@@ -153,7 +154,7 @@ export default function EditPage({ params }: { params: Params }) {
         <div className="mt-8 card-travel bg-background">
           <h3 className="font-semibold text-foreground mb-4">Budget Impact</h3>
           <div className="space-y-2">
-            {(Object.entries(sampleBudget) as [string, number][])
+            {(Object.entries(itinerary.budget) as [string, number][])
               .filter(([k]) => k !== "total" && k !== "budget")
               .map(([k, v]) => (
                 <div key={k} className="flex justify-between text-sm">
@@ -164,7 +165,7 @@ export default function EditPage({ params }: { params: Params }) {
           </div>
           <div className="pt-3 mt-2 border-t border-border flex justify-between">
             <span className="font-semibold text-foreground">Total</span>
-            <span className="font-bold text-accent">€{sampleBudget.total.toLocaleString()}</span>
+            <span className="font-bold text-accent">€{itinerary.budget.total.toLocaleString()}</span>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             Budget figures will update when you save changes.

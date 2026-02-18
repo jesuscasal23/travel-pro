@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import Map, { Marker, Popup, Source, Layer } from "react-map-gl/mapbox";
-import type { MapRef } from "react-map-gl/mapbox";
-import "mapbox-gl/dist/mapbox-gl.css";
+import Map, { Marker, Popup, Source, Layer } from "react-map-gl/maplibre";
+import type { MapRef } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import type { CityStop } from "@/types";
 
 interface RouteMapProps {
@@ -12,7 +12,8 @@ interface RouteMapProps {
   onCityClick: (index: number) => void;
 }
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+// Free CARTO Positron style — clean light basemap, no API key required
+const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 export default function RouteMap({ cities, activeCityIndex, onCityClick }: RouteMapProps) {
   const mapRef = useRef<MapRef>(null);
@@ -54,25 +55,11 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
     });
   }, [activeCityIndex, cities]);
 
-  if (!MAPBOX_TOKEN) {
-    return (
-      <div
-        className="rounded-xl bg-secondary border border-border flex items-center justify-center"
-        style={{ height: "360px" }}
-      >
-        <p className="text-muted-foreground text-sm text-center px-4">
-          Map unavailable — set NEXT_PUBLIC_MAPBOX_TOKEN
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="rounded-xl overflow-hidden" style={{ height: "360px" }}>
       <Map
         ref={mapRef}
-        mapboxAccessToken={MAPBOX_TOKEN}
-        mapStyle="mapbox://styles/mapbox/light-v11"
+        mapStyle={MAP_STYLE}
         initialViewState={{
           longitude: 115,
           latitude: 20,
