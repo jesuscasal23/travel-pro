@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,8 +31,10 @@ const inputClass =
 const errorClass = "mt-1 text-sm text-red-500";
 const labelClass = "block text-sm font-medium text-foreground mb-2";
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/onboarding";
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,7 +55,7 @@ export default function SignupPage() {
       email: data.email,
       password: data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
 
@@ -63,7 +65,7 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/onboarding");
+    router.push(next);
   };
 
   return (
@@ -142,7 +144,7 @@ export default function SignupPage() {
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href={`/login${next !== "/onboarding" ? `?next=${encodeURIComponent(next)}` : ""}`}
               className="text-primary font-medium hover:underline"
             >
               Sign in
@@ -151,5 +153,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }
