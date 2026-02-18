@@ -4,7 +4,7 @@ import { use, useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Edit3, Download, ChevronUp, ChevronDown, Clock, Plane } from "lucide-react";
+import { Edit3, LayoutList, ChevronUp, ChevronDown, Clock, Plane } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
@@ -91,7 +91,7 @@ export default function TripPage({ params }: { params: Params }) {
               href={`/trip/${id}/summary`}
               className="btn-primary text-sm py-1.5 px-3 flex items-center gap-1"
             >
-              <Download className="w-3.5 h-3.5" /> Export
+              <LayoutList className="w-3.5 h-3.5" /> Summary
             </Link>
           </div>
         </div>
