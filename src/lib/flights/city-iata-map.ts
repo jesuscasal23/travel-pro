@@ -51,7 +51,6 @@ export const CITY_IATA_MAP: Record<string, string> = {
   frankfurt: "FRA",
   munich: "MUC",
   hamburg: "HAM",
-  zurich: "ZRH",
   bern: "BRN",
   salzburg: "SZG",
   innsbruck: "INN",
@@ -69,7 +68,6 @@ export const CITY_IATA_MAP: Record<string, string> = {
   luxembourg: "LUX",
   valletta: "MLA",
   nicosia: "LCA",
-  reykjavik: "KEF",
   // ── East Asia ──────────────────────────────────────────────
   tokyo: "NRT",
   osaka: "KIX",
@@ -296,7 +294,7 @@ export const CITY_IATA_MAP: Record<string, string> = {
   oaxaca: "OAX",
   san_cristobal: "SZT",
   havana: "HAV",
-  "san jose": "SJO",
+  "san jose cr": "SJO",
   "san josé": "SJO",
   "panama city": "PTY",
   // ── South America ──────────────────────────────────────────

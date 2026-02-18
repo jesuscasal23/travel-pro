@@ -7,7 +7,8 @@ import { X, Download, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { ChipGroup } from "@/components/ui/Chip";
 import { useTripStore } from "@/stores/useTripStore";
-import { airports, nationalities, interestOptions } from "@/data/sampleData";
+import { nationalities, interestOptions } from "@/data/sampleData";
+import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import type { TravelStyle } from "@/types";
 
 const travelStyles: { id: TravelStyle; emoji: string; label: string }[] = [
@@ -102,9 +103,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className={labelClass}>Home Airport</label>
-                <select value={homeAirport} onChange={(e) => setHomeAirport(e.target.value)} className={inputClass}>
-                  {airports.map((a) => <option key={a.code} value={a.label}>{a.label}</option>)}
-                </select>
+                <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
               </div>
             </div>
           </section>
