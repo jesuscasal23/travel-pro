@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { optimizeFlights } from "@/lib/flights/optimizer";
 import { parseIataCode } from "@/lib/affiliate/link-generator";
+import { lookupIata } from "@/lib/flights/city-iata-map";
 import type { CityStop } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 
@@ -43,11 +44,22 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
     return NextResponse.json({ error: "Could not parse home airport IATA code" }, { status: 400 });
   }
 
-  // Cities must have iataCode populated (set by Stage A during generation)
-  const missingIata = route.filter((c) => !c.iataCode);
-  if (missingIata.length > 0) {
+  // Fill in any missing IATA codes from the static city lookup table
+  // (fallback for demo data and trips where Stage A didn't run)
+  const resolvedRoute: (CityStop & { iataCode: string })[] = [];
+  const stillMissing: string[] = [];
+  for (const stop of route) {
+    const iata = stop.iataCode ?? lookupIata(stop.city);
+    if (iata) {
+      resolvedRoute.push({ ...stop, iataCode: iata });
+    } else {
+      stillMissing.push(stop.city);
+    }
+  }
+
+  if (stillMissing.length > 0) {
     return NextResponse.json(
-      { error: `Missing IATA codes for: ${missingIata.map((c) => c.city).join(", ")}` },
+      { error: `Could not resolve IATA codes for: ${stillMissing.join(", ")}` },
       { status: 400 }
     );
   }
@@ -57,12 +69,12 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
   );
 
   // Give each city ±1 day of flexibility so the optimizer can find cheaper dates
-  const cities: CityWithDays[] = route.map((stop) => ({
+  const cities: CityWithDays[] = resolvedRoute.map((stop) => ({
     id: stop.id,
     city: stop.city,
     country: stop.country,
     countryCode: stop.countryCode,
-    iataCode: stop.iataCode!,
+    iataCode: stop.iataCode,
     lat: stop.lat,
     lng: stop.lng,
     minDays: Math.max(1, stop.days - 1),
