@@ -1,0 +1,73 @@
+// ============================================================
+// Travel Pro — Prisma Schema
+// Database: Supabase (PostgreSQL)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// Profile — collected during onboarding
+// ============================================================
+
+model Profile {
+  id          String   @id @default(uuid())
+  nationality String
+  homeAirport String   @map("home_airport")
+  travelStyle String   @map("travel_style")
+  interests   String[]
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  trips Trip[]
+
+  @@map("profiles")
+}
+
+// ============================================================
+// Trip — planning intent from questionnaire
+// ============================================================
+
+model Trip {
+  id            String   @id @default(uuid())
+  profileId     String?  @map("profile_id")
+  profile       Profile? @relation(fields: [profileId], references: [id])
+
+  region        String
+  dateStart     String   @map("date_start")
+  dateEnd       String   @map("date_end")
+  flexibleDates Boolean  @default(false) @map("flexible_dates")
+  budget        Int
+  vibe          String
+  travelers     Int      @default(2)
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  itinerary     Itinerary?
+
+  @@map("trips")
+}
+
+// ============================================================
+// Itinerary — AI-generated output, stored as JSONB
+// ============================================================
+
+model Itinerary {
+  id        String   @id @default(uuid())
+  tripId    String   @unique @map("trip_id")
+  trip      Trip     @relation(fields: [tripId], references: [id])
+
+  // Full itinerary (route + days + budget + visa + weather) stored as JSON
+  data      Json
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("itineraries")
+}

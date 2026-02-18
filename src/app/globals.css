@@ -1,26 +1,122 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Design System — Travel Pro
+   Tokens validated in Lovable prototype, adapted for Tailwind v4
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --primary: 181 80% 25%;           /* deep teal #0D7377 */
+  --primary-foreground: 0 0% 100%;
+  --accent: 7 78% 60%;              /* warm coral #E85D4A */
+  --accent-foreground: 0 0% 100%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;           /* near-black */
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 181 80% 25%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-hero: 0 8px 32px rgba(13, 115, 119, 0.25);
+}
+
+.dark {
+  --background: 0 0% 4%;
+  --foreground: 0 0% 93%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 60%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 93%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 93%;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-hero: var(--shadow-hero);
+
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================
+   Component Classes — ported from Lovable prototype
+   ============================================================ */
+
+@layer components {
+  .card-travel {
+    @apply bg-card rounded-xl p-6;
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground rounded-lg px-6 py-3 font-medium transition-all duration-200 inline-flex items-center justify-center;
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-foreground rounded-lg px-6 py-3 font-medium border border-border transition-all duration-200 inline-flex items-center justify-center;
+  }
+  .btn-ghost:hover {
+    @apply bg-muted;
+  }
+
+  .chip {
+    @apply px-4 py-2 rounded-full border border-border text-sm font-medium cursor-pointer transition-all duration-200 select-none;
+  }
+
+  .chip-selected {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-info {
+    @apply bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-medium;
   }
 }
 
+/* ============================================================
+   Base Styles
+   ============================================================ */
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
