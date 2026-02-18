@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Compass, MapPin, Plane, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useTripStore } from "@/stores/useTripStore";
-import { sampleTrips } from "@/data/sampleData";
+import { statusBadge, statusLabel } from "@/lib/utils/status-helpers";
 
 interface TripSummary {
   id: string;
@@ -26,23 +26,8 @@ const gradients = [
   "from-emerald-600/80 to-emerald-400/40",
 ];
 
-function statusBadge(status: string) {
-  if (status === "complete") return "badge-success";
-  if (status === "generating") return "badge-warning";
-  if (status === "failed") return "badge-info";
-  return "badge-info";
-}
-
-function statusLabel(status: string) {
-  if (status === "complete") return "Ready";
-  if (status === "generating") return "Generating...";
-  if (status === "failed") return "Failed";
-  return "Planning";
-}
-
 export default function DashboardPage() {
   const displayName = useTripStore((s) => s.displayName) || "Explorer";
-  const currentTripId = useTripStore((s) => s.currentTripId);
 
   const [trips, setTrips] = useState<TripSummary[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,19 +52,8 @@ export default function DashboardPage() {
     loadTrips();
   }, []);
 
-  // Use real trips if available, else sample data for demo
-  const displayTrips = trips ?? sampleTrips.map((t) => ({
-    id: t.id,
-    region: t.name,
-    dateStart: t.dates.split(" – ")[0] ?? "",
-    dateEnd: t.dates.split(" – ")[1] ?? "",
-    budget: 10000,
-    travelers: 2,
-    createdAt: new Date().toISOString(),
-    itineraries: [{ id: t.id, generationStatus: t.status === "Ready" ? "complete" : "pending" }],
-  }));
-
-  const isEmpty = !loading && trips !== null && trips.length === 0;
+  const displayTrips = trips ?? [];
+  const isEmpty = !loading && displayTrips.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,7 +121,7 @@ export default function DashboardPage() {
               {displayTrips.map((trip, i) => {
                 const itinerary = trip.itineraries?.[0];
                 const status = itinerary?.generationStatus ?? "pending";
-                const tripId = itinerary?.id ?? trip.id;
+                const tripId = trip.id;
 
                 return (
                   <Link

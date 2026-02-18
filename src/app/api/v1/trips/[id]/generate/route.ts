@@ -2,51 +2,28 @@
 // Travel Pro — POST /api/v1/trips/[id]/generate
 // Kick off AI generation for a trip and stream progress via SSE
 // ============================================================
-import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { generateItinerary } from "@/lib/ai/pipeline";
+import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
+import { ProfileInputSchema } from "@/lib/api/schemas";
 import type { UserProfile, TripIntent } from "@/types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const GenerateSchema = z.object({
-  profile: z.object({
-    nationality: z.string().min(1).max(100),
-    homeAirport: z.string().min(2).max(100),
-    travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
-    interests: z.array(z.string().max(50)).max(10),
-  }),
+  profile: ProfileInputSchema,
   promptVersion: z.string().default("v1"),
 });
 
-interface Params {
-  params: Promise<{ id: string }>;
-}
-
-export async function POST(req: NextRequest, { params }: Params) {
-  const { id } = await params;
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = GenerateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid data", details: parsed.error.flatten() }, { status: 400 });
-  }
+export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, params) => {
+  const body = await parseJsonBody(req);
+  const { profile, promptVersion } = validateBody(GenerateSchema, body);
 
   // Load the trip
-  const trip = await prisma.trip.findUnique({ where: { id } });
-  if (!trip) {
-    return NextResponse.json({ error: "Trip not found" }, { status: 404 });
-  }
-
-  const { profile, promptVersion } = parsed.data;
+  const trip = await prisma.trip.findUnique({ where: { id: params.id } });
+  if (!trip) throw new ApiError(404, "Trip not found");
 
   const intent: TripIntent = {
     id: trip.id,
@@ -62,7 +39,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   // Create itinerary record in "generating" state
   const itineraryRecord = await prisma.itinerary.create({
     data: {
-      tripId: id,
+      tripId: params.id,
       data: {},
       version: 1,
       isActive: false,
@@ -110,7 +87,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
         // Deactivate any previous versions
         await prisma.itinerary.updateMany({
-          where: { tripId: id, id: { not: itineraryRecord.id } },
+          where: { tripId: params.id, id: { not: itineraryRecord.id } },
           data: { isActive: false },
         });
 
@@ -119,7 +96,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           message: "Your trip is ready!",
           pct: 100,
           itinerary_id: itineraryRecord.id,
-          trip_id: id,
+          trip_id: params.id,
         });
       } catch (err) {
         console.error("[generate SSE] Error:", err);
@@ -143,7 +120,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       Connection: "keep-alive",
     },
   });
-}
+});
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

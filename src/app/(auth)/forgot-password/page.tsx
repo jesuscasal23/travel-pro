@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { inputClass, errorClass, labelClass } from "@/components/auth/auth-styles";
+import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 
 const forgotSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -14,10 +16,6 @@ const forgotSchema = z.object({
 
 type ForgotFormData = z.infer<typeof forgotSchema>;
 
-const inputClass =
-  "w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-foreground";
-const errorClass = "mt-1 text-sm text-red-500";
-const labelClass = "block text-sm font-medium text-foreground mb-2";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
@@ -106,13 +104,7 @@ export default function ForgotPasswordPage() {
               )}
             </div>
 
-            {serverError && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {serverError}
-                </p>
-              </div>
-            )}
+            <ServerErrorAlert error={serverError} />
 
             <button
               type="submit"

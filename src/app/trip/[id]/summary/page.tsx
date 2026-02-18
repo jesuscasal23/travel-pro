@@ -9,6 +9,9 @@ import { Navbar } from "@/components/Navbar";
 import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
 import { buildFlightLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
+import { getTripTitle, getUniqueCountries, getBudgetStatus } from "@/lib/utils/trip-metadata";
+import { TripNotFound } from "@/components/trip/TripNotFound";
+import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
 import { useTripStore } from "@/stores/useTripStore";
 
 type Params = Promise<{ id: string }>;
@@ -36,15 +39,7 @@ export default function SummaryPage({ params }: { params: Params }) {
 
   // Early return for null itinerary — all hooks must be called above this line
   if (!itinerary) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar isAuthenticated />
-        <div className="pt-32 text-center">
-          <p className="text-lg text-muted-foreground mb-4">Trip not found.</p>
-          <Link href="/dashboard" className="btn-primary inline-block">Back to dashboard</Link>
-        </div>
-      </div>
-    );
+    return <TripNotFound />;
   }
 
   const { route, days, budget, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
@@ -57,8 +52,8 @@ export default function SummaryPage({ params }: { params: Params }) {
       : null;
 
   // Derive trip metadata
-  const countries = [...new Set(route.map((r) => r.country))];
-  const tripTitle = countries.join(", ");
+  const countries = getUniqueCountries(route);
+  const tripTitle = getTripTitle(route);
   const totalDays = days.length;
   const firstDate = days[0]?.date ?? "";
   const lastDate = days[days.length - 1]?.date ?? "";
@@ -219,24 +214,13 @@ export default function SummaryPage({ params }: { params: Params }) {
           className="mt-8 card-travel bg-background"
         >
           <h2 className="font-semibold text-foreground mb-4">Budget Breakdown</h2>
-          <div className="space-y-2">
-            {(Object.entries(budget) as [string, number][])
-              .filter(([k]) => k !== "total" && k !== "budget")
-              .map(([key, value]) => (
-                <div key={key} className="flex justify-between text-sm">
-                  <span className="capitalize text-muted-foreground">{key}</span>
-                  <span className="font-medium text-foreground">&euro;{value.toLocaleString()}</span>
-                </div>
-              ))}
-          </div>
+          <BudgetBreakdown budget={budget} />
           <div className="pt-3 mt-2 border-t border-border flex justify-between">
             <span className="font-bold text-foreground">Total</span>
             <span className="font-bold text-foreground">&euro;{budget.total.toLocaleString()}</span>
           </div>
           <div className="mt-2 text-sm text-primary font-medium">
-            {budget.budget - budget.total > 0
-              ? `✓ €${(budget.budget - budget.total).toLocaleString()} under budget`
-              : `⚠ €${(budget.total - budget.budget).toLocaleString()} over budget`}
+            {getBudgetStatus(budget)}
           </div>
         </motion.div>
 

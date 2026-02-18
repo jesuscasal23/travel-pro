@@ -4,7 +4,7 @@ import { use, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, GripVertical, Minus, Plus, X, Save, Loader2, History } from "lucide-react";
+import { ArrowLeft, GripVertical, Minus, Plus, X, Save, Loader2 } from "lucide-react";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -14,11 +14,11 @@ import {
   useSortable, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import * as Dialog from "@radix-ui/react-dialog";
-import { X as Close } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useTripStore } from "@/stores/useTripStore";
+import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
+import { TripNotFound } from "@/components/trip/TripNotFound";
 import type { CityStop } from "@/types";
 
 type Params = Promise<{ id: string }>;
@@ -103,14 +103,15 @@ export default function EditPage({ params }: { params: Params }) {
   const { id } = use(params);
   const router = useRouter();
   const itinerary = useItinerary();
+  // Extract route early (before hooks) for safe hook dependencies
+  const route = itinerary?.route ?? [];
 
   const setItinerary = useTripStore((s) => s.setItinerary);
 
-  const [cities, setCities] = useState<CityStop[]>([...itinerary.route]);
+  const [cities, setCities] = useState<CityStop[]>(itinerary ? [...itinerary.route] : []);
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [historyOpen, setHistoryOpen] = useState(false);
 
   const updateDays = (cityId: string, delta: number) => {
     setCities((prev) =>
@@ -145,13 +146,13 @@ export default function EditPage({ params }: { params: Params }) {
 
   // Detect what changed vs original
   const detectEditType = useCallback((): { editType: string; editPayload: object; description: string } => {
-    const origIds = itinerary.route.map((c) => c.id);
+    const origIds = route.map((c) => c.id);
     const newIds = cities.map((c) => c.id);
 
     const removed = origIds.filter((id) => !newIds.includes(id));
     const reordered = origIds.join(",") !== newIds.join(",") && removed.length === 0;
     const daysChanged = cities.some((c) => {
-      const orig = itinerary.route.find((o) => o.id === c.id);
+      const orig = route.find((o) => o.id === c.id);
       return orig && orig.days !== c.days;
     });
 
@@ -172,7 +173,7 @@ export default function EditPage({ params }: { params: Params }) {
     if (daysChanged) {
       const changes = cities
         .filter((c) => {
-          const orig = itinerary.route.find((o) => o.id === c.id);
+          const orig = route.find((o) => o.id === c.id);
           return orig && orig.days !== c.days;
         })
         .map((c) => ({ cityId: c.id, city: c.city, newDays: c.days }));
@@ -183,7 +184,12 @@ export default function EditPage({ params }: { params: Params }) {
       };
     }
     return { editType: "adjust_days", editPayload: {}, description: "No changes" };
-  }, [cities, itinerary.route]);
+  }, [cities, route]);
+
+  // Early return for null itinerary — all hooks must be called above this line
+  if (!itinerary) {
+    return <TripNotFound />;
+  }
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -238,15 +244,6 @@ export default function EditPage({ params }: { params: Params }) {
     }
   };
 
-  const budgetWithUpdated = {
-    ...itinerary.budget,
-    accommodation: Math.round(
-      itinerary.budget.accommodation *
-      (cities.reduce((s, c) => s + c.days, 0) /
-        Math.max(1, itinerary.route.reduce((s, c) => s + c.days, 0)))
-    ),
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar isAuthenticated />
@@ -263,14 +260,6 @@ export default function EditPage({ params }: { params: Params }) {
               Edit Mode
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setHistoryOpen(true)}
-            className="btn-ghost text-sm py-1.5 px-3 flex items-center gap-1.5"
-          >
-            <History className="w-4 h-4" />
-            Version history
-          </button>
         </div>
       </div>
 
@@ -307,16 +296,7 @@ export default function EditPage({ params }: { params: Params }) {
         {/* Budget Impact Panel */}
         <div className="mt-8 card-travel bg-background">
           <h3 className="font-semibold text-foreground mb-4">Budget Impact</h3>
-          <div className="space-y-2">
-            {(Object.entries(itinerary.budget) as [string, number][])
-              .filter(([k]) => k !== "total" && k !== "budget")
-              .map(([k, v]) => (
-                <div key={k} className="flex justify-between text-sm">
-                  <span className="capitalize text-muted-foreground">{k}</span>
-                  <span className="font-medium text-accent">€{v.toLocaleString()}</span>
-                </div>
-              ))}
-          </div>
+          <BudgetBreakdown budget={itinerary.budget} valueClassName="text-accent" />
           <div className="pt-3 mt-2 border-t border-border flex justify-between">
             <span className="font-semibold text-foreground">Total</span>
             <span className="font-bold text-accent">€{itinerary.budget.total.toLocaleString()}</span>
@@ -354,33 +334,6 @@ export default function EditPage({ params }: { params: Params }) {
         </div>
       </div>
 
-      {/* Version History Dialog */}
-      <Dialog.Root open={historyOpen} onOpenChange={setHistoryOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-          <Dialog.Content aria-describedby={undefined} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-background rounded-2xl shadow-xl border border-border">
-            <div className="flex items-start justify-between mb-4">
-              <Dialog.Title className="text-lg font-bold text-foreground">Version History</Dialog.Title>
-              <Dialog.Close asChild>
-                <button className="text-muted-foreground hover:text-foreground"><Close className="w-5 h-5" /></button>
-              </Dialog.Close>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">v1 — Original</p>
-                  <p className="text-xs text-muted-foreground">AI-generated itinerary</p>
-                </div>
-                <span className="badge-success text-xs">Current</span>
-              </div>
-              <p className="text-xs text-muted-foreground text-center pt-2">
-                Future edits will appear here. You can restore any previous version.
-              </p>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
     </div>
   );
 }

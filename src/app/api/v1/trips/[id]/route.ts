@@ -5,6 +5,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
+import {
+  apiHandler,
+  ApiError,
+  requireAuth,
+  requireProfile,
+  requireTripOwnership,
+  parseJsonBody,
+  validateBody,
+  ACTIVE_ITINERARY_INCLUDE,
+} from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -15,115 +25,78 @@ const EditItinerarySchema = z.object({
   data: z.unknown().optional(), // Updated itinerary data
 });
 
-interface Params {
-  params: Promise<{ id: string }>;
-}
+export const GET = apiHandler("GET /api/v1/trips/:id", async (_req: NextRequest, params) => {
+  const trip = await prisma.trip.findUnique({
+    where: { id: params.id },
+    include: ACTIVE_ITINERARY_INCLUDE,
+  });
 
-export async function GET(_req: NextRequest, { params }: Params) {
-  const { id } = await params;
+  if (!trip) {
+    throw new ApiError(404, "Trip not found");
+  }
 
-  try {
-    const trip = await prisma.trip.findUnique({
-      where: { id },
-      include: {
-        itineraries: {
-          where: { isActive: true },
-          orderBy: { version: "desc" },
-          take: 1,
-        },
-      },
+  return NextResponse.json({ trip });
+});
+
+export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextRequest, params) => {
+  const userId = await requireAuth();
+  const profile = await requireProfile(userId);
+  await requireTripOwnership(params.id, profile.id);
+
+  const body = await parseJsonBody(req);
+  const { editType, editPayload, description, data } = validateBody(EditItinerarySchema, body);
+
+  // Find the current active itinerary
+  const currentItinerary = await prisma.itinerary.findFirst({
+    where: { tripId: params.id, isActive: true },
+    orderBy: { version: "desc" },
+  });
+
+  if (!currentItinerary) {
+    throw new ApiError(404, "No active itinerary found");
+  }
+
+  // Log the edit
+  await prisma.itineraryEdit.create({
+    data: {
+      itineraryId: currentItinerary.id,
+      editType,
+      editPayload: editPayload as object,
+      description,
+    },
+  });
+
+  // If new data is provided, create a new version
+  if (data) {
+    // Deactivate current version
+    await prisma.itinerary.update({
+      where: { id: currentItinerary.id },
+      data: { isActive: false },
     });
 
-    if (!trip) {
-      return NextResponse.json({ error: "Trip not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ trip });
-  } catch (err) {
-    console.error("[GET /api/v1/trips/:id]", err);
-    return NextResponse.json({ error: "Failed to fetch trip" }, { status: 500 });
-  }
-}
-
-export async function PATCH(req: NextRequest, { params }: Params) {
-  const { id } = await params;
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = EditItinerarySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid edit data", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
-
-  const { editType, editPayload, description, data } = parsed.data;
-
-  try {
-    // Find the current active itinerary
-    const currentItinerary = await prisma.itinerary.findFirst({
-      where: { tripId: id, isActive: true },
-      orderBy: { version: "desc" },
-    });
-
-    if (!currentItinerary) {
-      return NextResponse.json({ error: "No active itinerary found" }, { status: 404 });
-    }
-
-    // Log the edit
-    await prisma.itineraryEdit.create({
+    // Create new version
+    const newItinerary = await prisma.itinerary.create({
       data: {
-        itineraryId: currentItinerary.id,
-        editType,
-        editPayload: editPayload as object,
-        description,
+        tripId: params.id,
+        data: data as object,
+        version: currentItinerary.version + 1,
+        isActive: true,
+        promptVersion: currentItinerary.promptVersion,
+        generationStatus: "complete",
       },
     });
 
-    // If new data is provided, create a new version
-    if (data) {
-      // Deactivate current version
-      await prisma.itinerary.update({
-        where: { id: currentItinerary.id },
-        data: { isActive: false },
-      });
-
-      // Create new version
-      const newItinerary = await prisma.itinerary.create({
-        data: {
-          tripId: id,
-          data: data as object,
-          version: currentItinerary.version + 1,
-          isActive: true,
-          promptVersion: currentItinerary.promptVersion,
-          generationStatus: "complete",
-        },
-      });
-
-      return NextResponse.json({ itinerary: newItinerary });
-    }
-
-    return NextResponse.json({ success: true, editLogged: true });
-  } catch (err) {
-    console.error("[PATCH /api/v1/trips/:id]", err);
-    return NextResponse.json({ error: "Failed to update trip" }, { status: 500 });
+    return NextResponse.json({ itinerary: newItinerary });
   }
-}
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
-  const { id } = await params;
+  return NextResponse.json({ success: true, editLogged: true });
+});
 
-  try {
-    await prisma.trip.delete({ where: { id } });
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[DELETE /api/v1/trips/:id]", err);
-    return NextResponse.json({ error: "Failed to delete trip" }, { status: 500 });
-  }
-}
+export const DELETE = apiHandler("DELETE /api/v1/trips/:id", async (_req: NextRequest, params) => {
+  const userId = await requireAuth();
+  const profile = await requireProfile(userId);
+  await requireTripOwnership(params.id, profile.id);
+
+  await prisma.trip.delete({ where: { id: params.id } });
+  return NextResponse.json({ success: true });
+});

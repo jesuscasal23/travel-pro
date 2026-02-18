@@ -5,6 +5,7 @@
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { getClientIp, ACTIVE_ITINERARY_INCLUDE } from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const { token } = await params;
 
   // Rate limit
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+  const ip = getClientIp(req);
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
       { error: "Too many requests" },
@@ -44,13 +45,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   try {
     const trip = await prisma.trip.findFirst({
       where: { shareToken: token },
-      include: {
-        itineraries: {
-          where: { isActive: true },
-          orderBy: { version: "desc" },
-          take: 1,
-        },
-      },
+      include: ACTIVE_ITINERARY_INCLUDE,
     });
 
     if (!trip || trip.itineraries.length === 0) {

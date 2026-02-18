@@ -10,9 +10,9 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Next.js App Router requires unsafe-inline; unsafe-eval needed in dev
+      // Next.js App Router requires unsafe-inline; unsafe-eval only needed in dev (HMR/Fast Refresh)
       // eu-assets.i.posthog.com: PostHog loads survey.js and other bundles from its CDN
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://eu-assets.i.posthog.com",
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://eu-assets.i.posthog.com`,
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
       // Mapbox tiles, CARTO basemap sprites/glyphs, local assets

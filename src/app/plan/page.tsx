@@ -1,22 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
-import { regions, sampleFullItinerary } from "@/data/sampleData";
+import { regions } from "@/data/sampleData";
 import { Badge } from "@/components/ui";
 import { Navbar } from "@/components/Navbar";
-import { createClient } from "@/lib/supabase/client";
+import { StepProgress } from "@/components/ui/StepProgress";
+import { inputClass } from "@/components/auth/auth-styles";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { slideVariants } from "@/lib/animations";
 import type { TripVibe } from "@/types";
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
-};
 
 const generationSteps = [
   { stage: "route",      emoji: "🧭", label: "Optimising your route..." },
@@ -39,12 +36,9 @@ const TOTAL_STEPS = 2;
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const isAuthenticated = useAuthStatus();
   const [direction, setDirection] = useState(1);
-
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => setIsAuthenticated(!!user));
-  }, []);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const {
     planStep, setPlanStep,
@@ -91,6 +85,7 @@ export default function PlanPage() {
     });
     setIsGenerating(true);
     setGenerationStep(0);
+    setGenerationError(null);
 
     // ── Guest mode: no DB, call /api/generate directly ──────────
     if (!isAuthenticated) {
@@ -115,16 +110,16 @@ export default function PlanPage() {
         if (genRes.ok) {
           const { itinerary } = await genRes.json();
           setItinerary(itinerary);
+          setTimeout(() => router.push("/trip/guest"), 600);
         } else {
-          setItinerary(sampleFullItinerary);
+          setGenerationError("We couldn't generate your itinerary. Please try again.");
+          setIsGenerating(false);
         }
       } catch {
         timers.forEach(clearTimeout);
-        setGenerationStep(5);
-        setItinerary(sampleFullItinerary);
+        setGenerationError("Something went wrong. Please try again.");
+        setIsGenerating(false);
       }
-
-      setTimeout(() => router.push("/trip/guest"), 600);
       return;
     }
 
@@ -176,8 +171,7 @@ export default function PlanPage() {
                   posthog?.capture("itinerary_generation_completed", { trip_id: event.trip_id });
                   if (event.trip_id) {
                     const tripData = await fetch(`/api/v1/trips/${event.trip_id}`).then((r) => r.json());
-                    const itinerary = tripData.trip?.itineraries?.[0]?.data ?? sampleFullItinerary;
-                    setItinerary(itinerary);
+                    setItinerary(tripData.trip?.itineraries?.[0]?.data ?? null);
                     router.push(`/trip/${event.itinerary_id ?? event.trip_id}`);
                   }
                   return;
@@ -190,15 +184,11 @@ export default function PlanPage() {
         }
       }
     } catch (err) {
-      console.warn("[plan] Generation failed, using sample data:", err);
+      console.warn("[plan] Generation failed:", err);
     }
 
-    // Fallback: use sample itinerary
-    setTimeout(() => {
-      setItinerary(sampleFullItinerary);
-      const currentId = useTripStore.getState().currentTripId || "japan-vietnam-thailand-2026";
-      router.push(`/trip/${currentId}`);
-    }, 1000);
+    // Total failure — send user back to dashboard
+    router.push("/dashboard");
   }, [
     isAuthenticated,
     region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers,
@@ -247,19 +237,7 @@ export default function PlanPage() {
 
       <div className="max-w-xl mx-auto px-4 pt-24 pb-12">
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-muted-foreground">Step {step} of {TOTAL_STEPS}</span>
-            <span className="text-sm text-muted-foreground">{Math.round((step / TOTAL_STEPS) * 100)}%</span>
-          </div>
-          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
-        </div>
+        <StepProgress step={step} totalSteps={TOTAL_STEPS} />
 
         <div className="overflow-hidden relative -mx-1 px-1">
           <AnimatePresence mode="wait" custom={direction}>
@@ -292,12 +270,12 @@ export default function PlanPage() {
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1.5">Start date</label>
                       <input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)}
-                        className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-foreground" />
+                        className={inputClass} />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1.5">End date</label>
                       <input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} min={dateStart}
-                        className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-foreground" />
+                        className={inputClass} />
                     </div>
                     {dayCount > 0 && (
                       <div className="bg-primary/5 rounded-lg p-3 text-center">
@@ -389,6 +367,10 @@ export default function PlanPage() {
             </button>
           )}
         </div>
+
+        {generationError && (
+          <p className="mt-4 text-sm text-accent text-center">{generationError}</p>
+        )}
 
         {step === 1 && (
           <div className="mt-4 text-center">

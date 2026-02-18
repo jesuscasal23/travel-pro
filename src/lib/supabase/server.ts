@@ -29,3 +29,14 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * Returns the authenticated Supabase user ID from the current request cookies,
+ * or null if there is no valid session.
+ * Use this in every API route that requires authentication.
+ */
+export async function getAuthenticatedUserId(): Promise<string | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  return data.user?.id ?? null;
+}

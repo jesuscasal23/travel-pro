@@ -5,6 +5,7 @@
 // ============================================================
 
 import type { UserProfile, TripIntent } from "@/types";
+import { daysBetween } from "@/lib/utils/date";
 
 export const SYSTEM_PROMPT_V2 = `You are Travel Pro's expert trip planning AI. You create meticulously researched, personalised multi-country itineraries that feel written by a knowledgeable friend who has been everywhere.
 
@@ -109,7 +110,7 @@ After your <route_reasoning> block, output ONLY valid JSON (no markdown fences):
 Note: visaData and weatherData are populated by the enrichment step — always output empty arrays.`;
 
 export function assemblePromptV2(profile: UserProfile, intent: TripIntent): string {
-  const durationDays = calcDuration(intent.dateStart, intent.dateEnd);
+  const durationDays = daysBetween(intent.dateStart, intent.dateEnd);
   const activityBudgetCeiling = Math.round(intent.budget * 0.25);
 
   return `## TRAVELLER PROFILE
@@ -138,12 +139,6 @@ export function assemblePromptV2(profile: UserProfile, intent: TripIntent): stri
 5. Track activity costs — stay under €${activityBudgetCeiling.toLocaleString()}
 6. Include 2-3 activities per non-travel day (quality over quantity)
 7. Mark flight/travel days with isTravel: true and travelFrom/travelTo/travelDuration`;
-}
-
-function calcDuration(start: string, end: string): number {
-  return Math.ceil(
-    (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
-  );
 }
 
 function styleDesc(style: string): string {

@@ -7,46 +7,20 @@ import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { ChipGroup } from "@/components/ui/Chip";
 import { useTripStore } from "@/stores/useTripStore";
-import { nationalities, interestOptions } from "@/data/sampleData";
+import { interestOptions } from "@/data/sampleData";
+import { nationalities } from "@/data/nationalities";
 import { AirportCombobox } from "@/components/ui/AirportCombobox";
-import type { TravelStyle } from "@/types";
+import { TravelStylePicker } from "@/components/TravelStylePicker";
+import { StepProgress } from "@/components/ui/StepProgress";
+import { inputClass } from "@/components/auth/auth-styles";
+import { slideVariants } from "@/lib/animations";
 
 const TOTAL_STEPS = 2;
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
-};
-
-const travelStyles: { id: TravelStyle; emoji: string; label: string; description: string }[] = [
-  { id: "backpacker", emoji: "🎒", label: "Backpacker", description: "Hostels, street food, maximum adventure" },
-  { id: "comfort", emoji: "🛏️", label: "Comfort", description: "3–4 star hotels, mix of local and known restaurants" },
-  { id: "luxury", emoji: "✨", label: "Luxury", description: "5-star properties, fine dining, premium experiences" },
-];
-
-const activityLevels = [
-  { id: "low", label: "Low", description: "Relaxed pace — 1–2 activities per day, plenty of downtime" },
-  { id: "moderate", label: "Moderate", description: "Mix of activity and rest — 3–4 things per day" },
-  { id: "high", label: "High", description: "Packed schedule — early starts, every moment counts" },
-];
-
-const languages = [
-  "English", "German", "French", "Spanish", "Italian", "Portuguese",
-  "Dutch", "Polish", "Swedish", "Norwegian", "Danish", "Finnish",
-  "Japanese", "Mandarin", "Korean", "Arabic", "Russian", "Turkish",
-  "Hindi", "Thai",
-];
-
-const inputClass =
-  "w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-foreground";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
-  const [activityLevel, setActivityLevel] = useState("moderate");
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"]);
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -78,12 +52,6 @@ export default function OnboardingPage() {
     }
   };
 
-  const toggleLanguage = (lang: string) => {
-    setSelectedLanguages((prev) =>
-      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
-    );
-  };
-
   const handleFinish = async () => {
     setIsSaving(true);
     await new Promise((r) => setTimeout(r, 500));
@@ -97,23 +65,7 @@ export default function OnboardingPage() {
 
       <div className="max-w-lg mx-auto px-4 pt-24 pb-12">
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-muted-foreground">
-              Step {step} of {TOTAL_STEPS}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round((step / TOTAL_STEPS) * 100)}%
-            </span>
-          </div>
-          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
-        </div>
+        <StepProgress step={step} totalSteps={TOTAL_STEPS} />
 
         {/* Step content */}
         <div className="overflow-hidden relative -mx-1 px-1">
@@ -160,34 +112,7 @@ export default function OnboardingPage() {
                   {/* Travel Style */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-3">Travel Style</label>
-                    <div className="space-y-3">
-                      {travelStyles.map((style) => (
-                        <button key={style.id} type="button" onClick={() => setTravelStyle(style.id)}
-                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${travelStyle === style.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-border/80"}`}>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xl">{style.emoji}</span>
-                            <div>
-                              <div className="font-semibold text-foreground text-sm">{style.label}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">{style.description}</div>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Activity Level */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-3">Activity Level</label>
-                    <div className="space-y-3">
-                      {activityLevels.map((level) => (
-                        <button key={level.id} type="button" onClick={() => setActivityLevel(level.id)}
-                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${activityLevel === level.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-border/80"}`}>
-                          <div className="font-semibold text-foreground text-sm">{level.label}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{level.description}</div>
-                        </button>
-                      ))}
-                    </div>
+                    <TravelStylePicker value={travelStyle} onChange={setTravelStyle} />
                   </div>
 
                   {/* Interests */}
@@ -196,21 +121,6 @@ export default function OnboardingPage() {
                     <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
                   </div>
 
-                  {/* Languages */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-3">
-                      Languages you speak{" "}
-                      <span className="text-muted-foreground font-normal">(select all that apply)</span>
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {languages.map((lang) => (
-                        <button key={lang} type="button" onClick={() => toggleLanguage(lang)}
-                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${selectedLanguages.includes(lang) ? "chip-selected border-transparent" : "chip border-transparent"}`}>
-                          {lang}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </motion.div>
             )}

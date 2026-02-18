@@ -5,11 +5,19 @@
 
 import { Redis } from "@upstash/redis";
 import type { FlightOption } from "./types";
+import { getErrorMessage } from "@/lib/utils/error";
 
-let _redis: Redis | undefined;
+let _redis: Redis | null | undefined;
 
-function getRedis(): Redis {
-  if (!_redis) _redis = Redis.fromEnv();
+function getRedis(): Redis | null {
+  if (_redis !== undefined) return _redis;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    _redis = null;
+    return null;
+  }
+  _redis = new Redis({ url, token });
   return _redis;
 }
 
@@ -42,8 +50,10 @@ function parseDuration(iso: string): string {
 /** Get a cached Amadeus OAuth2 bearer token. */
 async function getToken(): Promise<string> {
   const redis = getRedis();
-  const cached = await redis.get<string>("amadeus:token");
-  if (cached) return cached;
+  if (redis) {
+    const cached = await redis.get<string>("amadeus:token");
+    if (cached) return cached;
+  }
 
   const res = await fetch(`${AMADEUS_BASE}/v1/security/oauth2/token`, {
     method: "POST",
@@ -60,11 +70,13 @@ async function getToken(): Promise<string> {
   }
 
   const data = (await res.json()) as AmadeusTokenResponse;
-  await redis.setex(
-    "amadeus:token",
-    Math.max(data.expires_in - 60, 60),
-    data.access_token
-  );
+  if (redis) {
+    await redis.setex(
+      "amadeus:token",
+      Math.max(data.expires_in - 60, 60),
+      data.access_token
+    );
+  }
   return data.access_token;
 }
 
@@ -85,8 +97,10 @@ export async function searchFlights(
 
   const redis = getRedis();
   const cacheKey = `flights:${origin}:${destination}:${date}:${adults}`;
-  const cached = await redis.get<FlightOption>(cacheKey);
-  if (cached) return cached;
+  if (redis) {
+    const cached = await redis.get<FlightOption>(cacheKey);
+    if (cached) return cached;
+  }
 
   let token: string;
   try {
@@ -94,7 +108,7 @@ export async function searchFlights(
   } catch (e) {
     console.warn(
       "[amadeus] Token fetch failed:",
-      e instanceof Error ? e.message : e
+      getErrorMessage(e)
     );
     return null;
   }
@@ -116,7 +130,7 @@ export async function searchFlights(
   } catch (e) {
     console.warn(
       "[amadeus] Network error:",
-      e instanceof Error ? e.message : e
+      getErrorMessage(e)
     );
     return null;
   }
@@ -138,6 +152,6 @@ export async function searchFlights(
     airline: best.validatingAirlineCodes[0] ?? "?",
   };
 
-  await redis.setex(cacheKey, 7200, option);
+  if (redis) await redis.setex(cacheKey, 7200, option);
   return option;
 }

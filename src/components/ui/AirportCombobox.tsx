@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AIRPORTS } from "@/data/airports-full";
+import { inputClass } from "@/components/auth/auth-styles";
 
 interface Props {
   value: string;       // stored as "FRA – Frankfurt am Main, DE"
@@ -74,7 +75,7 @@ export function AirportCombobox({ value, onChange, className = "", placeholder =
         type="text"
         autoComplete="off"
         spellCheck={false}
-        className={`w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-foreground ${className}`}
+        className={`${inputClass} ${className}`}
         placeholder={open ? placeholder : (displayValue || placeholder)}
         value={open ? query : ""}
         onFocus={() => { setOpen(true); setHighlighted(0); }}

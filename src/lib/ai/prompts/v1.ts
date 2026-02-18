@@ -7,6 +7,7 @@
 
 import type { UserProfile, TripIntent } from "@/types";
 import type { CityWithDays, FlightSkeleton } from "@/lib/flights/types";
+import { formatDateShort, daysBetween } from "@/lib/utils/date";
 
 // ============================================================
 // System Prompt
@@ -56,12 +57,6 @@ The route must make geographic sense (minimise backtracking). For each city stop
 // Prompt Assembly
 // ============================================================
 
-/** Format a YYYY-MM-DD date as a short human string (e.g. "Oct 2"). */
-function fmtDate(iso: string): string {
-  const d = new Date(iso + "T00:00:00Z");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-}
-
 export function assemblePrompt(
   profile: UserProfile,
   intent: TripIntent,
@@ -69,7 +64,7 @@ export function assemblePrompt(
   cities?: CityWithDays[]
 ): string {
   const durationDays = intent.dateStart && intent.dateEnd
-    ? Math.round((new Date(intent.dateEnd).getTime() - new Date(intent.dateStart).getTime()) / (1000 * 60 * 60 * 24))
+    ? daysBetween(intent.dateStart, intent.dateEnd)
     : 21;
 
   const styleDescriptions: Record<string, string> = {
@@ -92,7 +87,7 @@ export function assemblePrompt(
 ${skeleton.legs
   .map(
     (leg, i) =>
-      `${i + 1}. ${fmtDate(leg.departureDate)}: ${leg.fromCity} (${leg.fromIata}) → ${leg.toCity} (${leg.toIata}) — €${Math.round(leg.price).toLocaleString()}, ${leg.duration}, ${leg.airline}`
+      `${i + 1}. ${formatDateShort(leg.departureDate)}: ${leg.fromCity} (${leg.fromIata}) → ${leg.toCity} (${leg.toIata}) — €${Math.round(leg.price).toLocaleString()}, ${leg.duration}, ${leg.airline}`
   )
   .join("\n")}
 Total flights: €${Math.round(skeleton.totalFlightCost).toLocaleString()} — set budget.flights to this exact number.

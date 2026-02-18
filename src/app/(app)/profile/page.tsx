@@ -3,23 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Download, Trash2 } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { ChipGroup } from "@/components/ui/Chip";
 import { useTripStore } from "@/stores/useTripStore";
-import { nationalities, interestOptions } from "@/data/sampleData";
+import { interestOptions } from "@/data/sampleData";
+import { nationalities } from "@/data/nationalities";
 import { AirportCombobox } from "@/components/ui/AirportCombobox";
+import { TravelStylePicker } from "@/components/TravelStylePicker";
+import { Modal } from "@/components/ui/Modal";
+import { inputClass, labelClass } from "@/components/auth/auth-styles";
 import type { TravelStyle } from "@/types";
-
-const travelStyles: { id: TravelStyle; emoji: string; label: string }[] = [
-  { id: "backpacker", emoji: "🎒", label: "Backpacker" },
-  { id: "comfort", emoji: "🛏️", label: "Comfort" },
-  { id: "luxury", emoji: "✨", label: "Luxury" },
-];
-
-const inputClass =
-  "w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-foreground";
-const labelClass = "block text-sm font-medium text-foreground mb-2";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -43,32 +37,52 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Phase 1: call PATCH /api/v1/profile
-    await new Promise((r) => setTimeout(r, 600));
-    setIsSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      const res = await fetch("/api/v1/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nationality, homeAirport, travelStyle, interests }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      alert("Failed to save profile. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleExportData = async () => {
-    // Phase 1: call GET /api/v1/profile/export
-    const data = { displayName, nationality, homeAirport, travelStyle, interests };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "travel-pro-data.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const res = await fetch("/api/v1/profile/export");
+      if (!res.ok) throw new Error("Export failed");
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "travel-pro-data.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Failed to export data. Please try again.");
+    }
   };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
-    // Phase 1: call DELETE /api/v1/profile
-    await new Promise((r) => setTimeout(r, 1000));
-    setIsDeleting(false);
-    setDeleteOpen(false);
-    router.push("/");
+    try {
+      const res = await fetch("/api/v1/profile", { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      localStorage.removeItem("travel-pro-store");
+      setDeleteOpen(false);
+      router.push("/");
+    } catch {
+      alert("Failed to delete account. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -111,15 +125,7 @@ export default function ProfilePage() {
           {/* Travel Style */}
           <section className="card-travel p-6">
             <h2 className="text-base font-semibold text-foreground mb-5">Travel Style</h2>
-            <div className="flex gap-3">
-              {travelStyles.map((style) => (
-                <button key={style.id} type="button" onClick={() => setTravelStyle(style.id)}
-                  className={`flex-1 py-3 rounded-xl border-2 text-center transition-all ${travelStyle === style.id ? "border-primary bg-primary/5" : "border-border bg-background"}`}>
-                  <div className="text-xl mb-1">{style.emoji}</div>
-                  <div className="text-sm font-medium text-foreground">{style.label}</div>
-                </button>
-              ))}
-            </div>
+            <TravelStylePicker value={travelStyle} onChange={setTravelStyle} compact />
           </section>
 
           {/* Interests */}
@@ -161,49 +167,33 @@ export default function ProfilePage() {
                   Delete account
                 </button>
               </Dialog.Trigger>
-
-              <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-                <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-background rounded-2xl shadow-xl border border-border">
-                  <div className="flex items-start justify-between mb-4">
-                    <Dialog.Title className="text-lg font-bold text-foreground">
-                      Delete account
-                    </Dialog.Title>
-                    <Dialog.Close asChild>
-                      <button className="text-muted-foreground hover:text-foreground">
-                        <X className="w-5 h-5" />
-                      </button>
-                    </Dialog.Close>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mb-4">
-                    This will permanently delete:
-                  </p>
-                  <ul className="text-sm text-muted-foreground space-y-1 mb-6 ml-4">
-                    <li>• Your profile and preferences</li>
-                    <li>• All trips and itineraries</li>
-                    <li>• Your account login</li>
-                  </ul>
-                  <p className="text-sm font-medium text-foreground mb-6">
-                    This action cannot be undone.
-                  </p>
-
-                  <div className="flex gap-3">
-                    <Dialog.Close asChild>
-                      <button className="btn-ghost flex-1">Cancel</button>
-                    </Dialog.Close>
-                    <button
-                      type="button"
-                      onClick={handleDeleteAccount}
-                      disabled={isDeleting}
-                      className="flex-1 py-3 px-4 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
-                    >
-                      {isDeleting ? "Deleting..." : "Yes, delete everything"}
-                    </button>
-                  </div>
-                </Dialog.Content>
-              </Dialog.Portal>
             </Dialog.Root>
+
+            <Modal open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete account">
+              <p className="text-sm text-muted-foreground mb-4">
+                This will permanently delete:
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-1 mb-6 ml-4">
+                <li>• Your profile and preferences</li>
+                <li>• All trips and itineraries</li>
+                <li>• Your account login</li>
+              </ul>
+              <p className="text-sm font-medium text-foreground mb-6">
+                This action cannot be undone.
+              </p>
+
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setDeleteOpen(false)} className="btn-ghost flex-1">Cancel</button>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 px-4 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
+                >
+                  {isDeleting ? "Deleting..." : "Yes, delete everything"}
+                </button>
+              </div>
+            </Modal>
           </section>
         </div>
       </div>

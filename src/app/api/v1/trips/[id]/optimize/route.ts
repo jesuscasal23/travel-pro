@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { optimizeFlights } from "@/lib/flights/optimizer";
 import { parseIataCode } from "@/lib/affiliate/link-generator";
 import { lookupIata } from "@/lib/flights/city-iata-map";
+import { apiHandler, ApiError, requireAuth, requireProfile, requireTripOwnership, parseJsonBody } from "@/lib/api/helpers";
 import type { CityStop } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
-
-type Params = Promise<{ id: string }>;
 
 /**
  * POST /api/v1/trips/[id]/optimize
@@ -16,10 +15,12 @@ type Params = Promise<{ id: string }>;
  *
  * The client is responsible for persisting the result via setItinerary().
  */
-export async function POST(req: NextRequest, { params }: { params: Params }) {
-  await params; // ensure dynamic segment is resolved
+export const POST = apiHandler("POST /api/v1/trips/:id/optimize", async (req, params) => {
+  const userId = await requireAuth();
+  const profile = await requireProfile(userId);
+  await requireTripOwnership(params.id, profile.id);
 
-  let body: {
+  const body = await parseJsonBody(req) as {
     homeAirport: string;
     route: CityStop[];
     dateStart: string;
@@ -27,21 +28,15 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
     travelers: number;
   };
 
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
   const { homeAirport, route, dateStart, dateEnd, travelers } = body;
 
   if (!homeAirport || !route?.length || !dateStart || !dateEnd) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    throw new ApiError(400, "Missing required fields");
   }
 
   const homeIata = parseIataCode(homeAirport);
   if (!homeIata) {
-    return NextResponse.json({ error: "Could not parse home airport IATA code" }, { status: 400 });
+    throw new ApiError(400, "Could not parse home airport IATA code");
   }
 
   // Fill in any missing IATA codes from the static city lookup table
@@ -58,10 +53,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
   }
 
   if (stillMissing.length > 0) {
-    return NextResponse.json(
-      { error: `Could not resolve IATA codes for: ${stillMissing.join(", ")}` },
-      { status: 400 }
-    );
+    throw new ApiError(400, `Could not resolve IATA codes for: ${stillMissing.join(", ")}`);
   }
 
   const totalDays = Math.round(
@@ -91,11 +83,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
     );
 
     return NextResponse.json({ skeleton });
-  } catch (e) {
-    console.error("[optimize] Flight optimization failed:", e instanceof Error ? e.message : e);
-    return NextResponse.json(
-      { error: "Flight optimization failed — Amadeus may not be configured or available" },
-      { status: 502 }
-    );
+  } catch {
+    throw new ApiError(502, "Flight optimization failed — Amadeus may not be configured or available");
   }
-}
+});

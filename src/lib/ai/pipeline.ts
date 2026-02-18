@@ -5,17 +5,17 @@
 // Stage 2: Call Claude (claude-sonnet-4-20250514, maxTokens 8000, temp 0.7)
 // Stage 3: Parse + validate with Zod
 // Stage 4: Enrich (visa + weather) in parallel
-// Stage 5: Store in Supabase
+// Stage 5: Store via Prisma
 // ============================================================
 
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
 import { selectRoute } from "./prompts/route-selector";
 import { enrichVisa, enrichWeather } from "./enrichment";
 import type { UserProfile, TripIntent, Itinerary } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 // ============================================================
 // Clients
@@ -30,13 +30,6 @@ function getAnthropic(): Anthropic {
     });
   }
   return _anthropic;
-}
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
 }
 
 // ============================================================
@@ -122,26 +115,33 @@ export function extractJSON(text: string): string {
 // Stage 2: Call Claude
 // ============================================================
 
-async function callClaude(userPrompt: string): Promise<string> {
-  const message = await getAnthropic().messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8000,
-    temperature: 0.7,
-    system: SYSTEM_PROMPT_V1,
-    messages: [
-      {
-        role: "user",
-        content: userPrompt,
-      },
-    ],
-  });
+async function callClaude(userPrompt: string, retryCount = 0): Promise<string> {
+  try {
+    const message = await getAnthropic().messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 8000,
+      temperature: 0.7,
+      system: SYSTEM_PROMPT_V1,
+      messages: [{ role: "user", content: userPrompt }],
+    });
 
-  const block = message.content[0];
-  if (block.type !== "text") {
-    throw new Error("Claude returned non-text content");
+    const block = message.content[0];
+    if (block.type !== "text") {
+      throw new Error("Claude returned non-text content");
+    }
+
+    return block.text;
+  } catch (err) {
+    // Content filtering is probabilistic — retry with backoff (usually succeeds on 2nd attempt)
+    const msg = getErrorMessage(err);
+    const isContentFilter = msg.includes("content filtering") || msg.includes("Output blocked");
+    if (isContentFilter && retryCount < 2) {
+      console.warn(`[pipeline] Content filter triggered, retrying (attempt ${retryCount + 1}/2)`);
+      await new Promise((r) => setTimeout(r, 600 * (retryCount + 1)));
+      return callClaude(userPrompt, retryCount + 1);
+    }
+    throw err;
   }
-
-  return block.text;
 }
 
 // ============================================================
@@ -156,7 +156,7 @@ export function parseAndValidate(rawOutput: string): ClaudeItinerary {
   try {
     parsed = JSON.parse(json);
   } catch (e) {
-    throw new Error(`Claude output is not valid JSON: ${e instanceof Error ? e.message : e}`);
+    throw new Error(`Claude output is not valid JSON: ${getErrorMessage(e)}`);
   }
 
   const result = claudeItinerarySchema.safeParse(parsed);
@@ -169,32 +169,6 @@ export function parseAndValidate(rawOutput: string): ClaudeItinerary {
   }
 
   return result.data;
-}
-
-// ============================================================
-// Stage 5: Store in Supabase
-// ============================================================
-
-async function storeItinerary(tripId: string, itinerary: Itinerary): Promise<void> {
-  const supabase = getSupabase();
-  if (!supabase) {
-    console.warn("[pipeline] Supabase not configured — skipping storage");
-    return;
-  }
-
-  const { error } = await supabase.from("itineraries").upsert(
-    {
-      trip_id: tripId,
-      data: itinerary,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "trip_id" }
-  );
-
-  if (error) {
-    // Non-fatal — log but don't throw (generation succeeded, storage is secondary)
-    console.error("[pipeline] Failed to store itinerary:", error.message);
-  }
 }
 
 // ============================================================
@@ -215,7 +189,7 @@ export async function generateItinerary(
   } catch (e) {
     console.warn(
       "[pipeline] Stage A failed, falling back to Claude-only route:",
-      e instanceof Error ? e.message : e
+      getErrorMessage(e)
     );
     cities = undefined;
   }
@@ -250,8 +224,6 @@ export async function generateItinerary(
     // flightLegs populated on-demand via /api/v1/trips/[id]/optimize — not during generation
   };
 
-  await storeItinerary(tripIntent.id, itinerary);
-
   // Persist itinerary via Prisma (best-effort — don't fail generation if DB is down)
   try {
     const { getPrisma } = await import("@/lib/db/prisma");
@@ -271,7 +243,7 @@ export async function generateItinerary(
     }
   } catch (e) {
     // DB storage is best-effort — don't fail the generation
-    console.error("[pipeline] Failed to persist itinerary:", e instanceof Error ? e.message : e);
+    console.error("[pipeline] Failed to persist itinerary:", getErrorMessage(e));
   }
 
   console.log("[pipeline] Generation complete for trip:", tripIntent.id);

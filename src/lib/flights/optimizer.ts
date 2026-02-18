@@ -14,12 +14,7 @@
 
 import { searchFlights } from "./amadeus";
 import type { CityWithDays, OptimizedLeg, FlightSkeleton } from "./types";
-
-function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
+import { addDays } from "@/lib/utils/date";
 
 /** Enumerate all feasible day assignments where the sum equals target. */
 function* generateAssignments(

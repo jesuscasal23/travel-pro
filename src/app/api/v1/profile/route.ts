@@ -7,34 +7,17 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-
-async function getAuthenticatedUserId(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (toSet) => {
-          try {
-            toSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch {
-            // Server component — ignore
-          }
-        },
-      },
-    }
-  );
-  const { data } = await supabase.auth.getUser();
-  return data.user?.id ?? null;
-}
+import {
+  apiHandler,
+  requireAuth,
+  requireProfile,
+  parseJsonBody,
+  validateBody,
+} from "@/lib/api/helpers";
 
 const patchSchema = z.object({
   nationality: z.string().min(1).optional(),
@@ -47,43 +30,17 @@ const patchSchema = z.object({
 });
 
 // ── GET /api/v1/profile ───────────────────────────────────────
-export async function GET() {
-  const userId = await getAuthenticatedUserId();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const profile = await prisma.profile.findUnique({ where: { userId } });
-  if (!profile) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-  }
-
+export const GET = apiHandler("GET /api/v1/profile", async () => {
+  const userId = await requireAuth();
+  const profile = await requireProfile(userId);
   return NextResponse.json({ profile });
-}
+});
 
 // ── PATCH /api/v1/profile ─────────────────────────────────────
-export async function PATCH(request: Request) {
-  const userId = await getAuthenticatedUserId();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parsed.error.flatten() },
-      { status: 422 }
-    );
-  }
-
-  const data = parsed.data;
+export const PATCH = apiHandler("PATCH /api/v1/profile", async (req) => {
+  const userId = await requireAuth();
+  const body = await parseJsonBody(req);
+  const data = validateBody(patchSchema, body);
 
   const profile = await prisma.profile.upsert({
     where: { userId },
@@ -111,14 +68,11 @@ export async function PATCH(request: Request) {
   });
 
   return NextResponse.json({ profile });
-}
+});
 
 // ── DELETE /api/v1/profile ────────────────────────────────────
-export async function DELETE() {
-  const userId = await getAuthenticatedUserId();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const DELETE = apiHandler("DELETE /api/v1/profile", async () => {
+  const userId = await requireAuth();
 
   // Cascade: profile → trips → itineraries (via Prisma cascade)
   await prisma.profile.deleteMany({ where: { userId } });
@@ -139,4 +93,4 @@ export async function DELETE() {
   await supabaseAdmin.auth.admin.deleteUser(userId);
 
   return NextResponse.json({ deleted: true });
-}
+});

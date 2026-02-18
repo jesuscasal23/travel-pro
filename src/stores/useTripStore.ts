@@ -85,11 +85,11 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
     (set) => ({
       // Onboarding defaults
       onboardingStep: 1,
-      nationality: "German",
+      nationality: "",
       homeAirport: "",
       travelStyle: "comfort",
       interests: [],
-      displayName: "Thomas",
+      displayName: "",
 
       // Plan defaults
       ...initialPlanState,

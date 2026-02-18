@@ -6,8 +6,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { z } from "zod";
 import crypto from "crypto";
+import { getClientIp } from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
+
+const ALLOWED_REDIRECT_DOMAINS = [
+  "skyscanner.net",
+  "skyscanner.com",
+  "booking.com",
+  "getyourguide.com",
+];
+
+function isAllowedDomain(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return ALLOWED_REDIRECT_DOMAINS.some(
+      (d) => hostname === d || hostname.endsWith(`.${d}`)
+    );
+  } catch {
+    return false;
+  }
+}
 
 const QuerySchema = z.object({
   provider: z.enum(["skyscanner", "booking", "getyourguide"]),
@@ -27,8 +46,12 @@ export async function GET(req: NextRequest) {
 
   const { provider, type, dest, itinerary_id, city } = parsed.data;
 
+  if (!isAllowedDomain(dest)) {
+    return NextResponse.json({ error: "Redirect destination not allowed" }, { status: 400 });
+  }
+
   // Hash IP for privacy-preserving analytics
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+  const ip = getClientIp(req);
   const ipHash = crypto.createHash("sha256").update(ip).digest("hex").slice(0, 16);
 
   // Log click asynchronously (don't block the redirect)

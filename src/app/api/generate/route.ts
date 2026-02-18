@@ -8,6 +8,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateItinerary } from "@/lib/ai/pipeline";
+import { getClientIp } from "@/lib/api/helpers";
+import { ProfileInputSchema } from "@/lib/api/schemas";
 
 // Force dynamic rendering (no static caching for AI responses)
 export const dynamic = "force-dynamic";
@@ -41,12 +43,7 @@ function getRatelimit() {
 // Validates and bounds all user-controlled fields before they reach the AI pipeline.
 // This prevents prompt injection, runaway token costs, and malformed data.
 const RequestSchema = z.object({
-  profile: z.object({
-    nationality: z.string().min(1).max(100),
-    homeAirport: z.string().min(2).max(100),
-    travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
-    interests: z.array(z.string().max(50)).max(10),
-  }),
+  profile: ProfileInputSchema,
   tripIntent: z.object({
     id: z.string().max(100),
     region: z.string().min(1).max(100),
@@ -63,7 +60,7 @@ export async function POST(req: NextRequest) {
   // ── Rate limiting ────────────────────────────────────────────
   const ratelimit = getRatelimit();
   if (ratelimit) {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
+    const ip = getClientIp(req);
     const { success } = await ratelimit.limit(ip);
     if (!success) {
       return NextResponse.json(

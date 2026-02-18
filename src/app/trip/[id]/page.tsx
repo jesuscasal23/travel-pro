@@ -10,7 +10,10 @@ import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
 import RouteMapFallback from "@/components/map/RouteMapFallback";
 import { useTripStore } from "@/stores/useTripStore";
-import { createClient } from "@/lib/supabase/client";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { TripNotFound } from "@/components/trip/TripNotFound";
+import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
+import { getBudgetStatus } from "@/lib/utils/trip-metadata";
 import type { CityStop, ItineraryFlightLeg } from "@/types";
 import type { FlightSkeleton } from "@/lib/flights/types";
 
@@ -38,16 +41,19 @@ type Params = Promise<{ id: string }>;
 export default function TripPage({ params }: { params: Params }) {
   const { id } = use(params);
   const itinerary = useItinerary();
-  const { route, days, budget, visaData, weatherData, flightLegs } = itinerary;
+  // Extract array fields early (before hooks) with safe defaults for hook dependencies
+  const route = itinerary?.route ?? [];
+  const days = itinerary?.days ?? [];
+
   const { homeAirport, dateStart, dateEnd, travelers, setItinerary } = useTripStore();
 
   const posthog = usePostHog();
+  const isAuthenticated = useAuthStatus();
   const [activeCityIndex, setActiveCityIndex] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"visa" | "weather" | "budget">("visa");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [optimizeState, setOptimizeState] = useState<"idle" | "loading" | "result" | "applied">(
-    flightLegs ? "applied" : "idle"
+    itinerary?.flightLegs ? "applied" : "idle"
   );
   const [optimizeResult, setOptimizeResult] = useState<FlightSkeleton | null>(null);
   const dayRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -57,14 +63,27 @@ export default function TripPage({ params }: { params: Params }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => setIsAuthenticated(!!user));
-  }, []);
-
   // Derive trip metadata from itinerary
   const countries = [...new Set(route.map((r) => r.country))];
   const tripTitle = countries.join(", ");
   const totalDays = days.length;
+
+  // Map pin click → set active city + scroll timeline to first day of that city
+  const handleCityClick = useCallback((index: number) => {
+    setActiveCityIndex(index);
+    const city = route[index]?.city;
+    const dayIndex = days.findIndex((d) => d.city === city);
+    if (dayIndex >= 0) {
+      dayRefs.current[dayIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [route, days]);
+
+  // Early return for null itinerary — all hooks must be called above this line
+  if (!itinerary) {
+    return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
+  }
+
+  const { budget, visaData, weatherData, flightLegs } = itinerary;
 
   // Savings from optimization (used in result card)
   const optimizeSaved =
@@ -106,16 +125,6 @@ export default function TripPage({ params }: { params: Params }) {
     setOptimizeState("applied");
     posthog?.capture("flight_optimization_applied", { trip_id: id });
   };
-
-  // Map pin click → set active city + scroll timeline to first day of that city
-  const handleCityClick = useCallback((index: number) => {
-    setActiveCityIndex(index);
-    const city = route[index]?.city;
-    const dayIndex = days.findIndex((d) => d.city === city);
-    if (dayIndex >= 0) {
-      dayRefs.current[dayIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [route, days]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -253,24 +262,7 @@ export default function TripPage({ params }: { params: Params }) {
                 {/* Budget tab */}
                 {activeTab === "budget" && (
                   <div className="space-y-3">
-                    {(Object.entries(budget) as [string, number][])
-                      .filter(([k]) => k !== "total" && k !== "budget")
-                      .map(([key, value]) => (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="capitalize text-foreground">{key}</span>
-                            <span className="font-medium text-foreground">
-                              €{value.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="h-2 bg-background rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full"
-                              style={{ width: `${(value / budget.budget) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                    <BudgetBreakdown budget={budget} showProgressBars />
                     <div className="pt-3 border-t border-border flex justify-between">
                       <span className="font-semibold text-foreground">Total</span>
                       <span className="font-bold text-foreground">
@@ -278,9 +270,7 @@ export default function TripPage({ params }: { params: Params }) {
                       </span>
                     </div>
                     <div className="text-sm text-primary font-medium">
-                      {budget.budget - budget.total > 0
-                        ? `✓ €${(budget.budget - budget.total).toLocaleString()} under budget`
-                        : `⚠ €${(budget.total - budget.budget).toLocaleString()} over budget`}
+                      {getBudgetStatus(budget)}
                     </div>
                   </div>
                 )}

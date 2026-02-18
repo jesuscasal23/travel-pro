@@ -5,11 +5,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
+import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import {
+  apiHandler,
+  requireAuth,
+  requireProfile,
+  parseJsonBody,
+  validateBody,
+} from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
 const CreateTripSchema = z.object({
-  profileId: z.string().optional(),
   region: z.string().min(1).max(100),
   dateStart: z.string().max(20),
   dateEnd: z.string().max(20),
@@ -19,50 +26,39 @@ const CreateTripSchema = z.object({
   travelers: z.number().int().min(1).max(20).default(2),
 });
 
-export async function GET(req: NextRequest) {
-  const profileId = req.nextUrl.searchParams.get("profileId");
+export const GET = apiHandler("GET /api/v1/trips", async () => {
+  const userId = await requireAuth();
+  const profile = await requireProfile(userId);
 
-  try {
-    const trips = await prisma.trip.findMany({
-      where: profileId ? { profileId } : undefined,
-      include: {
-        itineraries: {
-          where: { isActive: true },
-          select: { id: true, version: true, generationStatus: true, createdAt: true },
-          take: 1,
-        },
+  const trips = await prisma.trip.findMany({
+    where: { profileId: profile.id },
+    include: {
+      itineraries: {
+        where: { isActive: true },
+        select: { id: true, version: true, generationStatus: true, createdAt: true },
+        take: 1,
       },
-      orderBy: { createdAt: "desc" },
-    });
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-    return NextResponse.json({ trips });
-  } catch (err) {
-    console.error("[GET /api/v1/trips]", err);
-    return NextResponse.json({ error: "Failed to fetch trips" }, { status: 500 });
-  }
-}
+  return NextResponse.json({ trips });
+});
 
-export async function POST(req: NextRequest) {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) => {
+  const body = await parseJsonBody(req);
+  const data = validateBody(CreateTripSchema, body);
 
-  const parsed = CreateTripSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid trip data", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
+  // Auto-set profileId from auth session (null for anonymous users)
+  let profileId: string | null = null;
+  const userId = await getAuthenticatedUserId();
+  if (userId) {
+    const profile = await prisma.profile.findUnique({ where: { userId } });
+    profileId = profile?.id ?? null;
   }
 
-  try {
-    const trip = await prisma.trip.create({ data: parsed.data });
-    return NextResponse.json({ trip }, { status: 201 });
-  } catch (err) {
-    console.error("[POST /api/v1/trips]", err);
-    return NextResponse.json({ error: "Failed to create trip" }, { status: 500 });
-  }
-}
+  const trip = await prisma.trip.create({
+    data: { ...data, profileId },
+  });
+  return NextResponse.json({ trip }, { status: 201 });
+});
