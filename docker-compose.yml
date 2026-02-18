@@ -1,0 +1,48 @@
+version: "3.9"
+
+# =============================================================
+# Travel Pro — Local Development Stack
+#
+# Start:  docker compose up -d
+# Stop:   docker compose down
+# Reset:  docker compose down -v  (deletes database data)
+#
+# After starting, run: npx prisma db push
+# Then:                 npm run dev
+# =============================================================
+
+services:
+  # ── PostgreSQL (replaces Supabase for local dev) ───────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: travelpro-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: travelpro
+      POSTGRES_PASSWORD: travelpro_local
+      POSTGRES_DB: travelpro
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travelpro"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Redis (optional — weather caching) ─────────────────────
+  # Note: @upstash/redis uses HTTP REST, not standard Redis protocol.
+  # This container is for future use if we switch to ioredis.
+  # The app works fine WITHOUT Redis — weather calls go directly
+  # to Open-Meteo and the code handles missing Redis gracefully.
+  #
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: travelpro-redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  pgdata:

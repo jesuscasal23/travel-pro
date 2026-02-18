@@ -1,0 +1,38 @@
+import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "./e2e",
+
+  // Each test file gets its own timeout budget.
+  // The generation animation alone takes ~18 s, so 60 s per test is safe.
+  timeout: 60_000,
+
+  // Assertion timeout (e.g. waitForURL, getByText)
+  expect: { timeout: 10_000 },
+
+  fullyParallel: false,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
+  reporter: "list",
+
+  use: {
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
+  },
+
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    // Re-use a running dev server so tests don't always restart Next.js
+    reuseExistingServer: true,
+    timeout: 120_000,
+  },
+});

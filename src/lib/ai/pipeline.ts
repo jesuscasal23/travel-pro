@@ -91,8 +91,9 @@ type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
 /**
  * Extract raw JSON from Claude's response.
  * Claude might occasionally wrap output in markdown fences despite instructions.
+ * Exported for unit testing.
  */
-function extractJSON(text: string): string {
+export function extractJSON(text: string): string {
   // Strip markdown code fences if present
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenced) return fenced[1].trim();
@@ -137,7 +138,8 @@ async function callClaude(userPrompt: string): Promise<string> {
 // Stage 3: Parse + validate
 // ============================================================
 
-function parseAndValidate(rawOutput: string): ClaudeItinerary {
+/** Exported for unit testing. */
+export function parseAndValidate(rawOutput: string): ClaudeItinerary {
   const json = extractJSON(rawOutput);
 
   let parsed: unknown;
