@@ -16,13 +16,13 @@ import type {
 // ============================================================
 
 export const sampleRoute: CityStop[] = [
-  { id: "tokyo", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 5, countryCode: "JP" },
-  { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 3, countryCode: "JP" },
-  { id: "hanoi", city: "Hanoi", country: "Vietnam", lat: 21.03, lng: 105.85, days: 3, countryCode: "VN" },
-  { id: "halong", city: "Ha Long Bay", country: "Vietnam", lat: 20.95, lng: 107.07, days: 2, countryCode: "VN" },
-  { id: "bangkok", city: "Bangkok", country: "Thailand", lat: 13.76, lng: 100.5, days: 4, countryCode: "TH" },
-  { id: "chiangmai", city: "Chiang Mai", country: "Thailand", lat: 18.79, lng: 98.98, days: 3, countryCode: "TH" },
-  { id: "phuket", city: "Phuket", country: "Thailand", lat: 7.88, lng: 98.39, days: 2, countryCode: "TH" },
+  { id: "tokyo", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 5, countryCode: "JP", iataCode: "NRT" },
+  { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 3, countryCode: "JP", iataCode: "ITM" },
+  { id: "hanoi", city: "Hanoi", country: "Vietnam", lat: 21.03, lng: 105.85, days: 3, countryCode: "VN", iataCode: "HAN" },
+  { id: "halong", city: "Ha Long Bay", country: "Vietnam", lat: 20.95, lng: 107.07, days: 2, countryCode: "VN", iataCode: "HPH" },
+  { id: "bangkok", city: "Bangkok", country: "Thailand", lat: 13.76, lng: 100.5, days: 4, countryCode: "TH", iataCode: "BKK" },
+  { id: "chiangmai", city: "Chiang Mai", country: "Thailand", lat: 18.79, lng: 98.98, days: 3, countryCode: "TH", iataCode: "CNX" },
+  { id: "phuket", city: "Phuket", country: "Thailand", lat: 7.88, lng: 98.39, days: 2, countryCode: "TH", iataCode: "HKT" },
 ];
 
 // ============================================================
