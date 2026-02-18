@@ -99,7 +99,7 @@ export default function TripPage({ params }: { params: Params }) {
 
       {/* Save-trip nudge for unauthenticated guests */}
       {isAuthenticated === false && (
-        <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-accent/10 border-b border-accent/30">
+        <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-accent/40">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
             <p className="text-sm text-foreground">
               💾 Want to keep this itinerary? Create a free account to save it and access it from any device.

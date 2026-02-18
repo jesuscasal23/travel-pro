@@ -10,7 +10,7 @@ import { useTripStore } from "@/stores/useTripStore";
 import { airports, nationalities, interestOptions } from "@/data/sampleData";
 import type { TravelStyle } from "@/types";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 2;
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
@@ -85,21 +85,10 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     setIsSaving(true);
-    // In Phase 1 with auth, this would call PATCH /api/v1/profile
-    // For now, store in Zustand and proceed
     await new Promise((r) => setTimeout(r, 500));
     setIsSaving(false);
     router.push("/plan");
   };
-
-  const summaryItems = [
-    { label: "Nationality", value: nationality },
-    { label: "Home Airport", value: homeAirport },
-    { label: "Travel Style", value: travelStyles.find((s) => s.id === travelStyle)?.label ?? travelStyle },
-    { label: "Interests", value: interests.length > 0 ? interests.slice(0, 3).join(", ") + (interests.length > 3 ? ` +${interests.length - 3}` : "") : "None selected" },
-    { label: "Activity Level", value: activityLevels.find((l) => l.id === activityLevel)?.label ?? activityLevel },
-    { label: "Languages", value: selectedLanguages.slice(0, 3).join(", ") + (selectedLanguages.length > 3 ? ` +${selectedLanguages.length - 3}` : "") },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,7 +115,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step content */}
-        <div className="overflow-hidden relative">
+        <div className="overflow-hidden relative -mx-1 px-1">
           <AnimatePresence mode="wait" custom={direction}>
 
             {/* Step 1 — Where are you from? */}
@@ -162,24 +151,25 @@ export default function OnboardingPage() {
               </motion.div>
             )}
 
-            {/* Step 2 — Travel style */}
+            {/* Step 2 — Travel preferences */}
             {step === 2 && (
               <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: "easeInOut" }}>
-                <h1 className="text-2xl font-bold text-foreground">Tell us about yourself</h1>
-                <p className="mt-2 text-muted-foreground text-sm">Your travel style and interests help us personalise your trips.</p>
+                <h1 className="text-2xl font-bold text-foreground">Your travel style</h1>
+                <p className="mt-2 text-muted-foreground text-sm">Help us personalise every trip we plan for you.</p>
 
-                <div className="mt-8 space-y-6">
+                <div className="mt-8 space-y-8">
+                  {/* Travel Style */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-3">Travel Style</label>
                     <div className="space-y-3">
                       {travelStyles.map((style) => (
                         <button key={style.id} type="button" onClick={() => setTravelStyle(style.id)}
-                          className={`w-full p-5 rounded-xl border-2 text-left transition-all duration-200 ${travelStyle === style.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-border/80"}`}>
-                          <div className="flex items-start gap-3">
-                            <span className="text-2xl">{style.emoji}</span>
+                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${travelStyle === style.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-border/80"}`}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">{style.emoji}</span>
                             <div>
-                              <div className="font-semibold text-foreground">{style.label}</div>
-                              <div className="text-sm text-muted-foreground mt-0.5">{style.description}</div>
+                              <div className="font-semibold text-foreground text-sm">{style.label}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">{style.description}</div>
                             </div>
                           </div>
                         </button>
@@ -187,34 +177,27 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-3">Interests</label>
-                    <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Step 3 — How do you travel? */}
-            {step === 3 && (
-              <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: "easeInOut" }}>
-                <h1 className="text-2xl font-bold text-foreground">How do you travel?</h1>
-                <p className="mt-2 text-muted-foreground text-sm">This shapes how we structure your daily plans.</p>
-
-                <div className="mt-8 space-y-6">
+                  {/* Activity Level */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-3">Activity Level</label>
                     <div className="space-y-3">
                       {activityLevels.map((level) => (
                         <button key={level.id} type="button" onClick={() => setActivityLevel(level.id)}
-                          className={`w-full p-5 rounded-xl border-2 text-left transition-all duration-200 ${activityLevel === level.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-border/80"}`}>
-                          <div className="font-semibold text-foreground">{level.label}</div>
-                          <div className="text-sm text-muted-foreground mt-0.5">{level.description}</div>
+                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${activityLevel === level.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-border/80"}`}>
+                          <div className="font-semibold text-foreground text-sm">{level.label}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">{level.description}</div>
                         </button>
                       ))}
                     </div>
                   </div>
 
+                  {/* Interests */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-3">Interests</label>
+                    <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
+                  </div>
+
+                  {/* Languages */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-3">
                       Languages you speak{" "}
@@ -230,31 +213,6 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
-
-            {/* Step 4 — Summary */}
-            {step === 4 && (
-              <motion.div key="step4" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: "easeInOut" }}>
-                <h1 className="text-2xl font-bold text-foreground">Almost there!</h1>
-                <p className="mt-2 text-muted-foreground text-sm">Here&apos;s what we know about you. Everything can be edited later.</p>
-
-                <div className="mt-8 card-travel p-6 space-y-4">
-                  {summaryItems.map((item) => (
-                    <div key={item.label} className="flex items-start justify-between gap-4">
-                      <span className="text-sm text-muted-foreground shrink-0">{item.label}</span>
-                      <span className="text-sm font-medium text-foreground text-right">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => { setDirection(-1); setStep(3); }}
-                  className="mt-4 text-sm text-primary hover:underline"
-                >
-                  ← Edit preferences
-                </button>
               </motion.div>
             )}
 
