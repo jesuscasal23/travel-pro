@@ -9,6 +9,7 @@ import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
 import RouteMapFallback from "@/components/map/RouteMapFallback";
+import { createClient } from "@/lib/supabase/client";
 import type { CityStop } from "@/types";
 
 // Mapbox map loaded only on the client — mapbox-gl does not support SSR
@@ -41,12 +42,17 @@ export default function TripPage({ params }: { params: Params }) {
   const [activeCityIndex, setActiveCityIndex] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"visa" | "weather" | "budget">("visa");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const dayRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     posthog?.capture("itinerary_viewed", { trip_id: id, city_count: route.length });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => setIsAuthenticated(!!user));
+  }, []);
 
   // Derive trip metadata from itinerary
   const countries = [...new Set(route.map((r) => r.country))];
@@ -65,7 +71,7 @@ export default function TripPage({ params }: { params: Params }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated />
+      <Navbar isAuthenticated={isAuthenticated ?? false} />
 
       {/* Fixed top bar — sits below navbar (top-16) */}
       <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -91,11 +97,29 @@ export default function TripPage({ params }: { params: Params }) {
         </div>
       </div>
 
-      {/* Split layout: offset = navbar (64px) + top bar (~56px) = ~120px = 7.5rem */}
-      <div className="pt-[7.5rem] flex flex-col lg:flex-row min-h-[calc(100vh-7.5rem)]">
+      {/* Save-trip nudge for unauthenticated guests */}
+      {isAuthenticated === false && (
+        <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-accent/10 border-b border-accent/30">
+          <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+            <p className="text-sm text-foreground">
+              💾 Want to keep this itinerary? Create a free account to save it and access it from any device.
+            </p>
+            <Link
+              href={`/signup?next=/trip/${id}`}
+              className="shrink-0 btn-primary text-xs py-1.5 px-4"
+            >
+              Save trip →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Split layout: offset = navbar (64px) + top bar (~56px) = ~120px = 7.5rem
+          When save banner is visible, add extra ~44px (2.75rem) offset          */}
+      <div className={`${isAuthenticated === false ? "pt-[10.25rem]" : "pt-[7.5rem]"} flex flex-col lg:flex-row min-h-[calc(100vh-7.5rem)]`}>
 
         {/* Left panel — 40%, sticky */}
-        <div className="lg:w-[40%] bg-secondary p-6 lg:sticky lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)] overflow-auto">
+        <div className={`lg:w-[40%] bg-secondary p-6 lg:sticky ${isAuthenticated === false ? "lg:top-[10.25rem] lg:h-[calc(100vh-10.25rem)]" : "lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)]"} overflow-auto`}>
           <RouteMap
             cities={route}
             activeCityIndex={activeCityIndex}

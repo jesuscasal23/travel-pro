@@ -6,7 +6,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require authentication
-const PROTECTED_PREFIXES = ["/dashboard", "/plan", "/trip", "/profile"];
+// /plan and /trip are intentionally public — guests can generate and view itineraries.
+// Auth is encouraged (not required) via a "save your trip" nudge on the trip page.
+const PROTECTED_PREFIXES = ["/dashboard", "/profile"];
 
 // Routes that are always public
 const PUBLIC_PREFIXES = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/privacy", "/share", "/api/health", "/auth/callback"];

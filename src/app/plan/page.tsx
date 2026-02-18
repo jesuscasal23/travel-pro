@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
@@ -9,6 +9,7 @@ import { useTripStore } from "@/stores/useTripStore";
 import { regions, sampleFullItinerary } from "@/data/sampleData";
 import { Badge } from "@/components/ui";
 import { Navbar } from "@/components/Navbar";
+import { createClient } from "@/lib/supabase/client";
 import type { TripVibe } from "@/types";
 
 const slideVariants = {
@@ -36,6 +37,12 @@ const vibes = [
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => setIsAuthenticated(!!user));
+  }, []);
+
   const {
     planStep, setPlanStep,
     region, setRegion,
@@ -74,6 +81,44 @@ export default function PlanPage() {
     setIsGenerating(true);
     setGenerationStep(0);
 
+    // ── Guest mode: no DB, call /api/generate directly ──────────
+    if (!isAuthenticated) {
+      // Animate steps while the ~30s request is in flight
+      const stepDelays = [3000, 7000, 12000, 17000, 22000];
+      const timers = stepDelays.map((delay, i) =>
+        setTimeout(() => setGenerationStep(i + 1), delay)
+      );
+
+      try {
+        const genRes = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profile: { nationality, homeAirport, travelStyle, interests },
+            tripIntent: { id: "guest", region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers },
+          }),
+        });
+
+        timers.forEach(clearTimeout);
+        setGenerationStep(5);
+
+        if (genRes.ok) {
+          const { itinerary } = await genRes.json();
+          setItinerary(itinerary);
+        } else {
+          setItinerary(sampleFullItinerary);
+        }
+      } catch {
+        timers.forEach(clearTimeout);
+        setGenerationStep(5);
+        setItinerary(sampleFullItinerary);
+      }
+
+      setTimeout(() => router.push("/trip/guest"), 600);
+      return;
+    }
+
+    // ── Authenticated mode: DB-backed with SSE progress ─────────
     try {
       // Step 1: Create trip record
       const tripRes = await fetch("/api/v1/trips", {
@@ -116,13 +161,11 @@ export default function PlanPage() {
               if (!line.startsWith("data: ")) continue;
               try {
                 const event = JSON.parse(line.slice(6));
-                // Map stage to step index
                 const idx = generationSteps.findIndex((s) => s.stage === event.stage);
                 if (idx >= 0) setGenerationStep(idx);
 
                 if (event.stage === "done") {
                   posthog?.capture("itinerary_generation_completed", { trip_id: event.trip_id });
-                  // Load the itinerary and navigate
                   if (event.trip_id) {
                     const tripData = await fetch(`/api/v1/trips/${event.trip_id}`).then((r) => r.json());
                     const itinerary = tripData.trip?.itineraries?.[0]?.data ?? sampleFullItinerary;
@@ -145,10 +188,11 @@ export default function PlanPage() {
     // Fallback: use sample itinerary
     setTimeout(() => {
       setItinerary(sampleFullItinerary);
-      const tripId = useTripStore.getState().currentTripId || "japan-vietnam-thailand-2026";
-      router.push(`/trip/${tripId}`);
+      const currentId = useTripStore.getState().currentTripId || "japan-vietnam-thailand-2026";
+      router.push(`/trip/${currentId}`);
     }, 1000);
   }, [
+    isAuthenticated,
     region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
     setIsGenerating, setGenerationStep, setCurrentTripId, setItinerary, router, posthog,
@@ -191,7 +235,7 @@ export default function PlanPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated />
+      <Navbar isAuthenticated={isAuthenticated ?? false} />
 
       <div className="max-w-xl mx-auto px-4 pt-24 pb-12">
         {/* Dot progress */}
