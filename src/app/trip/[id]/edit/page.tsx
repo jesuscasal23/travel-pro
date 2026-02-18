@@ -18,6 +18,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X as Close } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
+import { useTripStore } from "@/stores/useTripStore";
 import type { CityStop } from "@/types";
 
 type Params = Promise<{ id: string }>;
@@ -102,6 +103,8 @@ export default function EditPage({ params }: { params: Params }) {
   const { id } = use(params);
   const router = useRouter();
   const itinerary = useItinerary();
+
+  const setItinerary = useTripStore((s) => s.setItinerary);
 
   const [cities, setCities] = useState<CityStop[]>([...itinerary.route]);
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
@@ -211,6 +214,13 @@ export default function EditPage({ params }: { params: Params }) {
       },
       days: itinerary.days.filter((d) => cities.some((c) => c.city === d.city) || d.isTravel),
     };
+
+    // Guest mode: no DB, update Zustand store directly
+    if (id === "guest") {
+      setItinerary(updatedData);
+      router.push(`/trip/guest`);
+      return;
+    }
 
     try {
       const res = await fetch(`/api/v1/trips/${id}`, {
@@ -348,7 +358,7 @@ export default function EditPage({ params }: { params: Params }) {
       <Dialog.Root open={historyOpen} onOpenChange={setHistoryOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-background rounded-2xl shadow-xl border border-border">
+          <Dialog.Content aria-describedby={undefined} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-background rounded-2xl shadow-xl border border-border">
             <div className="flex items-start justify-between mb-4">
               <Dialog.Title className="text-lg font-bold text-foreground">Version History</Dialog.Title>
               <Dialog.Close asChild>

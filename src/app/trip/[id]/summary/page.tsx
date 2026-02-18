@@ -39,16 +39,21 @@ export default function SummaryPage({ params }: { params: Params }) {
   const handleShareLink = async () => {
     setIsSharing(true);
     try {
-      // Get (or create) the public share token
-      const res = await fetch(`/api/v1/trips/${id}/share`);
       let shareUrl = `${window.location.origin}/trip/${id}`;
-      if (res.ok) {
-        const { shareToken } = await res.json();
-        if (shareToken) {
-          shareUrl = `${window.location.origin}/share/${shareToken}`;
-          posthog?.capture("share_link_created", { trip_id: id });
+
+      // Guest mode: no DB, just share the current trip URL
+      if (id !== "guest") {
+        // Get (or create) the public share token
+        const res = await fetch(`/api/v1/trips/${id}/share`);
+        if (res.ok) {
+          const { shareToken } = await res.json();
+          if (shareToken) {
+            shareUrl = `${window.location.origin}/share/${shareToken}`;
+            posthog?.capture("share_link_created", { trip_id: id });
+          }
         }
       }
+
       await navigator.clipboard.writeText(shareUrl);
       posthog?.capture("share_link_copied", { trip_id: id, shareUrl });
     } catch {
