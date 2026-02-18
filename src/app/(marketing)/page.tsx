@@ -26,6 +26,36 @@ const features = [
   },
 ];
 
+const testimonials = [
+  {
+    name: "Sarah K.",
+    location: "London, UK",
+    text: "Travel Pro planned our 3-week Southeast Asia trip in under 10 minutes. The visa alerts alone saved us from a major headache.",
+    avatar: "SK",
+  },
+  {
+    name: "Marco R.",
+    location: "Berlin, Germany",
+    text: "I've used dozens of trip planners. This is the first one that actually understands multi-country routing and budget constraints.",
+    avatar: "MR",
+  },
+  {
+    name: "Yuki T.",
+    location: "Tokyo, Japan",
+    text: "The day-by-day itinerary was incredibly detailed — local food spots, travel tips, even weather forecasts. Felt like having a personal travel agent.",
+    avatar: "YT",
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Travel Pro",
+  description: "AI-powered multi-country trip planning",
+  applicationCategory: "TravelApplication",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
@@ -56,6 +86,11 @@ const steps = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0">
@@ -157,6 +192,48 @@ export default function LandingPage() {
                 </h3>
                 <p className="mt-2 text-muted-foreground text-sm leading-relaxed">
                   {f.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-background">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12"
+          >
+            What Travelers Say
+          </motion.h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={t.name}
+                custom={i}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="card-travel bg-background"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">{t.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {t.location}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground italic mt-3">
+                  &ldquo;{t.text}&rdquo;
                 </p>
               </motion.div>
             ))}

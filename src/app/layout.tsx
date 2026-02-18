@@ -9,9 +9,40 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Travel Pro — AI-Powered Trip Planning",
+  title: {
+    default: "Travel Pro — AI-Powered Trip Planning",
+    template: "%s | Travel Pro",
+  },
   description:
     "Plan your dream multi-country trip in minutes. AI-powered itineraries, visa checks, budget tracking, and more.",
+  keywords: [
+    "travel planning",
+    "AI itinerary",
+    "trip planner",
+    "multi-country travel",
+    "budget travel",
+    "visa requirements",
+  ],
+  authors: [{ name: "Travel Pro" }],
+  creator: "Travel Pro",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "Travel Pro",
+    title: "Travel Pro — AI-Powered Trip Planning",
+    description:
+      "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Travel Pro — AI-Powered Trip Planning",
+    description:
+      "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -20,7 +51,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            if (localStorage.getItem('theme') === 'dark') {
+              document.documentElement.classList.add('dark');
+            }
+          } catch(e) {}
+        `}} />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>

@@ -223,6 +223,19 @@ export async function generateItinerary(
 
   await storeItinerary(tripIntent.id, itinerary);
 
+  // Persist itinerary via Prisma (best-effort — don't fail generation if DB is down)
+  try {
+    const { getPrisma } = await import("@/lib/db/prisma");
+    await getPrisma().itinerary.upsert({
+      where: { tripId: tripIntent.id },
+      create: { tripId: tripIntent.id, data: itinerary as any },
+      update: { data: itinerary as any },
+    });
+  } catch (e) {
+    // DB storage is best-effort — don't fail the generation
+    console.error("[pipeline] Failed to persist itinerary:", e instanceof Error ? e.message : e);
+  }
+
   console.log("[pipeline] Generation complete for trip:", tripIntent.id);
   return itinerary;
 }

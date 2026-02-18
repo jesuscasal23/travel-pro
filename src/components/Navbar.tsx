@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { User } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -18,20 +19,23 @@ export function Navbar({ isAuthenticated = false, displayName = "Thomas" }: Navb
         </Link>
 
         {/* Right side */}
-        {isAuthenticated ? (
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-sm font-medium text-foreground hidden sm:block">
-              {displayName}
-            </span>
-          </div>
-        ) : (
-          <Link href="/onboarding" className="btn-ghost text-sm py-2 px-4">
-            Sign In
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          {isAuthenticated ? (
+            <>
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm font-medium text-foreground hidden sm:block">
+                {displayName}
+              </span>
+            </>
+          ) : (
+            <Link href="/onboarding" className="btn-ghost text-sm py-2 px-4">
+              Sign In
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   );

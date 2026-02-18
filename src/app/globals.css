@@ -40,6 +40,11 @@
   --input: 0 0% 20%;
   --card: 0 0% 8%;
   --card-foreground: 0 0% 93%;
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-hero: 0 8px 32px rgba(13, 115, 119, 0.4);
 }
 
 @theme inline {

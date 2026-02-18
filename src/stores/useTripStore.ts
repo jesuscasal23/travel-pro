@@ -132,6 +132,29 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
     }),
     {
       name: "travel-pro-store",
+      // Explicitly whitelist what gets written to localStorage.
+      // Transient UI state (isGenerating, generationStep, planStep) is excluded —
+      // it doesn't need to survive a page refresh and pollutes the stored payload.
+      // Note: itinerary is retained so the trip view survives a refresh without
+      // a DB round-trip. In a production multi-user build, move this to a
+      // server-side session or re-fetch from Supabase by currentTripId.
+      partialize: (state) => ({
+        onboardingStep: state.onboardingStep,
+        nationality: state.nationality,
+        homeAirport: state.homeAirport,
+        travelStyle: state.travelStyle,
+        interests: state.interests,
+        displayName: state.displayName,
+        region: state.region,
+        dateStart: state.dateStart,
+        dateEnd: state.dateEnd,
+        flexibleDates: state.flexibleDates,
+        budget: state.budget,
+        vibe: state.vibe,
+        travelers: state.travelers,
+        currentTripId: state.currentTripId,
+        itinerary: state.itinerary,
+      }),
     }
   )
 );

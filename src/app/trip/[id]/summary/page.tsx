@@ -3,8 +3,9 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Plane, Share2, Download } from "lucide-react";
+import { Plane, Share2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
 
 type Params = Promise<{ id: string }>;
@@ -35,10 +36,6 @@ export default function SummaryPage({ params }: { params: Params }) {
       });
   };
 
-  const handleDownloadPDF = () => {
-    window.print();
-  };
-
   const today = new Date().toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -60,12 +57,16 @@ export default function SummaryPage({ params }: { params: Params }) {
             &larr; Back to itinerary
           </Link>
           <div className="flex gap-3">
-            <button
-              onClick={handleDownloadPDF}
-              className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
-            >
-              <Download className="w-4 h-4" /> Download PDF
-            </button>
+            <PDFDownloadButton
+              days={days}
+              route={route}
+              budget={budget}
+              visas={visaData}
+              weather={weatherData}
+              tripTitle={tripTitle}
+              tripSubtitle={`${firstDate} – ${lastDate} · ${totalDays} days`}
+              fileName={`TravelPro-${countries.join("-")}.pdf`}
+            />
             <button
               onClick={handleShareLink}
               className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5"
