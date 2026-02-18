@@ -90,12 +90,6 @@ export interface SavedTrip {
   status: "Planning" | "Ready" | "Completed";
 }
 
-/** Airport option */
-export interface Airport {
-  code: string;
-  name: string;
-  label: string;
-}
 
 /** Region option for questionnaire */
 export interface Region {

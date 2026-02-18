@@ -86,7 +86,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Onboarding defaults
       onboardingStep: 1,
       nationality: "German",
-      homeAirport: "LEJ – Leipzig/Halle",
+      homeAirport: "",
       travelStyle: "comfort",
       interests: [],
       displayName: "Thomas",

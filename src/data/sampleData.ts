@@ -5,7 +5,6 @@ import type {
   VisaInfo,
   CityWeather,
   SavedTrip,
-  Airport,
   Region,
   InterestOption,
   Itinerary,
@@ -308,48 +307,6 @@ export const sampleTrips: SavedTrip[] = [
   },
 ];
 
-// ============================================================
-// Airports
-// ============================================================
-
-export const airports: Airport[] = [
-  { code: "LEJ", name: "Leipzig/Halle", label: "LEJ – Leipzig/Halle" },
-  { code: "BER", name: "Berlin Brandenburg", label: "BER – Berlin Brandenburg" },
-  { code: "FRA", name: "Frankfurt", label: "FRA – Frankfurt" },
-  { code: "MUC", name: "Munich", label: "MUC – Munich" },
-  { code: "DUS", name: "Düsseldorf", label: "DUS – Düsseldorf" },
-  { code: "HAM", name: "Hamburg", label: "HAM – Hamburg" },
-  { code: "STR", name: "Stuttgart", label: "STR – Stuttgart" },
-  { code: "CGN", name: "Cologne/Bonn", label: "CGN – Cologne/Bonn" },
-  { code: "HAJ", name: "Hannover", label: "HAJ – Hannover" },
-  { code: "NUE", name: "Nuremberg", label: "NUE – Nuremberg" },
-  { code: "VIE", name: "Vienna", label: "VIE – Vienna" },
-  { code: "ZRH", name: "Zurich", label: "ZRH – Zurich" },
-  { code: "AMS", name: "Amsterdam", label: "AMS – Amsterdam" },
-];
-
-// ============================================================
-// Nationalities
-// ============================================================
-
-export const nationalities: string[] = [
-  "German",
-  "Austrian",
-  "Swiss",
-  "Dutch",
-  "British",
-  "French",
-  "Italian",
-  "Spanish",
-  "American",
-  "Canadian",
-  "Australian",
-  "Swedish",
-  "Norwegian",
-  "Danish",
-  "Polish",
-  "Czech",
-];
 
 // ============================================================
 // Interest Chips
