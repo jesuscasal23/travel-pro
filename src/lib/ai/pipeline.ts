@@ -14,10 +14,8 @@ import { z } from "zod";
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
 import { selectRoute } from "./prompts/route-selector";
 import { enrichVisa, enrichWeather } from "./enrichment";
-import { optimizeFlights } from "@/lib/flights/optimizer";
-import { parseIataCode } from "@/lib/affiliate/link-generator";
 import type { UserProfile, TripIntent, Itinerary } from "@/types";
-import type { CityWithDays, FlightSkeleton } from "@/lib/flights/types";
+import type { CityWithDays } from "@/lib/flights/types";
 
 // ============================================================
 // Clients
@@ -207,48 +205,26 @@ export async function generateItinerary(
   profile: UserProfile,
   tripIntent: TripIntent
 ): Promise<Itinerary> {
-  // Stage A: Route selection (Haiku — fast + cheap)
+  // Stage A: Route selection (Haiku — fast + cheap, populates IATA codes)
   let cities: CityWithDays[] | undefined;
-  let skeleton: FlightSkeleton | undefined;
 
   try {
     console.log("[pipeline] Stage A: Selecting route with Haiku");
     cities = await selectRoute(profile, tripIntent, getAnthropic());
     console.log(`[pipeline] Stage A complete: ${cities.map(c => c.city).join(", ")}`);
-
-    // Stage B: Flight price optimization (Amadeus)
-    const homeIata = parseIataCode(profile.homeAirport);
-    const durationDays =
-      tripIntent.dateStart && tripIntent.dateEnd
-        ? Math.round(
-            (new Date(tripIntent.dateEnd).getTime() -
-              new Date(tripIntent.dateStart).getTime()) /
-              (1000 * 60 * 60 * 24)
-          )
-        : 21;
-
-    console.log("[pipeline] Stage B: Optimizing flight prices");
-    skeleton = await optimizeFlights(
-      homeIata,
-      cities,
-      tripIntent.dateStart || new Date().toISOString().slice(0, 10),
-      durationDays,
-      tripIntent.travelers
-    );
-    console.log(
-      `[pipeline] Stage B complete: €${skeleton.totalFlightCost} total flights`
-    );
   } catch (e) {
     console.warn(
-      "[pipeline] Route/flight optimization failed, falling back to AI estimation:",
+      "[pipeline] Stage A failed, falling back to Claude-only route:",
       e instanceof Error ? e.message : e
     );
     cities = undefined;
-    skeleton = undefined;
   }
 
-  // Stage 1: Assemble prompt (inject skeleton when available)
-  const userPrompt = assemblePrompt(profile, tripIntent, skeleton, cities);
+  // Stage B (Amadeus flight optimization) is on-demand — triggered by the user
+  // from the trip view via POST /api/v1/trips/[id]/optimize, not during generation.
+
+  // Stage 1: Assemble prompt (inject city schedule from Stage A when available)
+  const userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
 
   // Stage 2: Call Claude
   console.log("[pipeline] Calling Claude for trip:", tripIntent.id);
@@ -271,13 +247,7 @@ export async function generateItinerary(
     ...parsed,
     visaData,
     weatherData,
-    // Attach real flight legs when optimization succeeded (skeleton.totalFlightCost > 0)
-    ...(skeleton && skeleton.totalFlightCost > 0
-      ? {
-          flightLegs: skeleton.legs,
-          ...(skeleton.baselineCost ? { flightBaselineCost: skeleton.baselineCost } : {}),
-        }
-      : {}),
+    // flightLegs populated on-demand via /api/v1/trips/[id]/optimize — not during generation
   };
 
   await storeItinerary(tripIntent.id, itinerary);

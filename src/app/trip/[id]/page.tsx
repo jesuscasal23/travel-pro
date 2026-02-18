@@ -4,13 +4,15 @@ import { use, useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Edit3, LayoutList, ChevronUp, ChevronDown, Clock, Plane } from "lucide-react";
+import { Edit3, LayoutList, ChevronUp, ChevronDown, Clock, Plane, Sparkles } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { useItinerary } from "@/hooks/useItinerary";
 import RouteMapFallback from "@/components/map/RouteMapFallback";
+import { useTripStore } from "@/stores/useTripStore";
 import { createClient } from "@/lib/supabase/client";
-import type { CityStop } from "@/types";
+import type { CityStop, ItineraryFlightLeg } from "@/types";
+import type { FlightSkeleton } from "@/lib/flights/types";
 
 // Mapbox map loaded only on the client — mapbox-gl does not support SSR
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
@@ -36,13 +38,18 @@ type Params = Promise<{ id: string }>;
 export default function TripPage({ params }: { params: Params }) {
   const { id } = use(params);
   const itinerary = useItinerary();
-  const { route, days, budget, visaData, weatherData } = itinerary;
+  const { route, days, budget, visaData, weatherData, flightLegs } = itinerary;
+  const { homeAirport, dateStart, dateEnd, travelers, setItinerary } = useTripStore();
 
   const posthog = usePostHog();
   const [activeCityIndex, setActiveCityIndex] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"visa" | "weather" | "budget">("visa");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [optimizeState, setOptimizeState] = useState<"idle" | "loading" | "result" | "applied">(
+    flightLegs ? "applied" : "idle"
+  );
+  const [optimizeResult, setOptimizeResult] = useState<FlightSkeleton | null>(null);
   const dayRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -58,6 +65,47 @@ export default function TripPage({ params }: { params: Params }) {
   const countries = [...new Set(route.map((r) => r.country))];
   const tripTitle = countries.join(", ");
   const totalDays = days.length;
+
+  // Savings from optimization (used in result card)
+  const optimizeSaved =
+    optimizeResult?.baselineCost && optimizeResult.totalFlightCost > 0
+      ? Math.round(optimizeResult.baselineCost - optimizeResult.totalFlightCost)
+      : null;
+
+  const handleOptimize = async () => {
+    setOptimizeState("loading");
+    try {
+      const res = await fetch(`/api/v1/trips/${id}/optimize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ homeAirport, route, dateStart, dateEnd, travelers }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const { skeleton } = await res.json() as { skeleton: FlightSkeleton };
+      if (!skeleton || skeleton.totalFlightCost === 0) throw new Error("No prices returned");
+      setOptimizeResult(skeleton);
+      setOptimizeState("result");
+      posthog?.capture("flight_optimization_completed", {
+        trip_id: id,
+        total_cost: skeleton.totalFlightCost,
+        savings: skeleton.baselineCost ? Math.round(skeleton.baselineCost - skeleton.totalFlightCost) : 0,
+      });
+    } catch (e) {
+      console.error("[optimize]", e);
+      setOptimizeState("idle");
+    }
+  };
+
+  const handleApplyOptimization = () => {
+    if (!optimizeResult) return;
+    setItinerary({
+      ...itinerary,
+      flightLegs: optimizeResult.legs as ItineraryFlightLeg[],
+      ...(optimizeResult.baselineCost ? { flightBaselineCost: optimizeResult.baselineCost } : {}),
+    });
+    setOptimizeState("applied");
+    posthog?.capture("flight_optimization_applied", { trip_id: id });
+  };
 
   // Map pin click → set active city + scroll timeline to first day of that city
   const handleCityClick = useCallback((index: number) => {
@@ -237,6 +285,110 @@ export default function TripPage({ params }: { params: Params }) {
                   </div>
                 )}
               </motion.div>
+            )}
+          </div>
+
+          {/* ── Optimize Flights card ─────────────────────────── */}
+          <div className="mt-4">
+            {optimizeState === "idle" && (
+              <button
+                onClick={handleOptimize}
+                className="w-full p-4 border-2 border-dashed border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">✈️</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
+                      Optimize flight costs
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      Find the cheapest date combination across all legs
+                    </div>
+                  </div>
+                  <Sparkles className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                </div>
+              </button>
+            )}
+
+            {optimizeState === "loading" && (
+              <div className="p-4 border border-border rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="text-xl animate-pulse">✈️</div>
+                  <div>
+                    <div className="font-semibold text-sm text-foreground">Searching prices…</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      Checking all date combinations — this takes ~30s
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full animate-pulse w-2/3" />
+                </div>
+              </div>
+            )}
+
+            {optimizeState === "result" && optimizeResult && (
+              <div className="border-2 border-primary rounded-xl bg-primary/5 overflow-hidden">
+                <div className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-semibold text-sm text-foreground">Better dates found!</div>
+                      {optimizeSaved && optimizeSaved > 0 && (
+                        <div className="text-xs font-medium text-green-700 dark:text-green-400 mt-0.5">
+                          ~€{optimizeSaved.toLocaleString()} cheaper than average date combination
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
+                      €{Math.round(optimizeResult.totalFlightCost).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {optimizeResult.legs.map((leg, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">
+                          {leg.fromCity} → {leg.toCity}
+                          <span className="ml-1 text-muted-foreground/60">{leg.departureDate}</span>
+                        </span>
+                        <span className="font-medium text-foreground">€{Math.round(leg.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={handleApplyOptimization}
+                      className="btn-primary text-xs py-1.5 px-3 flex-1"
+                    >
+                      Apply these dates
+                    </button>
+                    <button
+                      onClick={() => setOptimizeState("idle")}
+                      className="btn-ghost text-xs py-1.5 px-3"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(optimizeState === "applied" || (optimizeState === "idle" && flightLegs)) && (
+              <div className="p-3 border border-border rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-foreground">Flights optimized ✓</span>
+                  <span className="text-xs text-primary">
+                    €{(optimizeResult?.totalFlightCost ?? flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0).toLocaleString()}
+                  </span>
+                </div>
+                {(optimizeResult?.legs ?? flightLegs)?.map((leg, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{leg.fromCity} → {leg.toCity}</span>
+                    <span className="font-medium text-foreground">€{Math.round(leg.price)}</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
