@@ -6,8 +6,6 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { generateItinerary } from "@/lib/ai/pipeline";
 
@@ -17,16 +15,27 @@ export const dynamic = "force-dynamic";
 // Vercel Pro allows 60s; Hobby is 10s. For demo, use cached fallback if on Hobby.
 export const maxDuration = 60;
 
-// ── Rate limiter (only active when Upstash env vars are configured) ──────────
-// Falls back gracefully in local dev without Redis
-const ratelimit =
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-    ? new Ratelimit({
-        redis: Redis.fromEnv(),
-        limiter: Ratelimit.slidingWindow(10, "1 m"), // 10 requests per minute per IP
-        analytics: false,
-      })
-    : null;
+// ── Rate limiter (lazy init — only created on first request, not at build time) ──
+let _ratelimit: import("@upstash/ratelimit").Ratelimit | null | undefined;
+
+function getRatelimit() {
+  if (_ratelimit !== undefined) return _ratelimit;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (url?.startsWith("https://") && token) {
+    // Dynamic import avoided — use direct require since these are already in node_modules
+    const { Ratelimit } = require("@upstash/ratelimit") as typeof import("@upstash/ratelimit");
+    const { Redis } = require("@upstash/redis") as typeof import("@upstash/redis");
+    _ratelimit = new Ratelimit({
+      redis: new Redis({ url, token }),
+      limiter: Ratelimit.slidingWindow(10, "1 m"),
+      analytics: false,
+    });
+  } else {
+    _ratelimit = null;
+  }
+  return _ratelimit;
+}
 
 // ── Input validation schema ──────────────────────────────────────────────────
 // Validates and bounds all user-controlled fields before they reach the AI pipeline.
@@ -52,6 +61,7 @@ const RequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   // ── Rate limiting ────────────────────────────────────────────
+  const ratelimit = getRatelimit();
   if (ratelimit) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
     const { success } = await ratelimit.limit(ip);
