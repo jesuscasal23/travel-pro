@@ -254,7 +254,10 @@ export default function PlanPage() {
           </motion.div>
 
           <div className="space-y-4">
-            {generationSteps.map((gs, i) => (
+            {generationSteps.map((gs, i) => {
+              const isErrorStep = generationError && i === generationStep;
+              const isCompleted = i < generationStep && !isErrorStep;
+              return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
@@ -264,14 +267,17 @@ export default function PlanPage() {
               >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 transition-all duration-300
-                    ${i < generationStep ? "bg-primary/10" : i === generationStep ? (generationError ? "bg-accent/20" : "bg-primary/20 animate-pulse") : "bg-secondary"}`}
+                    ${isErrorStep ? "bg-accent/20" : isCompleted ? "bg-primary/10" : i === generationStep ? "bg-primary/20 animate-pulse" : "bg-secondary"}`}
                 >
-                  {gs.emoji}
+                  {isErrorStep ? "❌" : gs.emoji}
                 </div>
-                <span className="font-medium text-foreground flex-1">{gs.label}</span>
-                {i < generationStep && <CheckCircle className="w-5 h-5 text-primary shrink-0" />}
+                <span className={`font-medium flex-1 ${isErrorStep ? "text-accent" : "text-foreground"}`}>
+                  {isErrorStep ? "Generation failed" : gs.label}
+                </span>
+                {isCompleted && <CheckCircle className="w-5 h-5 text-primary shrink-0" />}
               </motion.div>
-            ))}
+              );
+            })}
           </div>
 
           {generationError && (

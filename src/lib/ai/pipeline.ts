@@ -2,7 +2,7 @@
 // Travel Pro — AI Generation Pipeline
 //
 // Stage 1: Assemble prompt
-// Stage 2: Call Claude (claude-sonnet-4-20250514, maxTokens 5000, temp 0.7, 50s timeout)
+// Stage 2: Call Claude (claude-haiku-4-5-20251001, maxTokens 5000, temp 0.7, 50s timeout)
 // Stage 3: Parse + validate with Zod
 // Stage 4: Enrich (visa + weather) in parallel
 // Stage 5: Store via Prisma
@@ -126,7 +126,7 @@ interface ClaudeResult {
 async function callClaude(userPrompt: string, retryCount = 0): Promise<ClaudeResult> {
   try {
     const message = await getAnthropic().messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 5000,
       temperature: 0.7,
       system: SYSTEM_PROMPT_V1,
@@ -224,7 +224,7 @@ export async function generateItinerary(
 
   // Stage 2: Call Claude
   const t2 = Date.now();
-  console.log(`[pipeline] Stage 2: Calling Claude Sonnet for trip ${tripIntent.id}...`);
+  console.log(`[pipeline] Stage 2: Calling Claude Haiku for trip ${tripIntent.id}...`);
   const claudeResult = await callClaude(userPrompt);
   const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
   console.log(`[pipeline] Stage 2 complete in ${claudeDuration}s — model=${claudeResult.model} input=${claudeResult.inputTokens}tok output=${claudeResult.outputTokens}tok [${elapsed()} total]`);
