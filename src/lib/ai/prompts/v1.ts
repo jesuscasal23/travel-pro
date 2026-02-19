@@ -97,10 +97,17 @@ ${cities
   .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${skeleton.dayAssignment[i]} days, airport: ${c.iataCode}`)
   .join("\n")}
 Set iataCode on each route city to the airport codes above.`
+    : !skeleton && cities
+    ? `
+**CITY SCHEDULE (pre-selected — use exactly these cities):**
+${cities
+  .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${c.minDays}–${c.maxDays} days`)
+  .join("\n")}
+Distribute the trip days across these cities within the min–max ranges above.`
     : "";
 
-  // When skeleton is provided, city selection is already done; otherwise ask Claude to choose.
-  const cityRequirement = skeleton && cities
+  // When cities are pre-selected (skeleton or Haiku), lock the route; otherwise let Claude choose.
+  const cityRequirement = cities
     ? "Use EXACTLY the cities listed in the CITY SCHEDULE above — do not add or remove cities."
     : "1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip";
 

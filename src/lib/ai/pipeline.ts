@@ -2,7 +2,7 @@
 // Travel Pro — AI Generation Pipeline
 //
 // Stage 1: Assemble prompt
-// Stage 2: Call Claude (claude-sonnet-4-20250514, maxTokens 8000, temp 0.7)
+// Stage 2: Call Claude (claude-sonnet-4-20250514, maxTokens 5000, temp 0.7, 50s timeout)
 // Stage 3: Parse + validate with Zod
 // Stage 4: Enrich (visa + weather) in parallel
 // Stage 5: Store via Prisma
@@ -27,6 +27,7 @@ function getAnthropic(): Anthropic {
   if (!_anthropic) {
     _anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
+      timeout: 50_000, // 50s — fail cleanly before Vercel's 60s limit
     });
   }
   return _anthropic;
@@ -126,7 +127,7 @@ async function callClaude(userPrompt: string, retryCount = 0): Promise<ClaudeRes
   try {
     const message = await getAnthropic().messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 8000,
+      max_tokens: 5000,
       temperature: 0.7,
       system: SYSTEM_PROMPT_V1,
       messages: [{ role: "user", content: userPrompt }],
