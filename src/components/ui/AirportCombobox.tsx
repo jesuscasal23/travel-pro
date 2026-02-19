@@ -76,7 +76,7 @@ export function AirportCombobox({ value, onChange, className = "", placeholder =
         autoComplete="off"
         spellCheck={false}
         className={`${inputClass} ${className}`}
-        placeholder={open ? placeholder : (displayValue || placeholder)}
+        placeholder={!open && value ? "" : placeholder}
         value={open ? query : ""}
         onFocus={() => { setOpen(true); setHighlighted(0); }}
         onChange={(e) => { setQuery(e.target.value); setHighlighted(0); }}
