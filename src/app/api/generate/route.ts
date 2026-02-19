@@ -54,6 +54,11 @@ const RequestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+
+  console.log("[/api/generate] Request received");
+
   // ── Parse + validate request body (before rate limiting so we can check cities) ──
   let body: unknown;
   try {
@@ -74,6 +79,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { profile, tripIntent, cities } = parsed.data;
+  console.log(`[/api/generate] Validated — trip=${tripIntent.id} region=${tripIntent.region} cities=${cities ? cities.length : "none"} [${elapsed()}]`);
 
   // ── Rate limiting (skip when cities provided — already rate-limited on select-route) ──
   if (!cities) {
@@ -83,6 +89,7 @@ export async function POST(req: NextRequest) {
         const ip = getClientIp(req);
         const { success } = await ratelimit.limit(ip);
         if (!success) {
+          console.warn(`[/api/generate] Rate limited [${elapsed()}]`);
           return NextResponse.json(
             { error: "Too many requests. Please wait a moment before trying again." },
             { status: 429 }
@@ -103,19 +110,20 @@ export async function POST(req: NextRequest) {
 
   // ── Run pipeline ────────────────────────────────────────────
   try {
+    console.log(`[/api/generate] Starting pipeline [${elapsed()}]`);
     const itinerary = await generateItinerary(
       profile,
       tripIntent,
       cities ?? undefined
     );
 
+    console.log(`[/api/generate] ✓ Success — returning itinerary [${elapsed()}]`);
     return NextResponse.json(
       { success: true, itinerary },
       { status: 200 }
     );
   } catch (error) {
-    // Log the full detail server-side; return a generic message to the client
-    console.error("[/api/generate] Pipeline error:", error instanceof Error ? error.message : error);
+    console.error(`[/api/generate] ✗ Pipeline error after ${elapsed()}:`, error instanceof Error ? error.stack ?? error.message : error);
 
     return NextResponse.json(
       { error: "Trip generation failed. Please try again." },

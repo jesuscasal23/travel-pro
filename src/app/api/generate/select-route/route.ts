@@ -44,6 +44,11 @@ const RequestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+
+  console.log("[/api/generate/select-route] Request received");
+
   // ── Rate limiting (fail open) ─────────────────────────────────────────────
   try {
     const ratelimit = getRatelimit();
@@ -51,6 +56,7 @@ export async function POST(req: NextRequest) {
       const ip = getClientIp(req);
       const { success } = await ratelimit.limit(ip);
       if (!success) {
+        console.warn(`[/api/generate/select-route] Rate limited [${elapsed()}]`);
         return NextResponse.json(
           { error: "Too many requests. Please wait a moment before trying again." },
           { status: 429 }
@@ -91,16 +97,17 @@ export async function POST(req: NextRequest) {
   }
 
   const { profile, tripIntent } = parsed.data;
+  console.log(`[/api/generate/select-route] Validated — region=${tripIntent.region} [${elapsed()}]`);
 
   // ── Haiku route selection ─────────────────────────────────────────────────
   try {
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const cities = await selectRoute(profile, tripIntent, anthropic);
+    console.log(`[/api/generate/select-route] ✓ Success — ${cities.length} cities [${elapsed()}]`);
     return NextResponse.json({ cities }, { status: 200 });
   } catch (err) {
-    // Haiku failure is non-fatal — return null so the main endpoint runs its own route selection
     console.warn(
-      "[/api/generate/select-route] Route selection failed:",
+      `[/api/generate/select-route] ✗ Route selection failed after ${elapsed()}:`,
       err instanceof Error ? err.message : err
     );
     return NextResponse.json({ cities: null }, { status: 200 });

@@ -115,7 +115,14 @@ export function extractJSON(text: string): string {
 // Stage 2: Call Claude
 // ============================================================
 
-async function callClaude(userPrompt: string, retryCount = 0): Promise<string> {
+interface ClaudeResult {
+  text: string;
+  inputTokens: number;
+  outputTokens: number;
+  model: string;
+}
+
+async function callClaude(userPrompt: string, retryCount = 0): Promise<ClaudeResult> {
   try {
     const message = await getAnthropic().messages.create({
       model: "claude-sonnet-4-20250514",
@@ -130,7 +137,12 @@ async function callClaude(userPrompt: string, retryCount = 0): Promise<string> {
       throw new Error("Claude returned non-text content");
     }
 
-    return block.text;
+    return {
+      text: block.text,
+      inputTokens: message.usage?.input_tokens ?? 0,
+      outputTokens: message.usage?.output_tokens ?? 0,
+      model: message.model ?? "unknown",
+    };
   } catch (err) {
     // Content filtering is probabilistic — retry with backoff (usually succeeds on 2nd attempt)
     const msg = getErrorMessage(err);
@@ -180,60 +192,68 @@ export async function generateItinerary(
   tripIntent: TripIntent,
   preSelectedCities?: CityWithDays[]
 ): Promise<Itinerary> {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+
   // Stage A: Route selection
   // If pre-selected cities are provided (from /api/generate/select-route), skip Haiku call.
   let cities: CityWithDays[] | undefined = preSelectedCities;
 
   if (!cities) {
+    const tA = Date.now();
     try {
       console.log("[pipeline] Stage A: Selecting route with Haiku");
       cities = await selectRoute(profile, tripIntent, getAnthropic());
-      console.log(`[pipeline] Stage A complete: ${cities.map(c => c.city).join(", ")}`);
+      console.log(`[pipeline] Stage A complete in ${((Date.now() - tA) / 1000).toFixed(1)}s: ${cities.map(c => c.city).join(", ")} [${elapsed()} total]`);
     } catch (e) {
       console.warn(
-        "[pipeline] Stage A failed, falling back to Claude-only route:",
-        getErrorMessage(e)
+        `[pipeline] Stage A failed in ${((Date.now() - tA) / 1000).toFixed(1)}s, falling back to Claude-only route:`,
+        getErrorMessage(e),
+        `[${elapsed()} total]`
       );
       cities = undefined;
     }
   } else {
-    console.log(`[pipeline] Stage A skipped: using ${cities.length} pre-selected cities`);
+    console.log(`[pipeline] Stage A skipped: using ${cities.length} pre-selected cities [${elapsed()} total]`);
   }
-
-  // Stage B (Amadeus flight optimization) is on-demand — triggered by the user
-  // from the trip view via POST /api/v1/trips/[id]/optimize, not during generation.
 
   // Stage 1: Assemble prompt (inject city schedule from Stage A when available)
   const userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
+  console.log(`[pipeline] Stage 1 (prompt assembly) done [${elapsed()} total]`);
 
   // Stage 2: Call Claude
-  console.log("[pipeline] Calling Claude for trip:", tripIntent.id);
-  const rawOutput = await callClaude(userPrompt);
+  const t2 = Date.now();
+  console.log(`[pipeline] Stage 2: Calling Claude Sonnet for trip ${tripIntent.id}...`);
+  const claudeResult = await callClaude(userPrompt);
+  const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
+  console.log(`[pipeline] Stage 2 complete in ${claudeDuration}s — model=${claudeResult.model} input=${claudeResult.inputTokens}tok output=${claudeResult.outputTokens}tok [${elapsed()} total]`);
 
   // Stage 3: Parse + validate
-  const parsed = parseAndValidate(rawOutput);
+  const t3 = Date.now();
+  const parsed = parseAndValidate(claudeResult.text);
   console.log(
-    `[pipeline] Parsed itinerary: ${parsed.route.length} cities, ${parsed.days.length} days`
+    `[pipeline] Stage 3 (parse+validate) done in ${((Date.now() - t3) / 1000).toFixed(1)}s: ${parsed.route.length} cities, ${parsed.days.length} days [${elapsed()} total]`
   );
 
   // Stage 4: Enrich (visa + weather) in parallel
+  const t4 = Date.now();
   const [visaData, weatherData] = await Promise.all([
     enrichVisa(profile.nationality, parsed.route),
     enrichWeather(parsed.route, tripIntent.dateStart),
   ]);
+  console.log(`[pipeline] Stage 4 (enrich) done in ${((Date.now() - t4) / 1000).toFixed(1)}s — ${visaData.length} visa entries, ${weatherData.length} weather entries [${elapsed()} total]`);
 
   // Stage 5: Combine + store
   const itinerary: Itinerary = {
     ...parsed,
     visaData,
     weatherData,
-    // flightLegs populated on-demand via /api/v1/trips/[id]/optimize — not during generation
   };
 
   // Persist itinerary via Prisma (best-effort — don't fail generation if DB is down)
+  const t5 = Date.now();
   try {
     const { getPrisma } = await import("@/lib/db/prisma");
-    // Phase 1: itinerary is 1-to-many — find active and update, or create new
     const existing = await getPrisma().itinerary.findFirst({
       where: { tripId: tripIntent.id, isActive: true },
     });
@@ -247,11 +267,11 @@ export async function generateItinerary(
         data: { tripId: tripIntent.id, data: itinerary as object },
       });
     }
+    console.log(`[pipeline] Stage 5 (DB persist) done in ${((Date.now() - t5) / 1000).toFixed(1)}s [${elapsed()} total]`);
   } catch (e) {
-    // DB storage is best-effort — don't fail the generation
-    console.error("[pipeline] Failed to persist itinerary:", getErrorMessage(e));
+    console.error(`[pipeline] Stage 5 (DB persist) failed in ${((Date.now() - t5) / 1000).toFixed(1)}s:`, getErrorMessage(e), `[${elapsed()} total]`);
   }
 
-  console.log("[pipeline] Generation complete for trip:", tripIntent.id);
+  console.log(`[pipeline] ✓ Generation complete for trip ${tripIntent.id} — total ${elapsed()}`);
   return itinerary;
 }
