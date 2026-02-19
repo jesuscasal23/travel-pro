@@ -6,13 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
-import { regions } from "@/data/sampleData";
+import { regions, interestOptions } from "@/data/sampleData";
+import { nationalities } from "@/data/nationalities";
 import { Badge } from "@/components/ui";
 import { Navbar } from "@/components/Navbar";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { inputClass } from "@/components/auth/auth-styles";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { slideVariants } from "@/lib/animations";
+import { AirportCombobox } from "@/components/ui/AirportCombobox";
+import { ChipGroup } from "@/components/ui/Chip";
+import { TravelStylePicker } from "@/components/TravelStylePicker";
 import type { TripVibe } from "@/types";
 
 const generationSteps = [
@@ -31,8 +35,6 @@ const vibes = [
   { id: "mix",        emoji: "🎯", label: "Mix of everything", description: "A balanced blend of all styles" },
 ] as const;
 
-const TOTAL_STEPS = 2;
-
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
@@ -40,8 +42,18 @@ export default function PlanPage() {
   const [direction, setDirection] = useState(1);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
+  const isGuest = isAuthenticated === false;
+  const totalSteps = isGuest ? 4 : 2;
+
   const {
     planStep, setPlanStep,
+    // Onboarding fields
+    displayName, setDisplayName,
+    nationality, setNationality,
+    homeAirport, setHomeAirport,
+    travelStyle, setTravelStyle,
+    interests, toggleInterest,
+    // Plan fields
     region, setRegion,
     dateStart, setDateStart,
     dateEnd, setDateEnd,
@@ -51,12 +63,17 @@ export default function PlanPage() {
     travelers, setTravelers,
     isGenerating, setIsGenerating,
     generationStep, setGenerationStep,
-    nationality, homeAirport, travelStyle, interests,
     setCurrentTripId, setItinerary,
   } = useTripStore();
 
   // Clamp persisted planStep to valid range
-  const step = Math.min(Math.max(planStep, 1), TOTAL_STEPS);
+  const step = Math.min(Math.max(planStep, 1), totalSteps);
+
+  // Which content to show based on step + auth
+  const showProfile = isGuest && step === 1;
+  const showStyle = isGuest && step === 2;
+  const showDestination = isGuest ? step === 3 : step === 1;
+  const showDetails = isGuest ? step === 4 : step === 2;
 
   const dayCount = (() => {
     if (!dateStart || !dateEnd) return 0;
@@ -64,8 +81,10 @@ export default function PlanPage() {
   })();
 
   const canAdvance = () => {
-    if (step === 1) return !!region && !!dateStart && !!dateEnd && dayCount > 0;
-    if (step === 2) return budget > 0 && !!vibe && travelers > 0;
+    if (showProfile) return !!displayName.trim() && !!nationality;
+    if (showStyle) return true; // style has default, interests optional
+    if (showDestination) return !!region && !!dateStart && !!dateEnd && dayCount > 0;
+    if (showDetails) return budget > 0 && !!vibe && travelers > 0;
     return true;
   };
 
@@ -237,14 +256,65 @@ export default function PlanPage() {
 
       <div className="max-w-xl mx-auto px-4 pt-24 pb-12">
         {/* Progress */}
-        <StepProgress step={step} totalSteps={TOTAL_STEPS} />
+        <StepProgress step={step} totalSteps={totalSteps} />
 
-        <div className="overflow-hidden relative -mx-1 px-1">
+        <div className="overflow-x-clip overflow-y-visible relative -mx-1 px-1">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25, ease: "easeInOut" }}>
 
-              {/* Step 1 — Where & when? */}
-              {step === 1 && (
+              {/* Guest Step 1 — Where are you from? */}
+              {showProfile && (
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">Where are you from?</h2>
+                  <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
+
+                  <div className="mt-8 space-y-5">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Your name</label>
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="First name"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Nationality</label>
+                      <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
+                        <option value="">Select nationality</option>
+                        {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Home Airport</label>
+                      <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Guest Step 2 — Travel style */}
+              {showStyle && (
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">Your travel style</h2>
+                  <p className="mt-2 text-muted-foreground text-sm">Help us personalise every trip we plan for you.</p>
+
+                  <div className="mt-8 space-y-8">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-3">Travel Style</label>
+                      <TravelStylePicker value={travelStyle} onChange={setTravelStyle} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-3">Interests</label>
+                      <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Destination — Where & when? */}
+              {showDestination && (
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-1">Where & when?</h2>
                   <p className="text-muted-foreground mb-6">Pick your destination and travel dates.</p>
@@ -294,8 +364,8 @@ export default function PlanPage() {
                 </div>
               )}
 
-              {/* Step 2 — Trip details */}
-              {step === 2 && (
+              {/* Trip details — Budget, Vibe, Travelers */}
+              {showDetails && (
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-1">Trip details</h2>
                   <p className="text-muted-foreground mb-8">A few quick choices and we&apos;re ready to plan.</p>
@@ -354,7 +424,7 @@ export default function PlanPage() {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
 
-          {step < TOTAL_STEPS ? (
+          {step < totalSteps ? (
             <button onClick={goNext} disabled={!canAdvance()}
               className="btn-primary text-sm py-2 px-5 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
               Continue
@@ -370,14 +440,6 @@ export default function PlanPage() {
 
         {generationError && (
           <p className="mt-4 text-sm text-accent text-center">{generationError}</p>
-        )}
-
-        {step === 1 && (
-          <div className="mt-4 text-center">
-            <button onClick={() => { setPlanStep(2); setDirection(1); }} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Skip for now
-            </button>
-          </div>
         )}
       </div>
     </div>

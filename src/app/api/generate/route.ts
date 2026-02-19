@@ -7,6 +7,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { generateItinerary } from "@/lib/ai/pipeline";
 import { getClientIp } from "@/lib/api/helpers";
 import { ProfileInputSchema } from "@/lib/api/schemas";
@@ -18,16 +20,13 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // ── Rate limiter (lazy init — only created on first request, not at build time) ──
-let _ratelimit: import("@upstash/ratelimit").Ratelimit | null | undefined;
+let _ratelimit: Ratelimit | null | undefined;
 
-function getRatelimit() {
+function getRatelimit(): Ratelimit | null {
   if (_ratelimit !== undefined) return _ratelimit;
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (url?.startsWith("https://") && token) {
-    // Dynamic import avoided — use direct require since these are already in node_modules
-    const { Ratelimit } = require("@upstash/ratelimit") as typeof import("@upstash/ratelimit");
-    const { Redis } = require("@upstash/redis") as typeof import("@upstash/redis");
     _ratelimit = new Ratelimit({
       redis: new Redis({ url, token }),
       limiter: Ratelimit.slidingWindow(10, "1 m"),
@@ -57,17 +56,21 @@ const RequestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  // ── Rate limiting ────────────────────────────────────────────
-  const ratelimit = getRatelimit();
-  if (ratelimit) {
-    const ip = getClientIp(req);
-    const { success } = await ratelimit.limit(ip);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait a moment before trying again." },
-        { status: 429 }
-      );
+  // ── Rate limiting (fail open — if Redis is down, let the request through) ──
+  try {
+    const ratelimit = getRatelimit();
+    if (ratelimit) {
+      const ip = getClientIp(req);
+      const { success } = await ratelimit.limit(ip);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please wait a moment before trying again." },
+          { status: 429 }
+        );
+      }
     }
+  } catch (err) {
+    console.warn("[/api/generate] Rate limiting failed, allowing request:", err instanceof Error ? err.message : err);
   }
 
   // ── Parse + validate request body ───────────────────────────

@@ -53,11 +53,18 @@ import PlanPage from "@/app/plan/page";
 
 // ── Store setup ───────────────────────────────────────────────────────────────
 
-/** Prime the store so the questionnaire is on step 2 with valid answers. */
-function setValidStep2State() {
+/** Prime the store so the questionnaire is on the final step with valid answers.
+ *  Guest mode uses a 4-step wizard (profile → style → destination → details),
+ *  so the Generate button appears on step 4. */
+function setValidFinalStepState() {
   act(() => {
     useTripStore.setState({
-      planStep: 2,
+      planStep: 4,
+      displayName: "Test",
+      nationality: "German",
+      homeAirport: "FRA",
+      travelStyle: "comfort",
+      interests: [],
       region: "southeast-asia",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
@@ -77,7 +84,7 @@ function setValidStep2State() {
 describe("PlanPage — guest mode API failure", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setValidStep2State();
+    setValidFinalStepState();
   });
 
   it("shows an error message when the API returns a non-200 response", async () => {

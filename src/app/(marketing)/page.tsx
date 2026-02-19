@@ -130,7 +130,7 @@ export default function LandingPage() {
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
-              href="/onboarding"
+              href="/plan"
               className="btn-primary text-lg px-10 py-4"
               style={{ boxShadow: "var(--shadow-hero)" }}
             >

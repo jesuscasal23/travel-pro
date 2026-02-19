@@ -31,7 +31,7 @@ export function Navbar({ isAuthenticated = false, displayName = "Thomas" }: Navb
               </span>
             </>
           ) : (
-            <Link href="/onboarding" className="btn-ghost text-sm py-2 px-4">
+            <Link href="/plan" className="btn-ghost text-sm py-2 px-4">
               Sign In
             </Link>
           )}
