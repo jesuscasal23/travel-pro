@@ -106,24 +106,51 @@ export default function PlanPage() {
     setGenerationStep(0);
     setGenerationError(null);
 
-    // ── Guest mode: no DB, call /api/generate directly ──────────
+    // ── Guest mode: 2-step generation (route selection → itinerary) ──────────
+    // Split across two requests so each stays well within Vercel's 60s timeout.
     if (!isAuthenticated) {
-      const stepDelays = [3000, 7000, 12000, 17000, 22000];
-      const timers = stepDelays.map((delay, i) =>
-        setTimeout(() => setGenerationStep(i + 1), delay)
-      );
-
       try {
+        // Step 1: Haiku route selection (~3-5s) — real progress
+        let cities: unknown = null;
+        try {
+          const routeRes = await fetch("/api/generate/select-route", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              profile: { nationality, homeAirport, travelStyle, interests },
+              tripIntent: { id: "guest", region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers },
+            }),
+          });
+          if (routeRes.ok) {
+            const routeData = await routeRes.json();
+            cities = routeData.cities; // may be null if Haiku failed — that's fine
+          }
+        } catch {
+          // Route selection network error — proceed without pre-selected cities
+          console.warn("[plan] Route selection failed, proceeding without pre-selected cities");
+        }
+
+        // Step 2: Sonnet generation + enrichment (~20-30s)
+        setGenerationStep(1);
+
+        // Simulate sub-step progress during Sonnet call (visa/weather/budget happen internally)
+        const enrichTimers = [
+          setTimeout(() => setGenerationStep(2), 8000),
+          setTimeout(() => setGenerationStep(3), 13000),
+          setTimeout(() => setGenerationStep(4), 18000),
+        ];
+
         const genRes = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             profile: { nationality, homeAirport, travelStyle, interests },
             tripIntent: { id: "guest", region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers },
+            ...(cities ? { cities } : {}),
           }),
         });
 
-        timers.forEach(clearTimeout);
+        enrichTimers.forEach(clearTimeout);
         setGenerationStep(5);
 
         if (genRes.ok) {
@@ -135,7 +162,6 @@ export default function PlanPage() {
           setIsGenerating(false);
         }
       } catch {
-        timers.forEach(clearTimeout);
         setGenerationError("Something went wrong. Please try again.");
         setIsGenerating(false);
       }

@@ -177,21 +177,27 @@ export function parseAndValidate(rawOutput: string): ClaudeItinerary {
 
 export async function generateItinerary(
   profile: UserProfile,
-  tripIntent: TripIntent
+  tripIntent: TripIntent,
+  preSelectedCities?: CityWithDays[]
 ): Promise<Itinerary> {
-  // Stage A: Route selection (Haiku — fast + cheap, populates IATA codes)
-  let cities: CityWithDays[] | undefined;
+  // Stage A: Route selection
+  // If pre-selected cities are provided (from /api/generate/select-route), skip Haiku call.
+  let cities: CityWithDays[] | undefined = preSelectedCities;
 
-  try {
-    console.log("[pipeline] Stage A: Selecting route with Haiku");
-    cities = await selectRoute(profile, tripIntent, getAnthropic());
-    console.log(`[pipeline] Stage A complete: ${cities.map(c => c.city).join(", ")}`);
-  } catch (e) {
-    console.warn(
-      "[pipeline] Stage A failed, falling back to Claude-only route:",
-      getErrorMessage(e)
-    );
-    cities = undefined;
+  if (!cities) {
+    try {
+      console.log("[pipeline] Stage A: Selecting route with Haiku");
+      cities = await selectRoute(profile, tripIntent, getAnthropic());
+      console.log(`[pipeline] Stage A complete: ${cities.map(c => c.city).join(", ")}`);
+    } catch (e) {
+      console.warn(
+        "[pipeline] Stage A failed, falling back to Claude-only route:",
+        getErrorMessage(e)
+      );
+      cities = undefined;
+    }
+  } else {
+    console.log(`[pipeline] Stage A skipped: using ${cities.length} pre-selected cities`);
   }
 
   // Stage B (Amadeus flight optimization) is on-demand — triggered by the user

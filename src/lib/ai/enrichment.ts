@@ -201,9 +201,21 @@ export async function getHistoricalWeather(
   url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,precipitation_sum");
   url.searchParams.set("timezone", "auto");
 
-  const response = await fetch(url.toString(), {
-    next: { revalidate: 0 }, // Always fresh from cache layer, not Next.js cache
-  });
+  // 5s timeout — prevents a hanging Open-Meteo request from stalling the pipeline
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      signal: controller.signal,
+    });
+  } catch {
+    // Timeout (AbortError) or network error — return neutral fallback
+    return { avgTemp: 25, condition: "Warm", icon: "☀️" };
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     // Return a neutral fallback rather than crashing

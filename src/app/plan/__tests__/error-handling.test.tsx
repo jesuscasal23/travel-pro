@@ -88,7 +88,10 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("shows an error message when the API returns a non-200 response", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
+    // Guest flow: 2 fetches — select-route succeeds, generate fails
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />);
 
@@ -107,7 +110,9 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("does NOT navigate to /trip/guest when the API fails", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />);
 
@@ -125,6 +130,7 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("shows an error message when the API call throws a network error", async () => {
+    // Both fetches reject — inner catch handles select-route, outer catch handles generate
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     render(<PlanPage />);
@@ -159,9 +165,11 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("clears the error message when the user clicks Generate again", async () => {
-    // First call fails, second call never resolves (pending)
+    // First click: select-route OK + generate fails → error appears
+    // Second click: select-route never resolves → loading screen takes over
     global.fetch = vi
       .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
       .mockReturnValueOnce(new Promise(() => {}));
 
@@ -190,7 +198,9 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("does not inject sampleFullItinerary into the store on failure", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />);
 

@@ -129,7 +129,20 @@ describe("POST /api/generate", () => {
       await POST(makeRequest({ profile: validProfile, tripIntent: validTripIntent }));
 
       expect(mockGenerateItinerary).toHaveBeenCalledOnce();
-      expect(mockGenerateItinerary).toHaveBeenCalledWith(validProfile, validTripIntent);
+      expect(mockGenerateItinerary).toHaveBeenCalledWith(validProfile, validTripIntent, undefined);
+    });
+
+    it("passes pre-selected cities to generateItinerary when provided", async () => {
+      mockGenerateItinerary.mockResolvedValue(mockItinerary);
+
+      const cities = [
+        { id: "tokyo", city: "Tokyo", country: "Japan", countryCode: "JP", iataCode: "NRT", lat: 35.68, lng: 139.69, minDays: 3, maxDays: 5 },
+      ];
+
+      await POST(makeRequest({ profile: validProfile, tripIntent: validTripIntent, cities }));
+
+      expect(mockGenerateItinerary).toHaveBeenCalledOnce();
+      expect(mockGenerateItinerary).toHaveBeenCalledWith(validProfile, validTripIntent, cities);
     });
 
     it("does not call generateItinerary when the API key is missing", async () => {
