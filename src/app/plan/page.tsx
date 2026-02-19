@@ -158,12 +158,10 @@ export default function PlanPage() {
           setItinerary(itinerary);
           setTimeout(() => router.push("/trip/guest"), 600);
         } else {
-          setGenerationError("We couldn't generate your itinerary. Please try again.");
-          setIsGenerating(false);
+          setGenerationError("We couldn't generate your itinerary.");
         }
       } catch {
-        setGenerationError("Something went wrong. Please try again.");
-        setIsGenerating(false);
+        setGenerationError("Something went wrong.");
       }
       return;
     }
@@ -242,13 +240,17 @@ export default function PlanPage() {
   ]);
 
   // Generation loading screen
-  if (isGenerating) {
+  if (isGenerating || generationError) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="max-w-md w-full px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-foreground">Creating your itinerary</h2>
-            <p className="text-muted-foreground mt-2">This usually takes about 30 seconds</p>
+            <h2 className="text-2xl font-bold text-foreground">
+              {generationError ? "Generation failed" : "Creating your itinerary"}
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              {generationError ? generationError : "This usually takes about 30 seconds"}
+            </p>
           </motion.div>
 
           <div className="space-y-4">
@@ -262,7 +264,7 @@ export default function PlanPage() {
               >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 transition-all duration-300
-                    ${i < generationStep ? "bg-primary/10" : i === generationStep ? "bg-primary/20 animate-pulse" : "bg-secondary"}`}
+                    ${i < generationStep ? "bg-primary/10" : i === generationStep ? (generationError ? "bg-accent/20" : "bg-primary/20 animate-pulse") : "bg-secondary"}`}
                 >
                   {gs.emoji}
                 </div>
@@ -271,6 +273,18 @@ export default function PlanPage() {
               </motion.div>
             ))}
           </div>
+
+          {generationError && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 flex flex-col items-center gap-3">
+              <button onClick={handleGenerate} className="btn-primary flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Try Again
+              </button>
+              <button onClick={() => { setGenerationError(null); setIsGenerating(false); }} className="btn-ghost text-sm">
+                Back to questionnaire
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     );

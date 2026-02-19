@@ -164,9 +164,9 @@ describe("PlanPage — guest mode API failure", () => {
     expect(mockRouterPush).not.toHaveBeenCalledWith("/trip/guest");
   });
 
-  it("clears the error message when the user clicks Generate again", async () => {
-    // First click: select-route OK + generate fails → error appears
-    // Second click: select-route never resolves → loading screen takes over
+  it("clears the error message when the user clicks Try Again", async () => {
+    // First click: select-route OK + generate fails → error appears on generation screen
+    // Retry click: select-route never resolves → loading screen resumes (error clears)
     global.fetch = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
@@ -179,17 +179,15 @@ describe("PlanPage — guest mode API failure", () => {
       screen.getByRole("button", { name: /generate my itinerary/i })
     );
 
-    // First click → error appears
+    // First click → error appears on generation screen
     fireEvent.click(generateBtn);
     await waitFor(() => screen.getByText(/couldn't generate your itinerary/i));
 
-    // Re-query the button — the questionnaire was unmounted/remounted so the
-    // original reference is stale.
-    const generateBtn2 = screen.getByRole("button", { name: /generate my itinerary/i });
+    // User stays on generation screen — click "Try Again" to retry
+    const retryBtn = screen.getByRole("button", { name: /try again/i });
+    act(() => { fireEvent.click(retryBtn); });
 
-    // Second click → error should be cleared (loading screen takes over)
-    act(() => { fireEvent.click(generateBtn2); });
-    // The loading screen replaces the questionnaire, so the error disappears
+    // Error should be cleared as generation restarts
     await waitFor(() =>
       expect(
         screen.queryByText(/couldn't generate your itinerary/i)
