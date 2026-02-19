@@ -3,10 +3,9 @@
 //
 // Covers:
 //   - Guest mode: stays on the plan page with an error message when
-//     the API returns a non-200 response (no sampleFullItinerary fallback,
-//     no navigation to /trip/guest)
+//     trip creation returns a non-200 response (no navigation)
 //   - Guest mode: same behaviour when fetch throws a network error
-//   - Auth mode: redirects to /dashboard on total failure
+//   - Retry clears the error and restarts generation
 // ============================================================
 
 import React from "react";
@@ -80,21 +79,26 @@ function setValidFinalStepState() {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
+// New unified flow:
+// 1. Speculative route selection fires on mount (select-route fetch)
+// 2. On Generate click: awaits speculative result, then creates trip via POST /api/v1/trips
+// 3. If trip creation fails → error shown on plan page
+
 describe("PlanPage — guest mode API failure", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setValidFinalStepState();
   });
 
-  it("shows an error message when the API returns a non-200 response", async () => {
-    // Guest flow: 2 fetches — select-route succeeds, generate fails
+  it("shows an error message when trip creation returns a non-200 response", async () => {
+    // Fetch #1: speculative select-route (on mount) → no cities
+    // Fetch #2: POST /api/v1/trips (on Generate click) → fails
     global.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />);
 
-    // Wait for auth check to settle (isAuthenticated resolves to false)
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })
     );
@@ -103,12 +107,12 @@ describe("PlanPage — guest mode API failure", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText(/couldn't generate your itinerary/i)
+        screen.getByText(/something went wrong/i)
       ).toBeInTheDocument()
     );
   });
 
-  it("does NOT navigate to /trip/guest when the API fails", async () => {
+  it("does NOT navigate when trip creation fails", async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
@@ -122,14 +126,13 @@ describe("PlanPage — guest mode API failure", () => {
     fireEvent.click(generateBtn);
 
     await waitFor(() =>
-      screen.getByText(/couldn't generate your itinerary/i)
+      screen.getByText(/something went wrong/i)
     );
 
-    expect(mockRouterPush).not.toHaveBeenCalledWith("/trip/guest");
+    expect(mockRouterPush).not.toHaveBeenCalled();
   });
 
-  it("shows an error message when the API call throws a network error", async () => {
-    // Both fetches reject — inner catch handles select-route, outer catch handles generate
+  it("shows an error message when fetch throws a network error", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     render(<PlanPage />);
@@ -147,7 +150,7 @@ describe("PlanPage — guest mode API failure", () => {
     );
   });
 
-  it("does NOT navigate to /trip/guest when fetch throws", async () => {
+  it("does NOT navigate when fetch throws", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     render(<PlanPage />);
@@ -160,12 +163,13 @@ describe("PlanPage — guest mode API failure", () => {
 
     await waitFor(() => screen.getByText(/something went wrong/i));
 
-    expect(mockRouterPush).not.toHaveBeenCalledWith("/trip/guest");
+    expect(mockRouterPush).not.toHaveBeenCalled();
   });
 
   it("clears the error message when the user clicks Try Again", async () => {
-    // First click: select-route OK + generate fails → error appears on generation screen
-    // Retry click: select-route never resolves → loading screen resumes (error clears)
+    // Fetch #1: speculative (mount) → no cities
+    // Fetch #2: trip creation → fails → error
+    // Fetch #3: retry trip creation → hangs → loading resumes
     global.fetch = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
@@ -180,7 +184,7 @@ describe("PlanPage — guest mode API failure", () => {
 
     // First click → error appears on generation screen
     fireEvent.click(generateBtn);
-    await waitFor(() => screen.getByText(/couldn't generate your itinerary/i));
+    await waitFor(() => screen.getByText(/something went wrong/i));
 
     // User stays on generation screen — click "Try Again" to retry
     const retryBtn = screen.getByRole("button", { name: /try again/i });
@@ -189,12 +193,12 @@ describe("PlanPage — guest mode API failure", () => {
     // Error should be cleared as generation restarts
     await waitFor(() =>
       expect(
-        screen.queryByText(/couldn't generate your itinerary/i)
+        screen.queryByText(/something went wrong.*please try again/i)
       ).not.toBeInTheDocument()
     );
   });
 
-  it("does not inject sampleFullItinerary into the store on failure", async () => {
+  it("does not inject data into the store on failure", async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
@@ -207,9 +211,9 @@ describe("PlanPage — guest mode API failure", () => {
 
     fireEvent.click(generateBtn);
 
-    await waitFor(() => screen.getByText(/couldn't generate your itinerary/i));
+    await waitFor(() => screen.getByText(/something went wrong/i));
 
-    // Store itinerary must remain null — no fake data injected
+    // Store itinerary must remain null — partial itinerary only set on success
     expect(useTripStore.getState().itinerary).toBeNull();
   });
 });

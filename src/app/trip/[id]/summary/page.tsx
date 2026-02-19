@@ -114,8 +114,8 @@ export default function SummaryPage({ params }: { params: Params }) {
                 days={days}
                 route={route}
                 budget={budget}
-                visas={visaData}
-                weather={weatherData}
+                visas={visaData ?? []}
+                weather={weatherData ?? []}
                 tripTitle={tripTitle}
                 tripSubtitle={`${firstDate} – ${lastDate} · ${totalDays} days`}
                 fileName={`TravelPro-${countries.join("-")}.pdf`}
@@ -247,28 +247,32 @@ export default function SummaryPage({ params }: { params: Params }) {
           className="mt-8 card-travel bg-background"
         >
           <h2 className="font-semibold text-foreground mb-4">Visa Requirements</h2>
-          <div className="space-y-3">
-            {visaData.map((visa) => (
-              <div key={visa.countryCode} className="flex items-start gap-3">
-                <span className="text-xl flex-shrink-0">{visa.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm text-foreground">{visa.country}</span>
-                    <span className="text-xs text-muted-foreground">{visa.label}</span>
+          {visaData && visaData.length > 0 ? (
+            <div className="space-y-3">
+              {visaData.map((visa) => (
+                <div key={visa.countryCode} className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0">{visa.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm text-foreground">{visa.country}</span>
+                      <span className="text-xs text-muted-foreground">{visa.label}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{visa.notes}</p>
+                    <a
+                      href={visa.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline mt-1 inline-block"
+                    >
+                      Verify: {visa.sourceLabel} →
+                    </a>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{visa.notes}</p>
-                  <a
-                    href={visa.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline mt-1 inline-block"
-                  >
-                    Verify: {visa.sourceLabel} →
-                  </a>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground animate-pulse">Loading visa requirements…</p>
+          )}
           <VisaDisclaimer />
         </motion.div>
 
@@ -280,16 +284,28 @@ export default function SummaryPage({ params }: { params: Params }) {
           className="mt-8"
         >
           <h2 className="font-semibold text-foreground mb-4">Weather Overview</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {weatherData.map((w) => (
-              <div key={w.city} className="text-center p-3 bg-secondary rounded-lg">
-                <div className="text-2xl mb-1">{w.icon}</div>
-                <div className="text-xs font-semibold text-foreground">{w.city}</div>
-                <div className="text-sm font-bold text-primary mt-0.5">{w.temp}</div>
-                <div className="text-xs text-muted-foreground">{w.condition}</div>
-              </div>
-            ))}
-          </div>
+          {weatherData && weatherData.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {weatherData.map((w) => (
+                <div key={w.city} className="text-center p-3 bg-secondary rounded-lg">
+                  <div className="text-2xl mb-1">{w.icon}</div>
+                  <div className="text-xs font-semibold text-foreground">{w.city}</div>
+                  <div className="text-sm font-bold text-primary mt-0.5">{w.temp}</div>
+                  <div className="text-xs text-muted-foreground">{w.condition}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {route.map((r) => (
+                <div key={r.id} className="text-center p-3 bg-secondary rounded-lg animate-pulse">
+                  <div className="w-8 h-8 bg-border rounded-full mx-auto mb-1" />
+                  <div className="w-16 h-3 bg-border rounded mx-auto" />
+                  <div className="w-10 h-4 bg-border rounded mx-auto mt-1" />
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Flight Legs — real prices when optimization ran, generic link otherwise */}

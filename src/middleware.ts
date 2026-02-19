@@ -18,10 +18,11 @@ function isProtected(pathname: string): boolean {
 }
 
 // ── Rate limiting (Upstash Redis sliding window) ───────────────────────────
-// Limits:
+// All API rate limiting is centralized here. Limits:
 //   - /api/v1/trips/*/generate : 5 per hour per IP (LLM cost protection)
-//   - /api/v1/* (general)      : 100 req/min authenticated, 30 req/min anon
+//   - /api/generate/select-route: 10 per minute per IP (speculative route selection)
 //   - /api/v1/trips/shared/*   : 60 req/min per IP
+//   - /api/v1/* (general)      : 30 req/min per IP
 
 async function checkRateLimit(request: NextRequest): Promise<NextResponse | null> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -45,10 +46,15 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
   let windowSeconds: number;
 
   if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/generate$/)) {
-    // Generation: 5 per hour per IP
+    // V1 SSE generation: 5 per hour per IP (LLM cost protection)
     limitKey = `rl:generate:${ip}`;
     limit = 5;
     windowSeconds = 3600;
+  } else if (pathname === "/api/generate/select-route") {
+    // Speculative route selection: 10 per minute per IP
+    limitKey = `rl:route-select:${ip}`;
+    limit = 10;
+    windowSeconds = 60;
   } else if (pathname.startsWith("/api/v1/trips/shared/")) {
     // Public share views: 60 per minute
     limitKey = `rl:shared:${ip}`;

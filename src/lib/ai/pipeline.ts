@@ -17,7 +17,9 @@ import { enrichVisa, enrichWeather } from "./enrichment";
 import type { UserProfile, TripIntent, Itinerary } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
-import { daysBetween } from "@/lib/utils/date";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("pipeline");
 
 // ============================================================
 // Clients
@@ -148,9 +150,7 @@ async function callClaude(
 
     const stopReason = message.stop_reason ?? "unknown";
     if (stopReason === "max_tokens") {
-      console.warn(
-        `[pipeline] Claude output truncated (max_tokens=${maxTokens}, output=${message.usage?.output_tokens}tok). Increase max_tokens.`
-      );
+      log.warn("Claude output truncated", { maxTokens, outputTokens: message.usage?.output_tokens });
       throw new Error(
         `Claude output was truncated at ${message.usage?.output_tokens} tokens (limit: ${maxTokens}). The itinerary was too long for the current token budget.`
       );
@@ -168,7 +168,7 @@ async function callClaude(
     const msg = getErrorMessage(err);
     const isContentFilter = msg.includes("content filtering") || msg.includes("Output blocked");
     if (isContentFilter && retryCount < 2) {
-      console.warn(`[pipeline] Content filter triggered, retrying (attempt ${retryCount + 1}/2)`);
+      log.warn("Content filter triggered, retrying", { attempt: retryCount + 1, maxRetries: 2 });
       await new Promise((r) => setTimeout(r, 600 * (retryCount + 1)));
       return callClaude(userPrompt, systemPrompt, maxTokens, retryCount + 1);
     }
@@ -204,10 +204,15 @@ export function parseAndValidate(rawOutput: string): ClaudeItinerary {
 }
 
 // ============================================================
-// Main: generateItinerary
+// Main: generateCoreItinerary (fast — no enrichment, no DB persist)
 // ============================================================
 
-export async function generateItinerary(
+/**
+ * Generate the core itinerary (route + days + budget) without enrichment.
+ * Returns immediately after Claude parse/validate — visa, weather, and DB
+ * persist are deferred to background fetches on the client.
+ */
+export async function generateCoreItinerary(
   profile: UserProfile,
   tripIntent: TripIntent,
   preSelectedCities?: CityWithDays[]
@@ -221,32 +226,25 @@ export async function generateItinerary(
   let maxTokens: number;
 
   if (isSingleCityTrip) {
-    // ── Single-city path: skip route selection, use focused prompt ──────────
-    console.log(`[pipeline] Single-city mode: ${tripIntent.destination}, ${tripIntent.destinationCountry} [${elapsed()} total]`);
+    log.info("Single-city mode", { destination: tripIntent.destination, country: tripIntent.destinationCountry, elapsed: elapsed() });
     userPrompt = assembleSingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
     maxTokens = 4000;
   } else {
-    // ── Multi-city path: route selection + multi-city prompt ────────────────
-    // Stage A: Route selection
     let cities: CityWithDays[] | undefined = preSelectedCities;
 
     if (!cities) {
       const tA = Date.now();
       try {
-        console.log("[pipeline] Stage A: Selecting route with Haiku");
+        log.info("Stage A: Selecting route with Haiku");
         cities = await selectRoute(profile, tripIntent, getAnthropic());
-        console.log(`[pipeline] Stage A complete in ${((Date.now() - tA) / 1000).toFixed(1)}s: ${cities.map(c => c.city).join(", ")} [${elapsed()} total]`);
+        log.info("Stage A complete", { duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`, cities: cities.map(c => c.city), elapsed: elapsed() });
       } catch (e) {
-        console.warn(
-          `[pipeline] Stage A failed in ${((Date.now() - tA) / 1000).toFixed(1)}s, falling back to Claude-only route:`,
-          getErrorMessage(e),
-          `[${elapsed()} total]`
-        );
+        log.warn("Stage A failed, falling back to Claude-only route", { duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`, error: getErrorMessage(e), elapsed: elapsed() });
         cities = undefined;
       }
     } else {
-      console.log(`[pipeline] Stage A skipped: using ${cities.length} pre-selected cities [${elapsed()} total]`);
+      log.info("Stage A skipped: using pre-selected cities", { count: cities.length, elapsed: elapsed() });
     }
 
     userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
@@ -254,38 +252,53 @@ export async function generateItinerary(
     maxTokens = 10000;
   }
 
-  console.log(`[pipeline] Stage 1 (prompt assembly) done [${elapsed()} total]`);
+  log.info("Stage 1 (prompt assembly) done", { elapsed: elapsed() });
 
   // Stage 2: Call Claude
   const t2 = Date.now();
-  console.log(`[pipeline] Stage 2: Calling Claude Haiku for trip ${tripIntent.id}...`);
+  log.info("Stage 2: Calling Claude Haiku", { tripId: tripIntent.id });
   const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens);
   const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
-  console.log(`[pipeline] Stage 2 complete in ${claudeDuration}s — model=${claudeResult.model} input=${claudeResult.inputTokens}tok output=${claudeResult.outputTokens}tok [${elapsed()} total]`);
+  log.info("Stage 2 complete", { duration: `${claudeDuration}s`, model: claudeResult.model, inputTokens: claudeResult.inputTokens, outputTokens: claudeResult.outputTokens, elapsed: elapsed() });
 
   // Stage 3: Parse + validate
   const t3 = Date.now();
   const parsed = parseAndValidate(claudeResult.text);
-  console.log(
-    `[pipeline] Stage 3 (parse+validate) done in ${((Date.now() - t3) / 1000).toFixed(1)}s: ${parsed.route.length} cities, ${parsed.days.length} days [${elapsed()} total]`
-  );
+  log.info("Stage 3 (parse+validate) done", { duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`, cities: parsed.route.length, days: parsed.days.length, elapsed: elapsed() });
+
+  log.info("Core generation complete (enrichment deferred)", { tripId: tripIntent.id, elapsed: elapsed() });
+  return parsed;
+}
+
+// ============================================================
+// Full pipeline: generateItinerary (core + enrichment + persist)
+// ============================================================
+
+export async function generateItinerary(
+  profile: UserProfile,
+  tripIntent: TripIntent,
+  preSelectedCities?: CityWithDays[]
+): Promise<Itinerary> {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+
+  const core = await generateCoreItinerary(profile, tripIntent, preSelectedCities);
 
   // Stage 4: Enrich (visa + weather) in parallel
   const t4 = Date.now();
   const [visaData, weatherData] = await Promise.all([
-    enrichVisa(profile.nationality, parsed.route),
-    enrichWeather(parsed.route, tripIntent.dateStart),
+    enrichVisa(profile.nationality, core.route),
+    enrichWeather(core.route, tripIntent.dateStart),
   ]);
-  console.log(`[pipeline] Stage 4 (enrich) done in ${((Date.now() - t4) / 1000).toFixed(1)}s — ${visaData.length} visa entries, ${weatherData.length} weather entries [${elapsed()} total]`);
+  log.info("Stage 4 (enrich) done", { duration: `${((Date.now() - t4) / 1000).toFixed(1)}s`, visaEntries: visaData.length, weatherEntries: weatherData.length, elapsed: elapsed() });
 
-  // Stage 5: Combine + store
   const itinerary: Itinerary = {
-    ...parsed,
+    ...core,
     visaData,
     weatherData,
   };
 
-  // Persist itinerary via Prisma (best-effort — don't fail generation if DB is down)
+  // Stage 5: Persist via Prisma (best-effort)
   const t5 = Date.now();
   try {
     const { getPrisma } = await import("@/lib/db/prisma");
@@ -302,11 +315,11 @@ export async function generateItinerary(
         data: { tripId: tripIntent.id, data: itinerary as object },
       });
     }
-    console.log(`[pipeline] Stage 5 (DB persist) done in ${((Date.now() - t5) / 1000).toFixed(1)}s [${elapsed()} total]`);
+    log.info("Stage 5 (DB persist) done", { duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`, elapsed: elapsed() });
   } catch (e) {
-    console.error(`[pipeline] Stage 5 (DB persist) failed in ${((Date.now() - t5) / 1000).toFixed(1)}s:`, getErrorMessage(e), `[${elapsed()} total]`);
+    log.error("Stage 5 (DB persist) failed", { duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`, error: getErrorMessage(e), elapsed: elapsed() });
   }
 
-  console.log(`[pipeline] ✓ Generation complete for trip ${tripIntent.id} — total ${elapsed()}`);
+  log.info("Full generation complete", { tripId: tripIntent.id, elapsed: elapsed() });
   return itinerary;
 }

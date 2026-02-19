@@ -3,13 +3,17 @@
 // Lazy-initialized to avoid build-time crashes
 // ============================================================
 
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("email");
+
 let _resend: import("resend").Resend | null = null;
 
 export function getResend() {
   if (_resend) return _resend;
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn("[email] RESEND_API_KEY not set — emails will not be sent");
+    log.warn("RESEND_API_KEY not set — emails will not be sent");
     return null;
   }
   const { Resend } = require("resend") as typeof import("resend");

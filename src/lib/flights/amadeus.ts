@@ -6,6 +6,9 @@
 import { Redis } from "@upstash/redis";
 import type { FlightOption } from "./types";
 import { getErrorMessage } from "@/lib/utils/error";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("amadeus");
 
 let _redis: Redis | null | undefined;
 
@@ -106,10 +109,7 @@ export async function searchFlights(
   try {
     token = await getToken();
   } catch (e) {
-    console.warn(
-      "[amadeus] Token fetch failed:",
-      getErrorMessage(e)
-    );
+    log.warn("Token fetch failed", { error: getErrorMessage(e) });
     return null;
   }
 
@@ -128,17 +128,12 @@ export async function searchFlights(
       headers: { Authorization: `Bearer ${token}` },
     });
   } catch (e) {
-    console.warn(
-      "[amadeus] Network error:",
-      getErrorMessage(e)
-    );
+    log.warn("Network error", { error: getErrorMessage(e) });
     return null;
   }
 
   if (!res.ok) {
-    console.warn(
-      `[amadeus] ${origin}→${destination} on ${date}: HTTP ${res.status}`
-    );
+    log.warn("Flight search failed", { origin, destination, date, status: res.status });
     return null;
   }
 

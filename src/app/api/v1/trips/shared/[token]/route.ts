@@ -1,30 +1,16 @@
 // ============================================================
 // Travel Pro — GET /api/v1/trips/shared/[token]
 // Public endpoint — returns a shared trip + active itinerary (no auth required)
-// Rate limited to 60 req/min per IP
+// Rate limiting is handled by middleware (Upstash Redis sliding window, 60 req/min)
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { getClientIp, ACTIVE_ITINERARY_INCLUDE } from "@/lib/api/helpers";
+import { ACTIVE_ITINERARY_INCLUDE } from "@/lib/api/helpers";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("api/v1/trips/shared");
 
 export const dynamic = "force-dynamic";
-
-// Simple in-memory rate limiter (per process — use Upstash in production)
-const hitMap = new Map<string, { count: number; resetAt: number }>();
-const LIMIT = 60;
-const WINDOW_MS = 60_000;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = hitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    hitMap.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= LIMIT) return false;
-  entry.count++;
-  return true;
-}
 
 interface Params {
   params: Promise<{ token: string }>;
@@ -32,15 +18,6 @@ interface Params {
 
 export async function GET(req: NextRequest, { params }: Params) {
   const { token } = await params;
-
-  // Rate limit
-  const ip = getClientIp(req);
-  if (!checkRateLimit(ip)) {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429, headers: { "Retry-After": "60" } }
-    );
-  }
 
   try {
     const trip = await prisma.trip.findFirst({
@@ -65,7 +42,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       itinerary: trip.itineraries[0].data,
     });
   } catch (err) {
-    console.error("[GET /api/v1/trips/shared/:token]", err);
+    log.error("Failed to load shared trip", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Failed to load trip" }, { status: 500 });
   }
 }

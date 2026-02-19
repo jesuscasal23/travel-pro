@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Sparkles } from "lucide-react";
@@ -18,23 +18,18 @@ import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { ChipGroup } from "@/components/ui/Chip";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
-import type { TripType } from "@/types";
+import type { CityStop, Itinerary } from "@/types";
+import type { CityWithDays } from "@/lib/flights/types";
 
 const multiCityGenerationSteps = [
   { stage: "route",      emoji: "🧭", label: "Optimising your route" },
   { stage: "activities", emoji: "📅", label: "Planning daily activities" },
-  { stage: "visa",       emoji: "🛂", label: "Checking visa requirements" },
-  { stage: "weather",    emoji: "🌤️", label: "Analysing weather patterns" },
-  { stage: "budget",     emoji: "💰", label: "Calculating your budget" },
   { stage: "done",       emoji: "✅", label: "Your trip is ready!" },
 ];
 
 const singleCityGenerationSteps = [
   { stage: "activities", emoji: "🏘️", label: "Exploring neighborhoods" },
   { stage: "planning",   emoji: "📅", label: "Planning daily activities" },
-  { stage: "visa",       emoji: "🛂", label: "Checking visa status" },
-  { stage: "weather",    emoji: "🌤️", label: "Analysing weather" },
-  { stage: "budget",     emoji: "💰", label: "Calculating your budget" },
   { stage: "done",       emoji: "✅", label: "Your trip is ready!" },
 ];
 
@@ -86,6 +81,13 @@ export default function PlanPage() {
     setCurrentTripId, setItinerary,
   } = useTripStore();
 
+  // ── Strategy A: Speculative route selection ref ─────────────────────────────
+  const speculativeRef = useRef<{
+    cities: CityWithDays[] | null;
+    promise: Promise<CityWithDays[] | null> | null;
+    key: string;
+  }>({ cities: null, promise: null, key: "" });
+
   // Cycle fun facts during generation
   useEffect(() => {
     if (!isGenerating) return;
@@ -106,6 +108,41 @@ export default function PlanPage() {
   const showStyle = isGuest && step === 2;
   const showDestination = isGuest ? step === 3 : step === 1;
   const showDetails = isGuest ? step === 4 : step === 2;
+
+  // ── Strategy A: Fire speculative route selection when user reaches details step
+  useEffect(() => {
+    if (isSingleCity || !region || !dateStart || !dateEnd) return;
+    if (!showDetails) return;
+
+    const profile = { nationality, homeAirport, travelStyle, interests };
+    const tripIntent = {
+      id: "speculative",
+      tripType,
+      region,
+      dateStart, dateEnd, flexibleDates,
+      budget, travelers,
+    };
+
+    const key = JSON.stringify({ region, dateStart, dateEnd, travelStyle });
+    if (speculativeRef.current.key === key) return;
+
+    const promise = fetch("/api/generate/select-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile, tripIntent }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => (data?.cities as CityWithDays[]) ?? null)
+      .catch(() => null);
+
+    speculativeRef.current = { cities: null, promise, key };
+    promise.then((cities) => {
+      if (speculativeRef.current.key === key) {
+        speculativeRef.current.cities = cities;
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDetails, isSingleCity, region, dateStart, dateEnd, travelStyle]);
 
   const dayCount = (() => {
     if (!dateStart || !dateEnd) return 0;
@@ -133,6 +170,41 @@ export default function PlanPage() {
     setPlanStep(step - 1);
   };
 
+  // ── Helper: convert CityWithDays[] → CityStop[] for partial itinerary ────
+  const citiesToRoute = useCallback((cities: CityWithDays[]): CityStop[] =>
+    cities.map((c) => ({
+      id: c.id,
+      city: c.city,
+      country: c.country,
+      countryCode: c.countryCode,
+      lat: c.lat,
+      lng: c.lng,
+      days: Math.round((c.minDays + c.maxDays) / 2),
+      iataCode: c.iataCode || undefined,
+    })),
+  []);
+
+  // ── Helper: build single-city route from store destination fields ──────────
+  const singleCityRoute = useCallback((): CityStop[] => {
+    if (!destination) return [];
+    return [{
+      id: destination.toLowerCase().replace(/\s+/g, "-"),
+      city: destination,
+      country: destinationCountry,
+      countryCode: destinationCountryCode,
+      lat: destinationLat,
+      lng: destinationLng,
+      days: dayCount || 7,
+    }];
+  }, [destination, destinationCountry, destinationCountryCode, destinationLat, destinationLng, dayCount]);
+
+  // ── Helper: build partial itinerary from route (Strategy B) ────────────────
+  const buildPartialItinerary = useCallback((route: CityStop[]): Itinerary => ({
+    route,
+    days: [],
+    budget: { flights: 0, accommodation: 0, activities: 0, food: 0, transport: 0, total: 0, budget },
+  }), [budget]);
+
   const handleGenerate = useCallback(async () => {
     posthog?.capture("questionnaire_completed", {
       tripType, region, destination, duration_days: dayCount, budget_eur: budget, travelers,
@@ -141,73 +213,50 @@ export default function PlanPage() {
     setGenerationStep(0);
     setGenerationError(null);
 
-    const tripIntent = {
-      id: "guest",
-      tripType,
-      region: isSingleCity ? "" : region,
-      ...(isSingleCity ? { destination, destinationCountry, destinationCountryCode, destinationLat, destinationLng } : {}),
-      dateStart, dateEnd, flexibleDates, budget, travelers,
-    };
-    const profile = { nationality, homeAirport, travelStyle, interests };
+    // ── Get cities (from speculative cache, single-city shortcut, or fresh fetch)
+    let cities: CityWithDays[] | null = null;
+    let route: CityStop[] = [];
 
-    // ── Guest mode: 2-step generation (route selection → itinerary) ──────────
-    // Split across two requests so each stays well within Vercel's 60s timeout.
-    if (!isAuthenticated) {
-      try {
-        // Step 1: Route selection (skipped server-side for single-city)
-        let cities: unknown = null;
+    if (isSingleCity) {
+      route = singleCityRoute();
+    } else {
+      // Multi-city: try speculative cache first
+      if (speculativeRef.current.cities) {
+        cities = speculativeRef.current.cities;
+      } else if (speculativeRef.current.promise) {
+        cities = await speculativeRef.current.promise;
+      }
+
+      // Fallback: fresh fetch only if no speculative attempt was made
+      if (!cities && !speculativeRef.current.key) {
         try {
           const routeRes = await fetch("/api/generate/select-route", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ profile, tripIntent }),
+            body: JSON.stringify({
+              profile: { nationality, homeAirport, travelStyle, interests },
+              tripIntent: {
+                id: "speculative",
+                tripType, region,
+                dateStart, dateEnd, flexibleDates, budget, travelers,
+              },
+            }),
           });
           if (routeRes.ok) {
             const routeData = await routeRes.json();
-            cities = routeData.cities; // may be null if Haiku failed — that's fine
+            cities = routeData.cities;
           }
         } catch {
-          // Route selection network error — proceed without pre-selected cities
-          console.warn("[plan] Route selection failed, proceeding without pre-selected cities");
+          // Route selection failed — proceed without pre-selected cities
         }
-
-        // Step 2: Generation + enrichment
-        setGenerationStep(1);
-
-        // Simulate sub-step progress during Claude call (visa/weather/budget happen internally)
-        const enrichTimers = [
-          setTimeout(() => setGenerationStep(2), 8000),
-          setTimeout(() => setGenerationStep(3), 13000),
-          setTimeout(() => setGenerationStep(4), 18000),
-        ];
-
-        const genRes = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            profile,
-            tripIntent,
-            ...(cities ? { cities } : {}),
-          }),
-        });
-
-        enrichTimers.forEach(clearTimeout);
-        setGenerationStep(5);
-
-        if (genRes.ok) {
-          const { itinerary } = await genRes.json();
-          setItinerary(itinerary);
-          setTimeout(() => router.push("/trip/guest"), 600);
-        } else {
-          setGenerationError("We couldn't generate your itinerary.");
-        }
-      } catch {
-        setGenerationError("Something went wrong.");
       }
-      return;
+
+      if (cities && cities.length > 0) {
+        route = citiesToRoute(cities);
+      }
     }
 
-    // ── Authenticated mode: DB-backed with SSE progress ─────────
+    // ── Create trip record (works for both auth and anonymous users) ──────────
     try {
       const tripRes = await fetch("/api/v1/trips", {
         method: "POST",
@@ -220,70 +269,30 @@ export default function PlanPage() {
         }),
       });
 
-      let tripId: string | null = null;
       if (tripRes.ok) {
         const { trip } = await tripRes.json();
-        tripId = trip.id;
-        setCurrentTripId(tripId ?? "");
+        setItinerary(buildPartialItinerary(route));
+        setCurrentTripId(trip.id);
+        posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
+        setIsGenerating(false);
+        router.push(`/trip/${trip.id}`);
+        return;
       }
-
-      if (tripId) {
-        posthog?.capture("itinerary_generation_started", { trip_id: tripId, region });
-        const genRes = await fetch(`/api/v1/trips/${tripId}/generate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            profile: { nationality, homeAirport, travelStyle, interests },
-            promptVersion: "v1",
-          }),
-        });
-
-        if (genRes.ok && genRes.body) {
-          const reader = genRes.body.getReader();
-          const decoder = new TextDecoder();
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const text = decoder.decode(value);
-            const lines = text.split("\n");
-
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              try {
-                const event = JSON.parse(line.slice(6));
-                const idx = generationSteps.findIndex((s) => s.stage === event.stage);
-                if (idx >= 0) setGenerationStep(idx);
-
-                if (event.stage === "done") {
-                  posthog?.capture("itinerary_generation_completed", { trip_id: event.trip_id });
-                  if (event.trip_id) {
-                    const tripData = await fetch(`/api/v1/trips/${event.trip_id}`).then((r) => r.json());
-                    setItinerary(tripData.trip?.itineraries?.[0]?.data ?? null);
-                    router.push(`/trip/${event.itinerary_id ?? event.trip_id}`);
-                  }
-                  return;
-                }
-              } catch {
-                // Ignore malformed SSE lines
-              }
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("[plan] Generation failed:", err);
+    } catch {
+      // Trip creation failed
     }
 
-    // Total failure — send user back to dashboard
-    router.push("/dashboard");
+    // If trip creation failed, show error
+    setIsGenerating(false);
+    setGenerationError("Something went wrong. Please try again.");
   }, [
-    isAuthenticated, isSingleCity,
-    tripType, region, destination, destinationCountry, destinationCountryCode, destinationLat, destinationLng,
+    isSingleCity,
+    tripType, region, destination, destinationCountry, destinationCountryCode,
     dateStart, dateEnd, flexibleDates, budget, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
-    setIsGenerating, setGenerationStep, setCurrentTripId, setItinerary, router, posthog,
+    setIsGenerating, setGenerationStep, setCurrentTripId, setItinerary,
+    citiesToRoute, singleCityRoute, buildPartialItinerary,
+    router, posthog,
   ]);
 
   // Generation loading screen

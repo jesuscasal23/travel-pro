@@ -16,15 +16,24 @@
 ## Commands
 ```bash
 npm run dev            # Start dev server
-npm run build          # prisma generate && next build
+npm run build          # prisma generate && prisma migrate deploy && next build
 npm test               # Vitest unit tests (pre-commit via husky)
 npm run test:e2e       # Playwright e2e (requires dev server)
 npm run lint           # ESLint
-npm run db:push        # Prisma db push
+npm run db:migrate     # prisma migrate dev (create new migration)
 npm run db:seed        # Prisma db seed
 npm run db:studio      # Prisma Studio GUI
 npm run db:generate    # Prisma generate client
 ```
+
+## Database Migrations (IMPORTANT)
+**When modifying `prisma/schema.prisma`, ALWAYS create a migration immediately after:**
+```bash
+npx prisma migrate dev --name describe_the_change
+```
+This generates a versioned SQL file in `prisma/migrations/` that MUST be committed with the schema change. Production applies migrations automatically via `prisma migrate deploy` in the build script.
+
+**Never use `prisma db push`** — it syncs the schema without creating migration history, causing drift between local and production.
 
 ## Project Structure
 ```

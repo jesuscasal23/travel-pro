@@ -4,10 +4,13 @@
 // ============================================================
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
-import { generateItinerary } from "@/lib/ai/pipeline";
+import { generateCoreItinerary } from "@/lib/ai/pipeline";
 import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
-import { ProfileInputSchema } from "@/lib/api/schemas";
+import { ProfileInputSchema, CityWithDaysInputSchema } from "@/lib/api/schemas";
 import type { UserProfile, TripIntent } from "@/types";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("api/v1/trips/generate");
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -15,11 +18,12 @@ export const maxDuration = 60;
 const GenerateSchema = z.object({
   profile: ProfileInputSchema,
   promptVersion: z.string().default("v1"),
+  cities: z.array(CityWithDaysInputSchema).optional(),
 });
 
 export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, params) => {
   const body = await parseJsonBody(req);
-  const { profile, promptVersion } = validateBody(GenerateSchema, body);
+  const { profile, promptVersion, cities } = validateBody(GenerateSchema, body);
 
   // Load the trip
   const trip = await prisma.trip.findUnique({ where: { id: params.id } });
@@ -71,19 +75,10 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
           send({ stage: "activities", message: "Planning daily activities...", pct: 35 });
         }
 
-        // Run generation
-        const itinerary = await generateItinerary(profile as UserProfile, intent);
+        // Run core generation (no enrichment — visa/weather fetched by client in background)
+        const itinerary = await generateCoreItinerary(profile as UserProfile, intent, cities);
 
-        send({ stage: "visa", message: "Checking visa requirements...", pct: 55 });
-        await sleep(300);
-
-        send({ stage: "weather", message: "Analysing weather patterns...", pct: 70 });
-        await sleep(300);
-
-        send({ stage: "budget", message: "Calculating your budget...", pct: 85 });
-        await sleep(200);
-
-        // Save to DB
+        // Save core itinerary to DB immediately
         await prisma.itinerary.update({
           where: { id: itineraryRecord.id },
           data: {
@@ -107,7 +102,7 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
           trip_id: params.id,
         });
       } catch (err) {
-        console.error("[generate SSE] Error:", err);
+        log.error("SSE generation error", { error: err instanceof Error ? err.message : String(err) });
 
         await prisma.itinerary.update({
           where: { id: itineraryRecord.id },

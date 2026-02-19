@@ -119,8 +119,10 @@ export interface Itinerary {
   route: CityStop[];
   days: TripDay[];
   budget: TripBudget;
-  visaData: VisaInfo[];
-  weatherData: CityWeather[];
+  /** Populated by background enrichment after core itinerary is ready */
+  visaData?: VisaInfo[];
+  /** Populated by background enrichment after core itinerary is ready */
+  weatherData?: CityWeather[];
   /** Real flight legs populated when Amadeus optimization succeeds */
   flightLegs?: ItineraryFlightLeg[];
   /** Average cost across all evaluated date combinations — used to show savings vs optimized cost */

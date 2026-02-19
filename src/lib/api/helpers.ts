@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import type { z } from "zod";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db/prisma";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("api");
 
 // ── Custom error class ──────────────────────────────────────────
 export class ApiError extends Error {
@@ -92,7 +95,7 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
         if (err.details) body.details = err.details;
         return NextResponse.json(body, { status: err.status });
       }
-      console.error(`[${routeName}]`, err);
+      log.error("Unhandled route error", { route: routeName, error: err instanceof Error ? err.stack ?? err.message : String(err) });
       return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 }

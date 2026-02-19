@@ -7,6 +7,9 @@ import { prisma } from "@/lib/db/prisma";
 import { z } from "zod";
 import crypto from "crypto";
 import { getClientIp } from "@/lib/api/helpers";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("affiliate/redirect");
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +82,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     // Log but don't block the redirect
-    console.error("[affiliate/redirect] Failed to log click:", err);
+    log.error("Failed to log click", { error: err instanceof Error ? err.message : String(err) });
   }
 
   return NextResponse.redirect(dest, { status: 302 });

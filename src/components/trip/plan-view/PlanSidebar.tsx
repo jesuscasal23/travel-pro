@@ -94,13 +94,15 @@ export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
   const transportLegs = deriveTransportLegs(route, days, flightLegs, homeCity);
 
   // Group weather by country
-  const countryWeather = countries.map((country) => {
-    const cities = weatherData.filter((w) => {
-      const stop = route.find((r) => r.city === w.city);
-      return stop?.country === country;
-    });
-    return { country, cities };
-  });
+  const countryWeather = (weatherData ?? []).length > 0
+    ? countries.map((country) => {
+        const cities = (weatherData ?? []).filter((w) => {
+          const stop = route.find((r) => r.city === w.city);
+          return stop?.country === country;
+        });
+        return { country, cities };
+      })
+    : [];
 
   return (
     <div className="space-y-4">
@@ -158,7 +160,10 @@ export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
         defaultOpen
       >
         <div className="space-y-2 pb-2">
-          {visaData.map((visa) => (
+          {(!visaData || visaData.length === 0) && (
+            <p className="text-xs text-muted-foreground animate-pulse">Loading visa info…</p>
+          )}
+          {(visaData ?? []).map((visa) => (
             <div key={visa.countryCode} className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-secondary px-1.5 py-0.5 rounded">
@@ -187,6 +192,9 @@ export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
         defaultOpen
       >
         <div className="space-y-2 pb-2">
+          {countryWeather.length === 0 && (
+            <p className="text-xs text-muted-foreground animate-pulse">Loading weather…</p>
+          )}
           {countryWeather.map(({ country, cities }) => {
             const temps = cities.map((c) => {
               const match = c.temp.match(/(\d+)/);
