@@ -2,7 +2,7 @@
 // Travel Pro — AI Generation Pipeline
 //
 // Stage 1: Assemble prompt
-// Stage 2: Call Claude (claude-haiku-4-5-20251001, maxTokens 5000, temp 0.7, 50s timeout)
+// Stage 2: Call Claude (claude-haiku-4-5-20251001, maxTokens 10000/4000, temp 0.7, 50s timeout)
 // Stage 3: Parse + validate with Zod
 // Stage 4: Enrich (visa + weather) in parallel
 // Stage 5: Store via Prisma
@@ -11,11 +11,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
+import { SYSTEM_PROMPT_SINGLE_CITY, assembleSingleCityPrompt } from "./prompts/single-city";
 import { selectRoute } from "./prompts/route-selector";
 import { enrichVisa, enrichWeather } from "./enrichment";
 import type { UserProfile, TripIntent, Itinerary } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
+import { daysBetween } from "@/lib/utils/date";
 
 // ============================================================
 // Clients
@@ -121,15 +123,21 @@ interface ClaudeResult {
   inputTokens: number;
   outputTokens: number;
   model: string;
+  stopReason: string;
 }
 
-async function callClaude(userPrompt: string, retryCount = 0): Promise<ClaudeResult> {
+async function callClaude(
+  userPrompt: string,
+  systemPrompt: string = SYSTEM_PROMPT_V1,
+  maxTokens: number = 10000,
+  retryCount = 0,
+): Promise<ClaudeResult> {
   try {
     const message = await getAnthropic().messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 5000,
+      max_tokens: maxTokens,
       temperature: 0.7,
-      system: SYSTEM_PROMPT_V1,
+      system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     });
 
@@ -138,11 +146,22 @@ async function callClaude(userPrompt: string, retryCount = 0): Promise<ClaudeRes
       throw new Error("Claude returned non-text content");
     }
 
+    const stopReason = message.stop_reason ?? "unknown";
+    if (stopReason === "max_tokens") {
+      console.warn(
+        `[pipeline] Claude output truncated (max_tokens=${maxTokens}, output=${message.usage?.output_tokens}tok). Increase max_tokens.`
+      );
+      throw new Error(
+        `Claude output was truncated at ${message.usage?.output_tokens} tokens (limit: ${maxTokens}). The itinerary was too long for the current token budget.`
+      );
+    }
+
     return {
       text: block.text,
       inputTokens: message.usage?.input_tokens ?? 0,
       outputTokens: message.usage?.output_tokens ?? 0,
       model: message.model ?? "unknown",
+      stopReason,
     };
   } catch (err) {
     // Content filtering is probabilistic — retry with backoff (usually succeeds on 2nd attempt)
@@ -151,7 +170,7 @@ async function callClaude(userPrompt: string, retryCount = 0): Promise<ClaudeRes
     if (isContentFilter && retryCount < 2) {
       console.warn(`[pipeline] Content filter triggered, retrying (attempt ${retryCount + 1}/2)`);
       await new Promise((r) => setTimeout(r, 600 * (retryCount + 1)));
-      return callClaude(userPrompt, retryCount + 1);
+      return callClaude(userPrompt, systemPrompt, maxTokens, retryCount + 1);
     }
     throw err;
   }
@@ -195,37 +214,52 @@ export async function generateItinerary(
 ): Promise<Itinerary> {
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+  const isSingleCityTrip = tripIntent.tripType === "single-city";
 
-  // Stage A: Route selection
-  // If pre-selected cities are provided (from /api/generate/select-route), skip Haiku call.
-  let cities: CityWithDays[] | undefined = preSelectedCities;
+  let userPrompt: string;
+  let systemPrompt: string;
+  let maxTokens: number;
 
-  if (!cities) {
-    const tA = Date.now();
-    try {
-      console.log("[pipeline] Stage A: Selecting route with Haiku");
-      cities = await selectRoute(profile, tripIntent, getAnthropic());
-      console.log(`[pipeline] Stage A complete in ${((Date.now() - tA) / 1000).toFixed(1)}s: ${cities.map(c => c.city).join(", ")} [${elapsed()} total]`);
-    } catch (e) {
-      console.warn(
-        `[pipeline] Stage A failed in ${((Date.now() - tA) / 1000).toFixed(1)}s, falling back to Claude-only route:`,
-        getErrorMessage(e),
-        `[${elapsed()} total]`
-      );
-      cities = undefined;
-    }
+  if (isSingleCityTrip) {
+    // ── Single-city path: skip route selection, use focused prompt ──────────
+    console.log(`[pipeline] Single-city mode: ${tripIntent.destination}, ${tripIntent.destinationCountry} [${elapsed()} total]`);
+    userPrompt = assembleSingleCityPrompt(profile, tripIntent);
+    systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
+    maxTokens = 4000;
   } else {
-    console.log(`[pipeline] Stage A skipped: using ${cities.length} pre-selected cities [${elapsed()} total]`);
+    // ── Multi-city path: route selection + multi-city prompt ────────────────
+    // Stage A: Route selection
+    let cities: CityWithDays[] | undefined = preSelectedCities;
+
+    if (!cities) {
+      const tA = Date.now();
+      try {
+        console.log("[pipeline] Stage A: Selecting route with Haiku");
+        cities = await selectRoute(profile, tripIntent, getAnthropic());
+        console.log(`[pipeline] Stage A complete in ${((Date.now() - tA) / 1000).toFixed(1)}s: ${cities.map(c => c.city).join(", ")} [${elapsed()} total]`);
+      } catch (e) {
+        console.warn(
+          `[pipeline] Stage A failed in ${((Date.now() - tA) / 1000).toFixed(1)}s, falling back to Claude-only route:`,
+          getErrorMessage(e),
+          `[${elapsed()} total]`
+        );
+        cities = undefined;
+      }
+    } else {
+      console.log(`[pipeline] Stage A skipped: using ${cities.length} pre-selected cities [${elapsed()} total]`);
+    }
+
+    userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
+    systemPrompt = SYSTEM_PROMPT_V1;
+    maxTokens = 10000;
   }
 
-  // Stage 1: Assemble prompt (inject city schedule from Stage A when available)
-  const userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
   console.log(`[pipeline] Stage 1 (prompt assembly) done [${elapsed()} total]`);
 
   // Stage 2: Call Claude
   const t2 = Date.now();
   console.log(`[pipeline] Stage 2: Calling Claude Haiku for trip ${tripIntent.id}...`);
-  const claudeResult = await callClaude(userPrompt);
+  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens);
   const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
   console.log(`[pipeline] Stage 2 complete in ${claudeDuration}s — model=${claudeResult.model} input=${claudeResult.inputTokens}tok output=${claudeResult.outputTokens}tok [${elapsed()} total]`);
 

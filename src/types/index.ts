@@ -114,6 +114,9 @@ export type TravelStyle = "backpacker" | "comfort" | "luxury";
 /** Trip vibe */
 export type TripVibe = "relaxation" | "adventure" | "cultural" | "mix";
 
+/** Trip type — single-city (one destination) or multi-city (region-based route) */
+export type TripType = "single-city" | "multi-city";
+
 /** Full itinerary result from AI pipeline */
 export interface Itinerary {
   route: CityStop[];
@@ -138,7 +141,14 @@ export interface UserProfile {
 /** Trip planning intent from questionnaire */
 export interface TripIntent {
   id: string;
+  tripType?: TripType;
   region: string;
+  /** Single-city destination fields */
+  destination?: string;
+  destinationCountry?: string;
+  destinationCountryCode?: string;
+  destinationLat?: number;
+  destinationLng?: number;
   dateStart: string;
   dateEnd: string;
   flexibleDates: boolean;

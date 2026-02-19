@@ -11,6 +11,9 @@ import { statusBadge, statusLabel } from "@/lib/utils/status-helpers";
 interface TripSummary {
   id: string;
   region: string;
+  tripType?: "single-city" | "multi-city";
+  destination?: string;
+  destinationCountry?: string;
   dateStart: string;
   dateEnd: string;
   budget: number;
@@ -107,7 +110,7 @@ export default function DashboardPage() {
               <div className="text-4xl mb-4">✈️</div>
               <h3 className="text-lg font-semibold text-foreground mb-2">No trips yet</h3>
               <p className="text-muted-foreground text-sm mb-6">
-                Plan your first AI-crafted multi-country trip in minutes.
+                Plan your first AI-crafted trip in minutes.
               </p>
               <Link href="/plan" className="btn-primary inline-flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -139,7 +142,11 @@ export default function DashboardPage() {
                           {statusLabel(status)}
                         </span>
                         <div>
-                          <h3 className="text-lg font-bold">{trip.region}</h3>
+                          <h3 className="text-lg font-bold">
+                            {trip.tripType === "single-city" && trip.destination
+                              ? `${trip.destination}${trip.destinationCountry ? `, ${trip.destinationCountry}` : ""}`
+                              : trip.region}
+                          </h3>
                           <div className="flex items-center gap-3 mt-1 text-sm opacity-90">
                             <span className="flex items-center gap-1">
                               <MapPin className="w-3.5 h-3.5" />

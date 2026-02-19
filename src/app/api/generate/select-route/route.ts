@@ -97,7 +97,28 @@ export async function POST(req: NextRequest) {
   }
 
   const { profile, tripIntent } = parsed.data;
-  console.log(`[/api/generate/select-route] Validated — region=${tripIntent.region} [${elapsed()}]`);
+  console.log(`[/api/generate/select-route] Validated — tripType=${tripIntent.tripType} region=${tripIntent.region} [${elapsed()}]`);
+
+  // ── Single-city short-circuit: return destination directly, skip Haiku ───
+  if (tripIntent.tripType === "single-city" && tripIntent.destination) {
+    const durationDays = tripIntent.dateStart && tripIntent.dateEnd
+      ? Math.max(1, Math.round((new Date(tripIntent.dateEnd).getTime() - new Date(tripIntent.dateStart).getTime()) / 86400000))
+      : 7;
+    console.log(`[/api/generate/select-route] Single-city shortcut: ${tripIntent.destination} (${durationDays}d) [${elapsed()}]`);
+    return NextResponse.json({
+      cities: [{
+        id: tripIntent.destination.toLowerCase().replace(/\s+/g, "-"),
+        city: tripIntent.destination,
+        country: tripIntent.destinationCountry ?? "",
+        countryCode: tripIntent.destinationCountryCode ?? "",
+        iataCode: "",
+        lat: tripIntent.destinationLat ?? 0,
+        lng: tripIntent.destinationLng ?? 0,
+        minDays: durationDays,
+        maxDays: durationDays,
+      }],
+    }, { status: 200 });
+  }
 
   // ── Haiku route selection ─────────────────────────────────────────────────
   try {

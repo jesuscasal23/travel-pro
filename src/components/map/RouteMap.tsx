@@ -31,7 +31,16 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
 
   // Auto-fit bounds when map loads
   const handleLoad = useCallback(() => {
-    if (!mapRef.current || cities.length < 2) return;
+    if (!mapRef.current || cities.length === 0) return;
+    if (cities.length === 1) {
+      // Single city — center on it at neighborhood zoom level
+      mapRef.current.flyTo({
+        center: [cities[0].lng, cities[0].lat],
+        zoom: 11,
+        duration: 1000,
+      });
+      return;
+    }
     const lngs = cities.map((c) => c.lng);
     const lats = cities.map((c) => c.lat);
     mapRef.current.fitBounds(
@@ -56,7 +65,7 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
   }, [activeCityIndex, cities]);
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ height: "360px" }}>
+    <div className="rounded-xl overflow-hidden" style={{ height: "100%" }}>
       <Map
         ref={mapRef}
         mapStyle={MAP_STYLE}
@@ -120,7 +129,7 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
                     : "0 2px 6px rgba(0,0,0,0.3)",
                 }}
               >
-                {i + 1}
+                {cities.length === 1 ? "📍" : i + 1}
               </div>
             </Marker>
           );

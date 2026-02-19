@@ -11,14 +11,23 @@ export const ProfileInputSchema = z.object({
 /** Zod schema for trip intent data shared across generation endpoints. */
 export const TripIntentInputSchema = z.object({
   id: z.string().max(100),
-  region: z.string().min(1).max(100),
+  tripType: z.enum(["single-city", "multi-city"]).default("multi-city"),
+  region: z.string().max(100).default(""),
+  destination: z.string().max(100).optional(),
+  destinationCountry: z.string().max(100).optional(),
+  destinationCountryCode: z.string().max(10).optional(),
+  destinationLat: z.number().optional(),
+  destinationLng: z.number().optional(),
   dateStart: z.string().max(20),
   dateEnd: z.string().max(20),
   flexibleDates: z.boolean(),
   budget: z.number().positive().max(1_000_000),
   vibe: z.enum(["relaxation", "adventure", "cultural", "mix"]),
   travelers: z.number().int().min(1).max(20),
-});
+}).refine(
+  (d) => d.tripType === "multi-city" ? d.region.length > 0 : !!d.destination,
+  { message: "Multi-city trips require region; single-city trips require destination" }
+);
 
 /** Zod schema for pre-selected cities from Haiku route selection. */
 export const CityWithDaysInputSchema = z.object({

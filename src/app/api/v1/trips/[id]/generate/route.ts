@@ -25,9 +25,15 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
   const trip = await prisma.trip.findUnique({ where: { id: params.id } });
   if (!trip) throw new ApiError(404, "Trip not found");
 
+  const isSingleCity = trip.tripType === "single-city";
+
   const intent: TripIntent = {
     id: trip.id,
+    tripType: (trip.tripType as TripIntent["tripType"]) ?? "multi-city",
     region: trip.region,
+    destination: trip.destination ?? undefined,
+    destinationCountry: trip.destinationCountry ?? undefined,
+    destinationCountryCode: trip.destinationCountryCode ?? undefined,
     dateStart: trip.dateStart,
     dateEnd: trip.dateEnd,
     flexibleDates: trip.flexibleDates,
@@ -58,10 +64,13 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
       };
 
       try {
-        send({ stage: "route", message: "Optimising your route...", pct: 15 });
-        await sleep(500);
-
-        send({ stage: "activities", message: "Planning daily activities...", pct: 35 });
+        if (isSingleCity) {
+          send({ stage: "activities", message: "Exploring neighborhoods...", pct: 20 });
+        } else {
+          send({ stage: "route", message: "Optimising your route...", pct: 15 });
+          await sleep(500);
+          send({ stage: "activities", message: "Planning daily activities...", pct: 35 });
+        }
 
         // Run generation
         const itinerary = await generateItinerary(profile as UserProfile, intent);

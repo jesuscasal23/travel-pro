@@ -85,7 +85,7 @@ export function ItineraryTab({ days, route }: ItineraryTabProps) {
               {/* Day info */}
               <div className="flex-1 min-w-0">
                 <span className="font-semibold text-foreground">
-                  Day {day.day} – {dayCityDisplay[i]}
+                  {route.length === 1 ? `Day ${day.day}` : `Day ${day.day} – ${dayCityDisplay[i]}`}
                 </span>
                 <div className="text-xs text-muted-foreground mt-0.5">{day.date}</div>
               </div>

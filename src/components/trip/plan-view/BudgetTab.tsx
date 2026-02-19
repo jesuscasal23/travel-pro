@@ -169,7 +169,8 @@ export function BudgetTab({ budget: originalBudget, route, days }: BudgetTabProp
         </div>
       </motion.div>
 
-      {/* By city table */}
+      {/* By city table — hidden for single-city trips */}
+      {route.length > 1 && (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <h3 className="font-semibold text-foreground mb-3">By city</h3>
         <div className="border border-border rounded-xl overflow-hidden">
@@ -199,6 +200,7 @@ export function BudgetTab({ budget: originalBudget, route, days }: BudgetTabProp
           </table>
         </div>
       </motion.div>
+      )}
     </div>
   );
 }

@@ -17,7 +17,11 @@ import {
 export const dynamic = "force-dynamic";
 
 const CreateTripSchema = z.object({
-  region: z.string().min(1).max(100),
+  tripType: z.enum(["single-city", "multi-city"]).default("multi-city"),
+  region: z.string().max(100).default(""),
+  destination: z.string().max(100).optional(),
+  destinationCountry: z.string().max(100).optional(),
+  destinationCountryCode: z.string().max(10).optional(),
   dateStart: z.string().max(20),
   dateEnd: z.string().max(20),
   flexibleDates: z.boolean().default(false),

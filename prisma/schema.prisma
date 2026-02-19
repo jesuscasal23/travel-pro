@@ -42,8 +42,12 @@ model Trip {
   profileId     String?  @map("profile_id")
   profile       Profile? @relation(fields: [profileId], references: [id])
 
-  region        String
-  dateStart     String   @map("date_start")
+  tripType               String  @default("multi-city") @map("trip_type")
+  region                 String  @default("")
+  destination            String?
+  destinationCountry     String? @map("destination_country")
+  destinationCountryCode String? @map("destination_country_code")
+  dateStart              String  @map("date_start")
   dateEnd       String   @map("date_end")
   flexibleDates Boolean  @default(false) @map("flexible_dates")
   budget        Int

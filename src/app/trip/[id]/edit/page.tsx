@@ -267,30 +267,54 @@ export default function EditPage({ params }: { params: Params }) {
       <div className="pt-[7.5rem] pb-32 max-w-3xl mx-auto px-4">
 
         <div className="border-2 border-sky-200 dark:border-sky-800 rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-foreground mb-4">Route Cities</h2>
-
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={cities.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-3">
-                {cities.map((city, i) => (
-                  <SortableCityCard
-                    key={city.id}
-                    city={city}
-                    index={i}
-                    expandedCity={expandedCity}
-                    toggleExpanded={toggleExpanded}
-                    updateDays={updateDays}
-                    removeCity={removeCity}
-                  />
-                ))}
-
-                <button className="w-full border-2 border-dashed border-border rounded-xl p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                  <Plus className="w-6 h-6 mx-auto mb-1" />
-                  <span className="text-sm font-medium">Add a city</span>
-                </button>
+          {cities.length === 1 ? (
+            <>
+              <h2 className="text-base font-semibold text-foreground mb-4">Trip Duration</h2>
+              <div className="card-travel bg-background">
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-foreground">{cities[0].city}, {cities[0].country}</span>
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <button onClick={() => updateDays(cities[0].id, -1)}
+                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="text-xl font-bold text-primary w-8 text-center">{cities[0].days}</span>
+                  <button onClick={() => updateDays(cities[0].id, +1)}
+                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                  <span className="text-sm text-muted-foreground ml-2">days</span>
+                </div>
               </div>
-            </SortableContext>
-          </DndContext>
+            </>
+          ) : (
+            <>
+              <h2 className="text-base font-semibold text-foreground mb-4">Route Cities</h2>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={cities.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-3">
+                    {cities.map((city, i) => (
+                      <SortableCityCard
+                        key={city.id}
+                        city={city}
+                        index={i}
+                        expandedCity={expandedCity}
+                        toggleExpanded={toggleExpanded}
+                        updateDays={updateDays}
+                        removeCity={removeCity}
+                      />
+                    ))}
+
+                    <button className="w-full border-2 border-dashed border-border rounded-xl p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                      <Plus className="w-6 h-6 mx-auto mb-1" />
+                      <span className="text-sm font-medium">Add a city</span>
+                    </button>
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </>
+          )}
         </div>
 
         {/* Budget Impact Panel */}

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TravelStyle, TripVibe, Itinerary } from "@/types";
+import type { TravelStyle, TripVibe, TripType, Itinerary } from "@/types";
 
 interface TripStoreState {
   // Onboarding
@@ -12,7 +12,13 @@ interface TripStoreState {
 
   // Quick Plan questionnaire
   planStep: number;
+  tripType: TripType;
   region: string;
+  destination: string;
+  destinationCountry: string;
+  destinationCountryCode: string;
+  destinationLat: number;
+  destinationLng: number;
   dateStart: string;
   dateEnd: string;
   flexibleDates: boolean;
@@ -42,7 +48,10 @@ interface TripStoreActions {
 
   // Quick Plan
   setPlanStep: (step: number) => void;
+  setTripType: (tripType: TripType) => void;
   setRegion: (region: string) => void;
+  setDestination: (city: string, country: string, countryCode: string, lat: number, lng: number) => void;
+  clearDestination: () => void;
   setDateStart: (date: string) => void;
   setDateEnd: (date: string) => void;
   setFlexibleDates: (flexible: boolean) => void;
@@ -67,7 +76,13 @@ interface TripStoreActions {
 
 const initialPlanState = {
   planStep: 1,
+  tripType: "multi-city" as TripType,
   region: "",
+  destination: "",
+  destinationCountry: "",
+  destinationCountryCode: "",
+  destinationLat: 0,
+  destinationLng: 0,
   dateStart: "",
   dateEnd: "",
   flexibleDates: false,
@@ -108,7 +123,12 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
 
       // Plan actions
       setPlanStep: (step) => set({ planStep: step }),
+      setTripType: (tripType) => set({ tripType }),
       setRegion: (region) => set({ region }),
+      setDestination: (city, country, countryCode, lat, lng) =>
+        set({ destination: city, destinationCountry: country, destinationCountryCode: countryCode, destinationLat: lat, destinationLng: lng }),
+      clearDestination: () =>
+        set({ destination: "", destinationCountry: "", destinationCountryCode: "", destinationLat: 0, destinationLng: 0 }),
       setDateStart: (date) => set({ dateStart: date }),
       setDateEnd: (date) => set({ dateEnd: date }),
       setFlexibleDates: (flexible) => set({ flexibleDates: flexible }),
@@ -145,7 +165,13 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         travelStyle: state.travelStyle,
         interests: state.interests,
         displayName: state.displayName,
+        tripType: state.tripType,
         region: state.region,
+        destination: state.destination,
+        destinationCountry: state.destinationCountry,
+        destinationCountryCode: state.destinationCountryCode,
+        destinationLat: state.destinationLat,
+        destinationLng: state.destinationLng,
         dateStart: state.dateStart,
         dateEnd: state.dateEnd,
         flexibleDates: state.flexibleDates,

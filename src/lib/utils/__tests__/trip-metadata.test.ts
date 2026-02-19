@@ -1,0 +1,101 @@
+import { describe, it, expect } from "vitest";
+import { isSingleCity, getTripTitle, getUniqueCountries, getBudgetStatus } from "../trip-metadata";
+import type { CityStop, Itinerary, TripBudget } from "@/types";
+
+// ── Fixtures ────────────────────────────────────────────────────
+
+const tokyo: CityStop = {
+  id: "tokyo",
+  city: "Tokyo",
+  country: "Japan",
+  lat: 35.68,
+  lng: 139.69,
+  days: 5,
+  countryCode: "JP",
+};
+
+const bangkok: CityStop = {
+  id: "bangkok",
+  city: "Bangkok",
+  country: "Thailand",
+  lat: 13.75,
+  lng: 100.52,
+  days: 4,
+  countryCode: "TH",
+};
+
+const kyoto: CityStop = {
+  id: "kyoto",
+  city: "Kyoto",
+  country: "Japan",
+  lat: 35.01,
+  lng: 135.77,
+  days: 3,
+  countryCode: "JP",
+};
+
+function makeItinerary(route: CityStop[]): Itinerary {
+  return {
+    route,
+    days: [],
+    budget: { flights: 500, accommodation: 300, activities: 100, food: 200, transport: 100, total: 1200, budget: 1500 },
+    visaData: [],
+    weatherData: [],
+  };
+}
+
+// ── isSingleCity ────────────────────────────────────────────────
+
+describe("isSingleCity", () => {
+  it("returns true for a single-city itinerary", () => {
+    expect(isSingleCity(makeItinerary([tokyo]))).toBe(true);
+  });
+
+  it("returns false for a multi-city itinerary", () => {
+    expect(isSingleCity(makeItinerary([tokyo, bangkok]))).toBe(false);
+  });
+});
+
+// ── getTripTitle ────────────────────────────────────────────────
+
+describe("getTripTitle", () => {
+  it("returns 'City, Country' for a single-city route", () => {
+    expect(getTripTitle([tokyo])).toBe("Tokyo, Japan");
+  });
+
+  it("returns joined country names for multi-city with different countries", () => {
+    expect(getTripTitle([tokyo, bangkok])).toBe("Japan, Thailand");
+  });
+
+  it("deduplicates countries when multiple cities are in the same country", () => {
+    expect(getTripTitle([tokyo, kyoto, bangkok])).toBe("Japan, Thailand");
+  });
+});
+
+// ── getUniqueCountries ──────────────────────────────────────────
+
+describe("getUniqueCountries", () => {
+  it("returns unique country names", () => {
+    expect(getUniqueCountries([tokyo, kyoto, bangkok])).toEqual(["Japan", "Thailand"]);
+  });
+
+  it("returns single country for single-city route", () => {
+    expect(getUniqueCountries([tokyo])).toEqual(["Japan"]);
+  });
+});
+
+// ── getBudgetStatus ─────────────────────────────────────────────
+
+describe("getBudgetStatus", () => {
+  it("shows under budget when total < budget", () => {
+    const budget: TripBudget = { flights: 500, accommodation: 300, activities: 100, food: 200, transport: 100, total: 1200, budget: 1500 };
+    expect(getBudgetStatus(budget)).toContain("under budget");
+    expect(getBudgetStatus(budget)).toContain("300");
+  });
+
+  it("shows over budget when total > budget", () => {
+    const budget: TripBudget = { flights: 500, accommodation: 300, activities: 100, food: 200, transport: 100, total: 1600, budget: 1500 };
+    expect(getBudgetStatus(budget)).toContain("over budget");
+    expect(getBudgetStatus(budget)).toContain("100");
+  });
+});

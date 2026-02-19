@@ -33,6 +33,7 @@ const validProfile = {
 
 const validTripIntent = {
   id: "test-trip-001",
+  tripType: "multi-city" as const,
   region: "southeast-asia",
   dateStart: "2026-04-01",
   dateEnd: "2026-04-22",

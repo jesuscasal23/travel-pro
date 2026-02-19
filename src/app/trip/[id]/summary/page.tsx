@@ -55,6 +55,7 @@ export default function SummaryPage({ params }: { params: Params }) {
   const countries = getUniqueCountries(route);
   const tripTitle = getTripTitle(route);
   const totalDays = days.length;
+  const singleCity = route.length === 1;
   const firstDate = days[0]?.date ?? "";
   const lastDate = days[days.length - 1]?.date ?? "";
 
@@ -146,23 +147,33 @@ export default function SummaryPage({ params }: { params: Params }) {
           transition={{ delay: 0.1 }}
           className="mt-8 card-travel bg-background"
         >
-          <h2 className="font-semibold text-foreground mb-4">Route</h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            {route.map((city, i) => (
-              <div key={city.id} className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {i + 1}
-                  </span>
-                  <span className="text-sm font-medium text-foreground">{city.city}</span>
-                  <span className="text-xs text-muted-foreground">({city.days}d)</span>
+          <h2 className="font-semibold text-foreground mb-4">{singleCity ? "Destination" : "Route"}</h2>
+          {singleCity ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📍</span>
+              <span className="text-sm font-medium text-foreground">
+                {route[0].city}, {route[0].country}
+              </span>
+              <span className="text-xs text-muted-foreground">({route[0].days} days)</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              {route.map((city, i) => (
+                <div key={city.id} className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm font-medium text-foreground">{city.city}</span>
+                    <span className="text-xs text-muted-foreground">({city.days}d)</span>
+                  </div>
+                  {i < route.length - 1 && (
+                    <Plane className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  )}
                 </div>
-                {i < route.length - 1 && (
-                  <Plane className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Day-by-day compact table */}
@@ -178,7 +189,9 @@ export default function SummaryPage({ params }: { params: Params }) {
               <thead>
                 <tr className="bg-secondary">
                   <th className="text-left px-4 py-3 font-medium text-foreground">Day</th>
-                  <th className="text-left px-4 py-3 font-medium text-foreground">City</th>
+                  {!singleCity && (
+                    <th className="text-left px-4 py-3 font-medium text-foreground">City</th>
+                  )}
                   <th className="text-left px-4 py-3 font-medium text-foreground hidden sm:table-cell">
                     Activities
                   </th>
@@ -188,7 +201,9 @@ export default function SummaryPage({ params }: { params: Params }) {
                 {days.map((day) => (
                   <tr key={day.day} className="border-t border-border">
                     <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{day.day}</td>
-                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{day.city}</td>
+                    {!singleCity && (
+                      <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{day.city}</td>
+                    )}
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                       {day.isTravel && (
                         <span className="text-primary text-xs mr-2">
