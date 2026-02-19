@@ -73,7 +73,6 @@ export default function PlanPage() {
   const {
     planStep, setPlanStep,
     // Onboarding fields
-    displayName, setDisplayName,
     nationality, setNationality,
     homeAirport, setHomeAirport,
     travelStyle, setTravelStyle,
@@ -122,7 +121,7 @@ export default function PlanPage() {
   })();
 
   const canAdvance = () => {
-    if (showProfile) return !!displayName.trim() && !!nationality;
+    if (showProfile) return !!nationality;
     if (showStyle) return true; // style has default, interests optional
     if (showDestination) {
       const hasDestination = isSingleCity ? !!destination : !!region;
@@ -507,16 +506,6 @@ export default function PlanPage() {
                   <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
 
                   <div className="mt-8 space-y-5">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Your name</label>
-                      <input
-                        type="text"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="First name"
-                        className={inputClass}
-                      />
-                    </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">Nationality</label>
                       <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
