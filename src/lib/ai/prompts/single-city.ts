@@ -65,13 +65,6 @@ export function assembleSingleCityPrompt(
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
-  const vibeDescriptions: Record<string, string> = {
-    relaxation: "relaxation-focused (cafes, spas, slow mornings, minimal rushing)",
-    adventure: "adventure-focused (urban exploration, outdoor activities, off-the-beaten-path)",
-    cultural: "culturally immersive (museums, temples, local traditions, historical neighborhoods)",
-    mix: "a balanced mix of culture, food, neighborhoods, and some adventure",
-  };
-
   return `Plan a ${durationDays}-day trip to ${intent.destination}, ${intent.destinationCountry} for ${intent.travelers} traveler(s) with the following details:
 
 **Traveler Profile:**
@@ -85,7 +78,6 @@ export function assembleSingleCityPrompt(
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
 - Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)
-- Trip vibe: ${vibeDescriptions[intent.vibe] ?? intent.vibe}
 
 **Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities

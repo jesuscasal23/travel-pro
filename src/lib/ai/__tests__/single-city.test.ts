@@ -24,7 +24,6 @@ const singleCityIntent: TripIntent = {
   dateEnd: "2026-04-17",
   flexibleDates: false,
   budget: 2000,
-  vibe: "cultural",
   travelers: 2,
 };
 

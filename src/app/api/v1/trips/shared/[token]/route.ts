@@ -60,7 +60,6 @@ export async function GET(req: NextRequest, { params }: Params) {
         dateStart: trip.dateStart,
         dateEnd: trip.dateEnd,
         budget: trip.budget,
-        vibe: trip.vibe,
         travelers: trip.travelers,
       },
       itinerary: trip.itineraries[0].data,

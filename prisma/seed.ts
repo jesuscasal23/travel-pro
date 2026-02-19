@@ -106,7 +106,6 @@ async function main() {
       dateEnd: "2025-04-05",
       flexibleDates: false,
       budget: 10000,
-      vibe: "cultural",
       travelers: 2,
       shareToken: "demo-share-token-001",
     },

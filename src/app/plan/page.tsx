@@ -18,7 +18,7 @@ import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { ChipGroup } from "@/components/ui/Chip";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
-import type { TripVibe, TripType } from "@/types";
+import type { TripType } from "@/types";
 
 const multiCityGenerationSteps = [
   { stage: "route",      emoji: "🧭", label: "Optimising your route" },
@@ -37,13 +37,6 @@ const singleCityGenerationSteps = [
   { stage: "budget",     emoji: "💰", label: "Calculating your budget" },
   { stage: "done",       emoji: "✅", label: "Your trip is ready!" },
 ];
-
-const vibes = [
-  { id: "relaxation", emoji: "🧘", label: "Relaxation", description: "Beaches, spas, slow mornings" },
-  { id: "adventure",  emoji: "🧗", label: "Adventure",  description: "Hiking, diving, thrill-seeking" },
-  { id: "cultural",   emoji: "🏛️", label: "Cultural",   description: "Museums, temples, local traditions" },
-  { id: "mix",        emoji: "🎯", label: "Mix of everything", description: "A balanced blend of all styles" },
-] as const;
 
 // TODO: Replace with verified facts (these are AI-generated placeholders)
 const funFacts = [
@@ -87,7 +80,6 @@ export default function PlanPage() {
     dateEnd, setDateEnd,
     flexibleDates, setFlexibleDates,
     budget, setBudget,
-    vibe, setVibe,
     travelers, setTravelers,
     isGenerating, setIsGenerating,
     generationStep, setGenerationStep,
@@ -127,7 +119,7 @@ export default function PlanPage() {
       const hasDestination = isSingleCity ? !!destination : !!region;
       return hasDestination && !!dateStart && !!dateEnd && dayCount > 0;
     }
-    if (showDetails) return budget > 0 && !!vibe && travelers > 0;
+    if (showDetails) return budget > 0 && travelers > 0;
     return true;
   };
 
@@ -143,7 +135,7 @@ export default function PlanPage() {
 
   const handleGenerate = useCallback(async () => {
     posthog?.capture("questionnaire_completed", {
-      tripType, region, destination, duration_days: dayCount, budget_eur: budget, vibe, travelers,
+      tripType, region, destination, duration_days: dayCount, budget_eur: budget, travelers,
     });
     setIsGenerating(true);
     setGenerationStep(0);
@@ -154,7 +146,7 @@ export default function PlanPage() {
       tripType,
       region: isSingleCity ? "" : region,
       ...(isSingleCity ? { destination, destinationCountry, destinationCountryCode, destinationLat, destinationLng } : {}),
-      dateStart, dateEnd, flexibleDates, budget, vibe, travelers,
+      dateStart, dateEnd, flexibleDates, budget, travelers,
     };
     const profile = { nationality, homeAirport, travelStyle, interests };
 
@@ -224,7 +216,7 @@ export default function PlanPage() {
           tripType,
           region: isSingleCity ? "" : region,
           ...(isSingleCity ? { destination, destinationCountry, destinationCountryCode } : {}),
-          dateStart, dateEnd, flexibleDates, budget, vibe, travelers,
+          dateStart, dateEnd, flexibleDates, budget, travelers,
         }),
       });
 
@@ -289,7 +281,7 @@ export default function PlanPage() {
   }, [
     isAuthenticated, isSingleCity,
     tripType, region, destination, destinationCountry, destinationCountryCode, destinationLat, destinationLng,
-    dateStart, dateEnd, flexibleDates, budget, vibe, travelers,
+    dateStart, dateEnd, flexibleDates, budget, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
     setIsGenerating, setGenerationStep, setCurrentTripId, setItinerary, router, posthog,
   ]);
@@ -621,7 +613,7 @@ export default function PlanPage() {
                 </div>
               )}
 
-              {/* Trip details — Budget, Vibe, Travelers */}
+              {/* Trip details — Budget & Travelers */}
               {showDetails && (
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-1">Trip details</h2>
@@ -638,21 +630,6 @@ export default function PlanPage() {
                       </div>
                       <input type="range" min={1000} max={30000} step={500} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full accent-primary cursor-pointer" />
                       <div className="flex justify-between text-sm text-muted-foreground mt-2"><span>€1,000</span><span>€30,000</span></div>
-                    </div>
-
-                    {/* Vibe */}
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-3">Vibe</label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {vibes.map((v) => (
-                          <button key={v.id} onClick={() => setVibe(v.id as TripVibe)}
-                            className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${vibe === v.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
-                            <div className="text-xl">{v.emoji}</div>
-                            <div className="font-semibold text-sm mt-1.5 text-foreground">{v.label}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">{v.description}</div>
-                          </button>
-                        ))}
-                      </div>
                     </div>
 
                     {/* Travelers */}

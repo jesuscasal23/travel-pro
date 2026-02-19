@@ -51,7 +51,6 @@ model Trip {
   dateEnd       String   @map("date_end")
   flexibleDates Boolean  @default(false) @map("flexible_dates")
   budget        Int
-  vibe          String
   travelers     Int      @default(2)
   shareToken    String?  @unique @map("share_token")
 

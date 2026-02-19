@@ -89,14 +89,7 @@ test("E2E-01: completes full planning flow from landing to trip detail", async (
 
   await page.getByRole("button", { name: "Continue" }).click();
 
-  // ── 7. Plan — Step 4: Vibe ───────────────────────────────────────────────
-  await expect(page.getByText("What's the vibe?")).toBeVisible();
-
-  await page.getByRole("button", { name: /Cultural/i }).first().click();
-
-  await page.getByRole("button", { name: "Continue" }).click();
-
-  // ── 8. Plan — Step 5: Travelers ───────────────────────────────────────────
+  // ── 7. Plan — Step 4: Travelers ───────────────────────────────────────────
   await expect(page.getByText("How many travelers?")).toBeVisible();
 
   // Default is 2 travelers — already valid, just proceed
@@ -175,7 +168,7 @@ test("E2E-01d: Continue on step 2 is disabled until both dates are set", async (
     localStorage.setItem(
       "travel-pro-store",
       JSON.stringify({
-        state: { region: "southeast-asia", planStep: 2, budget: 10000, travelers: 2, vibe: "mix" },
+        state: { region: "southeast-asia", planStep: 2, budget: 10000, travelers: 2 },
         version: 0,
       })
     );

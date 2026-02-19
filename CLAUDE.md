@@ -4,163 +4,208 @@
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript 5
 - **Styling**: Tailwind v4 — design tokens in `src/app/globals.css` via `@theme inline` (no `tailwind.config.ts`)
 - **State**: Zustand 5 with `persist` middleware → localStorage (`src/stores/useTripStore.ts`)
-- **AI**: Anthropic SDK (`claude-sonnet-4-20250514`) → `src/lib/ai/pipeline.ts`
-- **DB**: Prisma + Supabase PostgreSQL (`prisma/schema.prisma`)
+- **AI**: Anthropic SDK — Haiku (`claude-haiku-4-5-20251001`) for generation, Sonnet for full regen
+- **DB**: Prisma 7 + Supabase PostgreSQL (`prisma/schema.prisma`, config in `prisma.config.ts`)
+- **Auth**: Supabase Auth (email/password) + SSR middleware
 - **Maps**: MapLibre GL / react-map-gl v8 (open-source, not Mapbox GL)
-- **Testing**: Vitest (unit) + Playwright (e2e, 60s timeout for AI generation)
+- **Flights**: Amadeus API for price optimization (`src/lib/flights/`)
+- **Email**: Resend + React Email templates (`src/lib/email/`)
+- **Analytics**: PostHog (EU region, consent-gated) + Sentry error tracking
+- **Testing**: Vitest (unit) + Playwright (e2e)
 
 ## Commands
 ```bash
-npm run dev          # Start dev server
-npm run build        # Production build
-npm test             # Vitest unit tests (also runs on pre-commit via husky)
-npm run test:e2e     # Playwright e2e tests (requires dev server running)
-npm run lint         # ESLint
+npm run dev            # Start dev server
+npm run build          # prisma generate && next build
+npm test               # Vitest unit tests (pre-commit via husky)
+npm run test:e2e       # Playwright e2e (requires dev server)
+npm run lint           # ESLint
+npm run db:push        # Prisma db push
+npm run db:seed        # Prisma db seed
+npm run db:studio      # Prisma Studio GUI
+npm run db:generate    # Prisma generate client
 ```
 
 ## Project Structure
 ```
 src/
 ├── app/
-│   ├── (marketing)/         # Public pages — unauthenticated Navbar wrapper
-│   │   └── page.tsx         # Landing page
-│   ├── (auth)/              # Phase 1: signup/login/forgot-password (not yet built)
-│   ├── onboarding/          # 2-step profile form (Phase 1: 4-step)
-│   ├── dashboard/           # Trip list
-│   ├── plan/                # 6-card questionnaire + AI generation loading
-│   ├── trip/[id]/
-│   │   ├── page.tsx         # 40/60 split: sticky map + day-by-day timeline
-│   │   ├── edit/page.tsx    # City cards, day stepper, drag-drop, floating save bar
-│   │   └── summary/page.tsx # Route/budget/visa/weather tabs + PDF export + share
-│   └── api/generate/route.ts # POST: Zod validation → AI pipeline → Itinerary JSON
+│   ├── (marketing)/           # Landing + privacy (public, Navbar wrapper)
+│   ├── (auth)/                # signup, login, forgot-password, reset-password
+│   ├── (app)/profile/         # Settings + data export + account delete
+│   ├── onboarding/            # 2-step profile form
+│   ├── dashboard/             # Trip list (API + sample fallback)
+│   ├── plan/                  # Multi-step questionnaire + SSE generation
+│   ├── trip/[id]/             # 40/60 map+timeline, edit (drag-drop), summary (tabs+share+PDF)
+│   ├── share/[token]/         # Public read-only view + growth CTA
+│   ├── auth/callback/         # Supabase OAuth callback
+│   └── api/
+│       ├── generate/          # Phase 0 routes (direct + select-route)
+│       ├── health/            # Health check
+│       └── v1/                # REST API: trips, profile, affiliate
 ├── components/
-│   ├── ui/                  # Button, Card, Chip, Badge, ProgressBar, LoadingSpinner, Toast
-│   ├── map/RouteMap.tsx     # MapLibre (always dynamic import, ssr: false)
-│   └── export/PDFDownloadButton.tsx
+│   ├── ui/                    # Button, Card, Chip, Badge, Modal, Toast, AirportCombobox, CityCombobox
+│   ├── auth/                  # Auth form styles + ServerErrorAlert
+│   ├── map/                   # RouteMap (MapLibre, dynamic import) + fallback
+│   ├── export/                # PDFDownloadButton
+│   ├── trip/                  # BudgetBreakdown, TripNotFound, plan-view/ (PlanViewLayout, tabs)
+│   ├── Navbar.tsx, Providers.tsx, ThemeToggle.tsx, CookieConsent.tsx
+│   └── TravelStylePicker.tsx, WorldMapSVG.tsx
 ├── lib/
-│   ├── ai/
-│   │   ├── pipeline.ts      # generateItinerary(), extractJSON(), parseAndValidate()
-│   │   ├── enrichment.ts    # enrichVisa() + enrichWeather() (Open-Meteo + Redis cache)
-│   │   └── prompts/v1.ts    # SYSTEM_PROMPT_V1, assemblePrompt()
-│   ├── db/prisma.ts         # Lazy-init PrismaClient (avoids build-time crash)
-│   ├── animations.ts        # slideVariants, fadeUp, simpleFadeUp (Framer Motion)
-│   └── export/pdf-generator.tsx
-├── stores/useTripStore.ts   # Single Zustand store for all app state
-├── types/index.ts           # All TypeScript types (CityStop, TripDay, Itinerary, etc.)
-├── data/sampleData.ts       # Demo: Thomas & Lena's Asia trip (22 days, €10k, 7 cities)
-└── hooks/useItinerary.ts    # Returns store itinerary OR sampleFullItinerary fallback
+│   ├── ai/                    # pipeline, enrichment, validator, model-selector
+│   │   └── prompts/           # v1, v2, single-city, route-selector
+│   ├── api/                   # helpers (auth guards, apiHandler) + schemas (Zod)
+│   ├── db/prisma.ts           # Lazy-init PrismaClient (Proxy pattern)
+│   ├── supabase/              # client.ts (browser) + server.ts (SSR cookies)
+│   ├── flights/               # amadeus.ts, optimizer.ts, city-iata-map, types
+│   ├── affiliate/             # link-generator (Skyscanner/Booking.com/GetYourGuide)
+│   ├── email/                 # Resend client + templates (welcome, itinerary-ready, shared)
+│   ├── export/                # pdf-generator.tsx (@react-pdf/renderer)
+│   ├── utils/                 # date, error, country-flags, trip-metadata, derive-city-budget, etc.
+│   └── animations.ts          # slideVariants, fadeUp, simpleFadeUp (Framer Motion)
+├── stores/useTripStore.ts     # Zustand store (persisted + transient fields)
+├── types/index.ts             # All TypeScript types
+├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps
+├── hooks/                     # useItinerary, useAuthStatus, useToast, useScrollSync
+└── middleware.ts              # Auth (protects /dashboard, /profile) + rate limiting (Upstash Redis)
 ```
 
 ## Key Patterns
 
-### Next.js 16 Dynamic Params (client components)
+### Next.js 16 Dynamic Params
 ```tsx
-// MUST use React.use() — params is a Promise in Next.js 16
 const { id } = use(params)  // params: Promise<{ id: string }>
 ```
 
 ### MapLibre (SSR-safe)
 ```tsx
-// Always dynamic-import MapLibre to avoid SSR crash
 const RouteMap = dynamic(() => import('@/components/map/RouteMap'), { ssr: false })
-// Import from react-map-gl/mapbox NOT react-map-gl
+// Import from react-map-gl/maplibre (NOT react-map-gl or react-map-gl/mapbox)
 ```
 
-### Zustand Store Shape
+### Zustand Store
 ```ts
-// Persisted fields (explicit whitelist): nationality, homeAirport, travelStyle,
-// interests, region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers,
-// currentTripId, itinerary
-// Excluded from persist: planStep, generationStep, isGenerating
+// Persisted: onboardingStep, nationality, homeAirport, travelStyle, interests, displayName,
+//   tripType, region, destination, destinationCountry, destinationCountryCode,
+//   destinationLat, destinationLng, dateStart, dateEnd, flexibleDates, budget,
+//   travelers, currentTripId, itinerary
+// Transient (NOT persisted): planStep, generationStep, isGenerating
 ```
 
-### All Trip Pages Use the Fallback Hook
-```tsx
-const itinerary = useItinerary() // store data OR sampleFullItinerary — never null
+### Lazy Initialization
+Prisma, Redis, Resend, Anthropic — all lazy-init to avoid build-time crashes when env vars missing.
+
+### Prisma JSON Cast
+```ts
+data as unknown as Itinerary  // Always double-cast .data fields from DB
 ```
+
+### Guest vs Auth
+`/plan` and `/trip` are public — guests can generate and view. Auth encouraged (not required) via "save your trip" nudge. `/dashboard` and `/profile` are protected.
+
+## Types (all in `src/types/index.ts`)
+```ts
+CityStop     { id, city, country, lat, lng, days, countryCode, iataCode? }
+TripDay      { day, date, city, activities: DayActivity[], isTravel?, travelFrom?, travelTo? }
+DayActivity  { name, category, icon, why, duration, tip?, food?, cost? }
+TripBudget   { flights, accommodation, activities, food, transport, total, budget }
+VisaInfo     { country, countryCode, requirement, maxStayDays, notes, icon, label, sourceUrl }
+CityWeather  { city, temp, condition, icon }
+Itinerary    { route: CityStop[], days: TripDay[], budget, visaData, weatherData, flightLegs? }
+UserProfile  { nationality, homeAirport, travelStyle, interests }
+TripIntent   { id, tripType?, region, destination?, dateStart, dateEnd, flexibleDates, budget, travelers }
+TravelStyle  = "backpacker" | "comfort" | "luxury"
+TripType     = "single-city" | "multi-city"
+```
+
+## AI Pipeline (`src/lib/ai/`)
+1. **Route selection** (multi-city only): Haiku picks cities via `selectRoute()` → `CityWithDays[]`
+2. **Prompt assembly**: `assemblePrompt()` (v1/v2) or `assembleSingleCityPrompt()` with profile + intent + optional flight skeleton
+3. **Claude Haiku call**: maxTokens 10,000 (multi-city) / 4,000 (single-city), temp 0.7, 50s timeout
+4. **Parse + validate**: `extractJSON()` strips fences → Zod schema validation
+5. **Enrichment** (parallel): `enrichVisa()` (Passport Index static data, 199×227) + `enrichWeather()` (Open-Meteo + Redis 7d cache)
+6. **Persist** to Prisma (best-effort, non-blocking)
+
+Content filtering retry: backoff, max 2 retries. Validator (`validator.ts`) checks completeness, route integrity, budget ceiling.
+
+## API Routes
+| Route | Methods | Auth | Notes |
+|-------|---------|------|-------|
+| `/api/generate` | POST | Public (10/min IP) | Phase 0 generation, Zod validation |
+| `/api/generate/select-route` | POST | Public (10/min IP) | Haiku route selection (multi-city) |
+| `/api/health` | GET | None | Env check (anthropic, supabase, db) |
+| `/api/v1/trips` | GET, POST | GET: auth, POST: optional | List/create trips |
+| `/api/v1/trips/[id]` | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version |
+| `/api/v1/trips/[id]/generate` | POST | Public | SSE stream (route→activities→visa→weather→done) |
+| `/api/v1/trips/[id]/optimize` | POST | Owner | Amadeus flight price optimization |
+| `/api/v1/trips/[id]/share` | GET | Owner | Generate/return share token + URL |
+| `/api/v1/trips/shared/[token]` | GET | Public (60/min) | Fetch shared itinerary |
+| `/api/v1/profile` | GET, PATCH, DELETE | Auth | Upsert profile, GDPR account delete |
+| `/api/v1/profile/export` | GET | Auth | GDPR data export (all user data as JSON) |
+| `/api/v1/affiliate/redirect` | GET | Public | Log click + 302 redirect (domain whitelist) |
+
+## Database (8 models in `prisma/schema.prisma`)
+- **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], activityLevel?, languagesSpoken[], onboardingCompleted
+- **Trip**: profileId?, tripType, region, destination?, dateStart, dateEnd, budget, travelers, shareToken?
+- **Itinerary**: tripId, data (Json), version, isActive, promptVersion, generationStatus, generationJobId?
+- **ItineraryEdit**: itineraryId, editType, editPayload (Json), description?
+- **Experiment / ExperimentAssignment**: A/B test definitions + user assignments
+- **AnalyticsEvent**: userId?, eventName, properties (Json), sessionId?
+- **AffiliateClick**: tripId?, provider, clickType, city?, destination?, url, ipHash?
+
+Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { tripId } }` — tripId is not unique.
+
+## Middleware (`src/middleware.ts`)
+- **Protected routes**: `/dashboard`, `/profile` → redirect to `/login?next=...` if unauthenticated
+- **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`
+- **Rate limiting** (Upstash Redis sliding window):
+  - `/api/v1/trips/*/generate`: 5 req/hour (LLM cost protection)
+  - `/api/v1/trips/shared/*`: 60 req/min
+  - `/api/v1/*` general: 30 req/min
+- Fail-open: requests pass through if Redis unavailable
 
 ## Styling
-
-### Design Tokens (CSS variables via `@theme inline`)
 | Token | Value | Tailwind class |
 |-------|-------|---------------|
 | `--primary` | teal `#0D7377` | `bg-primary`, `text-primary` |
 | `--accent` | coral `#E85D4A` | `bg-accent`, `text-accent` |
-| `--shadow-card-hover` | `0 4px 16px rgba(0,0,0,0.12)` | `hover:shadow-[var(--shadow-card-hover)]` |
 
-### Component Classes (in `@layer components`)
-- `.card-travel` — card with shadow
-- `.btn-primary` / `.btn-ghost` — button styles
-- `.chip` / `.chip-selected` — chip styles
-- `.badge-success` / `.badge-warning` / `.badge-info`
+Component classes: `.card-travel`, `.btn-primary`, `.btn-ghost`, `.chip`, `.chip-selected`, `.badge-success/.warning/.info`
 
-### Dark Mode
-- Toggle adds `dark` class to `<html>` via ThemeToggle
-- Inline script in root layout prevents flash on load
-
-## Types (all in `src/types/index.ts`)
-```ts
-CityStop     { id, city, country, lat, lng, days, countryCode }
-TripDay      { day, date, city, activities: DayActivity[], isTravel? }
-DayActivity  { name, category, icon, why, duration, tip?, food?, cost? }
-Itinerary    { route: CityStop[], days: TripDay[], budget, visaData, weatherData }
-UserProfile  { nationality, homeAirport, travelStyle, interests }
-TripIntent   { id, region, dateStart, dateEnd, flexibleDates, budget, vibe, travelers }
-```
-
-## AI Pipeline (`src/lib/ai/pipeline.ts`)
-1. `assemblePrompt(profile, intent)` → system prompt with user context
-2. Claude Sonnet call (maxTokens: 8000, temperature: 0.7)
-3. `extractJSON()` strips markdown fences → `parseAndValidate()` via Zod
-4. Parallel `enrichVisa()` + `enrichWeather()` → returns `Itinerary`
-
-**Phase 0 limits**: visa data hardcoded for German passport (JP/VN/TH) only.
-
-**Phase 1 model strategy** (not yet implemented):
-- Full itinerary: `claude-sonnet-4-20250514`
-- Partial regen (city, single day): `claude-haiku-4-5-20251001`
-
-## API Route (`POST /api/generate`)
-- Zod validates `{ profile, tripIntent }` before touching AI
-- Rate limited: 10 req/min per IP via Upstash Redis sliding window
-- Redis client lazy-initialized — never instantiate at module scope
-
-## Database (Prisma + Supabase)
-```
-profiles    { id, nationality, homeAirport, travelStyle, interests[] }
-trips       { id, profileId, region, dateStart, dateEnd, budget, vibe, travelers }
-itineraries { id, tripId, data: Json }  ← full Itinerary object
-```
-Phase 1 adds: `itinerary_edits`, `experiments`, `analytics_events`, `affiliate_clicks` + RLS policies.
+Dark mode: `dark` class on `<html>` via ThemeToggle + inline script in root layout prevents flash.
 
 ## Required Env Vars
 ```
-ANTHROPIC_API_KEY
-NEXT_PUBLIC_MAPBOX_TOKEN
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-UPSTASH_REDIS_REST_URL
+ANTHROPIC_API_KEY              # AI generation
+DATABASE_URL                   # Prisma → Supabase PostgreSQL
+NEXT_PUBLIC_SUPABASE_URL       # Supabase client
+NEXT_PUBLIC_SUPABASE_ANON_KEY  # Supabase client
+SUPABASE_SERVICE_ROLE_KEY      # Server-side auth (account delete)
+NEXT_PUBLIC_MAPBOX_TOKEN       # MapLibre tiles
+UPSTASH_REDIS_REST_URL         # Rate limiting + weather cache
 UPSTASH_REDIS_REST_TOKEN
+RESEND_API_KEY                 # Transactional email
+NEXT_PUBLIC_APP_URL            # Share URLs, email links
+NEXT_PUBLIC_POSTHOG_KEY        # Analytics (EU region)
+NEXT_PUBLIC_POSTHOG_HOST       # PostHog host
+NEXT_PUBLIC_SENTRY_DSN         # Error tracking
+AMADEUS_API_KEY                # Flight optimization (optional)
+AMADEUS_API_SECRET
 ```
 See `.env.local.example` for full list.
 
-## Phase Status
-- **Phase 0** (demo): Complete — all UI screens built, AI pipeline working, sample data seeded
-- **Phase 1** (production MVP): Starts March 3, target March 30, 2026
-  - Week 1: Supabase Auth, DB migrations, extended onboarding, trip persistence
-  - Week 2: Async queue (BullMQ), SSE progress, prompt v2, Haiku fallback, versioning
-  - Week 3: Real affiliate links (Skyscanner/Booking.com/GetYourGuide), production PDF, share links, Resend emails
-  - Week 4: PostHog analytics, full edit mode, GDPR, Sentry, SEO, rate limiting
-
-## Sample Data (demo trip)
-`src/data/sampleData.ts` — Thomas & Lena's Asia trip:
-- 7 cities: Tokyo, Kyoto, Hanoi, Ha Long Bay, Bangkok, Chiang Mai, Phuket
-- 22 days, €10,000 budget, comfort style, cultural interests
-- Exports: `sampleFullItinerary`, `sampleTrips`, `airports`, `nationalities`, `regions`, `interestOptions`
+## Version Notes
+- **Zod v4** (^4.3.6): `z.record()` requires 2 args: `z.record(z.string(), z.unknown())`
+- **Prisma v7** (^7.4.0): datasource `url` in `prisma.config.ts` (not schema.prisma). VS Code may show false errors.
+- **Next.js 16**: `params` is `Promise<{...}>` in client components — use `React.use(params)`
 
 ## CSP / Security Headers
-Defined in `next.config.ts`. Key notes:
-- `script-src unsafe-inline unsafe-eval` required by Next.js App Router
-- `worker-src blob` required by MapLibre GL Web Workers
+Defined in `next.config.ts` (wrapped with `withSentryConfig`):
+- `script-src unsafe-inline` (+ `unsafe-eval` in dev only) + PostHog CDN
+- `worker-src blob:` required by MapLibre GL Web Workers
 - Add new external domains to `connect-src` before using any new APIs
+
+## Sample Data
+`src/data/sampleData.ts` — Thomas & Lena's Asia trip (7 cities, 22 days, €10k, comfort).
+Exports: `sampleFullItinerary`, `sampleTrips`, `sampleRoute`, `sampleBudget`, `interestOptions`, `regions`.
+Separate data files: `airports-full.ts`, `nationalities.ts`, `cities.ts`, `visa-index.ts`, `travelStyles.ts`.

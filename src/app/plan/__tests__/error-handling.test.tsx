@@ -70,7 +70,6 @@ function setValidFinalStepState() {
       dateEnd: "2026-04-22",
       flexibleDates: false,
       budget: 10000,
-      vibe: "cultural",
       travelers: 2,
       isGenerating: false,
       generationStep: 0,

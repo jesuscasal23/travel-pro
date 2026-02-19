@@ -126,7 +126,6 @@ export function assemblePromptV2(profile: UserProfile, intent: TripIntent): stri
 **Dates:** ${intent.dateStart} → ${intent.dateEnd} (${durationDays} days total)
 **Total Budget:** €${intent.budget.toLocaleString()}
 **Activity Budget Ceiling:** €${activityBudgetCeiling.toLocaleString()} — track this as you write
-**Vibe:** ${intent.vibe} — ${vibeDesc(intent.vibe)}
 **Travellers:** ${intent.travelers} ${intent.travelers === 1 ? "person" : "people"}
 **Flexible Dates:** ${intent.flexibleDates ? "Yes — shift by ±3 days if it improves the route" : "No — stick to exact dates"}
 
@@ -150,12 +149,3 @@ function styleDesc(style: string): string {
   return map[style] ?? style;
 }
 
-function vibeDesc(vibe: string): string {
-  const map: Record<string, string> = {
-    relaxation: "slow pace, beaches, spas, minimal rushing between cities",
-    adventure: "active experiences, hiking, water sports, off the beaten path",
-    cultural: "museums, temples, historical sites, local festivals, authentic food scenes",
-    mix: "balanced combination of relaxation, culture, and adventure",
-  };
-  return map[vibe] ?? vibe;
-}

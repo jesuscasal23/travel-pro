@@ -73,13 +73,6 @@ export function assemblePrompt(
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
-  const vibeDescriptions: Record<string, string> = {
-    relaxation: "relaxation-focused (beaches, spas, slow mornings, minimal rushing)",
-    adventure: "adventure-focused (hiking, diving, outdoor activities, adrenaline)",
-    cultural: "culturally immersive (museums, temples, local traditions, historical sites)",
-    mix: "a balanced mix of culture, food, nature, and some adventure",
-  };
-
   // ── Build flight skeleton block (when Amadeus optimization succeeded) ──
   const skeletonBlock = skeleton && cities
     ? `
@@ -128,7 +121,6 @@ Distribute the trip days across these cities within the min–max ranges above.`
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
 - Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)
-- Trip vibe: ${vibeDescriptions[intent.vibe] ?? intent.vibe}
 - Flexible dates: ${intent.flexibleDates ? "yes (±3 days)" : "no"}
 ${skeletonBlock}
 **Requirements:**

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TravelStyle, TripVibe, TripType, Itinerary } from "@/types";
+import type { TravelStyle, TripType, Itinerary } from "@/types";
 
 interface TripStoreState {
   // Onboarding
@@ -23,7 +23,6 @@ interface TripStoreState {
   dateEnd: string;
   flexibleDates: boolean;
   budget: number;
-  vibe: TripVibe;
   travelers: number;
 
   // Generation
@@ -56,7 +55,6 @@ interface TripStoreActions {
   setDateEnd: (date: string) => void;
   setFlexibleDates: (flexible: boolean) => void;
   setBudget: (budget: number) => void;
-  setVibe: (vibe: TripVibe) => void;
   setTravelers: (count: number) => void;
 
   // Generation
@@ -87,7 +85,6 @@ const initialPlanState = {
   dateEnd: "",
   flexibleDates: false,
   budget: 10000,
-  vibe: "mix" as TripVibe,
   travelers: 2,
   isGenerating: false,
   generationStep: 0,
@@ -133,7 +130,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setDateEnd: (date) => set({ dateEnd: date }),
       setFlexibleDates: (flexible) => set({ flexibleDates: flexible }),
       setBudget: (budget) => set({ budget }),
-      setVibe: (vibe) => set({ vibe }),
       setTravelers: (count) => set({ travelers: count }),
 
       // Generation actions
@@ -176,7 +172,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         dateEnd: state.dateEnd,
         flexibleDates: state.flexibleDates,
         budget: state.budget,
-        vibe: state.vibe,
         travelers: state.travelers,
         currentTripId: state.currentTripId,
         itinerary: state.itinerary,

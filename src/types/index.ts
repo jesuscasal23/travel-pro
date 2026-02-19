@@ -111,9 +111,6 @@ export interface InterestOption {
 /** Travel style */
 export type TravelStyle = "backpacker" | "comfort" | "luxury";
 
-/** Trip vibe */
-export type TripVibe = "relaxation" | "adventure" | "cultural" | "mix";
-
 /** Trip type — single-city (one destination) or multi-city (region-based route) */
 export type TripType = "single-city" | "multi-city";
 
@@ -153,6 +150,5 @@ export interface TripIntent {
   dateEnd: string;
   flexibleDates: boolean;
   budget: number;
-  vibe: TripVibe;
   travelers: number;
 }

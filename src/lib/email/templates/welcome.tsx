@@ -18,7 +18,7 @@ export function WelcomeEmail({ userName = "there", planUrl = "https://travelpro.
         You just unlocked something that usually takes weeks and a travel agent — a fully personalised,
         AI-crafted multi-country itinerary, ready in minutes.
       </Text>
-      {["🗺️ Tell us where to go — region, dates, budget, vibe",
+      {["🗺️ Tell us where to go — region, dates, budget",
         "🤖 Our AI plans your trip — optimised route, visa checks, weather",
         "✏️ You refine it — swap cities, adjust days, export to PDF"].map((step) => (
         <Text key={step} style={{ fontSize: "15px", lineHeight: "1.6", color: "#374151", margin: "0 0 8px" }}>{step}</Text>

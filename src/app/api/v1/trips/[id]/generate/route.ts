@@ -38,7 +38,6 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
     dateEnd: trip.dateEnd,
     flexibleDates: trip.flexibleDates,
     budget: trip.budget,
-    vibe: trip.vibe as TripIntent["vibe"],
     travelers: trip.travelers,
   };
 

@@ -49,7 +49,7 @@ export default function PrivacyPage() {
                 },
                 {
                   title: "Trip & itinerary data",
-                  desc: "Trip planning intent (region, dates, budget, vibe) and AI-generated itineraries. Stored so you can access, edit, and share your trips.",
+                  desc: "Trip planning intent (region, dates, budget) and AI-generated itineraries. Stored so you can access, edit, and share your trips.",
                 },
                 {
                   title: "Analytics events",
