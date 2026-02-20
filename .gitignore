@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results
+
+# data source files
+airports.csv
 
 # next.js
 /.next/

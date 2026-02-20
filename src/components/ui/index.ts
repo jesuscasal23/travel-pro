@@ -2,8 +2,6 @@ export { Button } from "./Button";
 export { Card } from "./Card";
 export { Chip, ChipGroup } from "./Chip";
 export { Badge } from "./Badge";
-export { ProgressBar } from "./ProgressBar";
-export { LoadingSpinner } from "./LoadingSpinner";
 export { FormField } from "./FormField";
 export { EmptyState } from "./EmptyState";
 export { Skeleton, SkeletonCard, SkeletonText } from "./Skeleton";
