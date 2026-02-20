@@ -1,41 +1,13 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
-import posthog from "posthog-js";
-import { PostHogProvider } from "posthog-js/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { CookieConsent } from "./CookieConsent";
 import { useToastStore } from "@/stores/useToastStore";
 import { useTripStore } from "@/stores/useTripStore";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { Itinerary } from "@/types";
-
-// Initialize PostHog on first client render (consent-gated via CookieConsent)
-function initPostHog() {
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.posthog.com";
-
-  if (!key || typeof window === "undefined") return;
-
-  // Check consent cookie before initialising
-  const consent = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("travel_pro_consent="))
-    ?.split("=")[1];
-
-  if (consent !== "accepted") {
-    posthog.init(key, { api_host: host, loaded: (ph) => ph.opt_out_capturing() });
-    return;
-  }
-
-  posthog.init(key, {
-    api_host: host,
-    capture_pageview: true,
-    capture_pageleave: true,
-    autocapture: false, // Manual events only — we control what we track
-    persistence: "localStorage+cookie",
-  });
-}
+import type { PostHog } from "posthog-js";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => {
@@ -68,32 +40,64 @@ export function Providers({ children }: { children: ReactNode }) {
     });
   });
 
+  const [phClient, setPhClient] = useState<PostHog | null>(null);
+
   useEffect(() => {
-    initPostHog();
+    const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.posthog.com";
+    if (!key) return;
+
+    import("posthog-js").then(({ default: posthog }) => {
+      const consent = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("travel_pro_consent="))
+        ?.split("=")[1];
+
+      if (consent !== "accepted") {
+        posthog.init(key, { api_host: host, loaded: (ph) => ph.opt_out_capturing() });
+      } else {
+        posthog.init(key, {
+          api_host: host,
+          capture_pageview: true,
+          capture_pageleave: true,
+          autocapture: false,
+          persistence: "localStorage+cookie",
+        });
+      }
+
+      setPhClient(posthog);
+    });
   }, []);
 
   const toasts = useToastStore((s) => s.toasts);
   const dismissToast = useToastStore((s) => s.dismiss);
 
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-
-  if (key) {
-    return (
-      <PostHogProvider client={posthog}>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          <CookieConsent />
-          <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-        </QueryClientProvider>
-      </PostHogProvider>
-    );
-  }
-
-  return (
+  const inner = (
     <QueryClientProvider client={queryClient}>
       {children}
       <CookieConsent />
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </QueryClientProvider>
   );
+
+  if (phClient) {
+    // Lazy-load PostHogProvider only once the client is ready
+    return <LazyPostHogProvider client={phClient}>{inner}</LazyPostHogProvider>;
+  }
+
+  return inner;
+}
+
+// Thin wrapper that lazy-loads posthog-js/react
+function LazyPostHogProvider({ client, children }: { client: PostHog; children: ReactNode }) {
+  const [Provider, setProvider] = useState<React.ComponentType<{ client: PostHog; children: ReactNode }> | null>(null);
+
+  useEffect(() => {
+    import("posthog-js/react").then((mod) => {
+      setProvider(() => mod.PostHogProvider);
+    });
+  }, []);
+
+  if (!Provider) return <>{children}</>;
+  return <Provider client={client}>{children}</Provider>;
 }

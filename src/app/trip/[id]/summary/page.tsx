@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { Fragment, use, useState } from "react";
 import { motion } from "framer-motion";
 import { Plane, Share2 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
@@ -13,7 +13,7 @@ import { getTripTitle, getUniqueCountries, getBudgetStatus } from "@/lib/utils/t
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
 import { useTripStore } from "@/stores/useTripStore";
-import { useShareTrip } from "@/hooks/api/useTripMutations";
+import { useShareTrip } from "@/hooks/api";
 
 type Params = Promise<{ id: string }>;
 
@@ -96,7 +96,7 @@ export default function SummaryPage({ params }: { params: Params }) {
       <div className="pt-24 pb-16 max-w-3xl mx-auto px-4">
 
         {/* Top action row */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
           <BackLink href={`/trip/${id}`} label="Back to itinerary" />
           <div className="flex gap-3">
             <div onClick={() => posthog?.capture("pdf_export_clicked", { trip_id: id })}>
@@ -191,22 +191,36 @@ export default function SummaryPage({ params }: { params: Params }) {
               </thead>
               <tbody>
                 {days.map((day) => (
-                  <tr key={day.day} className="border-t border-border">
-                    <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{day.day}</td>
-                    {!singleCity && (
-                      <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{day.city}</td>
-                    )}
-                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                      {day.isTravel && (
-                        <span className="text-primary text-xs mr-2">
-                          ✈ {day.travelFrom} &rarr; {day.travelTo}
-                        </span>
+                  <Fragment key={day.day}>
+                    <tr className="border-t border-border">
+                      <td className="px-4 py-3 pb-1 sm:pb-3 text-muted-foreground font-mono text-xs">{day.day}</td>
+                      {!singleCity && (
+                        <td className="px-4 py-3 pb-1 sm:pb-3 font-medium text-foreground whitespace-nowrap">{day.city}</td>
                       )}
-                      <span className="text-xs">
-                        {day.activities.map((a) => a.name).join(", ")}
-                      </span>
-                    </td>
-                  </tr>
+                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
+                        {day.isTravel && (
+                          <span className="text-primary text-xs mr-2">
+                            ✈ {day.travelFrom} &rarr; {day.travelTo}
+                          </span>
+                        )}
+                        <span className="text-xs">
+                          {day.activities.map((a) => a.name).join(", ")}
+                        </span>
+                      </td>
+                    </tr>
+                    {/* Mobile-only: activity summary */}
+                    <tr className="sm:hidden">
+                      <td colSpan={singleCity ? 1 : 2} className="px-4 pb-3 pt-0 text-xs text-muted-foreground">
+                        {day.isTravel && (
+                          <span className="text-primary mr-1">
+                            ✈ {day.travelFrom} → {day.travelTo} ·{" "}
+                          </span>
+                        )}
+                        {day.activities.slice(0, 2).map((a) => a.name).join(", ")}
+                        {day.activities.length > 2 && ` +${day.activities.length - 2} more`}
+                      </td>
+                    </tr>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -263,7 +277,17 @@ export default function SummaryPage({ params }: { params: Params }) {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground animate-pulse">Loading visa requirements…</p>
+            <div className="space-y-3">
+              {route.map((r) => (
+                <div key={r.id} className="flex items-start gap-3 animate-pulse">
+                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="w-32 h-4" />
+                    <Skeleton className="w-48 h-3" />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
           <VisaDisclaimer />
         </motion.div>
@@ -353,10 +377,10 @@ export default function SummaryPage({ params }: { params: Params }) {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-3 border border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">✈️</span>
-                      <div>
-                        <div className="text-sm font-medium text-foreground">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-lg shrink-0">✈️</span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-foreground truncate">
                           {leg.fromCity} → {leg.toCity}
                         </div>
                         <div className="text-xs text-muted-foreground">

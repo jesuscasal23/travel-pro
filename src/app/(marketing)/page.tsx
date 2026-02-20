@@ -108,7 +108,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight text-foreground"
+            className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-tight text-foreground"
           >
             Plan your dream trip in minutes, not weeks
           </motion.h1>

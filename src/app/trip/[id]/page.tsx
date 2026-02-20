@@ -8,21 +8,20 @@ import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui";
 import { useItinerary } from "@/hooks/useItinerary";
-import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { useAuthStatus, useTripGeneration, useVisaEnrichment, useWeatherEnrichment } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { ItineraryTab } from "@/components/trip/plan-view/ItineraryTab";
 import { EssentialsTab } from "@/components/trip/plan-view/EssentialsTab";
 import { BudgetTab } from "@/components/trip/plan-view/BudgetTab";
-import { useTripGeneration } from "@/hooks/api/useTripGeneration";
-import { useVisaEnrichment, useWeatherEnrichment } from "@/hooks/api/useEnrichment";
 import type { CityStop } from "@/types";
 
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-150 bg-secondary rounded-xl flex items-center justify-center text-muted-foreground">
-      Loading map…
+    <div className="w-full h-80 sm:h-120 lg:h-150 bg-secondary rounded-xl animate-pulse flex flex-col items-center justify-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-primary/10" />
+      <div className="h-3 w-28 rounded bg-primary/10" />
     </div>
   ),
 });
@@ -111,8 +110,8 @@ export default function TripPage({ params }: { params: Params }) {
     !(itinerary.visaData?.length && itinerary.weatherData?.length)
   );
 
-  const { data: visaData } = useVisaEnrichment(nationality, itinerary?.route ?? [], shouldEnrich);
-  const { data: weatherData } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
+  const { data: visaData, isLoading: visaLoading, error: visaError } = useVisaEnrichment(nationality, itinerary?.route ?? [], shouldEnrich);
+  const { data: weatherData, isLoading: weatherLoading, error: weatherError } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
 
   // Sync enrichment results back to Zustand store
   useEffect(() => {
@@ -207,13 +206,13 @@ export default function TripPage({ params }: { params: Params }) {
                   href={`/trip/${id}/edit`}
                   className="btn-ghost text-sm py-1.5 px-3 flex items-center gap-1"
                 >
-                  <Edit3 className="w-3.5 h-3.5" /> Edit
+                  <Edit3 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Edit</span>
                 </Link>
                 <Link
                   href={`/trip/${id}/summary`}
                   className="btn-primary text-sm py-1.5 px-3 flex items-center gap-1"
                 >
-                  <LayoutList className="w-3.5 h-3.5" /> Summary
+                  <LayoutList className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Summary</span>
                 </Link>
               </>
             )}
@@ -242,7 +241,7 @@ export default function TripPage({ params }: { params: Params }) {
       {isAuthenticated === false && !isPartialItinerary && !generationError && (
         <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-accent/40">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
-            <p className="text-sm text-foreground">
+            <p className="text-sm text-foreground line-clamp-2 sm:line-clamp-none">
               Want to keep this itinerary? Create a free account to save it and access it from any device.
             </p>
             <Link
@@ -263,12 +262,12 @@ export default function TripPage({ params }: { params: Params }) {
       } min-h-[calc(100vh-7.5rem)]`}>
         <div className="max-w-5xl mx-auto px-4 py-6">
           {/* Tab bar */}
-          <div className="flex gap-0 border-b border-border mb-6">
+          <div className="flex gap-0 border-b border-border mb-6 overflow-x-auto scrollbar-hide">
             {(["itinerary", "essentials", "budget", "map"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 py-3 text-sm font-medium transition-colors relative ${
+                className={`px-5 py-3 text-sm font-medium transition-colors relative whitespace-nowrap ${
                   activeTab === tab
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -283,32 +282,40 @@ export default function TripPage({ params }: { params: Params }) {
           </div>
 
           {/* Tab content */}
-          {activeTab === "itinerary" && (
-            isPartialItinerary ? (
-              <ItinerarySkeletonTab route={itinerary.route} isGenerating={isGenerating} />
-            ) : (
-              <ItineraryTab days={itinerary.days} route={itinerary.route} />
-            )
-          )}
-          {activeTab === "essentials" && (
-            <EssentialsTab itinerary={itinerary} />
-          )}
-          {activeTab === "budget" && (
-            isPartialItinerary ? (
-              <BudgetSkeletonTab isGenerating={isGenerating} />
-            ) : (
-              <BudgetTab budget={itinerary.budget} route={itinerary.route} days={itinerary.days} />
-            )
-          )}
-          {activeTab === "map" && (
-            <div className="h-150 rounded-xl overflow-hidden border border-border">
-              <RouteMap
-                cities={itinerary.route}
-                activeCityIndex={activeCityIndex}
-                onCityClick={(index: number) => setActiveCityIndex(index)}
+          <div key={activeTab} className="animate-tab-in">
+            {activeTab === "itinerary" && (
+              isPartialItinerary ? (
+                <ItinerarySkeletonTab route={itinerary.route} isGenerating={isGenerating} />
+              ) : (
+                <ItineraryTab days={itinerary.days} route={itinerary.route} />
+              )
+            )}
+            {activeTab === "essentials" && (
+              <EssentialsTab
+                itinerary={itinerary}
+                visaLoading={visaLoading && shouldEnrich}
+                weatherLoading={weatherLoading && shouldEnrich}
+                visaError={!!visaError}
+                weatherError={!!weatherError}
               />
-            </div>
-          )}
+            )}
+            {activeTab === "budget" && (
+              isPartialItinerary ? (
+                <BudgetSkeletonTab isGenerating={isGenerating} />
+              ) : (
+                <BudgetTab budget={itinerary.budget} route={itinerary.route} days={itinerary.days} />
+              )
+            )}
+            {activeTab === "map" && (
+              <div className="h-80 sm:h-120 lg:h-150 rounded-xl overflow-hidden border border-border">
+                <RouteMap
+                  cities={itinerary.route}
+                  activeCityIndex={activeCityIndex}
+                  onCityClick={(index: number) => setActiveCityIndex(index)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -90,22 +90,22 @@ describe("DashboardPage", () => {
     await waitFor(() => expect(screen.getByText("Start planning")).toBeInTheDocument());
   });
 
-  it("shows the empty state (not fake trips) when the API returns non-200", async () => {
+  it("shows an error state (not fake trips) when the API returns non-200", async () => {
     global.fetch = makeFetchError();
     render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
-    await waitFor(() => expect(screen.getByText("No trips yet")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Couldn't load your trips")).toBeInTheDocument());
   });
 
-  it("shows the empty state (not fake trips) when the API call throws", async () => {
+  it("shows an error state (not fake trips) when the API call throws", async () => {
     global.fetch = makeFetchThrow();
     render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
-    await waitFor(() => expect(screen.getByText("No trips yet")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Couldn't load your trips")).toBeInTheDocument());
   });
 
   it("does NOT display any trip region names when the API fails", async () => {
     global.fetch = makeFetchError();
     render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
-    await waitFor(() => screen.getByText("No trips yet"));
+    await waitFor(() => screen.getByText("Couldn't load your trips"));
     // No trip card with a region should be in the document
     expect(screen.queryByText("Japan")).not.toBeInTheDocument();
     expect(screen.queryByText("Southeast Asia")).not.toBeInTheDocument();

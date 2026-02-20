@@ -65,7 +65,7 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
   }, [activeCityIndex, cities]);
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ height: "100%" }}>
+    <div className="rounded-xl overflow-hidden" style={{ height: "100%" }} role="region" aria-label={`Route map showing ${cities.length} ${cities.length === 1 ? "city" : "cities"}: ${cities.map(c => c.city).join(", ")}`}>
       <Map
         ref={mapRef}
         mapStyle={MAP_STYLE}
@@ -109,6 +109,16 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
               }}
             >
               <div
+                role="button"
+                tabIndex={0}
+                aria-label={`${city.city}, ${city.country} — ${city.days} days${isActive ? " (selected)" : ""}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onCityClick(i);
+                    setPopupIndex(i);
+                  }
+                }}
                 style={{
                   width: isActive ? 40 : 32,
                   height: isActive ? 40 : 32,
@@ -147,13 +157,13 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
             offset={24}
           >
             <div style={{ padding: "4px 2px", minWidth: 100 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1a1a" }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "hsl(var(--foreground))" }}>
                 {cities[popupIndex].city}
               </div>
-              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 2 }}>
                 {cities[popupIndex].country}
               </div>
-              <div style={{ fontSize: 11, color: "#888" }}>
+              <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
                 {cities[popupIndex].days} days
               </div>
             </div>

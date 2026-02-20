@@ -82,7 +82,7 @@ export default function OnboardingPage() {
 
             {/* Step 1 — Where are you from? */}
             {step === 1 && (
-              <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: "easeInOut" }}>
+              <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
                 <h1 className="text-2xl font-bold text-foreground">Where are you from?</h1>
                 <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
 
@@ -111,7 +111,7 @@ export default function OnboardingPage() {
 
             {/* Step 2 — Travel preferences */}
             {step === 2 && (
-              <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: "easeInOut" }}>
+              <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
                 <h1 className="text-2xl font-bold text-foreground">Your travel style</h1>
                 <p className="mt-2 text-muted-foreground text-sm">Help us personalise every trip we plan for you.</p>
 

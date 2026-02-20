@@ -12,6 +12,7 @@ export function Chip({ label, selected = false, onClick, className = "" }: ChipP
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={`chip ${selected ? "chip-selected" : ""} ${className}`}
     >
       {label}

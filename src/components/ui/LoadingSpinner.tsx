@@ -8,8 +8,10 @@ interface LoadingSpinnerProps {
 export function LoadingSpinner({ size = 40, className = "" }: LoadingSpinnerProps) {
   return (
     <div
-      className={`animate-pulse rounded-full bg-primary/30 ${className}`}
+      className={`animate-spin rounded-full border-2 border-primary/20 border-t-primary ${className}`}
       style={{ width: size, height: size }}
+      role="status"
+      aria-label="Loading"
     />
   );
 }

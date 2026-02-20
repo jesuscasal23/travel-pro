@@ -14,9 +14,9 @@ const variantClass: Record<string, string> = {
   primary: "btn-primary",
   ghost: "btn-ghost",
   danger:
-    "bg-red-600 text-white rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-700",
+    "bg-red-600 dark:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-700 dark:hover:bg-red-800 active:scale-[0.97]",
   "danger-outline":
-    "border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950",
+    "border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950 active:scale-[0.97]",
 };
 
 const sizeClass: Record<string, string> = {
@@ -55,7 +55,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={`${base} ${sizeStyles} disabled:opacity-60 ${className}`}
+        className={`${base} ${sizeStyles} disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
         disabled={disabled || loading}
         {...props}
       >

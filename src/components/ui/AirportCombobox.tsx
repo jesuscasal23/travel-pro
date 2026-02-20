@@ -90,7 +90,7 @@ export function AirportCombobox({ value, onChange, className = "", placeholder =
       )}
 
       {open && results.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+        <ul className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden max-h-[min(16rem,50vh)] overflow-y-auto">
           {results.map((a, i) => (
             <li
               key={a.iata}

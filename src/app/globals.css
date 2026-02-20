@@ -69,6 +69,12 @@
   --shadow-hero: var(--shadow-hero);
 
   --font-sans: var(--font-inter);
+
+  --animate-overlay-in: overlay-in 0.15s ease-out both;
+  --animate-overlay-out: overlay-out 0.15s ease-in both;
+  --animate-modal-in: modal-in 0.2s ease-out both;
+  --animate-modal-out: modal-out 0.15s ease-in both;
+  --animate-tab-in: tab-in 0.15s ease-out both;
 }
 
 /* ============================================================
@@ -87,6 +93,9 @@
   .btn-primary:hover {
     opacity: 0.9;
   }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
 
   .btn-ghost {
     @apply bg-transparent text-foreground rounded-lg px-6 py-3 font-medium border border-border transition-all duration-200 inline-flex items-center justify-center;
@@ -94,9 +103,20 @@
   .btn-ghost:hover {
     @apply bg-muted;
   }
+  .btn-ghost:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary:focus-visible {
+    @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
+  }
+
+  .btn-ghost:focus-visible {
+    @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
+  }
 
   .chip {
-    @apply px-4 py-2 rounded-full border border-border text-sm font-medium cursor-pointer transition-all duration-200 select-none;
+    @apply px-4 py-2 rounded-full border border-border text-sm font-medium cursor-pointer transition-all duration-200 select-none active:scale-95;
   }
 
   .chip-selected {
@@ -104,15 +124,111 @@
   }
 
   .badge-success {
-    @apply bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 px-3 py-1 rounded-full text-xs font-medium;
   }
 
   .badge-warning {
-    @apply bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-3 py-1 rounded-full text-xs font-medium;
   }
 
   .badge-info {
-    @apply bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 px-3 py-1 rounded-full text-xs font-medium;
+  }
+}
+
+/* ============================================================
+   Modal Animations (Radix data-state driven)
+   ============================================================ */
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes modal-out {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to   { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+@keyframes tab-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Toast Animations
+   ============================================================ */
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(10px) scale(0.95); }
+}
+
+.toast-enter {
+  animation: toast-in 0.2s ease-out both;
+}
+
+.toast-exit {
+  animation: toast-out 0.2s ease-in both;
+}
+
+/* ============================================================
+   Utility: Hide scrollbar (for horizontal tab bars)
+   ============================================================ */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   MapLibre popup dark mode
+   ============================================================ */
+
+.dark .maplibregl-popup-content {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.dark .maplibregl-popup-tip {
+  border-top-color: hsl(var(--card));
+}
+
+/* ============================================================
+   Accessibility: smooth scroll + reduced motion
+   ============================================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

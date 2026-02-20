@@ -8,6 +8,10 @@ interface RouteMapFallbackProps {
   onCityClick: (index: number) => void;
 }
 
+// Use CSS variable so SVG colors adapt to dark mode
+const PRIMARY = "hsl(var(--primary))";
+const PRIMARY_FG = "hsl(var(--primary-foreground))";
+
 export default function RouteMapFallback({
   cities,
   activeCityIndex,
@@ -38,7 +42,7 @@ export default function RouteMapFallback({
   const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <div className="rounded-xl overflow-hidden bg-sky-50 border border-border" style={{ height: "360px" }}>
+    <div className="rounded-xl overflow-hidden bg-sky-50 dark:bg-sky-950 border border-border" style={{ height: "360px" }}>
       <div className="h-full flex flex-col items-center justify-center p-4">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -49,7 +53,7 @@ export default function RouteMapFallback({
           <polyline
             points={polylinePoints}
             fill="none"
-            stroke="#0D7377"
+            style={{ stroke: PRIMARY }}
             strokeWidth="1.5"
             strokeDasharray="5,4"
             strokeOpacity="0.6"
@@ -73,7 +77,7 @@ export default function RouteMapFallback({
                     cy={p.y}
                     r={16}
                     fill="none"
-                    stroke="#0D7377"
+                    style={{ stroke: PRIMARY }}
                     strokeWidth="2"
                     strokeOpacity="0.4"
                   />
@@ -83,7 +87,7 @@ export default function RouteMapFallback({
                   cx={p.x}
                   cy={p.y}
                   r={isActive ? 13 : 11}
-                  fill="#0D7377"
+                  style={{ fill: PRIMARY }}
                   className="transition-all duration-200"
                 />
                 {/* Number */}
@@ -92,7 +96,7 @@ export default function RouteMapFallback({
                   y={p.y + 1}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="white"
+                  style={{ fill: PRIMARY_FG }}
                   fontSize="8"
                   fontWeight="700"
                   fontFamily="system-ui, sans-serif"
@@ -104,7 +108,7 @@ export default function RouteMapFallback({
                   x={p.x}
                   y={p.y + 20}
                   textAnchor="middle"
-                  fill="#0D7377"
+                  style={{ fill: PRIMARY }}
                   fontSize="7.5"
                   fontWeight="600"
                   fontFamily="system-ui, sans-serif"

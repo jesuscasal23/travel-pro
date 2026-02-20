@@ -12,14 +12,12 @@ import { Badge, Button, FormField, SelectionCard } from "@/components/ui";
 import { Navbar } from "@/components/Navbar";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { inputClass } from "@/components/auth/auth-styles";
-import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { useAuthStatus, usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey, useCreateTrip } from "@/hooks/api";
 import { slideVariants } from "@/lib/animations";
 import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { ChipGroup } from "@/components/ui/Chip";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
-import { usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey } from "@/hooks/api/useRouteSelection";
-import { useCreateTrip } from "@/hooks/api/useTripMutations";
 import type { CityStop, Itinerary } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSchema } from "@/lib/validation/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
@@ -477,7 +475,7 @@ export default function PlanPage() {
 
         <div className="overflow-x-clip overflow-y-visible relative -mx-1 px-1">
           <AnimatePresence mode="wait" custom={direction}>
-            <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25, ease: "easeInOut" }}>
+            <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
 
               {/* Guest Step 1 — Where are you from? */}
               {showProfile && (
@@ -563,7 +561,7 @@ export default function PlanPage() {
                           </div>
                         </SelectionCard>
                       ))}
-                      {errors.region && <p className="text-sm text-red-500">{errors.region}</p>}
+                      {errors.region && <p className="text-sm text-red-500 dark:text-red-400">{errors.region}</p>}
                     </div>
                   )}
 
@@ -584,10 +582,10 @@ export default function PlanPage() {
                       </div>
                     )}
                     <label className="flex items-center gap-3 cursor-pointer select-none">
-                      <div role="switch" aria-checked={flexibleDates} onClick={() => setFlexibleDates(!flexibleDates)}
+                      <button type="button" role="switch" aria-checked={flexibleDates} onClick={() => setFlexibleDates(!flexibleDates)}
                         className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${flexibleDates ? "bg-primary" : "bg-border"}`}>
-                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${flexibleDates ? "translate-x-5" : "translate-x-0"}`} />
-                      </div>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-background shadow transition-transform duration-200 ${flexibleDates ? "translate-x-5" : "translate-x-0"}`} />
+                      </button>
                       <span className="text-sm text-foreground">My dates are flexible (±3 days)</span>
                     </label>
                   </div>

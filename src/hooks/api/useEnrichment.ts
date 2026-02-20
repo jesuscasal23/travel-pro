@@ -31,7 +31,7 @@ async function fetchVisa(nationality: string, route: CityStop[]): Promise<VisaIn
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nationality, route: buildRoutePayload(route) }),
   });
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error("Failed to load visa data");
   const { visaData } = await res.json();
   return visaData ?? [];
 }
@@ -42,6 +42,7 @@ export function useVisaEnrichment(nationality: string, route: CityStop[], enable
     queryFn: () => fetchVisa(nationality, route),
     enabled: enabled && !!nationality && route.length > 0,
     staleTime: 10 * 60 * 1000, // 10 minutes — visa data is static
+    retry: 1,
   });
 }
 
@@ -52,7 +53,7 @@ async function fetchWeather(route: CityStop[], dateStart: string): Promise<CityW
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ route: buildRoutePayload(route), dateStart }),
   });
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error("Failed to load weather data");
   const { weatherData } = await res.json();
   return weatherData ?? [];
 }
@@ -63,5 +64,6 @@ export function useWeatherEnrichment(route: CityStop[], dateStart: string, enabl
     queryFn: () => fetchWeather(route, dateStart),
     enabled: enabled && route.length > 0 && !!dateStart,
     staleTime: 10 * 60 * 1000,
+    retry: 1,
   });
 }

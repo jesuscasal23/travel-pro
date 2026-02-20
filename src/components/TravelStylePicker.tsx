@@ -19,6 +19,7 @@ export function TravelStylePicker({ value, onChange, compact }: TravelStylePicke
             key={style.id}
             type="button"
             onClick={() => onChange(style.id)}
+            aria-pressed={value === style.id}
             className={`flex-1 py-3 rounded-xl border-2 text-center transition-all ${
               value === style.id
                 ? "border-primary bg-primary/5"
@@ -40,6 +41,7 @@ export function TravelStylePicker({ value, onChange, compact }: TravelStylePicke
           key={style.id}
           type="button"
           onClick={() => onChange(style.id)}
+          aria-pressed={value === style.id}
           className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
             value === style.id
               ? "border-primary bg-primary/5"

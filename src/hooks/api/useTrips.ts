@@ -4,7 +4,7 @@ import type { TripSummary } from "@/types";
 
 async function fetchTrips(): Promise<TripSummary[]> {
   const res = await fetch("/api/v1/trips");
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error("Failed to load trips");
   const data = await res.json();
   return data.trips ?? [];
 }

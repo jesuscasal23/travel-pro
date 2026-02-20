@@ -3,7 +3,7 @@
 import { use, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GripVertical, Minus, Plus, X, Save } from "lucide-react";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
@@ -21,7 +21,7 @@ import { useTripStore } from "@/stores/useTripStore";
 import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
-import { useSaveTripEdit } from "@/hooks/api/useTripMutations";
+import { useSaveTripEdit } from "@/hooks/api";
 import type { CityStop } from "@/types";
 
 type Params = Promise<{ id: string }>;
@@ -46,7 +46,7 @@ function SortableCityCard({
     <div ref={setNodeRef} style={style} className={isDragging ? "opacity-50" : ""}>
       <div className="card-travel bg-background flex items-center gap-4 group">
         {/* Drag handle */}
-        <div {...attributes} {...listeners} style={{ cursor: "grab" }} className="shrink-0">
+        <div {...attributes} {...listeners} style={{ cursor: "grab" }} className="shrink-0 w-10 h-10 flex items-center justify-center touch-none">
           <GripVertical className="w-5 h-5 text-muted-foreground/50" />
         </div>
 
@@ -63,33 +63,36 @@ function SortableCityCard({
             </div>
           </button>
 
-          {expandedCity === city.city && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="mt-4 pt-4 border-t border-border">
-                <FormField label="Number of days">
-                  <div className="flex items-center gap-3">
-                    <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(city.id, -1)}>
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="text-xl font-bold text-primary w-8 text-center">{city.days}</span>
-                    <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(city.id, +1)}>
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </FormField>
-              </div>
-            </motion.div>
-          )}
+          <AnimatePresence initial={false}>
+            {expandedCity === city.city && (
+              <motion.div
+                key="expanded"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 pt-4 border-t border-border">
+                  <FormField label="Number of days">
+                    <div className="flex items-center gap-3">
+                      <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(city.id, -1)}>
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      <span className="text-xl font-bold text-primary w-8 text-center">{city.days}</span>
+                      <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(city.id, +1)}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </FormField>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <button onClick={() => removeCity(city.id)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-accent opacity-0 group-hover:opacity-100 hover:bg-accent/10 transition-all shrink-0"
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-accent sm:opacity-0 sm:group-hover:opacity-100 hover:bg-accent/10 transition-all shrink-0"
           aria-label={`Remove ${city.city}`}>
           <X className="w-4 h-4" />
         </button>

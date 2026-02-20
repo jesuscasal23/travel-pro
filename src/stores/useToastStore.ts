@@ -5,22 +5,40 @@ export interface Toast {
   title: string;
   description?: string;
   variant?: "default" | "error";
+  exiting?: boolean;
 }
 
 interface ToastState {
   toasts: Toast[];
-  toast: (incoming: Omit<Toast, "id">) => void;
+  toast: (incoming: Omit<Toast, "id" | "exiting">) => void;
   dismiss: (id: string) => void;
 }
 
-export const useToastStore = create<ToastState>((set) => ({
+const EXIT_DURATION = 200;
+
+function removeToast(id: string) {
+  useToastStore.setState((state) => ({
+    toasts: state.toasts.filter((t) => t.id !== id),
+  }));
+}
+
+function startExit(id: string) {
+  useToastStore.setState((state) => ({
+    toasts: state.toasts.map((t) =>
+      t.id === id ? { ...t, exiting: true } : t,
+    ),
+  }));
+  setTimeout(() => removeToast(id), EXIT_DURATION);
+}
+
+export const useToastStore = create<ToastState>(() => ({
   toasts: [],
   toast: (incoming) => {
     const id = crypto.randomUUID();
-    set((state) => ({ toasts: [...state.toasts, { ...incoming, id }] }));
-    setTimeout(() => {
-      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-    }, 4000);
+    useToastStore.setState((state) => ({
+      toasts: [...state.toasts, { ...incoming, id }],
+    }));
+    setTimeout(() => startExit(id), 4000);
   },
-  dismiss: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+  dismiss: (id) => startExit(id),
 }));

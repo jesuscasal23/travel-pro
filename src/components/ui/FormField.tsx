@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 
 const labelClass = "block text-sm font-medium text-foreground mb-2";
-const errorClass = "mt-1 text-sm text-red-500";
+const errorClass = "mt-1 text-sm text-red-500 dark:text-red-400";
 
 interface FormFieldProps {
   label: string;

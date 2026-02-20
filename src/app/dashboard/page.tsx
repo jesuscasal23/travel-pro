@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Compass, MapPin, Plane, Plus } from "lucide-react";
+import { AlertTriangle, Compass, MapPin, Plane, Plus, RefreshCw } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { EmptyState, SkeletonCard } from "@/components/ui";
+import { Button, EmptyState, SkeletonCard } from "@/components/ui";
 import { useTripStore } from "@/stores/useTripStore";
 import { statusBadge, statusLabel } from "@/lib/utils/status-helpers";
-import { useTrips } from "@/hooks/api/useTrips";
+import { useTrips } from "@/hooks/api";
 
 const gradients = [
   "from-primary/80 to-primary/40",
@@ -19,8 +19,8 @@ const gradients = [
 export default function DashboardPage() {
   const displayName = useTripStore((s) => s.displayName) || "Explorer";
 
-  const { data: trips = [], isLoading: loading } = useTrips();
-  const isEmpty = !loading && trips.length === 0;
+  const { data: trips = [], isLoading: loading, error, refetch } = useTrips();
+  const isEmpty = !loading && !error && trips.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,9 +63,20 @@ export default function DashboardPage() {
 
           {loading && (
             <div className="grid sm:grid-cols-2 gap-6">
-              {[1, 2].map((i) => (
+              {[1, 2, 3].map((i) => (
                 <SkeletonCard key={i} />
               ))}
+            </div>
+          )}
+
+          {error && (
+            <div className="flex flex-col items-center gap-3 py-12 text-center">
+              <AlertTriangle className="w-8 h-8 text-accent" />
+              <p className="text-foreground font-medium">Couldn&apos;t load your trips</p>
+              <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+              <Button size="sm" variant="ghost" onClick={() => refetch()} className="gap-1.5 mt-1">
+                <RefreshCw className="w-3.5 h-3.5" /> Retry
+              </Button>
             </div>
           )}
 

@@ -2,12 +2,16 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Shield, Thermometer, Backpack, Check, Loader2 } from "lucide-react";
+import { AlertTriangle, ExternalLink, Shield, Thermometer, Backpack, Check, Loader2 } from "lucide-react";
 import { generatePackingList } from "@/lib/utils/generate-packing-list";
 import type { Itinerary } from "@/types";
 
 interface EssentialsTabProps {
   itinerary: Itinerary;
+  visaLoading?: boolean;
+  weatherLoading?: boolean;
+  visaError?: boolean;
+  weatherError?: boolean;
 }
 
 function SectionSkeleton({ lines = 3 }: { lines?: number }) {
@@ -32,7 +36,24 @@ function LoadingLabel() {
   );
 }
 
-export function EssentialsTab({ itinerary }: EssentialsTabProps) {
+function ErrorLabel() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-accent">
+      <AlertTriangle className="w-3 h-3" /> Unavailable
+    </span>
+  );
+}
+
+function ErrorCard({ message }: { message: string }) {
+  return (
+    <div className="flex items-center gap-3 p-4 bg-accent/5 border border-accent/20 rounded-xl text-sm text-foreground">
+      <AlertTriangle className="w-4 h-4 text-accent shrink-0" />
+      {message}
+    </div>
+  );
+}
+
+export function EssentialsTab({ itinerary, visaLoading, weatherLoading, visaError, weatherError }: EssentialsTabProps) {
   const { route, days, visaData, weatherData } = itinerary;
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
 
@@ -82,13 +103,16 @@ export function EssentialsTab({ itinerary }: EssentialsTabProps) {
         <div className="flex items-center gap-2 mb-1">
           <Shield className="w-5 h-5 text-foreground" />
           <h2 className="text-xl font-bold text-foreground">Visas</h2>
-          {!hasVisa && <LoadingLabel />}
+          {!hasVisa && !visaError && visaLoading && <LoadingLabel />}
+          {!hasVisa && visaError && <ErrorLabel />}
         </div>
         <p className="text-sm text-muted-foreground mb-4">
           Always verify with official embassy sites before travel.
         </p>
 
-        {hasVisa ? (
+        {visaError && !hasVisa ? (
+          <ErrorCard message="Visa information couldn't be loaded. Check your nationality in your profile and try refreshing." />
+        ) : hasVisa ? (
           <div className="space-y-3">
             {visaData.map((visa) => (
               <div
@@ -135,10 +159,13 @@ export function EssentialsTab({ itinerary }: EssentialsTabProps) {
         <div className="flex items-center gap-2 mb-4">
           <Thermometer className="w-5 h-5 text-foreground" />
           <h2 className="text-xl font-bold text-foreground">Weather & Seasonality</h2>
-          {!hasWeather && <LoadingLabel />}
+          {!hasWeather && !weatherError && weatherLoading && <LoadingLabel />}
+          {!hasWeather && weatherError && <ErrorLabel />}
         </div>
 
-        {hasWeather ? (
+        {weatherError && !hasWeather ? (
+          <ErrorCard message="Weather data couldn't be loaded. Try refreshing the page." />
+        ) : hasWeather ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {countryWeather.map((cw) => (
               <div key={cw.country} className="bg-background border border-border rounded-xl p-4">
