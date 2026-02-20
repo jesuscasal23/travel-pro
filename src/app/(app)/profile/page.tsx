@@ -12,11 +12,16 @@ import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
 import { inputClass } from "@/components/auth/auth-styles";
 import { useSaveProfile, useExportData, useDeleteAccount } from "@/hooks/api/useProfile";
+import { validate, profileSaveSchema } from "@/lib/validation/schemas";
+import { useToastStore } from "@/stores/useToastStore";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const clearError = (field: string) => setErrors(prev => { const { [field]: _, ...rest } = prev; return rest; });
+  const toast = useToastStore((s) => s.toast);
 
   const saveMutation = useSaveProfile();
   const exportMutation = useExportData();
@@ -36,6 +41,9 @@ export default function ProfilePage() {
   } = useTripStore();
 
   const handleSave = () => {
+    const fieldErrors = validate(profileSaveSchema, { nationality, homeAirport, travelStyle, interests });
+    if (fieldErrors) { setErrors(fieldErrors); return; }
+    setErrors({});
     saveMutation.mutate(
       { nationality, homeAirport, travelStyle, interests },
       {
@@ -43,14 +51,14 @@ export default function ProfilePage() {
           setSaved(true);
           setTimeout(() => setSaved(false), 2000);
         },
-        onError: () => alert("Failed to save profile. Please try again."),
+        onError: () => toast({ title: "Save failed", description: "Failed to save profile. Please try again.", variant: "error" }),
       },
     );
   };
 
   const handleExportData = () => {
     exportMutation.mutate(undefined, {
-      onError: () => alert("Failed to export data. Please try again."),
+      onError: () => toast({ title: "Export failed", description: "Failed to export data. Please try again.", variant: "error" }),
     });
   };
 
@@ -61,7 +69,7 @@ export default function ProfilePage() {
         setDeleteOpen(false);
         router.push("/");
       },
-      onError: () => alert("Failed to delete account. Please try again."),
+      onError: () => toast({ title: "Delete failed", description: "Failed to delete account. Please try again.", variant: "error" }),
     });
   };
 
@@ -88,8 +96,8 @@ export default function ProfilePage() {
                   className={inputClass}
                 />
               </FormField>
-              <FormField label="Nationality">
-                <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
+              <FormField label="Nationality" error={errors.nationality}>
+                <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
                   {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
               </FormField>

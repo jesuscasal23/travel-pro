@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./keys";
+import { useTripStore } from "@/stores/useTripStore";
 import type { Itinerary, TripType } from "@/types";
 
 // ── Create Trip ─────────────────────────────────────────────────
@@ -45,8 +46,6 @@ interface SaveEditParams {
 }
 
 export function useSaveTripEdit() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ tripId, ...body }: SaveEditParams) => {
       const res = await fetch(`/api/v1/trips/${tripId}`, {
@@ -57,9 +56,12 @@ export function useSaveTripEdit() {
       if (!res.ok) throw new Error("Save failed");
       return res.json();
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(variables.tripId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() });
+    onMutate: () => {
+      // Snapshot current itinerary for rollback (fires synchronously before async mutation)
+      return { previousItinerary: useTripStore.getState().itinerary };
+    },
+    meta: {
+      errorToast: "Your trip edits couldn't be saved. They may be lost on refresh.",
     },
   });
 }

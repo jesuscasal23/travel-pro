@@ -11,7 +11,7 @@
 // are mocked so tests are deterministic and don't depend on the generated file.
 // ============================================================
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ── Mock data files before any module-under-test is imported ─────────────────
 
@@ -53,6 +53,14 @@ vi.mock("@/data/visa-official-urls", () => ({
   },
 }));
 
+// Mock Redis — return null (no cache) for enrichWeather tests
+vi.mock("@upstash/redis", () => ({
+  Redis: vi.fn().mockImplementation(() => ({
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue("OK"),
+  })),
+}));
+
 vi.mock("@/data/nationality-to-iso2", () => ({
   NATIONALITY_TO_ISO2: {
     // Country name format (from nationalities.ts)
@@ -66,7 +74,7 @@ vi.mock("@/data/nationality-to-iso2", () => ({
   },
 }));
 
-import { enrichVisa } from "@/lib/ai/enrichment";
+import { enrichVisa, enrichWeather } from "@/lib/ai/enrichment";
 import type { CityStop } from "@/types";
 
 // ── Fixture helper ────────────────────────────────────────────────────────────
@@ -314,5 +322,63 @@ describe("enrichVisa — result shape", () => {
   it("country name in result matches the stop's country field", async () => {
     const result = await enrichVisa("Germany", [stop("VN", "Vietnam")]);
     expect(result[0].country).toBe("Vietnam");
+  });
+});
+
+// ── enrichWeather ────────────────────────────────────────────────────────────
+
+describe("enrichWeather", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns weather data for each city in route", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          daily: {
+            time: ["2025-03-01"],
+            temperature_2m_max: [20],
+            temperature_2m_min: [10],
+            precipitation_sum: [2],
+          },
+        }),
+    }) as unknown as typeof fetch;
+
+    const route = [stop("JP", "Japan"), stop("TH", "Thailand")];
+    const result = await enrichWeather(route, "2026-03-15");
+    expect(result).toHaveLength(2);
+    expect(result[0].city).toBe("Test City");
+    expect(result[1].city).toBe("Test City");
+    expect(result[0].temp).toMatch(/\d+°C/);
+  });
+
+  it("returns fallback weather on fetch failure", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error("Network error")) as unknown as typeof fetch;
+
+    const result = await enrichWeather([stop("JP", "Japan")], "2026-03-15");
+    expect(result).toHaveLength(1);
+    expect(result[0].temp).toBe("25°C");
+    expect(result[0].condition).toBe("Warm");
+  });
+
+  it("defaults to October when dateStart is invalid", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          daily: {
+            time: ["2025-10-01"],
+            temperature_2m_max: [28],
+            temperature_2m_min: [22],
+            precipitation_sum: [3],
+          },
+        }),
+    }) as unknown as typeof fetch;
+
+    const result = await enrichWeather([stop("JP", "Japan")], "invalid-date");
+    expect(result).toHaveLength(1);
+    expect(result[0].temp).toMatch(/\d+°C/);
   });
 });

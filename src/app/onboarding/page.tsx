@@ -14,6 +14,7 @@ import { TravelStylePicker } from "@/components/TravelStylePicker";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { inputClass } from "@/components/auth/auth-styles";
 import { slideVariants } from "@/lib/animations";
+import { validate, onboardingStep1Schema } from "@/lib/validation/schemas";
 
 const TOTAL_STEPS = 2;
 
@@ -22,6 +23,8 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const clearError = (field: string) => setErrors(prev => { const { [field]: _, ...rest } = prev; return rest; });
 
   const {
     nationality,
@@ -37,6 +40,11 @@ export default function OnboardingPage() {
   } = useTripStore();
 
   const goNext = () => {
+    if (step === 1) {
+      const fieldErrors = validate(onboardingStep1Schema, { nationality });
+      if (fieldErrors) { setErrors(fieldErrors); return; }
+    }
+    setErrors({});
     if (step < TOTAL_STEPS) {
       setDirection(1);
       setStep((s) => s + 1);
@@ -46,6 +54,7 @@ export default function OnboardingPage() {
   };
 
   const goBack = () => {
+    setErrors({});
     if (step > 1) {
       setDirection(-1);
       setStep((s) => s - 1);
@@ -87,8 +96,9 @@ export default function OnboardingPage() {
                       className={inputClass}
                     />
                   </FormField>
-                  <FormField label="Nationality">
-                    <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
+                  <FormField label="Nationality" error={errors.nationality}>
+                    <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
+                      <option value="">Select nationality</option>
                       {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </FormField>

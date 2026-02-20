@@ -1,29 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useToastStore } from "@/stores/useToastStore";
 
-export interface Toast {
-  id: string;
-  title: string;
-  description?: string;
-}
+export type { Toast } from "@/stores/useToastStore";
 
 export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const toast = useCallback(({ title, description }: Omit<Toast, "id">) => {
-    const id = crypto.randomUUID();
-    setToasts((prev) => [...prev, { id, title, description }]);
-
-    // Auto-dismiss after 3 seconds
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3000);
-  }, []);
-
-  const dismiss = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
+  const toasts = useToastStore((s) => s.toasts);
+  const toast = useToastStore((s) => s.toast);
+  const dismiss = useToastStore((s) => s.dismiss);
   return { toasts, toast, dismiss };
 }

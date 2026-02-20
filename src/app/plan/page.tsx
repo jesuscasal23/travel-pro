@@ -21,6 +21,7 @@ import { TravelStylePicker } from "@/components/TravelStylePicker";
 import { usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey } from "@/hooks/api/useRouteSelection";
 import { useCreateTrip } from "@/hooks/api/useTripMutations";
 import type { CityStop, Itinerary } from "@/types";
+import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSchema } from "@/lib/validation/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
 
 const multiCityGenerationSteps = [
@@ -87,6 +88,9 @@ export default function PlanPage() {
   const fetchRoute = useFetchRouteSelection();
   const createTripMutation = useCreateTrip();
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const clearError = (field: string) => setErrors(prev => { const { [field]: _, ...rest } = prev; return rest; });
+
   // Cycle fun facts during generation
   useEffect(() => {
     if (!isGenerating) return;
@@ -144,11 +148,21 @@ export default function PlanPage() {
   };
 
   const goNext = () => {
+    if (showProfile) {
+      const fieldErrors = validate(onboardingStep1Schema, { nationality });
+      if (fieldErrors) { setErrors(fieldErrors); return; }
+    }
+    if (showDestination) {
+      const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, dateStart, dateEnd });
+      if (fieldErrors) { setErrors(fieldErrors); return; }
+    }
+    setErrors({});
     setDirection(1);
     setPlanStep(step + 1);
   };
 
   const goBack = () => {
+    setErrors({});
     setDirection(-1);
     setPlanStep(step - 1);
   };
@@ -189,6 +203,10 @@ export default function PlanPage() {
   }), [budget]);
 
   const handleGenerate = useCallback(async () => {
+    const fieldErrors = validate(detailsStepSchema, { budget, travelers });
+    if (fieldErrors) { setErrors(fieldErrors); return; }
+    setErrors({});
+
     posthog?.capture("questionnaire_completed", {
       tripType, region, destination, duration_days: dayCount, budget_eur: budget, travelers,
     });
@@ -468,8 +486,8 @@ export default function PlanPage() {
                   <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
 
                   <div className="mt-8 space-y-5">
-                    <FormField label="Nationality">
-                      <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
+                    <FormField label="Nationality" error={errors.nationality}>
+                      <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
                         <option value="">Select nationality</option>
                         {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
@@ -526,16 +544,16 @@ export default function PlanPage() {
 
                   {/* Destination input */}
                   {isSingleCity ? (
-                    <FormField label="City" className="mb-6">
+                    <FormField label="City" className="mb-6" error={errors.destination}>
                       <CityCombobox
                         value={destination ? `${destination}, ${destinationCountry}` : ""}
-                        onChange={(entry) => setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng)}
+                        onChange={(entry) => { setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng); clearError("destination"); }}
                       />
                     </FormField>
                   ) : (
                     <div className="space-y-3 mb-6">
                       {regions.map((r) => (
-                        <SelectionCard key={r.id} selected={region === r.id} onClick={() => setRegion(r.id)}>
+                        <SelectionCard key={r.id} selected={region === r.id} onClick={() => { setRegion(r.id); clearError("region"); }}>
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="font-semibold text-foreground">{r.name}</div>
@@ -545,17 +563,18 @@ export default function PlanPage() {
                           </div>
                         </SelectionCard>
                       ))}
+                      {errors.region && <p className="text-sm text-red-500">{errors.region}</p>}
                     </div>
                   )}
 
                   {/* Dates */}
                   <div className="space-y-4">
-                    <FormField label="Start date">
-                      <input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)}
+                    <FormField label="Start date" error={errors.dateStart}>
+                      <input type="date" value={dateStart} onChange={(e) => { setDateStart(e.target.value); clearError("dateStart"); }}
                         className={inputClass} />
                     </FormField>
-                    <FormField label="End date">
-                      <input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} min={dateStart}
+                    <FormField label="End date" error={errors.dateEnd}>
+                      <input type="date" value={dateEnd} onChange={(e) => { setDateEnd(e.target.value); clearError("dateEnd"); }} min={dateStart}
                         className={inputClass} />
                     </FormField>
                     {dayCount > 0 && (

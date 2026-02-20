@@ -225,12 +225,13 @@ export default function EditPage({ params }: { params: Params }) {
       return;
     }
 
+    // Fire mutation first — onMutate captures previous state synchronously
     saveMutation.mutate(
       { tripId: id, editType, editPayload, description, data: updatedData },
-      {
-        onSuccess: () => router.push(`/trip/${id}`),
-      },
     );
+    // Optimistic update + navigate immediately
+    setItinerary(updatedData);
+    router.push(`/trip/${id}`);
   };
 
   return (

@@ -1,10 +1,14 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { CookieConsent } from "./CookieConsent";
+import { useToastStore } from "@/stores/useToastStore";
+import { useTripStore } from "@/stores/useTripStore";
+import { ToastContainer } from "@/components/ui/Toast";
+import type { Itinerary } from "@/types";
 
 // Initialize PostHog on first client render (consent-gated via CookieConsent)
 function initPostHog() {
@@ -34,21 +38,42 @@ function initPostHog() {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000, // 1 minute
-            retry: 1,
-          },
+  const [queryClient] = useState(() => {
+    const mutationCache = new MutationCache({
+      onError: (_error, _variables, context, mutation) => {
+        // Rollback Zustand itinerary if previous snapshot exists
+        const ctx = context as { previousItinerary?: unknown } | undefined;
+        if (ctx?.previousItinerary) {
+          useTripStore.getState().setItinerary(ctx.previousItinerary as Itinerary);
+        }
+        // Show global error toast for mutations that opt-in via meta
+        const meta = mutation.options.meta as { errorToast?: string } | undefined;
+        if (meta?.errorToast) {
+          useToastStore.getState().toast({
+            title: "Something went wrong",
+            description: meta.errorToast,
+            variant: "error",
+          });
+        }
+      },
+    });
+    return new QueryClient({
+      mutationCache,
+      defaultOptions: {
+        queries: {
+          staleTime: 60 * 1000, // 1 minute
+          retry: 1,
         },
-      })
-  );
+      },
+    });
+  });
 
   useEffect(() => {
     initPostHog();
   }, []);
+
+  const toasts = useToastStore((s) => s.toasts);
+  const dismissToast = useToastStore((s) => s.dismiss);
 
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
@@ -58,6 +83,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <QueryClientProvider client={queryClient}>
           {children}
           <CookieConsent />
+          <ToastContainer toasts={toasts} onDismiss={dismissToast} />
         </QueryClientProvider>
       </PostHogProvider>
     );
@@ -67,6 +93,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       {children}
       <CookieConsent />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </QueryClientProvider>
   );
 }

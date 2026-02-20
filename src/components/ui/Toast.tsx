@@ -20,7 +20,11 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="bg-card border border-border rounded-xl shadow-[var(--shadow-card-hover)] px-4 py-3 min-w-[280px] max-w-sm flex items-start gap-3"
+            className={`rounded-xl shadow-[var(--shadow-card-hover)] px-4 py-3 min-w-[280px] max-w-sm flex items-start gap-3 ${
+              t.variant === "error"
+                ? "bg-red-50 border border-red-200 dark:bg-red-950/40 dark:border-red-900/50"
+                : "bg-card border border-border"
+            }`}
           >
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">{t.title}</p>
