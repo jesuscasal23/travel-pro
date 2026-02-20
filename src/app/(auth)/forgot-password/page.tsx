@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { inputClass, errorClass, labelClass } from "@/components/auth/auth-styles";
+import { Button, FormField } from "@/components/ui";
+import { inputClass } from "@/components/auth/auth-styles";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 
 const forgotSchema = z.object({
@@ -56,7 +57,7 @@ export default function ForgotPasswordPage() {
         <Navbar isAuthenticated={false} />
         <div className="max-w-md mx-auto px-4 pt-24 pb-12">
           <div className="card-travel p-8 text-center">
-            <div className="text-4xl mb-4">📧</div>
+            <div className="text-4xl mb-4">&#x1F4E7;</div>
             <h1 className="text-2xl font-bold text-foreground mb-3">
               Check your inbox
             </h1>
@@ -90,8 +91,7 @@ export default function ForgotPasswordPage() {
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label className={labelClass}>Email address</label>
+            <FormField label="Email address" error={errors.email?.message}>
               <input
                 {...register("email")}
                 type="email"
@@ -99,20 +99,13 @@ export default function ForgotPasswordPage() {
                 placeholder="you@example.com"
                 className={inputClass}
               />
-              {errors.email && (
-                <p className={errorClass}>{errors.email.message}</p>
-              )}
-            </div>
+            </FormField>
 
             <ServerErrorAlert error={serverError} />
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary w-full disabled:opacity-60"
-            >
-              {isLoading ? "Sending..." : "Send reset link"}
-            </button>
+            <Button type="submit" loading={isLoading} className="w-full">
+              Send reset link
+            </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

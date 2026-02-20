@@ -1,11 +1,11 @@
 "use client";
 
 import { use, useState } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { Plane, Share2 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
+import { BackLink, Button, Skeleton } from "@/components/ui";
 import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
 import { buildFlightLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
@@ -13,6 +13,7 @@ import { getTripTitle, getUniqueCountries, getBudgetStatus } from "@/lib/utils/t
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
 import { useTripStore } from "@/stores/useTripStore";
+import { useShareTrip } from "@/hooks/api/useTripMutations";
 
 type Params = Promise<{ id: string }>;
 
@@ -32,10 +33,10 @@ function VisaDisclaimer() {
 export default function SummaryPage({ params }: { params: Params }) {
   const { id } = use(params);
   const [copied, setCopied] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
   const posthog = usePostHog();
   const itinerary = useItinerary();
   const travelers = useTripStore((s) => s.travelers);
+  const shareMutation = useShareTrip();
 
   // Early return for null itinerary — all hooks must be called above this line
   if (!itinerary) {
@@ -60,20 +61,15 @@ export default function SummaryPage({ params }: { params: Params }) {
   const lastDate = days[days.length - 1]?.date ?? "";
 
   const handleShareLink = async () => {
-    setIsSharing(true);
     try {
       let shareUrl = `${window.location.origin}/trip/${id}`;
 
       // Guest mode: no DB, just share the current trip URL
       if (id !== "guest") {
-        // Get (or create) the public share token
-        const res = await fetch(`/api/v1/trips/${id}/share`);
-        if (res.ok) {
-          const { shareToken } = await res.json();
-          if (shareToken) {
-            shareUrl = `${window.location.origin}/share/${shareToken}`;
-            posthog?.capture("share_link_created", { trip_id: id });
-          }
+        const data = await shareMutation.mutateAsync(id);
+        if (data.shareToken) {
+          shareUrl = `${window.location.origin}/share/${data.shareToken}`;
+          posthog?.capture("share_link_created", { trip_id: id });
         }
       }
 
@@ -82,7 +78,6 @@ export default function SummaryPage({ params }: { params: Params }) {
     } catch {
       // Fall back gracefully
     } finally {
-      setIsSharing(false);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     }
@@ -102,12 +97,7 @@ export default function SummaryPage({ params }: { params: Params }) {
 
         {/* Top action row */}
         <div className="flex items-center justify-between mb-8">
-          <Link
-            href={`/trip/${id}`}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            &larr; Back to itinerary
-          </Link>
+          <BackLink href={`/trip/${id}`} label="Back to itinerary" />
           <div className="flex gap-3">
             <div onClick={() => posthog?.capture("pdf_export_clicked", { trip_id: id })}>
               <PDFDownloadButton
@@ -121,14 +111,16 @@ export default function SummaryPage({ params }: { params: Params }) {
                 fileName={`TravelPro-${countries.join("-")}.pdf`}
               />
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleShareLink}
-              disabled={isSharing}
-              className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5 disabled:opacity-60"
+              loading={shareMutation.isPending}
+              className="gap-1.5"
             >
               <Share2 className="w-4 h-4" />
-              {isSharing ? "Getting link..." : copied ? "Copied!" : "Share Link"}
-            </button>
+              {copied ? "Copied!" : "Share Link"}
+            </Button>
           </div>
         </div>
 
@@ -299,9 +291,9 @@ export default function SummaryPage({ params }: { params: Params }) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {route.map((r) => (
                 <div key={r.id} className="text-center p-3 bg-secondary rounded-lg animate-pulse">
-                  <div className="w-8 h-8 bg-border rounded-full mx-auto mb-1" />
-                  <div className="w-16 h-3 bg-border rounded mx-auto" />
-                  <div className="w-10 h-4 bg-border rounded mx-auto mt-1" />
+                  <Skeleton className="w-8 h-8 rounded-full mx-auto mb-1" />
+                  <Skeleton className="w-16 h-3 mx-auto" />
+                  <Skeleton className="w-10 h-4 mx-auto mt-1" />
                 </div>
               ))}
             </div>

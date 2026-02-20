@@ -8,6 +8,8 @@
 // - Production: JSON lines for monitoring tools
 // ============================================================
 
+import { getRequestId } from "./request-context";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
@@ -56,9 +58,13 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 function log(level: LogLevel, module: string, message: string, context?: LogContext): void {
   if (!shouldLog(level)) return;
 
+  // Auto-include request correlation ID if available
+  const requestId = getRequestId();
+  const fullContext = requestId ? { requestId, ...context } : context;
+
   const formatted = IS_PRODUCTION
-    ? formatJson(level, module, message, context)
-    : formatDev(level, module, message, context);
+    ? formatJson(level, module, message, fullContext)
+    : formatDev(level, module, message, fullContext);
 
   switch (level) {
     case "error":

@@ -92,6 +92,21 @@ export interface SavedTrip {
   status: "Planning" | "Ready" | "Completed";
 }
 
+/** Trip summary returned by GET /api/v1/trips (dashboard list) */
+export interface TripSummary {
+  id: string;
+  region: string;
+  tripType?: TripType;
+  destination?: string;
+  destinationCountry?: string;
+  dateStart: string;
+  dateEnd: string;
+  budget: number;
+  travelers: number;
+  createdAt: string;
+  itineraries: { id: string; generationStatus: string }[];
+}
+
 
 /** Region option for questionnaire */
 export interface Region {

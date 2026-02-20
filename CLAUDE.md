@@ -61,9 +61,10 @@ src/
 │   ├── Navbar.tsx, Providers.tsx, ThemeToggle.tsx, CookieConsent.tsx
 │   └── TravelStylePicker.tsx, WorldMapSVG.tsx
 ├── lib/
-│   ├── ai/                    # pipeline, enrichment, validator, model-selector
-│   │   └── prompts/           # v1, v2, single-city, route-selector
+│   ├── ai/                    # pipeline, enrichment
+│   │   └── prompts/           # v1, single-city, route-selector
 │   ├── api/                   # helpers (auth guards, apiHandler) + schemas (Zod)
+│   ├── services/              # itinerary-service (versioning), trip-service (intent, share)
 │   ├── db/prisma.ts           # Lazy-init PrismaClient (Proxy pattern)
 │   ├── supabase/              # client.ts (browser) + server.ts (SSR cookies)
 │   ├── flights/               # amadeus.ts, optimizer.ts, city-iata-map, types
@@ -135,7 +136,7 @@ TripType     = "single-city" | "multi-city"
 5. **Enrichment** (parallel): `enrichVisa()` (Passport Index static data, 199×227) + `enrichWeather()` (Open-Meteo + Redis 7d cache)
 6. **Persist** to Prisma (best-effort, non-blocking)
 
-Content filtering retry: backoff, max 2 retries. Validator (`validator.ts`) checks completeness, route integrity, budget ceiling.
+Content filtering retry: backoff, max 2 retries.
 
 ## API Routes
 | Route | Methods | Auth | Notes |
@@ -153,13 +154,11 @@ Content filtering retry: backoff, max 2 retries. Validator (`validator.ts`) chec
 | `/api/v1/profile/export` | GET | Auth | GDPR data export (all user data as JSON) |
 | `/api/v1/affiliate/redirect` | GET | Public | Log click + 302 redirect (domain whitelist) |
 
-## Database (8 models in `prisma/schema.prisma`)
+## Database (5 models in `prisma/schema.prisma`)
 - **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], activityLevel?, languagesSpoken[], onboardingCompleted
 - **Trip**: profileId?, tripType, region, destination?, dateStart, dateEnd, budget, travelers, shareToken?
 - **Itinerary**: tripId, data (Json), version, isActive, promptVersion, generationStatus, generationJobId?
 - **ItineraryEdit**: itineraryId, editType, editPayload (Json), description?
-- **Experiment / ExperimentAssignment**: A/B test definitions + user assignments
-- **AnalyticsEvent**: userId?, eventName, properties (Json), sessionId?
 - **AffiliateClick**: tripId?, provider, clickType, city?, destination?, url, ipHash?
 
 Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { tripId } }` — tripId is not unique.

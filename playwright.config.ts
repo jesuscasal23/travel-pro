@@ -34,5 +34,12 @@ export default defineConfig({
     // Re-use a running dev server so tests don't always restart Next.js
     reuseExistingServer: true,
     timeout: 120_000,
+    // Provide dummy Supabase env vars so pages using useAuthStatus() don't crash.
+    // Actual auth calls are intercepted by Playwright route mocks in each test.
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJ0eXBlIjoiYW5vbiJ9",
+    },
   },
 });

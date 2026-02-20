@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { ChipGroup } from "@/components/ui/Chip";
+import { Button, ChipGroup, FormField } from "@/components/ui";
 import { useTripStore } from "@/stores/useTripStore";
 import { interestOptions } from "@/data/sampleData";
 import { nationalities } from "@/data/nationalities";
@@ -78,8 +78,7 @@ export default function OnboardingPage() {
                 <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
 
                 <div className="mt-8 space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Your name</label>
+                  <FormField label="Your name">
                     <input
                       type="text"
                       value={displayName}
@@ -87,17 +86,15 @@ export default function OnboardingPage() {
                       placeholder="First name"
                       className={inputClass}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Nationality</label>
+                  </FormField>
+                  <FormField label="Nationality">
                     <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
                       {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                     </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Home Airport</label>
+                  </FormField>
+                  <FormField label="Home Airport">
                     <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
-                  </div>
+                  </FormField>
                 </div>
               </motion.div>
             )}
@@ -109,18 +106,13 @@ export default function OnboardingPage() {
                 <p className="mt-2 text-muted-foreground text-sm">Help us personalise every trip we plan for you.</p>
 
                 <div className="mt-8 space-y-8">
-                  {/* Travel Style */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-3">Travel Style</label>
+                  <FormField label="Travel Style">
                     <TravelStylePicker value={travelStyle} onChange={setTravelStyle} />
-                  </div>
+                  </FormField>
 
-                  {/* Interests */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-3">Interests</label>
+                  <FormField label="Interests">
                     <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
-                  </div>
-
+                  </FormField>
                 </div>
               </motion.div>
             )}
@@ -140,20 +132,17 @@ export default function OnboardingPage() {
               Back
             </button>
 
-            <button
-              type="button"
+            <Button
               onClick={goNext}
-              disabled={isSaving}
-              className="btn-primary flex items-center gap-2 disabled:opacity-60"
+              loading={isSaving}
+              className="gap-2"
             >
               {step === TOTAL_STEPS ? (
-                isSaving ? "Saving..." : (
-                  <>Start Planning <Check className="w-4 h-4" /></>
-                )
+                <>Start Planning <Check className="w-4 h-4" /></>
               ) : (
                 <>Continue <ArrowRight className="w-4 h-4" /></>
               )}
-            </button>
+            </Button>
           </div>
 
           {step === 1 && (

@@ -7,7 +7,13 @@ import { prisma } from "@/lib/db/prisma";
 import { generateCoreItinerary } from "@/lib/ai/pipeline";
 import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
 import { ProfileInputSchema, CityWithDaysInputSchema } from "@/lib/api/schemas";
-import type { UserProfile, TripIntent } from "@/types";
+import { tripToIntent } from "@/lib/services/trip-service";
+import {
+  createGeneratingRecord,
+  activateGeneratedItinerary,
+  markGenerationFailed,
+} from "@/lib/services/itinerary-service";
+import type { UserProfile } from "@/types";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("api/v1/trips/generate");
@@ -30,31 +36,12 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
   if (!trip) throw new ApiError(404, "Trip not found");
 
   const isSingleCity = trip.tripType === "single-city";
-
-  const intent: TripIntent = {
-    id: trip.id,
-    tripType: (trip.tripType as TripIntent["tripType"]) ?? "multi-city",
-    region: trip.region,
-    destination: trip.destination ?? undefined,
-    destinationCountry: trip.destinationCountry ?? undefined,
-    destinationCountryCode: trip.destinationCountryCode ?? undefined,
-    dateStart: trip.dateStart,
-    dateEnd: trip.dateEnd,
-    flexibleDates: trip.flexibleDates,
-    budget: trip.budget,
-    travelers: trip.travelers,
-  };
+  const intent = tripToIntent(trip);
 
   // Create itinerary record in "generating" state
-  const itineraryRecord = await prisma.itinerary.create({
-    data: {
-      tripId: params.id,
-      data: {},
-      version: 1,
-      isActive: false,
-      promptVersion,
-      generationStatus: "generating",
-    },
+  const { id: itineraryId } = await createGeneratingRecord({
+    tripId: params.id,
+    promptVersion,
   });
 
   // Return SSE stream
@@ -78,36 +65,20 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
         // Run core generation (no enrichment — visa/weather fetched by client in background)
         const itinerary = await generateCoreItinerary(profile as UserProfile, intent, cities);
 
-        // Save core itinerary to DB immediately
-        await prisma.itinerary.update({
-          where: { id: itineraryRecord.id },
-          data: {
-            data: itinerary as object,
-            isActive: true,
-            generationStatus: "complete",
-          },
-        });
-
-        // Deactivate any previous versions
-        await prisma.itinerary.updateMany({
-          where: { tripId: params.id, id: { not: itineraryRecord.id } },
-          data: { isActive: false },
-        });
+        // Save + activate in one atomic transaction
+        await activateGeneratedItinerary(itineraryId, params.id, itinerary);
 
         send({
           stage: "done",
           message: "Your trip is ready!",
           pct: 100,
-          itinerary_id: itineraryRecord.id,
+          itinerary_id: itineraryId,
           trip_id: params.id,
         });
       } catch (err) {
         log.error("SSE generation error", { error: err instanceof Error ? err.message : String(err) });
 
-        await prisma.itinerary.update({
-          where: { id: itineraryRecord.id },
-          data: { generationStatus: "failed" },
-        });
+        await markGenerationFailed(itineraryId);
 
         send({ stage: "error", message: "Generation failed. Please try again.", pct: 0 });
       } finally {

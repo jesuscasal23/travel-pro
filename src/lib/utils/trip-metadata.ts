@@ -1,5 +1,10 @@
 import type { CityStop, Itinerary, TripBudget } from "@/types";
 
+/** Safely cast Prisma JSON `data` field to an Itinerary (avoids scattered double-casts). */
+export function parseItineraryData(data: unknown): Itinerary {
+  return data as unknown as Itinerary;
+}
+
 /** Get unique country names from a route. */
 export function getUniqueCountries(route: CityStop[]): string[] {
   return [...new Set(route.map((r) => r.country))];

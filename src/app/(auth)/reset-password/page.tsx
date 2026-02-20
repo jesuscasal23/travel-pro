@@ -8,7 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { inputClass, errorClass, labelClass } from "@/components/auth/auth-styles";
+import { Button, FormField } from "@/components/ui";
+import { inputClass } from "@/components/auth/auth-styles";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 
 const resetSchema = z
@@ -73,8 +74,7 @@ export default function ResetPasswordPage() {
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label className={labelClass}>New password</label>
+            <FormField label="New password" error={errors.password?.message}>
               <input
                 {...register("password")}
                 type="password"
@@ -82,13 +82,9 @@ export default function ResetPasswordPage() {
                 placeholder="At least 8 characters"
                 className={inputClass}
               />
-              {errors.password && (
-                <p className={errorClass}>{errors.password.message}</p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <label className={labelClass}>Confirm new password</label>
+            <FormField label="Confirm new password" error={errors.confirmPassword?.message}>
               <input
                 {...register("confirmPassword")}
                 type="password"
@@ -96,20 +92,13 @@ export default function ResetPasswordPage() {
                 placeholder="Repeat your password"
                 className={inputClass}
               />
-              {errors.confirmPassword && (
-                <p className={errorClass}>{errors.confirmPassword.message}</p>
-              )}
-            </div>
+            </FormField>
 
             <ServerErrorAlert error={serverError} />
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary w-full disabled:opacity-60"
-            >
-              {isLoading ? "Updating..." : "Update password"}
-            </button>
+            <Button type="submit" loading={isLoading} className="w-full">
+              Update password
+            </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

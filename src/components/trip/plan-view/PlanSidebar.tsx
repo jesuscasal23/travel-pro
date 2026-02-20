@@ -1,7 +1,7 @@
 "use client";
 
 import { Plane, Train, Bus, ChevronRight, Globe, Thermometer } from "lucide-react";
-import { CollapsibleSection } from "./CollapsibleSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import type { Itinerary, ItineraryFlightLeg, CityStop, TripDay } from "@/types";
 
 interface PlanSidebarProps {

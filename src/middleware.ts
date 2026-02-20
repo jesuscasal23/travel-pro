@@ -128,28 +128,47 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Generate a correlation ID for request tracing across logs
+  const requestId = crypto.randomUUID();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
+
+  /** Create a NextResponse.next() with the request ID forwarded to origin. */
+  const next = () => {
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("x-request-id", requestId);
+    return response;
+  };
+
   // Let public routes through without auth check
   if (PUBLIC_PREFIXES.some((p) => pathname === p || (p !== "/" && pathname.startsWith(p)))) {
     // Still apply rate limiting to public API routes
     const rateLimitResponse = await checkRateLimit(request);
-    if (rateLimitResponse) return rateLimitResponse;
-    return NextResponse.next();
+    if (rateLimitResponse) {
+      rateLimitResponse.headers.set("x-request-id", requestId);
+      return rateLimitResponse;
+    }
+    return next();
   }
 
   // Apply rate limiting before auth check for API routes
   if (pathname.startsWith("/api/")) {
     const rateLimitResponse = await checkRateLimit(request);
-    if (rateLimitResponse) return rateLimitResponse;
-    return NextResponse.next();
+    if (rateLimitResponse) {
+      rateLimitResponse.headers.set("x-request-id", requestId);
+      return rateLimitResponse;
+    }
+    return next();
   }
 
   // For protected routes, check Supabase session
   if (isProtected(pathname)) {
     const response = NextResponse.next({
       request: {
-        headers: request.headers,
+        headers: requestHeaders,
       },
     });
+    response.headers.set("x-request-id", requestId);
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -178,13 +197,15 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
+      const redirect = NextResponse.redirect(loginUrl);
+      redirect.headers.set("x-request-id", requestId);
+      return redirect;
     }
 
     return response;
   }
 
-  return NextResponse.next();
+  return next();
 }
 
 export const config = {

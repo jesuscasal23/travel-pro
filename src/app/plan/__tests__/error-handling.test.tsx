@@ -13,7 +13,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
 import { useTripStore } from "@/stores/useTripStore";
-import { mockFramerMotion, mockNextLink, mockNavbar } from "@/__tests__/mocks";
+import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -42,9 +42,13 @@ vi.mock("next/link", () => mockNextLink());
 
 vi.mock("framer-motion", () => mockFramerMotion());
 
-vi.mock("@/components/ui", () => ({
-  Badge: ({ children }: { children?: React.ReactNode }) => React.createElement("span", null, children),
-}));
+vi.mock("@/components/ui", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/components/ui")>();
+  return {
+    ...actual,
+    Badge: ({ children }: { children?: React.ReactNode }) => React.createElement("span", null, children),
+  };
+});
 
 // ── Import subject after mocks ────────────────────────────────────────────────
 
@@ -97,7 +101,7 @@ describe("PlanPage — guest mode API failure", () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
-    render(<PlanPage />);
+    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })
@@ -117,7 +121,7 @@ describe("PlanPage — guest mode API failure", () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
-    render(<PlanPage />);
+    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })
@@ -135,7 +139,7 @@ describe("PlanPage — guest mode API failure", () => {
   it("shows an error message when fetch throws a network error", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
-    render(<PlanPage />);
+    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })
@@ -153,7 +157,7 @@ describe("PlanPage — guest mode API failure", () => {
   it("does NOT navigate when fetch throws", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
-    render(<PlanPage />);
+    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })
@@ -176,7 +180,7 @@ describe("PlanPage — guest mode API failure", () => {
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
       .mockReturnValueOnce(new Promise(() => {}));
 
-    render(<PlanPage />);
+    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })
@@ -203,7 +207,7 @@ describe("PlanPage — guest mode API failure", () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
-    render(<PlanPage />);
+    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my itinerary/i })

@@ -4,7 +4,7 @@ import { use, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, GripVertical, Minus, Plus, X, Save, Loader2 } from "lucide-react";
+import { GripVertical, Minus, Plus, X, Save } from "lucide-react";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -15,10 +15,13 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Navbar } from "@/components/Navbar";
+import { Button, BackLink, FormField } from "@/components/ui";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useTripStore } from "@/stores/useTripStore";
 import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
 import { TripNotFound } from "@/components/trip/TripNotFound";
+import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
+import { useSaveTripEdit } from "@/hooks/api/useTripMutations";
 import type { CityStop } from "@/types";
 
 type Params = Promise<{ id: string }>;
@@ -69,20 +72,17 @@ function SortableCityCard({
               className="overflow-hidden"
             >
               <div className="mt-4 pt-4 border-t border-border">
-                <label className="text-sm font-medium text-foreground mb-3 block">
-                  Number of days
-                </label>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => updateDays(city.id, -1)}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors">
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="text-xl font-bold text-primary w-8 text-center">{city.days}</span>
-                  <button onClick={() => updateDays(city.id, +1)}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
+                <FormField label="Number of days">
+                  <div className="flex items-center gap-3">
+                    <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(city.id, -1)}>
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="text-xl font-bold text-primary w-8 text-center">{city.days}</span>
+                    <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(city.id, +1)}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </FormField>
               </div>
             </motion.div>
           )}
@@ -108,10 +108,10 @@ export default function EditPage({ params }: { params: Params }) {
 
   const setItinerary = useTripStore((s) => s.setItinerary);
 
+  const saveMutation = useSaveTripEdit();
+
   const [cities, setCities] = useState<CityStop[]>(itinerary ? [...itinerary.route] : []);
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   const updateDays = (cityId: string, delta: number) => {
     setCities((prev) =>
@@ -192,9 +192,6 @@ export default function EditPage({ params }: { params: Params }) {
   }
 
   const handleSave = async () => {
-    setIsSaving(true);
-    setSaveError(null);
-
     const { editType, editPayload, description } = detectEditType();
 
     // Recalculate budget proportionally based on day changes
@@ -228,20 +225,12 @@ export default function EditPage({ params }: { params: Params }) {
       return;
     }
 
-    try {
-      const res = await fetch(`/api/v1/trips/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ editType, editPayload, description, data: updatedData }),
-      });
-
-      if (!res.ok) throw new Error("Save failed");
-
-      router.push(`/trip/${id}`);
-    } catch (err) {
-      setSaveError("Failed to save changes. Please try again.");
-      setIsSaving(false);
-    }
+    saveMutation.mutate(
+      { tripId: id, editType, editPayload, description, data: updatedData },
+      {
+        onSuccess: () => router.push(`/trip/${id}`),
+      },
+    );
   };
 
   return (
@@ -252,9 +241,7 @@ export default function EditPage({ params }: { params: Params }) {
       <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href={`/trip/${id}`} className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+            <BackLink href={`/trip/${id}`} label="" />
             <h1 className="text-lg font-bold text-foreground">Edit Trip</h1>
             <span className="bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300 px-2 py-0.5 rounded-full text-xs font-medium">
               Edit Mode
@@ -275,15 +262,13 @@ export default function EditPage({ params }: { params: Params }) {
                   <span className="font-semibold text-foreground">{cities[0].city}, {cities[0].country}</span>
                 </div>
                 <div className="mt-4 flex items-center gap-3">
-                  <button onClick={() => updateDays(cities[0].id, -1)}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+                  <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(cities[0].id, -1)}>
                     <Minus className="w-4 h-4" />
-                  </button>
+                  </Button>
                   <span className="text-xl font-bold text-primary w-8 text-center">{cities[0].days}</span>
-                  <button onClick={() => updateDays(cities[0].id, +1)}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+                  <Button iconOnly size="sm" variant="ghost" onClick={() => updateDays(cities[0].id, +1)}>
                     <Plus className="w-4 h-4" />
-                  </button>
+                  </Button>
                   <span className="text-sm text-muted-foreground ml-2">days</span>
                 </div>
               </div>
@@ -323,18 +308,14 @@ export default function EditPage({ params }: { params: Params }) {
           <BudgetBreakdown budget={itinerary.budget} valueClassName="text-accent" />
           <div className="pt-3 mt-2 border-t border-border flex justify-between">
             <span className="font-semibold text-foreground">Total</span>
-            <span className="font-bold text-accent">€{itinerary.budget.total.toLocaleString()}</span>
+            <span className="font-bold text-accent">&euro;{itinerary.budget.total.toLocaleString()}</span>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             Accommodation and transport will be recalculated proportionally when you save.
           </p>
         </div>
 
-        {saveError && (
-          <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
-          </div>
-        )}
+        <ServerErrorAlert error={saveMutation.error ? "Failed to save changes. Please try again." : null} />
       </div>
 
       {/* Floating action bar */}
@@ -343,18 +324,10 @@ export default function EditPage({ params }: { params: Params }) {
           <Link href={`/trip/${id}`} className="btn-ghost text-sm py-2 px-4">
             Cancel
           </Link>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5 disabled:opacity-60"
-          >
-            {isSaving ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
-            ) : (
-              <><Save className="w-4 h-4" /> Save Changes</>
-            )}
-          </button>
+          <Button size="sm" loading={saveMutation.isPending} onClick={handleSave} className="gap-1.5">
+            <Save className="w-4 h-4" />
+            {saveMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </div>
 

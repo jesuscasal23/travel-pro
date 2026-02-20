@@ -8,7 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { inputClass, errorClass, labelClass } from "@/components/auth/auth-styles";
+import { Button, FormField } from "@/components/ui";
+import { inputClass } from "@/components/auth/auth-styles";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 
 const signupSchema = z
@@ -80,8 +81,7 @@ function SignupForm() {
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label className={labelClass}>Email address</label>
+            <FormField label="Email address" error={errors.email?.message}>
               <input
                 {...register("email")}
                 type="email"
@@ -89,13 +89,9 @@ function SignupForm() {
                 placeholder="you@example.com"
                 className={inputClass}
               />
-              {errors.email && (
-                <p className={errorClass}>{errors.email.message}</p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <label className={labelClass}>Password</label>
+            <FormField label="Password" error={errors.password?.message}>
               <input
                 {...register("password")}
                 type="password"
@@ -103,13 +99,9 @@ function SignupForm() {
                 placeholder="At least 8 characters"
                 className={inputClass}
               />
-              {errors.password && (
-                <p className={errorClass}>{errors.password.message}</p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <label className={labelClass}>Confirm password</label>
+            <FormField label="Confirm password" error={errors.confirmPassword?.message}>
               <input
                 {...register("confirmPassword")}
                 type="password"
@@ -117,20 +109,13 @@ function SignupForm() {
                 placeholder="Repeat your password"
                 className={inputClass}
               />
-              {errors.confirmPassword && (
-                <p className={errorClass}>{errors.confirmPassword.message}</p>
-              )}
-            </div>
+            </FormField>
 
             <ServerErrorAlert error={serverError} />
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {isLoading ? "Creating account..." : "Create account"}
-            </button>
+            <Button type="submit" loading={isLoading} className="w-full">
+              Create account
+            </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

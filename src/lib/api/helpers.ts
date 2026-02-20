@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db/prisma";
 import { createLogger } from "@/lib/logger";
+import { requestContext } from "@/lib/request-context";
 
 const log = createLogger("api");
 
@@ -86,20 +87,30 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
     req: NextRequest,
     ctx?: { params?: Promise<Record<string, string>> }
   ) => {
-    try {
-      const resolvedParams = ctx?.params ? await ctx.params : {};
-      return await handler(req, resolvedParams);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        const body: Record<string, unknown> = { error: err.message };
-        if (err.details) body.details = err.details;
-        return NextResponse.json(body, { status: err.status });
+    const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
+
+    return requestContext.run({ requestId }, async () => {
+      try {
+        const resolvedParams = ctx?.params ? await ctx.params : {};
+        const response = await handler(req, resolvedParams);
+        response.headers.set("x-request-id", requestId);
+        return response;
+      } catch (err) {
+        if (err instanceof ApiError) {
+          const body: Record<string, unknown> = { error: err.message };
+          if (err.details) body.details = err.details;
+          const response = NextResponse.json(body, { status: err.status });
+          response.headers.set("x-request-id", requestId);
+          return response;
+        }
+        log.error("Unhandled route error", { route: routeName, error: err instanceof Error ? err.stack ?? err.message : String(err) });
+        const response = NextResponse.json(
+          { error: "Internal server error" },
+          { status: 500 }
+        );
+        response.headers.set("x-request-id", requestId);
+        return response;
       }
-      log.error("Unhandled route error", { route: routeName, error: err instanceof Error ? err.stack ?? err.message : String(err) });
-      return NextResponse.json(
-        { error: "Internal server error" },
-        { status: 500 }
-      );
-    }
+    });
   };
 }

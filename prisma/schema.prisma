@@ -109,58 +109,6 @@ model ItineraryEdit {
 }
 
 // ============================================================
-// Experiment — A/B test definitions
-// ============================================================
-
-model Experiment {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  variants  String[]
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  assignments ExperimentAssignment[]
-
-  @@map("experiments")
-}
-
-// ============================================================
-// ExperimentAssignment — which user got which variant
-// ============================================================
-
-model ExperimentAssignment {
-  id           String     @id @default(uuid())
-  experimentId String     @map("experiment_id")
-  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
-
-  userId  String @map("user_id")
-  variant String
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@unique([experimentId, userId])
-  @@map("experiment_assignments")
-}
-
-// ============================================================
-// AnalyticsEvent — server-side event log (non-blockable)
-// ============================================================
-
-model AnalyticsEvent {
-  id        String   @id @default(uuid())
-  userId    String?  @map("user_id")
-  eventName String   @map("event_name")
-  properties Json    @default("{}")
-  sessionId String?  @map("session_id")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
-  @@index([eventName])
-  @@index([createdAt])
-  @@map("analytics_events")
-}
-
-// ============================================================
 // AffiliateClick — affiliate link click tracking
 // ============================================================
 

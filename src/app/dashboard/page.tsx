@@ -1,26 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Compass, MapPin, Plane, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { EmptyState, SkeletonCard } from "@/components/ui";
 import { useTripStore } from "@/stores/useTripStore";
 import { statusBadge, statusLabel } from "@/lib/utils/status-helpers";
-
-interface TripSummary {
-  id: string;
-  region: string;
-  tripType?: "single-city" | "multi-city";
-  destination?: string;
-  destinationCountry?: string;
-  dateStart: string;
-  dateEnd: string;
-  budget: number;
-  travelers: number;
-  createdAt: string;
-  itineraries: { id: string; generationStatus: string }[];
-}
+import { useTrips } from "@/hooks/api/useTrips";
 
 const gradients = [
   "from-primary/80 to-primary/40",
@@ -32,31 +19,8 @@ const gradients = [
 export default function DashboardPage() {
   const displayName = useTripStore((s) => s.displayName) || "Explorer";
 
-  const [trips, setTrips] = useState<TripSummary[] | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadTrips() {
-      try {
-        const res = await fetch("/api/v1/trips");
-        if (res.ok) {
-          const data = await res.json();
-          setTrips(data.trips ?? []);
-        } else {
-          // Fall back to sample data in demo mode
-          setTrips(null);
-        }
-      } catch {
-        setTrips(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadTrips();
-  }, []);
-
-  const displayTrips = trips ?? [];
-  const isEmpty = !loading && displayTrips.length === 0;
+  const { data: trips = [], isLoading: loading } = useTrips();
+  const isEmpty = !loading && trips.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -100,28 +64,28 @@ export default function DashboardPage() {
           {loading && (
             <div className="grid sm:grid-cols-2 gap-6">
               {[1, 2].map((i) => (
-                <div key={i} className="h-48 rounded-xl bg-secondary animate-pulse" />
+                <SkeletonCard key={i} />
               ))}
             </div>
           )}
 
           {isEmpty && (
-            <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl">
-              <div className="text-4xl mb-4">✈️</div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No trips yet</h3>
-              <p className="text-muted-foreground text-sm mb-6">
-                Plan your first AI-crafted trip in minutes.
-              </p>
-              <Link href="/plan" className="btn-primary inline-flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Start planning
-              </Link>
-            </div>
+            <EmptyState
+              icon="✈️"
+              title="No trips yet"
+              description="Plan your first AI-crafted trip in minutes."
+              action={
+                <Link href="/plan" className="btn-primary inline-flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Start planning
+                </Link>
+              }
+            />
           )}
 
           {!loading && !isEmpty && (
             <div className="grid sm:grid-cols-2 gap-6">
-              {displayTrips.map((trip, i) => {
+              {trips.map((trip, i) => {
                 const itinerary = trip.itineraries?.[0];
                 const status = itinerary?.generationStatus ?? "pending";
                 const tripId = trip.id;

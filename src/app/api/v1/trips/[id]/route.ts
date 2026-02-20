@@ -15,6 +15,8 @@ import {
   validateBody,
   ACTIVE_ITINERARY_INCLUDE,
 } from "@/lib/api/helpers";
+import { findActiveItinerary, createItineraryVersion } from "@/lib/services/itinerary-service";
+import type { Itinerary } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +49,7 @@ export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextReque
   const { editType, editPayload, description, data } = validateBody(EditItinerarySchema, body);
 
   // Find the current active itinerary
-  const currentItinerary = await prisma.itinerary.findFirst({
-    where: { tripId: params.id, isActive: true },
-    orderBy: { version: "desc" },
-  });
-
+  const currentItinerary = await findActiveItinerary(params.id);
   if (!currentItinerary) {
     throw new ApiError(404, "No active itinerary found");
   }
@@ -68,22 +66,12 @@ export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextReque
 
   // If new data is provided, create a new version
   if (data) {
-    // Deactivate current version
-    await prisma.itinerary.update({
-      where: { id: currentItinerary.id },
-      data: { isActive: false },
-    });
-
-    // Create new version
-    const newItinerary = await prisma.itinerary.create({
-      data: {
-        tripId: params.id,
-        data: data as object,
-        version: currentItinerary.version + 1,
-        isActive: true,
-        promptVersion: currentItinerary.promptVersion,
-        generationStatus: "complete",
-      },
+    const newItinerary = await createItineraryVersion({
+      tripId: params.id,
+      data: data as Itinerary,
+      promptVersion: currentItinerary.promptVersion,
+      previousItineraryId: currentItinerary.id,
+      previousVersion: currentItinerary.version,
     });
 
     return NextResponse.json({ itinerary: newItinerary });

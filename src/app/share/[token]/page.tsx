@@ -7,7 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import SharedItineraryView from "./SharedItineraryView";
-import type { Itinerary } from "@/types";
+import { parseItineraryData } from "@/lib/utils/trip-metadata";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Trip not found" };
   }
 
-  const itinerary = trip.itineraries[0]?.data as Itinerary | null;
+  const raw = trip.itineraries[0]?.data;
+  const itinerary = raw ? parseItineraryData(raw) : null;
   const cities = itinerary?.route?.map((c) => c.city).join(", ") ?? "Trip";
 
   return {
@@ -45,7 +46,7 @@ export default async function SharePage({ params }: Props) {
     notFound();
   }
 
-  const itinerary = trip.itineraries[0].data as unknown as Itinerary;
+  const itinerary = parseItineraryData(trip.itineraries[0].data);
 
   return (
     <div className="min-h-screen bg-background">

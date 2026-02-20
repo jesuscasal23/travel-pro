@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Sparkles } from "lucide-react";
@@ -8,7 +8,7 @@ import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
 import { regions, interestOptions } from "@/data/sampleData";
 import { nationalities } from "@/data/nationalities";
-import { Badge } from "@/components/ui";
+import { Badge, Button, FormField, SelectionCard } from "@/components/ui";
 import { Navbar } from "@/components/Navbar";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { inputClass } from "@/components/auth/auth-styles";
@@ -18,6 +18,8 @@ import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { ChipGroup } from "@/components/ui/Chip";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
+import { usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey } from "@/hooks/api/useRouteSelection";
+import { useCreateTrip } from "@/hooks/api/useTripMutations";
 import type { CityStop, Itinerary } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 
@@ -81,12 +83,9 @@ export default function PlanPage() {
     setCurrentTripId, setItinerary,
   } = useTripStore();
 
-  // ── Strategy A: Speculative route selection ref ─────────────────────────────
-  const speculativeRef = useRef<{
-    cities: CityWithDays[] | null;
-    promise: Promise<CityWithDays[] | null> | null;
-    key: string;
-  }>({ cities: null, promise: null, key: "" });
+  const prefetchRoute = usePrefetchRouteSelection();
+  const fetchRoute = useFetchRouteSelection();
+  const createTripMutation = useCreateTrip();
 
   // Cycle fun facts during generation
   useEffect(() => {
@@ -109,38 +108,22 @@ export default function PlanPage() {
   const showDestination = isGuest ? step === 3 : step === 1;
   const showDetails = isGuest ? step === 4 : step === 2;
 
-  // ── Strategy A: Fire speculative route selection when user reaches details step
+  // ── Speculative route selection: prefetch when user reaches details step ────
   useEffect(() => {
     if (isSingleCity || !region || !dateStart || !dateEnd) return;
     if (!showDetails) return;
 
-    const profile = { nationality, homeAirport, travelStyle, interests };
-    const tripIntent = {
-      id: "speculative",
-      tripType,
-      region,
-      dateStart, dateEnd, flexibleDates,
-      budget, travelers,
+    const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
+    const params = {
+      profile: { nationality, homeAirport, travelStyle, interests },
+      tripIntent: {
+        id: "speculative",
+        tripType, region,
+        dateStart, dateEnd, flexibleDates,
+        budget, travelers,
+      },
     };
-
-    const key = JSON.stringify({ region, dateStart, dateEnd, travelStyle });
-    if (speculativeRef.current.key === key) return;
-
-    const promise = fetch("/api/generate/select-route", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile, tripIntent }),
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => (data?.cities as CityWithDays[]) ?? null)
-      .catch(() => null);
-
-    speculativeRef.current = { cities: null, promise, key };
-    promise.then((cities) => {
-      if (speculativeRef.current.key === key) {
-        speculativeRef.current.cities = cities;
-      }
-    });
+    prefetchRoute(params, cacheKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showDetails, isSingleCity, region, dateStart, dateEnd, travelStyle]);
 
@@ -213,42 +196,28 @@ export default function PlanPage() {
     setGenerationStep(0);
     setGenerationError(null);
 
-    // ── Get cities (from speculative cache, single-city shortcut, or fresh fetch)
+    // ── Get cities (from React Query cache or fresh fetch)
     let cities: CityWithDays[] | null = null;
     let route: CityStop[] = [];
 
     if (isSingleCity) {
       route = singleCityRoute();
     } else {
-      // Multi-city: try speculative cache first
-      if (speculativeRef.current.cities) {
-        cities = speculativeRef.current.cities;
-      } else if (speculativeRef.current.promise) {
-        cities = await speculativeRef.current.promise;
-      }
+      // Multi-city: fetchQuery uses cache if warm (from prefetch), else fetches fresh
+      const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
+      const params = {
+        profile: { nationality, homeAirport, travelStyle, interests },
+        tripIntent: {
+          id: "speculative",
+          tripType, region,
+          dateStart, dateEnd, flexibleDates, budget, travelers,
+        },
+      };
 
-      // Fallback: fresh fetch only if no speculative attempt was made
-      if (!cities && !speculativeRef.current.key) {
-        try {
-          const routeRes = await fetch("/api/generate/select-route", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              profile: { nationality, homeAirport, travelStyle, interests },
-              tripIntent: {
-                id: "speculative",
-                tripType, region,
-                dateStart, dateEnd, flexibleDates, budget, travelers,
-              },
-            }),
-          });
-          if (routeRes.ok) {
-            const routeData = await routeRes.json();
-            cities = routeData.cities;
-          }
-        } catch {
-          // Route selection failed — proceed without pre-selected cities
-        }
+      try {
+        cities = await fetchRoute(params, cacheKey);
+      } catch {
+        // Route selection failed — proceed without pre-selected cities
       }
 
       if (cities && cities.length > 0) {
@@ -258,33 +227,23 @@ export default function PlanPage() {
 
     // ── Create trip record (works for both auth and anonymous users) ──────────
     try {
-      const tripRes = await fetch("/api/v1/trips", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tripType,
-          region: isSingleCity ? "" : region,
-          ...(isSingleCity ? { destination, destinationCountry, destinationCountryCode } : {}),
-          dateStart, dateEnd, flexibleDates, budget, travelers,
-        }),
+      const { trip } = await createTripMutation.mutateAsync({
+        tripType,
+        region: isSingleCity ? "" : region,
+        ...(isSingleCity ? { destination, destinationCountry, destinationCountryCode } : {}),
+        dateStart, dateEnd, flexibleDates, budget, travelers,
       });
 
-      if (tripRes.ok) {
-        const { trip } = await tripRes.json();
-        setItinerary(buildPartialItinerary(route));
-        setCurrentTripId(trip.id);
-        posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
-        setIsGenerating(false);
-        router.push(`/trip/${trip.id}`);
-        return;
-      }
+      setItinerary(buildPartialItinerary(route));
+      setCurrentTripId(trip.id);
+      posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
+      setIsGenerating(false);
+      router.push(`/trip/${trip.id}`);
     } catch {
       // Trip creation failed
+      setIsGenerating(false);
+      setGenerationError("Something went wrong. Please try again.");
     }
-
-    // If trip creation failed, show error
-    setIsGenerating(false);
-    setGenerationError("Something went wrong. Please try again.");
   }, [
     isSingleCity,
     tripType, region, destination, destinationCountry, destinationCountryCode,
@@ -292,6 +251,7 @@ export default function PlanPage() {
     dayCount, nationality, homeAirport, travelStyle, interests,
     setIsGenerating, setGenerationStep, setCurrentTripId, setItinerary,
     citiesToRoute, singleCityRoute, buildPartialItinerary,
+    fetchRoute, createTripMutation,
     router, posthog,
   ]);
 
@@ -471,16 +431,17 @@ export default function PlanPage() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-8 flex flex-col items-center gap-3"
             >
-              <button onClick={handleGenerate} className="btn-primary flex items-center gap-2">
+              <Button onClick={handleGenerate} className="gap-2">
                 <Sparkles className="w-4 h-4" />
                 Try Again
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => { setGenerationError(null); setIsGenerating(false); }}
-                className="btn-ghost text-sm"
               >
                 Back to questionnaire
-              </button>
+              </Button>
             </motion.div>
           )}
         </div>
@@ -507,17 +468,15 @@ export default function PlanPage() {
                   <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
 
                   <div className="mt-8 space-y-5">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Nationality</label>
+                    <FormField label="Nationality">
                       <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
                         <option value="">Select nationality</option>
                         {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Home Airport</label>
+                    </FormField>
+                    <FormField label="Home Airport">
                       <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
-                    </div>
+                    </FormField>
                   </div>
                 </div>
               )}
@@ -529,14 +488,12 @@ export default function PlanPage() {
                   <p className="mt-2 text-muted-foreground text-sm">Help us personalise every trip we plan for you.</p>
 
                   <div className="mt-8 space-y-8">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-3">Travel Style</label>
+                    <FormField label="Travel Style">
                       <TravelStylePicker value={travelStyle} onChange={setTravelStyle} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-3">Interests</label>
+                    </FormField>
+                    <FormField label="Interests">
                       <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
-                    </div>
+                    </FormField>
                   </div>
                 </div>
               )}
@@ -569,18 +526,16 @@ export default function PlanPage() {
 
                   {/* Destination input */}
                   {isSingleCity ? (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-foreground mb-2">City</label>
+                    <FormField label="City" className="mb-6">
                       <CityCombobox
                         value={destination ? `${destination}, ${destinationCountry}` : ""}
                         onChange={(entry) => setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng)}
                       />
-                    </div>
+                    </FormField>
                   ) : (
                     <div className="space-y-3 mb-6">
                       {regions.map((r) => (
-                        <button key={r.id} onClick={() => setRegion(r.id)}
-                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${region === r.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
+                        <SelectionCard key={r.id} selected={region === r.id} onClick={() => setRegion(r.id)}>
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="font-semibold text-foreground">{r.name}</div>
@@ -588,23 +543,21 @@ export default function PlanPage() {
                             </div>
                             {r.popular && <Badge variant="info">Popular</Badge>}
                           </div>
-                        </button>
+                        </SelectionCard>
                       ))}
                     </div>
                   )}
 
                   {/* Dates */}
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1.5">Start date</label>
+                    <FormField label="Start date">
                       <input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)}
                         className={inputClass} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1.5">End date</label>
+                    </FormField>
+                    <FormField label="End date">
                       <input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} min={dateStart}
                         className={inputClass} />
-                    </div>
+                    </FormField>
                     {dayCount > 0 && (
                       <div className="bg-primary/5 rounded-lg p-3 text-center">
                         <span className="text-primary font-semibold">{dayCount} days</span>
@@ -668,16 +621,14 @@ export default function PlanPage() {
           </button>
 
           {step < totalSteps ? (
-            <button onClick={goNext} disabled={!canAdvance()}
-              className="btn-primary text-sm py-2 px-5 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+            <Button onClick={goNext} disabled={!canAdvance()} size="sm" className="gap-1.5">
               Continue
-            </button>
+            </Button>
           ) : (
-            <button onClick={handleGenerate} disabled={!canAdvance()}
-              className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <Button onClick={handleGenerate} disabled={!canAdvance()} className="gap-2">
               <Sparkles className="w-4 h-4" />
               Generate My Itinerary
-            </button>
+            </Button>
           )}
         </div>
 

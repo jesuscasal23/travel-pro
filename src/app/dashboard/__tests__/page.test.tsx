@@ -13,7 +13,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
 import { useTripStore } from "@/stores/useTripStore";
-import { mockFramerMotion, mockNextLink, mockNavbar } from "@/__tests__/mocks";
+import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ describe("DashboardPage", () => {
 
   it("shows skeleton placeholders while loading", () => {
     global.fetch = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     // Loading skeletons are rendered as animated divs
     const skeletons = document.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBeGreaterThan(0);
@@ -80,31 +80,31 @@ describe("DashboardPage", () => {
 
   it("shows the empty state when the API returns an empty trip list", async () => {
     global.fetch = makeFetchSuccess([]);
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => expect(screen.getByText("No trips yet")).toBeInTheDocument());
   });
 
   it("shows the empty-state call-to-action when no trips exist", async () => {
     global.fetch = makeFetchSuccess([]);
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => expect(screen.getByText("Start planning")).toBeInTheDocument());
   });
 
   it("shows the empty state (not fake trips) when the API returns non-200", async () => {
     global.fetch = makeFetchError();
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => expect(screen.getByText("No trips yet")).toBeInTheDocument());
   });
 
   it("shows the empty state (not fake trips) when the API call throws", async () => {
     global.fetch = makeFetchThrow();
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => expect(screen.getByText("No trips yet")).toBeInTheDocument());
   });
 
   it("does NOT display any trip region names when the API fails", async () => {
     global.fetch = makeFetchError();
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => screen.getByText("No trips yet"));
     // No trip card with a region should be in the document
     expect(screen.queryByText("Japan")).not.toBeInTheDocument();
@@ -115,20 +115,20 @@ describe("DashboardPage", () => {
 
   it("renders a trip card for each trip the API returns", async () => {
     global.fetch = makeFetchSuccess(mockTrips);
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => expect(screen.getByText("Southeast Asia")).toBeInTheDocument());
   });
 
   it("does not show the empty state when trips exist", async () => {
     global.fetch = makeFetchSuccess(mockTrips);
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => screen.getByText("Southeast Asia"));
     expect(screen.queryByText("No trips yet")).not.toBeInTheDocument();
   });
 
   it("shows Ready badge for complete trips", async () => {
     global.fetch = makeFetchSuccess(mockTrips);
-    render(<DashboardPage />);
+    render(<DashboardPage />, { wrapper: createTestQueryWrapper() });
     await waitFor(() => expect(screen.getByText("Ready")).toBeInTheDocument());
   });
 });

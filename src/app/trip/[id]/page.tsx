@@ -1,11 +1,12 @@
 "use client";
 
-import { use, useState, useEffect, useCallback, useRef } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Edit3, LayoutList, Loader2 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useTripStore } from "@/stores/useTripStore";
@@ -13,7 +14,9 @@ import { TripNotFound } from "@/components/trip/TripNotFound";
 import { ItineraryTab } from "@/components/trip/plan-view/ItineraryTab";
 import { EssentialsTab } from "@/components/trip/plan-view/EssentialsTab";
 import { BudgetTab } from "@/components/trip/plan-view/BudgetTab";
-import type { VisaInfo, CityWeather, Itinerary, CityStop } from "@/types";
+import { useTripGeneration } from "@/hooks/api/useTripGeneration";
+import { useVisaEnrichment, useWeatherEnrichment } from "@/hooks/api/useEnrichment";
+import type { CityStop } from "@/types";
 
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
   ssr: false,
@@ -55,9 +58,8 @@ export default function TripPage({ params }: { params: Params }) {
 
   // ── Detect partial itinerary (no days yet — generation needed) ──────────────
   const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && id !== "guest");
-  const bgGenRef = useRef(false);
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const generateMutation = useTripGeneration();
+  const genFiredRef = useRef(false);
 
   // Switch to Map tab automatically when arriving with route but no days
   useEffect(() => {
@@ -69,13 +71,10 @@ export default function TripPage({ params }: { params: Params }) {
 
   // Fire background generation via SSE when we have a partial itinerary
   useEffect(() => {
-    if (!isPartialItinerary || bgGenRef.current) return;
-    bgGenRef.current = true;
-    setGenerationError(null);
+    if (!isPartialItinerary || genFiredRef.current) return;
+    genFiredRef.current = true;
 
     const profile = { nationality, homeAirport, travelStyle, interests };
-
-    // Convert route to cities format for the generate endpoint (if route exists)
     const cities = itinerary!.route.length > 0
       ? itinerary!.route.map((r) => ({
           id: r.id,
@@ -90,129 +89,52 @@ export default function TripPage({ params }: { params: Params }) {
         }))
       : undefined;
 
-    const generate = async () => {
-      try {
-        const genRes = await fetch(`/api/v1/trips/${id}/generate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profile, promptVersion: "v1", ...(cities ? { cities } : {}) }),
-        });
-
-        if (genRes.ok && genRes.body) {
-          const reader = genRes.body.getReader();
-          const decoder = new TextDecoder();
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const text = decoder.decode(value);
-            for (const line of text.split("\n")) {
-              if (!line.startsWith("data: ")) continue;
-              try {
-                const event = JSON.parse(line.slice(6));
-                if (event.stage === "done" && event.trip_id) {
-                  const tripData = await fetch(`/api/v1/trips/${event.trip_id}`).then((r) => r.json());
-                  const fullItinerary = tripData.trip?.itineraries?.[0]?.data as unknown as Itinerary | null;
-                  if (fullItinerary) {
-                    setItinerary(fullItinerary);
-                  }
-                  return;
-                }
-                if (event.stage === "error") {
-                  setGenerationError("Generation failed. Please try again.");
-                  bgGenRef.current = false;
-                  return;
-                }
-              } catch { /* ignore malformed lines */ }
-            }
-          }
-        } else {
-          setGenerationError("Generation failed. Please try again.");
-          bgGenRef.current = false;
-        }
-      } catch {
-        setGenerationError("Something went wrong. Please try again.");
-        bgGenRef.current = false;
-      }
-    };
-
-    generate();
+    generateMutation.mutate(
+      { tripId: id, profile, promptVersion: "v1", cities },
+      {
+        onSuccess: (result) => {
+          if (result) setItinerary(result);
+        },
+        onError: () => {
+          genFiredRef.current = false; // allow retry
+        },
+      },
+    );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPartialItinerary, retryCount]);
+  }, [isPartialItinerary]);
 
-  // Background enrichment — fetch visa + weather after core itinerary renders
-  const enrichItinerary = useCallback(async (
-    currentRoute: typeof route,
-    currentNationality: string,
-    currentDateStart: string,
-  ) => {
-    const routePayload = currentRoute.map((r) => ({
-      city: r.city,
-      country: r.country,
-      countryCode: r.countryCode,
-      lat: r.lat,
-      lng: r.lng,
-    }));
+  // ── Background enrichment via React Query ──────────────────────────────────
+  const shouldEnrich = !!(
+    itinerary &&
+    itinerary.days.length > 0 &&
+    itinerary.route.length > 0 &&
+    !(itinerary.visaData?.length && itinerary.weatherData?.length)
+  );
 
-    const fetchVisa = async (): Promise<VisaInfo[] | undefined> => {
-      if (!currentNationality) return undefined;
-      try {
-        const res = await fetch("/api/v1/enrich/visa", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nationality: currentNationality, route: routePayload }),
-        });
-        if (res.ok) {
-          const { visaData } = await res.json();
-          return visaData;
-        }
-      } catch { /* fail silently */ }
-      return undefined;
-    };
+  const { data: visaData } = useVisaEnrichment(nationality, itinerary?.route ?? [], shouldEnrich);
+  const { data: weatherData } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
 
-    const fetchWeather = async (): Promise<CityWeather[] | undefined> => {
-      if (!currentDateStart) return undefined;
-      try {
-        const res = await fetch("/api/v1/enrich/weather", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ route: routePayload, dateStart: currentDateStart }),
-        });
-        if (res.ok) {
-          const { weatherData } = await res.json();
-          return weatherData;
-        }
-      } catch { /* fail silently */ }
-      return undefined;
-    };
-
-    const [visaData, weatherData] = await Promise.all([fetchVisa(), fetchWeather()]);
-
-    // Merge enrichment data into the existing itinerary in the store
+  // Sync enrichment results back to Zustand store
+  useEffect(() => {
+    if (!visaData && !weatherData) return;
     const current = useTripStore.getState().itinerary;
-    if (current) {
-      setItinerary({
-        ...current,
-        ...(visaData ? { visaData } : {}),
-        ...(weatherData ? { weatherData } : {}),
-      });
-    }
-  }, [setItinerary]);
+    if (!current || current.days.length === 0) return;
+    // Only update if we have new data that isn't already in the store
+    const needsVisa = visaData && !current.visaData?.length;
+    const needsWeather = weatherData && !current.weatherData?.length;
+    if (!needsVisa && !needsWeather) return;
+    setItinerary({
+      ...current,
+      ...(needsVisa ? { visaData } : {}),
+      ...(needsWeather ? { weatherData } : {}),
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visaData, weatherData]);
 
   useEffect(() => {
     posthog?.capture("itinerary_viewed", { trip_id: id, city_count: route.length });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
-  // Trigger background enrichment when itinerary is loaded but missing visa/weather data
-  // Skip if still a partial itinerary (days not generated yet)
-  useEffect(() => {
-    if (!itinerary || itinerary.route.length === 0) return;
-    if (itinerary.days.length === 0) return; // still generating — wait for full itinerary
-    if (itinerary.visaData?.length && itinerary.weatherData?.length) return; // already enriched
-    enrichItinerary(itinerary.route, nationality, dateStart);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itinerary?.route.length, itinerary?.days.length]);
 
   // Early return for null itinerary — all hooks must be called above this line
   if (!itinerary) {
@@ -225,13 +147,45 @@ export default function TripPage({ params }: { params: Params }) {
   const tripTitle = singleCity ? `${route[0].city}, ${route[0].country}` : countries.join(", ");
   const totalDays = days.length;
   const totalDaysFromRoute = route.reduce((sum, r) => sum + r.days, 0);
+
+  const generationError = generateMutation.error
+    ? (generateMutation.error.message === "Generation failed"
+        ? "Generation failed. Please try again."
+        : "Something went wrong. Please try again.")
+    : null;
   const isGenerating = isPartialItinerary && !generationError;
 
   // Retry generation after an error
   const handleRetry = () => {
-    bgGenRef.current = false;
-    setGenerationError(null);
-    setRetryCount((c) => c + 1);
+    genFiredRef.current = false;
+    generateMutation.reset();
+
+    const profile = { nationality, homeAirport, travelStyle, interests };
+    const cities = itinerary.route.length > 0
+      ? itinerary.route.map((r) => ({
+          id: r.id,
+          city: r.city,
+          country: r.country,
+          countryCode: r.countryCode,
+          iataCode: r.iataCode ?? "",
+          lat: r.lat,
+          lng: r.lng,
+          minDays: r.days,
+          maxDays: r.days,
+        }))
+      : undefined;
+
+    generateMutation.mutate(
+      { tripId: id, profile, promptVersion: "v1", cities },
+      {
+        onSuccess: (result) => {
+          if (result) setItinerary(result);
+        },
+        onError: () => {
+          genFiredRef.current = false;
+        },
+      },
+    );
   };
 
   return (
@@ -277,9 +231,9 @@ export default function TripPage({ params }: { params: Params }) {
         <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-accent/10 border-b border-accent/30">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
             <p className="text-sm text-foreground">{generationError}</p>
-            <button onClick={handleRetry} className="shrink-0 btn-primary text-xs py-1.5 px-4">
+            <Button size="xs" onClick={handleRetry} className="shrink-0">
               Try again
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -365,12 +319,11 @@ export default function TripPage({ params }: { params: Params }) {
 
 function ItinerarySkeletonTab({ route, isGenerating }: { route: CityStop[]; isGenerating: boolean }) {
   // Group days by city based on route allocation
-  let dayCounter = 1;
-  const cityGroups = route.map((city) => {
-    const startDay = dayCounter;
-    dayCounter += city.days;
-    return { city: city.city, startDay, endDay: dayCounter - 1, days: city.days };
-  });
+  const cityGroups = route.reduce<{ city: string; startDay: number; endDay: number; days: number }[]>((acc, city) => {
+    const startDay = acc.length > 0 ? acc[acc.length - 1].endDay + 1 : 1;
+    acc.push({ city: city.city, startDay, endDay: startDay + city.days - 1, days: city.days });
+    return acc;
+  }, []);
 
   return (
     <div className="space-y-3">

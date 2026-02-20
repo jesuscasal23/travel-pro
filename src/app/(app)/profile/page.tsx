@@ -2,25 +2,25 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import * as Dialog from "@radix-ui/react-dialog";
 import { Download, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { ChipGroup } from "@/components/ui/Chip";
+import { Button, ChipGroup, FormField, ConfirmDialog } from "@/components/ui";
 import { useTripStore } from "@/stores/useTripStore";
 import { interestOptions } from "@/data/sampleData";
 import { nationalities } from "@/data/nationalities";
 import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
-import { Modal } from "@/components/ui/Modal";
-import { inputClass, labelClass } from "@/components/auth/auth-styles";
-import type { TravelStyle } from "@/types";
+import { inputClass } from "@/components/auth/auth-styles";
+import { useSaveProfile, useExportData, useDeleteAccount } from "@/hooks/api/useProfile";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [isSaving, setIsSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const saveMutation = useSaveProfile();
+  const exportMutation = useExportData();
+  const deleteMutation = useDeleteAccount();
 
   const {
     displayName,
@@ -35,54 +35,34 @@ export default function ProfilePage() {
     toggleInterest,
   } = useTripStore();
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const res = await fetch("/api/v1/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nationality, homeAirport, travelStyle, interests }),
-      });
-      if (!res.ok) throw new Error("Failed to save");
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch {
-      alert("Failed to save profile. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSave = () => {
+    saveMutation.mutate(
+      { nationality, homeAirport, travelStyle, interests },
+      {
+        onSuccess: () => {
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2000);
+        },
+        onError: () => alert("Failed to save profile. Please try again."),
+      },
+    );
   };
 
-  const handleExportData = async () => {
-    try {
-      const res = await fetch("/api/v1/profile/export");
-      if (!res.ok) throw new Error("Export failed");
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "travel-pro-data.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      alert("Failed to export data. Please try again.");
-    }
+  const handleExportData = () => {
+    exportMutation.mutate(undefined, {
+      onError: () => alert("Failed to export data. Please try again."),
+    });
   };
 
-  const handleDeleteAccount = async () => {
-    setIsDeleting(true);
-    try {
-      const res = await fetch("/api/v1/profile", { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
-      localStorage.removeItem("travel-pro-store");
-      setDeleteOpen(false);
-      router.push("/");
-    } catch {
-      alert("Failed to delete account. Please try again.");
-    } finally {
-      setIsDeleting(false);
-    }
+  const handleDeleteAccount = () => {
+    deleteMutation.mutate(undefined, {
+      onSuccess: () => {
+        localStorage.removeItem("travel-pro-store");
+        setDeleteOpen(false);
+        router.push("/");
+      },
+      onError: () => alert("Failed to delete account. Please try again."),
+    });
   };
 
   return (
@@ -100,25 +80,22 @@ export default function ProfilePage() {
           <section className="card-travel p-6">
             <h2 className="text-base font-semibold text-foreground mb-5">Personal</h2>
             <div className="space-y-4">
-              <div>
-                <label className={labelClass}>First name</label>
+              <FormField label="First name">
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className={inputClass}
                 />
-              </div>
-              <div>
-                <label className={labelClass}>Nationality</label>
+              </FormField>
+              <FormField label="Nationality">
                 <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputClass}>
                   {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
-              </div>
-              <div>
-                <label className={labelClass}>Home Airport</label>
+              </FormField>
+              <FormField label="Home Airport">
                 <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
-              </div>
+              </FormField>
             </div>
           </section>
 
@@ -135,65 +112,48 @@ export default function ProfilePage() {
           </section>
 
           {/* Save */}
-          <button
-            type="button"
+          <Button
             onClick={handleSave}
-            disabled={isSaving}
-            className="btn-primary w-full disabled:opacity-60"
+            loading={saveMutation.isPending}
+            className="w-full"
           >
-            {saved ? "Saved!" : isSaving ? "Saving..." : "Save changes"}
-          </button>
+            {saved ? "Saved!" : "Save changes"}
+          </Button>
 
           {/* Data & Account */}
           <section className="card-travel p-6 space-y-4">
             <h2 className="text-base font-semibold text-foreground mb-1">Data & Privacy</h2>
 
-            <button
-              type="button"
-              onClick={handleExportData}
-              className="btn-ghost w-full flex items-center justify-center gap-2"
-            >
+            <Button variant="ghost" onClick={handleExportData} className="w-full gap-2">
               <Download className="w-4 h-4" />
               Download my data (JSON)
-            </button>
+            </Button>
 
-            <Dialog.Root open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <Dialog.Trigger asChild>
-                <button
-                  type="button"
-                  className="w-full py-3 px-4 rounded-lg border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete account
-                </button>
-              </Dialog.Trigger>
-            </Dialog.Root>
+            <Button
+              variant="danger-outline"
+              onClick={() => setDeleteOpen(true)}
+              className="w-full gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete account
+            </Button>
 
-            <Modal open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete account">
-              <p className="text-sm text-muted-foreground mb-4">
-                This will permanently delete:
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-1 mb-6 ml-4">
-                <li>• Your profile and preferences</li>
-                <li>• All trips and itineraries</li>
-                <li>• Your account login</li>
-              </ul>
-              <p className="text-sm font-medium text-foreground mb-6">
-                This action cannot be undone.
-              </p>
-
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setDeleteOpen(false)} className="btn-ghost flex-1">Cancel</button>
-                <button
-                  type="button"
-                  onClick={handleDeleteAccount}
-                  disabled={isDeleting}
-                  className="flex-1 py-3 px-4 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
-                >
-                  {isDeleting ? "Deleting..." : "Yes, delete everything"}
-                </button>
-              </div>
-            </Modal>
+            <ConfirmDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              title="Delete account"
+              description="This will permanently delete:"
+              items={[
+                "Your profile and preferences",
+                "All trips and itineraries",
+                "Your account login",
+              ]}
+              warning="This action cannot be undone."
+              confirmLabel={deleteMutation.isPending ? "Deleting..." : "Yes, delete everything"}
+              confirmVariant="danger"
+              loading={deleteMutation.isPending}
+              onConfirm={handleDeleteAccount}
+            />
           </section>
         </div>
       </div>
