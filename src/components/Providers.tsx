@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { CookieConsent } from "./CookieConsent";
 import { useToastStore } from "@/stores/useToastStore";
@@ -73,11 +74,13 @@ export function Providers({ children }: { children: ReactNode }) {
   const dismissToast = useToastStore((s) => s.dismiss);
 
   const inner = (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <CookieConsent />
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-    </QueryClientProvider>
+    <MotionConfig reducedMotion="user">
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <CookieConsent />
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      </QueryClientProvider>
+    </MotionConfig>
   );
 
   if (phClient) {

@@ -27,6 +27,17 @@
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-hero: 0 8px 32px rgba(13, 115, 119, 0.25);
+
+  /* Activity category colors */
+  --cat-culture: 181 80% 25%;
+  --cat-explore: 210 70% 45%;
+  --cat-food: 38 92% 50%;
+  --cat-art: 280 60% 55%;
+  --cat-nightlife: 330 70% 50%;
+  --cat-nature: 142 70% 35%;
+  --cat-transport: 220 10% 50%;
+  --cat-adventure: 20 85% 55%;
+  --cat-wellness: 175 55% 45%;
 }
 
 .dark {
@@ -69,12 +80,15 @@
   --shadow-hero: var(--shadow-hero);
 
   --font-sans: var(--font-inter);
+  --font-display: var(--font-jakarta);
+  --font-mono: var(--font-grotesk);
 
   --animate-overlay-in: overlay-in 0.15s ease-out both;
   --animate-overlay-out: overlay-out 0.15s ease-in both;
   --animate-modal-in: modal-in 0.2s ease-out both;
   --animate-modal-out: modal-out 0.15s ease-in both;
   --animate-tab-in: tab-in 0.15s ease-out both;
+  --animate-slide-down: slide-down 0.3s ease-out both;
 }
 
 /* ============================================================
@@ -165,6 +179,11 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ============================================================
    Toast Animations
    ============================================================ */
@@ -230,6 +249,25 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================
+   Responsive Font Scaling — fluid between mobile and desktop
+   ============================================================ */
+
+.text-hero {
+  font-size: clamp(1.5rem, 4vw + 0.5rem, 2.5rem);
+  line-height: 1.15;
+}
+
+.text-city-title {
+  font-size: clamp(1.125rem, 2vw + 0.5rem, 1.5rem);
+  line-height: 1.25;
+}
+
+.text-section-heading {
+  font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
+  line-height: 1.4;
 }
 
 /* ============================================================

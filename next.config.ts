@@ -16,7 +16,7 @@ const securityHeaders = [
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
       // Mapbox tiles, CARTO basemap sprites/glyphs, local assets
-      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",
+      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com https://images.unsplash.com https://source.unsplash.com",
       // External API connections
       [
         "connect-src 'self'",
