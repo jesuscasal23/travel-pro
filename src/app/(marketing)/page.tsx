@@ -20,9 +20,9 @@ const features = [
   },
   {
     emoji: "🛂",
-    title: "Visa & Budget Tracking",
+    title: "Visa & Weather Checks",
     description:
-      "Know your visa requirements and estimated costs before you book",
+      "Know your visa requirements and expected weather before you book",
   },
   {
     emoji: "🧳",
@@ -80,7 +80,7 @@ const steps = [
   {
     icon: CalendarDays,
     label: "Plan",
-    description: "Choose dates, budget, and destinations",
+    description: "Choose dates, destinations, and travel style",
   },
   {
     icon: Plane,

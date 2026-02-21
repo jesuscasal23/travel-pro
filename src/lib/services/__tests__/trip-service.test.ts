@@ -48,7 +48,6 @@ describe("tripToIntent", () => {
     dateStart: "2026-04-01",
     dateEnd: "2026-04-22",
     flexibleDates: false,
-    budget: 10000,
     travelers: 2,
   };
 
@@ -64,8 +63,6 @@ describe("tripToIntent", () => {
       destinationCountryCode: undefined,
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
-      flexibleDates: false,
-      budget: 10000,
       travelers: 2,
     });
   });

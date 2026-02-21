@@ -112,15 +112,6 @@ const testItinerary: Itinerary = {
     { day: 3, date: "2026-04-03", city: "Hanoi", activities: [] },
     { day: 4, date: "2026-04-04", city: "Bangkok", activities: [] },
   ],
-  budget: {
-    flights: 1200,
-    accommodation: 1500,
-    activities: 800,
-    food: 600,
-    transport: 400,
-    total: 4500,
-    budget: 10000,
-  },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

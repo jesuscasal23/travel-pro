@@ -36,7 +36,6 @@ export async function GET(req: NextRequest, { params }: Params) {
         region: trip.region,
         dateStart: trip.dateStart,
         dateEnd: trip.dateEnd,
-        budget: trip.budget,
         travelers: trip.travelers,
       },
       itinerary: trip.itineraries[0].data,

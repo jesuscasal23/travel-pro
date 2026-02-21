@@ -131,7 +131,7 @@ describe("TripPage — null itinerary", () => {
     });
   });
 
-  it("does not render trip content (no route, days, or budget)", async () => {
+  it("does not render trip content (no route or days)", async () => {
     await renderWithSuspense(<TripPage params={resolvedParams} />);
     await waitFor(() => screen.getByText("Trip not found."));
     expect(screen.queryByText("visa")).not.toBeInTheDocument();
@@ -160,8 +160,6 @@ describe("SummaryPage — null itinerary", () => {
   it("does not render the PDF export button", async () => {
     await renderWithSuspense(<SummaryPage params={resolvedParams} />);
     await waitFor(() => screen.getByText("Trip not found."));
-    // PDFDownloadButton is mocked to null — confirm no budget/route content
-    expect(screen.queryByText("Budget Breakdown")).not.toBeInTheDocument();
   });
 });
 

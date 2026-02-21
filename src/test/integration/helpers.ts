@@ -14,7 +14,6 @@ export async function createTestTrip(
       region: "southeast-asia",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
-      budget: 10000,
       travelers: 2,
       ...overrides,
     },
@@ -48,7 +47,7 @@ export async function createTestItinerary(
   return prisma.itinerary.create({
     data: {
       tripId,
-      data: { route: [], days: [], budget: {} },
+      data: { route: [], days: [] },
       version: 1,
       isActive: true,
       promptVersion: "v1",

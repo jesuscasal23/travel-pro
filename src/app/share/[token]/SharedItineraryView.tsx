@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { MapPin, Calendar, Users, Wallet } from "lucide-react";
+import { MapPin, Calendar, Users } from "lucide-react";
 import type { Itinerary } from "@/types";
 import type { Trip } from "@prisma/client";
 
@@ -31,10 +31,6 @@ export default function SharedItineraryView({ itinerary, trip }: Props) {
           <span className="flex items-center gap-1">
             <Users className="w-4 h-4" />
             {trip.travelers} traveller{trip.travelers !== 1 ? "s" : ""}
-          </span>
-          <span className="flex items-center gap-1">
-            <Wallet className="w-4 h-4" />
-            €{trip.budget.toLocaleString()} budget
           </span>
         </div>
       </div>

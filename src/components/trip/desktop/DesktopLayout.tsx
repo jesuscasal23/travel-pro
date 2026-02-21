@@ -10,8 +10,7 @@ import { DesktopHero } from "./DesktopHero";
 import { DesktopTabBar } from "./DesktopTabBar";
 import { DesktopJourneyTab } from "./DesktopJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
-import { BudgetTab } from "../plan-view/BudgetTab";
-import { ItinerarySkeletonTab, BudgetSkeletonTab } from "../SkeletonTabs";
+import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import type { DesktopTab, DesktopLayoutProps } from "../types";
 
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
@@ -48,7 +47,7 @@ export function DesktopLayout({
   onGenerateActivities,
 }: DesktopLayoutProps) {
   const [activeTab, setActiveTab] = useState<DesktopTab>("journey");
-  const { route, budget, days } = itinerary;
+  const { route } = itinerary;
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,7 +80,7 @@ export function DesktopLayout({
           <div className="bg-primary/10 border-b border-primary/30">
             <div className="max-w-[960px] mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
               <p className="text-sm text-foreground">
-                Your route has changed. Regenerate to update activities and budget.
+                Your route has changed. Regenerate to update activities.
               </p>
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={onDismissRegeneration} className="text-xs text-muted-foreground hover:text-foreground">
@@ -118,7 +117,6 @@ export function DesktopLayout({
         <DesktopHero
           route={route}
           totalDays={totalDays}
-          budget={budget}
           countries={countries}
           tripId={tripId}
           isPartialItinerary={isPartialItinerary}
@@ -154,15 +152,6 @@ export function DesktopLayout({
               visaError={visaError}
               weatherError={weatherError}
             />
-          </div>
-        )}
-        {activeTab === "spending" && (
-          <div className="max-w-[960px] mx-auto px-4 py-6">
-            {isPartialItinerary ? (
-              <BudgetSkeletonTab />
-            ) : (
-              <BudgetTab budget={budget} route={route} days={days} />
-            )}
           </div>
         )}
         {activeTab === "route" && (

@@ -20,7 +20,6 @@ interface TripRecord {
   dateStart: string;
   dateEnd: string;
   flexibleDates: boolean;
-  budget: number;
   travelers: number;
 }
 
@@ -38,8 +37,6 @@ export function tripToIntent(trip: TripRecord): TripIntent {
     destinationCountryCode: trip.destinationCountryCode ?? undefined,
     dateStart: trip.dateStart,
     dateEnd: trip.dateEnd,
-    flexibleDates: trip.flexibleDates,
-    budget: trip.budget,
     travelers: trip.travelers,
   };
 }

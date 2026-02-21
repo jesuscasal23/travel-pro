@@ -57,7 +57,7 @@ describe("itinerary-service", () => {
 
     const v2 = await createItineraryVersion({
       tripId: trip.id,
-      data: { route: [], days: [], budget: {} } as never,
+      data: { route: [], days: [] } as never,
       promptVersion: "v1",
       previousItineraryId: v1.id,
       previousVersion: 1,
@@ -102,7 +102,7 @@ describe("itinerary-service", () => {
     await activateGeneratedItinerary(
       generating.id,
       trip.id,
-      { route: [], days: [], budget: {} } as never,
+      { route: [], days: [] } as never,
     );
 
     const activated = await prisma.itinerary.findUnique({

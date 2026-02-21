@@ -7,7 +7,6 @@ interface ItineraryReadyEmailProps {
   destination?: string;
   cities?: string[];
   dates?: string;
-  budget?: string;
   itineraryUrl?: string;
 }
 
@@ -16,7 +15,6 @@ export function ItineraryReadyEmail({
   destination = "Your Trip",
   cities = [],
   dates = "",
-  budget = "",
   itineraryUrl = "https://travelpro.app/dashboard",
 }: ItineraryReadyEmailProps) {
   return (
@@ -33,9 +31,7 @@ export function ItineraryReadyEmail({
           <Text style={{ fontSize: "12px", fontWeight: "600", color: "#0D7377", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>Your Route</Text>
           <Text style={{ fontSize: "16px", color: "#111827", fontWeight: "500", margin: "0 0 12px" }}>{cities.join(" → ")}</Text>
           {dates && <><Text style={{ fontSize: "12px", fontWeight: "600", color: "#0D7377", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>Dates</Text>
-          <Text style={{ fontSize: "15px", color: "#374151", margin: "0 0 12px" }}>{dates}</Text></>}
-          {budget && <><Text style={{ fontSize: "12px", fontWeight: "600", color: "#0D7377", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>Budget</Text>
-          <Text style={{ fontSize: "15px", color: "#374151", margin: 0 }}>{budget}</Text></>}
+          <Text style={{ fontSize: "15px", color: "#374151", margin: 0 }}>{dates}</Text></>}
         </Section>
       )}
       <Section style={{ textAlign: "center", margin: "24px 0" }}>

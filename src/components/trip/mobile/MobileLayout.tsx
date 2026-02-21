@@ -8,8 +8,7 @@ import { MobileHero } from "./MobileHero";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileJourneyTab } from "./MobileJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
-import { BudgetTab } from "../plan-view/BudgetTab";
-import { ItinerarySkeletonTab, BudgetSkeletonTab } from "../SkeletonTabs";
+import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import type { MobileTab } from "../types";
 import type { TripLayoutProps } from "../types";
 
@@ -35,7 +34,7 @@ export function MobileLayout({
   onGenerateActivities,
 }: TripLayoutProps) {
   const [activeTab, setActiveTab] = useState<MobileTab>("journey");
-  const { route, budget, days } = itinerary;
+  const { route } = itinerary;
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,7 +43,6 @@ export function MobileLayout({
         <MobileHero
           route={route}
           totalDays={totalDays}
-          budget={budget}
           countries={countries}
         />
       )}
@@ -127,15 +125,6 @@ export function MobileLayout({
               visaError={visaError}
               weatherError={weatherError}
             />
-          </div>
-        )}
-        {activeTab === "money" && (
-          <div className="px-4 py-4 pb-20">
-            {isPartialItinerary ? (
-              <BudgetSkeletonTab />
-            ) : (
-              <BudgetTab budget={budget} route={route} days={days} />
-            )}
           </div>
         )}
       </div>

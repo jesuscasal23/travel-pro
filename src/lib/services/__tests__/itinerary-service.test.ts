@@ -82,7 +82,7 @@ describe("createItineraryVersion", () => {
 
     const result = await createItineraryVersion({
       tripId: "trip-1",
-      data: { route: [], days: [], budget: {} } as never,
+      data: { route: [], days: [] } as never,
       promptVersion: "v1",
       previousItineraryId: "itin-1",
       previousVersion: 2,
@@ -97,7 +97,7 @@ describe("createItineraryVersion", () => {
 
     await createItineraryVersion({
       tripId: "trip-1",
-      data: { route: [], days: [], budget: {} } as never,
+      data: { route: [], days: [] } as never,
       promptVersion: "v1",
       previousItineraryId: "itin-old",
       previousVersion: 3,
@@ -155,7 +155,7 @@ describe("activateGeneratedItinerary", () => {
     await activateGeneratedItinerary(
       "itin-1",
       "trip-1",
-      { route: [], days: [], budget: {} } as never,
+      { route: [], days: [] } as never,
     );
 
     expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
@@ -179,7 +179,7 @@ describe("activateGeneratedItinerary", () => {
     mockPrisma.$transaction.mockResolvedValue([{}, {}]);
 
     await expect(
-      activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [], budget: {} } as never),
+      activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [] } as never),
     ).resolves.toBeUndefined();
   });
 });

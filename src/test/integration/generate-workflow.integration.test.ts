@@ -73,15 +73,6 @@ const MOCK_SINGLE_CITY_ITINERARY = {
       ],
     },
   ],
-  budget: {
-    flights: 800,
-    accommodation: 1500,
-    activities: 400,
-    food: 600,
-    transport: 200,
-    total: 3500,
-    budget: 5000,
-  },
 };
 
 const MOCK_MULTI_CITY_ITINERARY = {
@@ -140,15 +131,6 @@ const MOCK_MULTI_CITY_ITINERARY = {
       ],
     },
   ],
-  budget: {
-    flights: 1200,
-    accommodation: 2000,
-    activities: 800,
-    food: 1000,
-    transport: 500,
-    total: 5500,
-    budget: 10000,
-  },
 };
 
 // Mock the Anthropic SDK — intercepts all Claude API calls
@@ -222,7 +204,6 @@ describe("POST /api/v1/trips/[id]/generate — single-city", () => {
       destinationCountryCode: "JP",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-05",
-      budget: 5000,
       travelers: 1,
     });
 
@@ -282,7 +263,6 @@ describe("POST /api/v1/trips/[id]/generate — single-city", () => {
     const data = itinerary!.data as unknown as Record<string, unknown>;
     expect(data).toHaveProperty("route");
     expect(data).toHaveProperty("days");
-    expect(data).toHaveProperty("budget");
   });
 });
 
@@ -294,7 +274,6 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
       region: "east-asia",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-10",
-      budget: 10000,
       travelers: 2,
     });
 
@@ -375,7 +354,7 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
     const existingItinerary = await prisma.itinerary.create({
       data: {
         tripId: trip.id,
-        data: { route: [], days: [], budget: {} },
+        data: { route: [], days: [] },
         version: 1,
         isActive: true,
         promptVersion: "v1",

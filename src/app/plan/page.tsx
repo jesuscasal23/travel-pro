@@ -49,8 +49,6 @@ export default function PlanPage() {
     setDestination, clearDestination,
     dateStart, setDateStart,
     dateEnd, setDateEnd,
-    flexibleDates, setFlexibleDates,
-    budget, setBudget,
     travelers, setTravelers,
     isGenerating, setIsGenerating,
     setCurrentTripId, setItinerary,
@@ -96,8 +94,8 @@ export default function PlanPage() {
         id: "speculative",
         tripType, region,
         destinationCountry, destinationCountryCode,
-        dateStart, dateEnd, flexibleDates,
-        budget, travelers,
+        dateStart, dateEnd,
+        travelers,
       },
     };
     prefetchRoute(params, cacheKey);
@@ -120,7 +118,7 @@ export default function PlanPage() {
         : !!region;
       return hasDestination && !!dateStart && !!dateEnd && dayCount > 0;
     }
-    if (showDetails) return budget > 0 && travelers > 0;
+    if (showDetails) return travelers > 0;
     return true;
   };
 
@@ -134,7 +132,7 @@ export default function PlanPage() {
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     if (showDetails) {
-      const fieldErrors = validate(detailsStepSchema, { budget, travelers });
+      const fieldErrors = validate(detailsStepSchema, { travelers });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     setErrors({});
@@ -151,7 +149,7 @@ export default function PlanPage() {
           id: "speculative",
           tripType, region,
           destinationCountry, destinationCountryCode,
-          dateStart, dateEnd, flexibleDates, budget, travelers,
+          dateStart, dateEnd, travelers,
         },
       };
       try {
@@ -223,19 +221,18 @@ export default function PlanPage() {
   const buildPartialItinerary = useCallback((route: CityStop[]): Itinerary => ({
     route,
     days: [],
-    budget: { flights: 0, accommodation: 0, activities: 0, food: 0, transport: 0, total: 0, budget },
-  }), [budget]);
+  }), []);
 
   const handleGenerate = useCallback(async (routeFromReview?: CityStop[]) => {
     // Only validate details if not coming from route review (already validated on advance)
     if (!routeFromReview) {
-      const fieldErrors = validate(detailsStepSchema, { budget, travelers });
+      const fieldErrors = validate(detailsStepSchema, { travelers });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     setErrors({});
 
     posthog?.capture("questionnaire_completed", {
-      tripType, region, destination, duration_days: dayCount, budget_eur: budget, travelers,
+      tripType, region, destination, duration_days: dayCount, travelers,
     });
     setIsGenerating(true);
 
@@ -256,7 +253,7 @@ export default function PlanPage() {
           id: "speculative",
           tripType, region,
           destinationCountry, destinationCountryCode,
-          dateStart, dateEnd, flexibleDates, budget, travelers,
+          dateStart, dateEnd, travelers,
         },
       };
 
@@ -280,7 +277,7 @@ export default function PlanPage() {
           : isSingleCountry
           ? { destinationCountry, destinationCountryCode }
           : {}),
-        dateStart, dateEnd, flexibleDates, budget, travelers,
+        dateStart, dateEnd, travelers,
       });
 
       setItinerary(buildPartialItinerary(route));
@@ -295,7 +292,7 @@ export default function PlanPage() {
   }, [
     isSingleCity, isSingleCountry, isMultiCountry,
     tripType, region, destination, destinationCountry, destinationCountryCode,
-    dateStart, dateEnd, flexibleDates, budget, travelers,
+    dateStart, dateEnd, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
     setIsGenerating, setCurrentTripId, setItinerary,
     citiesToRoute, singleCityRoute, buildPartialItinerary,
@@ -429,36 +426,17 @@ export default function PlanPage() {
                         <span className="text-muted-foreground text-sm ml-2">total trip duration</span>
                       </div>
                     )}
-                    <label className="flex items-center gap-3 cursor-pointer select-none">
-                      <button type="button" role="switch" aria-checked={flexibleDates} onClick={() => setFlexibleDates(!flexibleDates)}
-                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${flexibleDates ? "bg-primary" : "bg-border"}`}>
-                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-background shadow transition-transform duration-200 ${flexibleDates ? "translate-x-5" : "translate-x-0"}`} />
-                      </button>
-                      <span className="text-sm text-foreground">My dates are flexible (±3 days)</span>
-                    </label>
                   </div>
                 </div>
               )}
 
-              {/* Trip details — Budget & Travelers */}
+              {/* Trip details — Travelers */}
               {showDetails && (
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-1">Trip details</h2>
                   <p className="text-muted-foreground mb-8">A few quick choices and we&apos;re ready to plan.</p>
 
                   <div className="space-y-8">
-                    {/* Budget */}
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-4">
-                        Budget <span className="text-muted-foreground font-normal">— per person, entire trip</span>
-                      </label>
-                      <div className="text-center mb-4">
-                        <span className="text-4xl font-bold text-primary">€{budget.toLocaleString()}</span>
-                      </div>
-                      <input type="range" min={1000} max={30000} step={500} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full accent-primary cursor-pointer" />
-                      <div className="flex justify-between text-sm text-muted-foreground mt-2"><span>€1,000</span><span>€30,000</span></div>
-                    </div>
-
                     {/* Travelers */}
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-4">Travelers</label>

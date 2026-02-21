@@ -49,7 +49,6 @@ const mockTrips = [
     region: "Southeast Asia",
     dateStart: "2026-04-01",
     dateEnd: "2026-04-22",
-    budget: 10000,
     travelers: 2,
     createdAt: new Date().toISOString(),
     itineraries: [{ id: "itin-1", generationStatus: "complete" }],

@@ -44,7 +44,6 @@ describe("POST /api/v1/trips", () => {
         region: "southeast-asia",
         dateStart: "2026-04-01",
         dateEnd: "2026-04-22",
-        budget: 10000,
         travelers: 2,
       }),
     });
@@ -62,7 +61,6 @@ describe("POST /api/v1/trips", () => {
       where: { id: body.trip.id },
     });
     expect(dbTrip).not.toBeNull();
-    expect(dbTrip?.budget).toBe(10000);
   });
 
   it("creates a trip linked to an authenticated user's profile", async () => {
@@ -76,7 +74,6 @@ describe("POST /api/v1/trips", () => {
         region: "western-europe",
         dateStart: "2026-06-01",
         dateEnd: "2026-06-15",
-        budget: 5000,
       }),
     });
 
@@ -91,7 +88,7 @@ describe("POST /api/v1/trips", () => {
     const req = new NextRequest("http://localhost:3000/api/v1/trips", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ budget: -1 }),
+      body: JSON.stringify({ travelers: -1 }),
     });
 
     const response = await POST(req);

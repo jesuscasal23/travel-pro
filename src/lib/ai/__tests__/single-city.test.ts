@@ -22,8 +22,6 @@ const singleCityIntent: TripIntent = {
   destinationLng: 2.17,
   dateStart: "2026-04-10",
   dateEnd: "2026-04-17",
-  flexibleDates: false,
-  budget: 2000,
   travelers: 2,
 };
 
@@ -67,9 +65,8 @@ describe("assembleSingleCityPrompt", () => {
     expect(prompt).toContain("7-day");
   });
 
-  it("includes budget and traveler count", () => {
+  it("includes traveler count", () => {
     const prompt = assembleSingleCityPrompt(profile, singleCityIntent);
-    expect(prompt).toMatch(/€2[,.]000/); // locale may use . or , as thousands separator
     expect(prompt).toContain("2 traveler");
   });
 

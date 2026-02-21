@@ -19,7 +19,7 @@ import { Button, BackLink, FormField } from "@/components/ui";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useTripStore } from "@/stores/useTripStore";
-import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
+
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 import { useSaveTripEdit } from "@/hooks/api";
@@ -229,30 +229,12 @@ export default function EditPage({ params }: { params: Params }) {
   const handleSave = async () => {
     const { editType, editPayload, description } = detectEditType();
 
-    // Recalculate budget proportionally based on day changes
-    const totalDays = cities.reduce((s, c) => s + c.days, 0);
-    const origTotalDays = itinerary.route.reduce((s, c) => s + c.days, 0);
-    const ratio = origTotalDays > 0 ? totalDays / origTotalDays : 1;
-
     // Keep days for existing cities, filter out removed ones
     const existingDays = itinerary.days.filter((d) => cities.some((c) => c.city === d.city) || d.isTravel);
 
     const updatedData = {
       ...itinerary,
       route: cities,
-      budget: {
-        ...itinerary.budget,
-        accommodation: Math.round(itinerary.budget.accommodation * ratio),
-        transport: Math.round(itinerary.budget.transport * ratio),
-        food: Math.round(itinerary.budget.food * ratio),
-        total: Math.round(
-          itinerary.budget.flights +
-          itinerary.budget.accommodation * ratio +
-          itinerary.budget.activities +
-          itinerary.budget.food * ratio +
-          itinerary.budget.transport * ratio
-        ),
-      },
       days: existingDays,
     };
 
@@ -364,19 +346,6 @@ export default function EditPage({ params }: { params: Params }) {
               </DndContext>
             </>
           )}
-        </div>
-
-        {/* Budget Impact Panel */}
-        <div className="mt-8 card-travel bg-background">
-          <h3 className="font-semibold text-foreground mb-4">Budget Impact</h3>
-          <BudgetBreakdown budget={itinerary.budget} valueClassName="text-accent" />
-          <div className="pt-3 mt-2 border-t border-border flex justify-between">
-            <span className="font-semibold text-foreground">Total</span>
-            <span className="font-bold text-accent">&euro;{itinerary.budget.total.toLocaleString()}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Accommodation and transport will be recalculated proportionally when you save.
-          </p>
         </div>
 
         <ServerErrorAlert error={saveMutation.error ? "Failed to save changes. Please try again." : null} />

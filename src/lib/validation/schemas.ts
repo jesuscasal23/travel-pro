@@ -40,7 +40,6 @@ export const destinationStepSchema = z
 
 // ── Plan Step: Details ──────────────────────────────────────────────────────
 export const detailsStepSchema = z.object({
-  budget: z.number().min(1000, "Budget must be at least €1,000"),
   travelers: z
     .number()
     .int()

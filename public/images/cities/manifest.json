@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-02-21T21:54:56.981Z",
-  "count": 344,
+  "generatedAt": "2026-02-21T22:57:54.876Z",
+  "count": 393,
   "entries": [
     {
       "slug": "tokyo",
@@ -3097,6 +3097,447 @@
       "unsplashId": "fprzlv0zaWE",
       "photographer": "Nikola Tasic",
       "photographerUrl": "https://unsplash.com/@tasae34"
+    },
+    {
+      "slug": "sharjah",
+      "city": "Sharjah",
+      "country": "United Arab Emirates",
+      "countryCode": "ae",
+      "unsplashId": "CK_nXKJmYmA",
+      "photographer": "Owaiz Raiyan",
+      "photographerUrl": "https://unsplash.com/@owaiz_raiyan"
+    },
+    {
+      "slug": "tel-aviv",
+      "city": "Tel Aviv",
+      "country": "Israel",
+      "countryCode": "il",
+      "unsplashId": "duJ91es_r4c",
+      "photographer": "Karen Meyer",
+      "photographerUrl": "https://unsplash.com/@karenmeyercreative"
+    },
+    {
+      "slug": "jerusalem",
+      "city": "Jerusalem",
+      "country": "Israel",
+      "countryCode": "il",
+      "unsplashId": "448ikqAtO34",
+      "photographer": "Taylor Brandon",
+      "photographerUrl": "https://unsplash.com/@house_42"
+    },
+    {
+      "slug": "eilat",
+      "city": "Eilat",
+      "country": "Israel",
+      "countryCode": "il",
+      "unsplashId": "6yP-GsXDUFo",
+      "photographer": "Yoad Shejtman",
+      "photographerUrl": "https://unsplash.com/@yoadsh"
+    },
+    {
+      "slug": "muscat",
+      "city": "Muscat",
+      "country": "Oman",
+      "countryCode": "om",
+      "unsplashId": "C3OzFArztws",
+      "photographer": "Daniele Levis Pelusi",
+      "photographerUrl": "https://unsplash.com/@yogidan2012"
+    },
+    {
+      "slug": "salalah",
+      "city": "Salalah",
+      "country": "Oman",
+      "countryCode": "om",
+      "unsplashId": "XpZ2LisE-2M",
+      "photographer": "Jina Awkar",
+      "photographerUrl": "https://unsplash.com/@jinaawkar"
+    },
+    {
+      "slug": "doha",
+      "city": "Doha",
+      "country": "Qatar",
+      "countryCode": "qa",
+      "unsplashId": "Patz-Ax9lfM",
+      "photographer": "Pourya Gohari",
+      "photographerUrl": "https://unsplash.com/@_pourya_"
+    },
+    {
+      "slug": "amman",
+      "city": "Amman",
+      "country": "Jordan",
+      "countryCode": "jo",
+      "unsplashId": "IE6BUnvXTlU",
+      "photographer": "Hisham Zayadneh",
+      "photographerUrl": "https://unsplash.com/@hisham_zayadneh"
+    },
+    {
+      "slug": "petra",
+      "city": "Petra",
+      "country": "Jordan",
+      "countryCode": "jo",
+      "unsplashId": "qOyslO887Tg",
+      "photographer": "Dylan Shaw",
+      "photographerUrl": "https://unsplash.com/@dylanshaw"
+    },
+    {
+      "slug": "aqaba",
+      "city": "Aqaba",
+      "country": "Jordan",
+      "countryCode": "jo",
+      "unsplashId": "ZqtNS20eJM4",
+      "photographer": "Hisham Zayadneh",
+      "photographerUrl": "https://unsplash.com/@hisham_zayadneh"
+    },
+    {
+      "slug": "riyadh",
+      "city": "Riyadh",
+      "country": "Saudi Arabia",
+      "countryCode": "sa",
+      "unsplashId": "cBA0C7xzIK8",
+      "photographer": "Llana",
+      "photographerUrl": "https://unsplash.com/@llanamoo"
+    },
+    {
+      "slug": "jeddah",
+      "city": "Jeddah",
+      "country": "Saudi Arabia",
+      "countryCode": "sa",
+      "unsplashId": "dBgLXxob7NQ",
+      "photographer": "Datingscout",
+      "photographerUrl": "https://unsplash.com/@datingscout"
+    },
+    {
+      "slug": "alula",
+      "city": "AlUla",
+      "country": "Saudi Arabia",
+      "countryCode": "sa",
+      "unsplashId": "kz-Wom5Tc0Y",
+      "photographer": "KHAWAJA UMER FAROOQ",
+      "photographerUrl": "https://unsplash.com/@kufarooq"
+    },
+    {
+      "slug": "bahrain",
+      "city": "Bahrain",
+      "country": "Bahrain",
+      "countryCode": "bh",
+      "unsplashId": "9m1MWsPQkMk",
+      "photographer": "Aritra Roy",
+      "photographerUrl": "https://unsplash.com/@aritraroys"
+    },
+    {
+      "slug": "kuwait-city",
+      "city": "Kuwait City",
+      "country": "Kuwait",
+      "countryCode": "kw",
+      "unsplashId": "DgAlQ-oHBtI",
+      "photographer": "sohrab zia",
+      "photographerUrl": "https://unsplash.com/@sohrabzia"
+    },
+    {
+      "slug": "beirut",
+      "city": "Beirut",
+      "country": "Lebanon",
+      "countryCode": "lb",
+      "unsplashId": "z6ehDDZLAFQ",
+      "photographer": "Nathan McBride",
+      "photographerUrl": "https://unsplash.com/@nathan_mcb"
+    },
+    {
+      "slug": "marrakech",
+      "city": "Marrakech",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "dnLmApcmNHg",
+      "photographer": "Sergey Pesterev",
+      "photographerUrl": "https://unsplash.com/@sickle"
+    },
+    {
+      "slug": "fes",
+      "city": "Fes",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "6JEhrmFRwUk",
+      "photographer": "Miloud Brest",
+      "photographerUrl": "https://unsplash.com/@milad56"
+    },
+    {
+      "slug": "casablanca",
+      "city": "Casablanca",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "eHPwDSGdEBM",
+      "photographer": "Mo Kabysa",
+      "photographerUrl": "https://unsplash.com/@mokabysa"
+    },
+    {
+      "slug": "chefchaouen",
+      "city": "Chefchaouen",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "CjPcyrNKjt0",
+      "photographer": "Corbett Campbell",
+      "photographerUrl": "https://unsplash.com/@corbettcampbell"
+    },
+    {
+      "slug": "tangier",
+      "city": "Tangier",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "7mq_MU6_6kg",
+      "photographer": "Othman Alghanmi",
+      "photographerUrl": "https://unsplash.com/@theemanofoth"
+    },
+    {
+      "slug": "essaouira",
+      "city": "Essaouira",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "KDGpOAyyreg",
+      "photographer": "Brent Olson",
+      "photographerUrl": "https://unsplash.com/@helixgames"
+    },
+    {
+      "slug": "rabat",
+      "city": "Rabat",
+      "country": "Morocco",
+      "countryCode": "ma",
+      "unsplashId": "zPg0jc-gJ-w",
+      "photographer": "zaka ziko",
+      "photographerUrl": "https://unsplash.com/@morocco_travel"
+    },
+    {
+      "slug": "cairo",
+      "city": "Cairo",
+      "country": "Egypt",
+      "countryCode": "eg",
+      "unsplashId": "UmomRdWQ1Xk",
+      "photographer": "piratedea",
+      "photographerUrl": "https://unsplash.com/@piratedea"
+    },
+    {
+      "slug": "luxor",
+      "city": "Luxor",
+      "country": "Egypt",
+      "countryCode": "eg",
+      "unsplashId": "BdHs8hL_NqQ",
+      "photographer": "Nathalie Lays",
+      "photographerUrl": "https://unsplash.com/@nath_lays"
+    },
+    {
+      "slug": "sharm-el-sheikh",
+      "city": "Sharm El Sheikh",
+      "country": "Egypt",
+      "countryCode": "eg",
+      "unsplashId": "EQxmpRs52wo",
+      "photographer": "World Wanderer",
+      "photographerUrl": "https://unsplash.com/@worldwanderer2024"
+    },
+    {
+      "slug": "aswan",
+      "city": "Aswan",
+      "country": "Egypt",
+      "countryCode": "eg",
+      "unsplashId": "hPNfKTNkdEg",
+      "photographer": "Shell Chapman",
+      "photographerUrl": "https://unsplash.com/@walkswithmycamera"
+    },
+    {
+      "slug": "alexandria",
+      "city": "Alexandria",
+      "country": "Egypt",
+      "countryCode": "eg",
+      "unsplashId": "MEUxSkwpk5w",
+      "photographer": "webs hesham",
+      "photographerUrl": "https://unsplash.com/@webshesham"
+    },
+    {
+      "slug": "hurghada",
+      "city": "Hurghada",
+      "country": "Egypt",
+      "countryCode": "eg",
+      "unsplashId": "arn3YKR91uo",
+      "photographer": "Vegan Oazïs",
+      "photographerUrl": "https://unsplash.com/@veganoazis"
+    },
+    {
+      "slug": "tunis",
+      "city": "Tunis",
+      "country": "Tunisia",
+      "countryCode": "tn",
+      "unsplashId": "wPjhJbe-h0M",
+      "photographer": "Humphrey M",
+      "photographerUrl": "https://unsplash.com/@good_citizen"
+    },
+    {
+      "slug": "sousse",
+      "city": "Sousse",
+      "country": "Tunisia",
+      "countryCode": "tn",
+      "unsplashId": "BGFfHnVAzlU",
+      "photographer": "Hammami Ghazi",
+      "photographerUrl": "https://unsplash.com/@ghaziihammami"
+    },
+    {
+      "slug": "algiers",
+      "city": "Algiers",
+      "country": "Algeria",
+      "countryCode": "dz",
+      "unsplashId": "ESkI6T_Ef5A",
+      "photographer": "Halima Bouchouicha",
+      "photographerUrl": "https://unsplash.com/@halimaart"
+    },
+    {
+      "slug": "nairobi",
+      "city": "Nairobi",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "FzkGHmvvsto",
+      "photographer": "Grace Nandi",
+      "photographerUrl": "https://unsplash.com/@g_nandy"
+    },
+    {
+      "slug": "mombasa",
+      "city": "Mombasa",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "ZvcLw1dJOd0",
+      "photographer": "Derricks Nature Book",
+      "photographerUrl": "https://unsplash.com/@derrickkibet"
+    },
+    {
+      "slug": "diani-beach",
+      "city": "Diani Beach",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "ZvcLw1dJOd0",
+      "photographer": "Derricks Nature Book",
+      "photographerUrl": "https://unsplash.com/@derrickkibet"
+    },
+    {
+      "slug": "masai-mara",
+      "city": "Masai Mara",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "hClkluSLvEY",
+      "photographer": "Sam Power",
+      "photographerUrl": "https://unsplash.com/@sampowerphoto"
+    },
+    {
+      "slug": "zanzibar",
+      "city": "Zanzibar",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "ldKl3Pf-MP8",
+      "photographer": "Picha HD",
+      "photographerUrl": "https://unsplash.com/@pichahd"
+    },
+    {
+      "slug": "dar-es-salaam",
+      "city": "Dar es Salaam",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "Gmpl9jNeR1g",
+      "photographer": "Paul Abraham",
+      "photographerUrl": "https://unsplash.com/@abrahampaul_"
+    },
+    {
+      "slug": "arusha",
+      "city": "Arusha",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "ElKhsVH1A6c",
+      "photographer": "Uzuri Safaris Tanzania",
+      "photographerUrl": "https://unsplash.com/@uzuri_safaris_tanzania"
+    },
+    {
+      "slug": "serengeti",
+      "city": "Serengeti",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "izJQEaUISMI",
+      "photographer": "Denice Alex",
+      "photographerUrl": "https://unsplash.com/@denisi_z"
+    },
+    {
+      "slug": "kigali",
+      "city": "Kigali",
+      "country": "Rwanda",
+      "countryCode": "rw",
+      "unsplashId": "XXjhX0my9x0",
+      "photographer": "Ifeoluwa B.",
+      "photographerUrl": "https://unsplash.com/@ife_"
+    },
+    {
+      "slug": "kampala",
+      "city": "Kampala",
+      "country": "Uganda",
+      "countryCode": "ug",
+      "unsplashId": "lii0uaz8Ieo",
+      "photographer": "Keith Kasaija",
+      "photographerUrl": "https://unsplash.com/@keithkasaija"
+    },
+    {
+      "slug": "entebbe",
+      "city": "Entebbe",
+      "country": "Uganda",
+      "countryCode": "ug",
+      "unsplashId": "PuqsfJLDews",
+      "photographer": "Micah Camper",
+      "photographerUrl": "https://unsplash.com/@m_camper"
+    },
+    {
+      "slug": "addis-ababa",
+      "city": "Addis Ababa",
+      "country": "Ethiopia",
+      "countryCode": "et",
+      "unsplashId": "zLytRTvG_tk",
+      "photographer": "Timothy K",
+      "photographerUrl": "https://unsplash.com/@t_kiman"
+    },
+    {
+      "slug": "lalibela",
+      "city": "Lalibela",
+      "country": "Ethiopia",
+      "countryCode": "et",
+      "unsplashId": "F92lFDtC8fg",
+      "photographer": "Liz Martin",
+      "photographerUrl": "https://unsplash.com/@lmmartin09"
+    },
+    {
+      "slug": "djibouti",
+      "city": "Djibouti",
+      "country": "Djibouti",
+      "countryCode": "dj",
+      "unsplashId": "nepjrgVSfIY",
+      "photographer": "Lockhart KEYS",
+      "photographerUrl": "https://unsplash.com/@lockhartkeys"
+    },
+    {
+      "slug": "mogadishu",
+      "city": "Mogadishu",
+      "country": "Somalia",
+      "countryCode": "so",
+      "unsplashId": "p2NXrD49Vnc",
+      "photographer": "Abukar Sky",
+      "photographerUrl": "https://unsplash.com/@abukarsky"
+    },
+    {
+      "slug": "cape-town",
+      "city": "Cape Town",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "1nXbXAfEfcs",
+      "photographer": "Aldo Loya",
+      "photographerUrl": "https://unsplash.com/@traveloyavlog"
+    },
+    {
+      "slug": "johannesburg",
+      "city": "Johannesburg",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "GwRT1EuMjvM",
+      "photographer": "Clayton Majona",
+      "photographerUrl": "https://unsplash.com/@phathisile"
     }
   ]
 }

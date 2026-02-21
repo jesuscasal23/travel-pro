@@ -1,7 +1,6 @@
 import type {
   CityStop,
   TripDay,
-  TripBudget,
   VisaInfo,
   CityWeather,
   SavedTrip,
@@ -224,20 +223,6 @@ export const sampleItinerary: TripDay[] = [
 ];
 
 // ============================================================
-// Budget
-// ============================================================
-
-export const sampleBudget: TripBudget = {
-  flights: 2500,
-  accommodation: 3500,
-  activities: 800,
-  food: 1200,
-  transport: 400,
-  total: 8400,
-  budget: 10000,
-};
-
-// ============================================================
 // Visa Data
 // ============================================================
 
@@ -287,7 +272,6 @@ export const sampleWeather: CityWeather[] = [
 export const sampleFullItinerary: Itinerary = {
   route: sampleRoute,
   days: sampleItinerary,
-  budget: sampleBudget,
   visaData: sampleVisas,
   weatherData: sampleWeather,
 };

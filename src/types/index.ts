@@ -50,16 +50,6 @@ export interface TripDay {
   travelDuration?: string;
 }
 
-/** Budget breakdown */
-export interface TripBudget {
-  flights: number;
-  accommodation: number;
-  activities: number;
-  food: number;
-  transport: number;
-  total: number;
-  budget: number;
-}
 
 /** Visa info for a country */
 export interface VisaInfo {
@@ -101,7 +91,6 @@ export interface TripSummary {
   destinationCountry?: string;
   dateStart: string;
   dateEnd: string;
-  budget: number;
   travelers: number;
   createdAt: string;
   itineraries: { id: string; generationStatus: string }[];
@@ -133,7 +122,6 @@ export type TripType = "single-city" | "single-country" | "multi-city";
 export interface Itinerary {
   route: CityStop[];
   days: TripDay[];
-  budget: TripBudget;
   /** Populated by background enrichment after core itinerary is ready */
   visaData?: VisaInfo[];
   /** Populated by background enrichment after core itinerary is ready */
@@ -165,7 +153,5 @@ export interface TripIntent {
   destinationLng?: number;
   dateStart: string;
   dateEnd: string;
-  flexibleDates: boolean;
-  budget: number;
   travelers: number;
 }

@@ -2,16 +2,15 @@
 
 import { Sparkles } from "lucide-react";
 import { getCityHeroImage } from "@/lib/utils/city-images";
-import type { CityStop, TripBudget } from "@/types";
+import type { CityStop } from "@/types";
 
 interface MobileHeroProps {
   route: CityStop[];
   totalDays: number;
-  budget: TripBudget;
   countries: string[];
 }
 
-export function MobileHero({ route, totalDays, budget, countries }: MobileHeroProps) {
+export function MobileHero({ route, totalDays, countries }: MobileHeroProps) {
   const heroCity = route[0]?.city ?? "travel";
   const heroImage = getCityHeroImage(heroCity);
   const cityCount = route.length;
@@ -46,7 +45,7 @@ export function MobileHero({ route, totalDays, budget, countries }: MobileHeroPr
 
         {/* Subtitle */}
         <p className="text-xs text-muted-foreground mt-1 text-center">
-          {totalDays} days · {countries.length} {countries.length === 1 ? "country" : "countries"} · {cityCount} {cityCount === 1 ? "city" : "cities"} · Est. &euro;{budget.total.toLocaleString()}
+          {totalDays} days · {countries.length} {countries.length === 1 ? "country" : "countries"} · {cityCount} {cityCount === 1 ? "city" : "cities"}
         </p>
       </div>
     </div>

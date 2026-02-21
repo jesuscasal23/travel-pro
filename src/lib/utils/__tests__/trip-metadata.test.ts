@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { isSingleCity, getTripTitle, getUniqueCountries, getBudgetStatus } from "../trip-metadata";
-import type { CityStop, Itinerary, TripBudget } from "@/types";
+import { isSingleCity, getTripTitle, getUniqueCountries } from "../trip-metadata";
+import type { CityStop, Itinerary } from "@/types";
 
 // ── Fixtures ────────────────────────────────────────────────────
 
@@ -38,7 +38,6 @@ function makeItinerary(route: CityStop[]): Itinerary {
   return {
     route,
     days: [],
-    budget: { flights: 500, accommodation: 300, activities: 100, food: 200, transport: 100, total: 1200, budget: 1500 },
     visaData: [],
     weatherData: [],
   };
@@ -84,18 +83,3 @@ describe("getUniqueCountries", () => {
   });
 });
 
-// ── getBudgetStatus ─────────────────────────────────────────────
-
-describe("getBudgetStatus", () => {
-  it("shows under budget when total < budget", () => {
-    const budget: TripBudget = { flights: 500, accommodation: 300, activities: 100, food: 200, transport: 100, total: 1200, budget: 1500 };
-    expect(getBudgetStatus(budget)).toContain("under budget");
-    expect(getBudgetStatus(budget)).toContain("300");
-  });
-
-  it("shows over budget when total > budget", () => {
-    const budget: TripBudget = { flights: 500, accommodation: 300, activities: 100, food: 200, transport: 100, total: 1600, budget: 1500 };
-    expect(getBudgetStatus(budget)).toContain("over budget");
-    expect(getBudgetStatus(budget)).toContain("100");
-  });
-});

@@ -39,13 +39,6 @@ For days where travel between cities happens:
 - Include a transport activity as the first activity
 - Still include 1–2 activities for the arrival city in the evening
 
-## Budget Realism
-
-The budget breakdown must be realistic and sum correctly:
-- "total" must equal flights + accommodation + activities + food + transport
-- "budget" must equal the user's stated budget
-- Use the travel style as a guide: backpacker = budget hostels + street food; comfort = 3–4 star + mix; luxury = 5-star + fine dining
-
 ## Route Logic
 
 The route must make geographic sense (minimise backtracking). For each city stop, provide:
@@ -83,7 +76,7 @@ ${skeleton.legs
       `${i + 1}. ${formatDateShort(leg.departureDate)}: ${leg.fromCity} (${leg.fromIata}) → ${leg.toCity} (${leg.toIata}) — €${Math.round(leg.price).toLocaleString()}, ${leg.duration}, ${leg.airline}`
   )
   .join("\n")}
-Total flights: €${Math.round(skeleton.totalFlightCost).toLocaleString()} — set budget.flights to this exact number.
+Total flight cost: €${Math.round(skeleton.totalFlightCost).toLocaleString()}
 
 **CITY SCHEDULE (use exactly these cities and day counts):**
 ${cities
@@ -107,10 +100,6 @@ Distribute the trip days across these cities within the min–max ranges above.`
     ? `1. Choose 3–6 cities within ${intent.destinationCountry} that make geographic sense and are popular for this type of trip`
     : "1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip";
 
-  const budgetRequirement = skeleton
-    ? `Make the accommodation, food, activities, and transport breakdown realistic — budget.flights is already fixed at €${Math.round(skeleton.totalFlightCost).toLocaleString()}`
-    : "6. Make the budget breakdown realistic for the travel style and number of travelers";
-
   return `Plan a ${durationDays}-day trip for ${intent.travelers} traveler(s) with the following details:
 
 **Traveler Profile:**
@@ -123,8 +112,6 @@ Distribute the trip days across these cities within the min–max ranges above.`
 - ${isCountryTrip ? `Country: ${intent.destinationCountry}` : `Region: ${intent.region}`}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
-- Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)
-- Flexible dates: ${intent.flexibleDates ? "yes (±3 days)" : "no"}
 ${skeletonBlock}
 **Requirements:**
 ${cityRequirement}
@@ -132,8 +119,7 @@ ${cityRequirement}
 3. Plan 3–4 activities per day with FULL detail (name, category, icon, why, duration, plus tip/food/cost where applicable)
 4. Include realistic travel days when moving between cities (flight/train/bus with cost and duration)
 5. Tailor activity choices to the traveler's stated interests and travel style
-${budgetRequirement}
-7. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
+6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
 
 Return ONLY this JSON structure (no wrapping, no markdown):
 
@@ -198,15 +184,6 @@ Return ONLY this JSON structure (no wrapping, no markdown):
         }
       ]
     }
-  ],
-  "budget": {
-    "flights": 2500,
-    "accommodation": 3500,
-    "activities": 800,
-    "food": 1200,
-    "transport": 400,
-    "total": 8400,
-    "budget": 10000
-  }
+  ]
 }`;
 }

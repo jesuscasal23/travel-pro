@@ -9,9 +9,8 @@ import { BackLink, Button, Skeleton } from "@/components/ui";
 import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
 import { buildFlightLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
-import { getTripTitle, getUniqueCountries, getBudgetStatus } from "@/lib/utils/trip-metadata";
+import { getTripTitle, getUniqueCountries } from "@/lib/utils/trip-metadata";
 import { TripNotFound } from "@/components/trip/TripNotFound";
-import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
 import { useTripStore } from "@/stores/useTripStore";
 import { useShareTrip } from "@/hooks/api";
 
@@ -43,7 +42,7 @@ export default function SummaryPage({ params }: { params: Params }) {
     return <TripNotFound />;
   }
 
-  const { route, days, budget, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
+  const { route, days, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
 
   // Savings from date optimisation
   const flightTotal = flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
@@ -103,7 +102,6 @@ export default function SummaryPage({ params }: { params: Params }) {
               <PDFDownloadButton
                 days={days}
                 route={route}
-                budget={budget}
                 visas={visaData ?? []}
                 weather={weatherData ?? []}
                 tripTitle={tripTitle}
@@ -224,24 +222,6 @@ export default function SummaryPage({ params }: { params: Params }) {
                 ))}
               </tbody>
             </table>
-          </div>
-        </motion.div>
-
-        {/* Budget summary card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-8 card-travel bg-background"
-        >
-          <h2 className="font-semibold text-foreground mb-4">Budget Breakdown</h2>
-          <BudgetBreakdown budget={budget} />
-          <div className="pt-3 mt-2 border-t border-border flex justify-between">
-            <span className="font-bold text-foreground">Total</span>
-            <span className="font-bold text-foreground">&euro;{budget.total.toLocaleString()}</span>
-          </div>
-          <div className="mt-2 text-sm text-primary font-medium">
-            {getBudgetStatus(budget)}
           </div>
         </motion.div>
 

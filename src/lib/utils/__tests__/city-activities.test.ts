@@ -17,7 +17,6 @@ const baseItinerary: Itinerary = {
     { day: 6, date: "Oct 6", city: "Osaka", activities: [] },
     { day: 7, date: "Oct 7", city: "Osaka", activities: [] },
   ],
-  budget: { flights: 1200, accommodation: 2800, activities: 500, food: 1400, transport: 500, total: 6400, budget: 10000 },
 };
 
 describe("citiesWithActivities", () => {

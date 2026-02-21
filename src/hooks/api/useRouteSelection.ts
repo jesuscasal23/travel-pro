@@ -18,8 +18,6 @@ interface RouteSelectionParams {
     destinationCountryCode?: string;
     dateStart: string;
     dateEnd: string;
-    flexibleDates: boolean;
-    budget: number;
     travelers: number;
   };
 }

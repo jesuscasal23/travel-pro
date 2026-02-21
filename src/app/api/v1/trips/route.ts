@@ -25,7 +25,6 @@ const CreateTripSchema = z.object({
   dateStart: z.string().max(20),
   dateEnd: z.string().max(20),
   flexibleDates: z.boolean().default(false),
-  budget: z.number().positive().max(1_000_000),
   travelers: z.number().int().min(1).max(20).default(2),
 });
 

@@ -79,7 +79,6 @@ export function assembleCityActivitiesPrompt(
 
 **Trip Context:**
 - Region: ${intent.region || `${city.city}, ${city.country}`}
-- Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)
 - This city: ${city.city}, ${city.country} — ${cityDays.length} day(s)
 
 **Days to fill with activities:**

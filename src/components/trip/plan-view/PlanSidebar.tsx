@@ -74,7 +74,7 @@ const modeIcons = {
 };
 
 export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
-  const { route, days, budget, visaData, weatherData, flightLegs } = itinerary;
+  const { route, days, visaData, weatherData, flightLegs } = itinerary;
 
   const countries = [...new Set(route.map((r) => r.country))];
   const totalDays = days.length;
@@ -90,7 +90,6 @@ export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
     ...(homeCity ? [homeCity] : []),
   ];
 
-  const overUnder = budget.total - budget.budget;
   const transportLegs = deriveTransportLegs(route, days, flightLegs, homeCity);
 
   // Group weather by country
@@ -117,13 +116,6 @@ export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
         <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
           <span>🕐</span> {firstDate} – {lastDate} · {totalNights} nights
         </p>
-        <div className={`mt-2 inline-flex text-xs font-medium px-2.5 py-1 rounded-full ${
-          overUnder > 0
-            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
-            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-        }`}>
-          💰 Est. €{budget.total.toLocaleString()} (Budget: €{budget.budget.toLocaleString()})
-        </div>
       </div>
 
       {/* Route & transport */}

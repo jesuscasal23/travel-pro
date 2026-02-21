@@ -4,10 +4,9 @@ import { useState } from "react";
 import { PlanSidebar } from "./PlanSidebar";
 import { ItineraryTab } from "./ItineraryTab";
 import { EssentialsTab } from "./EssentialsTab";
-import { BudgetTab } from "./BudgetTab";
 import type { Itinerary } from "@/types";
 
-type Tab = "itinerary" | "essentials" | "budget";
+type Tab = "itinerary" | "essentials";
 
 interface PlanViewLayoutProps {
   itinerary: Itinerary;
@@ -18,7 +17,6 @@ interface PlanViewLayoutProps {
 const TAB_LABELS: Record<Tab, string> = {
   itinerary: "Itinerary",
   essentials: "Essentials",
-  budget: "Budget",
 };
 
 export function PlanViewLayout({ itinerary, homeAirport, isAuthenticated }: PlanViewLayoutProps) {
@@ -36,7 +34,7 @@ export function PlanViewLayout({ itinerary, homeAirport, isAuthenticated }: Plan
       <div className="lg:w-[72%] p-5 lg:p-8">
         {/* Tab bar */}
         <div className="flex gap-0 border-b border-border mb-6">
-          {(["itinerary", "essentials", "budget"] as const).map((tab) => (
+          {(["itinerary", "essentials"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -60,9 +58,6 @@ export function PlanViewLayout({ itinerary, homeAirport, isAuthenticated }: Plan
         )}
         {activeTab === "essentials" && (
           <EssentialsTab itinerary={itinerary} />
-        )}
-        {activeTab === "budget" && (
-          <BudgetTab budget={itinerary.budget} route={itinerary.route} days={itinerary.days} />
         )}
       </div>
     </div>

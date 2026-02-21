@@ -34,14 +34,6 @@ Every activity object must match this depth:
 - "food": (optional) Specific food recommendation with dish name + venue name where possible
 - "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
-## Budget Realism
-
-- "flights": Cost of ONE round-trip from the traveler's home airport to the destination — no inter-city flights
-- "accommodation": A single hotel/area for the entire stay, priced per the travel style
-- "transport": Local only (metro passes, taxis, day-trip trains)
-- "total" must equal flights + accommodation + activities + food + transport
-- "budget" must equal the user's stated budget
-
 ## Route Structure
 
 - The "route" array must contain EXACTLY ONE city stop with all trip days assigned to it
@@ -77,16 +69,13 @@ export function assembleSingleCityPrompt(
 - City: ${intent.destination}, ${intent.destinationCountry}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
-- Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)
-
 **Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities
 2. Rotate through different neighborhoods/districts each day
 3. Plan 4–5 activities per day with FULL detail (name, category, icon, why, duration, plus tip/food/cost where applicable)
 ${durationDays >= 4 ? `4. Include 1–2 day trips to nearby towns or attractions (within 1–2 hours)` : "4. Focus on the city center and most iconic neighborhoods"}
 5. Tailor activity choices to the traveler's stated interests and travel style
-6. Make the budget breakdown realistic — flights = round-trip from home airport only
-7. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
+6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
 
 Return ONLY this JSON structure (no wrapping, no markdown):
 
@@ -121,15 +110,6 @@ Return ONLY this JSON structure (no wrapping, no markdown):
         }
       ]
     }
-  ],
-  "budget": {
-    "flights": 400,
-    "accommodation": 800,
-    "activities": 200,
-    "food": 300,
-    "transport": 100,
-    "total": 1800,
-    "budget": ${intent.budget}
-  }
+  ]
 }`;
 }

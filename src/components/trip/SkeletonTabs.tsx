@@ -38,27 +38,3 @@ export function ItinerarySkeletonTab({ route }: { route: CityStop[] }) {
     </div>
   );
 }
-
-export function BudgetSkeletonTab() {
-  return (
-    <div className="space-y-8">
-      <div className="bg-background border border-border rounded-xl p-6 text-center animate-pulse">
-        <div className="w-24 h-4 bg-secondary rounded mx-auto" />
-        <div className="w-40 h-12 bg-secondary rounded mx-auto mt-3" />
-        <div className="w-48 h-4 bg-secondary rounded mx-auto mt-3" />
-      </div>
-      <div className="animate-pulse">
-        <div className="w-40 h-5 bg-secondary rounded mb-3" />
-        <div className="h-4 bg-secondary rounded-full" />
-        <div className="flex gap-4 mt-3">
-          {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-secondary rounded-full" />
-              <div className="w-16 h-3 bg-secondary rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}

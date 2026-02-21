@@ -12,8 +12,7 @@ interface CreateTripParams {
   destinationCountryCode?: string;
   dateStart: string;
   dateEnd: string;
-  flexibleDates: boolean;
-  budget: number;
+  flexibleDates?: boolean;
   travelers: number;
 }
 

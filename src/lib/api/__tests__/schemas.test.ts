@@ -61,7 +61,6 @@ describe("TripIntentInputSchema", () => {
     dateStart: "2026-03-01",
     dateEnd: "2026-03-15",
     flexibleDates: true,
-    budget: 5000,
     travelers: 2,
   };
 
@@ -102,16 +101,6 @@ describe("TripIntentInputSchema", () => {
       ...validSingleCity,
       destination: undefined,
     });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects budget over 1,000,000", () => {
-    const result = TripIntentInputSchema.safeParse({ ...validMultiCity, budget: 1_000_001 });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects zero budget", () => {
-    const result = TripIntentInputSchema.safeParse({ ...validMultiCity, budget: 0 });
     expect(result.success).toBe(false);
   });
 

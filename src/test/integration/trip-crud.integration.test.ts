@@ -17,7 +17,6 @@ describe("Trip CRUD", () => {
         region: "southeast-asia",
         dateStart: "2026-04-01",
         dateEnd: "2026-04-22",
-        budget: 10000,
         travelers: 2,
       },
     });

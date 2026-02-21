@@ -11,7 +11,6 @@ interface DesktopTabBarProps {
 const TABS: { id: DesktopTab; emoji: string; label: string }[] = [
   { id: "journey", emoji: "✨", label: "Your Journey" },
   { id: "prep", emoji: "🎒", label: "Get Ready" },
-  { id: "spending", emoji: "💰", label: "Spending" },
   { id: "route", emoji: "🗺️", label: "Route" },
 ];
 

@@ -1,4 +1,4 @@
-import type { CityStop, Itinerary, TripBudget } from "@/types";
+import type { CityStop, Itinerary } from "@/types";
 
 /** Safely cast Prisma JSON `data` field to an Itinerary (avoids scattered double-casts). */
 export function parseItineraryData(data: unknown): Itinerary {
@@ -21,12 +21,4 @@ export function getTripTitle(route: CityStop[]): string {
     return `${route[0].city}, ${route[0].country}`;
   }
   return getUniqueCountries(route).join(", ");
-}
-
-/** Return "✓ €X under budget" or "⚠ €X over budget". */
-export function getBudgetStatus(budget: TripBudget): string {
-  const diff = budget.budget - budget.total;
-  return diff > 0
-    ? `✓ €${diff.toLocaleString()} under budget`
-    : `⚠ €${Math.abs(diff).toLocaleString()} over budget`;
 }

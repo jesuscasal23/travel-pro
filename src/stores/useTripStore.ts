@@ -21,8 +21,6 @@ interface TripStoreState {
   destinationLng: number;
   dateStart: string;
   dateEnd: string;
-  flexibleDates: boolean;
-  budget: number;
   travelers: number;
 
   // Generation
@@ -54,8 +52,6 @@ interface TripStoreActions {
   clearDestination: () => void;
   setDateStart: (date: string) => void;
   setDateEnd: (date: string) => void;
-  setFlexibleDates: (flexible: boolean) => void;
-  setBudget: (budget: number) => void;
   setTravelers: (count: number) => void;
 
   // Generation
@@ -88,8 +84,6 @@ const initialPlanState = {
   destinationLng: 0,
   dateStart: "",
   dateEnd: "",
-  flexibleDates: false,
-  budget: 10000,
   travelers: 2,
   isGenerating: false,
   generationStep: 0,
@@ -134,8 +128,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         set({ destination: "", destinationCountry: "", destinationCountryCode: "", destinationLat: 0, destinationLng: 0 }),
       setDateStart: (date) => set({ dateStart: date }),
       setDateEnd: (date) => set({ dateEnd: date }),
-      setFlexibleDates: (flexible) => set({ flexibleDates: flexible }),
-      setBudget: (budget) => set({ budget }),
       setTravelers: (count) => set({ travelers: count }),
 
       // Generation actions
@@ -189,8 +181,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         destinationLng: state.destinationLng,
         dateStart: state.dateStart,
         dateEnd: state.dateEnd,
-        flexibleDates: state.flexibleDates,
-        budget: state.budget,
         travelers: state.travelers,
         currentTripId: state.currentTripId,
         itinerary: state.itinerary,

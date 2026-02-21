@@ -84,20 +84,9 @@ const cityStopSchema = z.object({
   iataCode: z.string().optional(),
 });
 
-const budgetSchema = z.object({
-  flights: z.number(),
-  accommodation: z.number(),
-  activities: z.number(),
-  food: z.number(),
-  transport: z.number(),
-  total: z.number(),
-  budget: z.number(),
-});
-
 const claudeItinerarySchema = z.object({
   route: z.array(cityStopSchema),
   days: z.array(tripDaySchema),
-  budget: budgetSchema,
 });
 
 type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
@@ -234,7 +223,7 @@ export function parseAndValidate(rawOutput: string): ClaudeItinerary {
 // ============================================================
 
 /**
- * Generate the core itinerary (route + days + budget) without enrichment.
+ * Generate the core itinerary (route + days) without enrichment.
  * Returns immediately after Claude parse/validate — visa, weather, and DB
  * persist are deferred to background fetches on the client.
  */
@@ -301,7 +290,7 @@ export async function generateCoreItinerary(
 // ============================================================
 
 /**
- * Generate only the route, day stubs (empty activities), and budget estimate.
+ * Generate only the route and day stubs (empty activities).
  * Much faster/cheaper than full generation — activities are added per-city later.
  */
 export async function generateRouteOnly(
@@ -386,11 +375,14 @@ export async function generateCityActivities(
     throw new Error(`No days found for city "${cityStop.city}"`);
   }
 
-  log.info("Generating activities for city", { cityId, city: cityStop.city, days: cityDays.length, elapsed: elapsed() });
+  // Scale token budget by number of days (~800 tokens/day), floor 2000, cap 8000
+  const maxTokens = Math.min(8000, Math.max(2000, cityDays.length * 800));
+
+  log.info("Generating activities for city", { cityId, city: cityStop.city, days: cityDays.length, maxTokens, elapsed: elapsed() });
 
   const userPrompt = assembleCityActivitiesPrompt(profile, tripIntent, cityStop, cityDays);
 
-  const claudeResult = await callClaude(userPrompt, SYSTEM_PROMPT_CITY_ACTIVITIES, 4000);
+  const claudeResult = await callClaude(userPrompt, SYSTEM_PROMPT_CITY_ACTIVITIES, maxTokens);
   log.info("City activities Claude call complete", {
     cityId,
     duration: `${((Date.now() - t0) / 1000).toFixed(1)}s`,

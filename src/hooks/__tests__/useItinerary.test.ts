@@ -27,15 +27,6 @@ const mockItinerary: Itinerary = {
       ],
     },
   ],
-  budget: {
-    flights: 1200,
-    accommodation: 2800,
-    activities: 1500,
-    food: 1400,
-    transport: 500,
-    total: 7400,
-    budget: 10000,
-  },
   visaData: [],
   weatherData: [],
 };

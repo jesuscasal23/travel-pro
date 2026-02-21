@@ -50,7 +50,6 @@ model Trip {
   dateStart              String  @map("date_start")
   dateEnd       String   @map("date_end")
   flexibleDates Boolean  @default(false) @map("flexible_dates")
-  budget        Int
   travelers     Int      @default(2)
   shareToken    String?  @unique @map("share_token")
 
@@ -71,7 +70,7 @@ model Itinerary {
   tripId String @map("trip_id")
   trip  Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
-  // Full itinerary (route + days + budget + visa + weather) stored as JSON
+  // Full itinerary (route + days + visa + weather) stored as JSON
   data Json
 
   version       Int     @default(1)

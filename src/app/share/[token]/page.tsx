@@ -33,13 +33,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : trip.destination ?? trip.region ?? "Trip";
   const totalDays = itinerary?.days?.length ?? 0;
   const cityCount = itinerary?.route?.length ?? 0;
-  const budget = itinerary?.budget?.total ?? trip.budget;
 
   const description = [
     totalDays > 0 ? `${totalDays}-day` : null,
     cityCount > 1 ? `${cityCount}-city` : null,
     "AI-crafted itinerary",
-    budget > 0 ? `— €${budget.toLocaleString()} budget` : null,
     `for ${trip.travelers} traveller${trip.travelers !== 1 ? "s" : ""}`,
   ].filter(Boolean).join(" ");
 

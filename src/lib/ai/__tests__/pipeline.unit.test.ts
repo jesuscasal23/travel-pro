@@ -42,20 +42,9 @@ const validDay = {
   activities: [validActivity],
 };
 
-const validBudget = {
-  flights: 1200,
-  accommodation: 2800,
-  activities: 1500,
-  food: 1400,
-  transport: 500,
-  total: 7400,
-  budget: 10000,
-};
-
 const validItinerary = {
   route: validRoute,
   days: [validDay],
-  budget: validBudget,
 };
 
 // ── extractJSON ───────────────────────────────────────────────────────────────
@@ -114,7 +103,6 @@ describe("parseAndValidate", () => {
     expect(result.route[0].city).toBe("Tokyo");
     expect(result.days).toHaveLength(1);
     expect(result.days[0].activities[0].name).toBe("Senso-ji Temple");
-    expect(result.budget.total).toBe(7400);
   });
 
   it("accepts a valid itinerary where optional activity fields are absent", () => {
@@ -139,7 +127,6 @@ describe("parseAndValidate", () => {
         { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 2, countryCode: "JP" },
       ],
       days: [validDay, { day: 2, date: "Oct 2", city: "Kyoto", activities: [validActivity] }],
-      budget: validBudget,
     };
     const result = parseAndValidate(JSON.stringify(multi));
     expect(result.route).toHaveLength(2);
@@ -190,7 +177,6 @@ describe("parseAndValidate", () => {
         { day: 2, date: "Oct 2", city: "Tokyo", activities: [] },
         { day: 3, date: "Oct 3", city: "Tokyo", activities: [] },
       ],
-      budget: validBudget,
     };
     const result = parseAndValidate(JSON.stringify(routeOnly));
     expect(result.route).toHaveLength(1);
@@ -209,7 +195,6 @@ describe("parseAndValidate", () => {
         { day: 1, date: "Oct 1", city: "Tokyo", activities: [] },
         { day: 2, date: "Oct 2", city: "Kyoto", isTravel: true, travelFrom: "Tokyo", travelTo: "Kyoto", travelDuration: "2h 15min", activities: [] },
       ],
-      budget: validBudget,
     };
     const result = parseAndValidate(JSON.stringify(routeOnly));
     expect(result.days[1].isTravel).toBe(true);
@@ -220,17 +205,12 @@ describe("parseAndValidate", () => {
   // ── Missing top-level fields ──────────────────────────────────────────────
 
   it("throws when route array is missing", () => {
-    const bad = { days: [validDay], budget: validBudget };
+    const bad = { days: [validDay] };
     expect(() => parseAndValidate(JSON.stringify(bad))).toThrow();
   });
 
   it("throws when days array is missing", () => {
-    const bad = { route: validRoute, budget: validBudget };
-    expect(() => parseAndValidate(JSON.stringify(bad))).toThrow();
-  });
-
-  it("throws when budget object is missing", () => {
-    const bad = { route: validRoute, days: [validDay] };
+    const bad = { route: validRoute };
     expect(() => parseAndValidate(JSON.stringify(bad))).toThrow();
   });
 
@@ -269,11 +249,6 @@ describe("parseAndValidate", () => {
     expect(() => parseAndValidate(JSON.stringify(bad))).toThrow();
   });
 
-  it("throws when budget.total is a string instead of number", () => {
-    const bad = { ...validItinerary, budget: { ...validBudget, total: "7400" } };
-    expect(() => parseAndValidate(JSON.stringify(bad))).toThrow();
-  });
-
   // ── Invalid JSON ──────────────────────────────────────────────────────────
 
   it("throws with a 'not valid JSON' message on completely unparseable input", () => {
@@ -287,7 +262,7 @@ describe("parseAndValidate", () => {
   // ── Error message quality ─────────────────────────────────────────────────
 
   it("throws a descriptive schema validation error message on shape mismatch", () => {
-    const bad = { route: validRoute, days: [{ day: "one" }], budget: validBudget };
+    const bad = { route: validRoute, days: [{ day: "one" }] };
     expect(() => parseAndValidate(JSON.stringify(bad))).toThrow(/schema validation failed/i);
   });
 });

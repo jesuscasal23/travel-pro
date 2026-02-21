@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Travel Pro",
   },
   description:
-    "Plan your dream multi-country trip in minutes. AI-powered itineraries, visa checks, budget tracking, and more.",
+    "Plan your dream multi-country trip in minutes. AI-powered itineraries, visa checks, weather insights, and more.",
   keywords: [
     "travel planning",
     "AI itinerary",

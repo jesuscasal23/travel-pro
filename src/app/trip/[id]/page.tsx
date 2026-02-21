@@ -155,7 +155,6 @@ export default function TripPage({ params }: { params: Params }) {
     );
   }
 
-  const { budget } = itinerary;
   const countries = [...new Set(route.map((r) => r.country))];
   const singleCity = route.length === 1;
   const tripTitle = singleCity ? `${route[0].city}, ${route[0].country}` : countries.join(", ");

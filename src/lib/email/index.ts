@@ -45,7 +45,7 @@ export async function sendWelcomeEmail(to: string, name?: string) {
 /** Send an itinerary ready notification. */
 export async function sendItineraryReadyEmail(
   to: string,
-  opts: { name?: string; destination: string; cities: string[]; dates: string; budget: string; tripId: string }
+  opts: { name?: string; destination: string; cities: string[]; dates: string; tripId: string }
 ) {
   const resend = getResend();
   if (!resend) return;
@@ -59,7 +59,6 @@ export async function sendItineraryReadyEmail(
       destination: opts.destination,
       cities: opts.cities,
       dates: opts.dates,
-      budget: opts.budget,
       itineraryUrl: `${APP_URL}/trip/${opts.tripId}`,
     })
   );

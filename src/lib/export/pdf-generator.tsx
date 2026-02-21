@@ -9,9 +9,8 @@
 //   4. Day-by-day compact table
 //   5. Visa requirements table
 //   6. Weather overview table
-//   7. Budget breakdown table
-//   8. Booking links
-//   9. Footer with page N of M (fixed, every page)
+//   7. Booking links
+//   8. Footer with page N of M (fixed, every page)
 // ============================================================
 
 import React from "react";
@@ -28,11 +27,10 @@ import {
 import {
   sampleItinerary,
   sampleRoute,
-  sampleBudget,
   sampleVisas,
   sampleWeather,
 } from "@/data/sampleData";
-import type { TripDay, CityStop, TripBudget, VisaInfo, CityWeather } from "@/types";
+import type { TripDay, CityStop, VisaInfo, CityWeather } from "@/types";
 
 // ============================================================
 // Tokens
@@ -240,42 +238,6 @@ const styles = StyleSheet.create({
   colWTemp: { width: "20%" },
   colWCond: { width: "50%" },
 
-  // ── Budget ───────────────────────────────────────────────────
-  budgetRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: BORDER,
-  },
-  budgetRowTotal: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    backgroundColor: TEAL_LIGHT,
-    borderRadius: 3,
-    marginTop: 4,
-  },
-  budgetLabel: {
-    fontSize: 9,
-    color: HEADING,
-    textTransform: "capitalize",
-  },
-  budgetValue: {
-    fontSize: 9,
-    fontFamily: "Helvetica-Bold",
-    color: HEADING,
-  },
-  budgetSavings: {
-    fontSize: 9,
-    color: "#059669",
-    fontFamily: "Helvetica-Bold",
-    paddingHorizontal: 8,
-    paddingTop: 4,
-  },
-
   // ── Booking links ─────────────────────────────────────────────
   bookingGrid: {
     flexDirection: "row",
@@ -437,37 +399,6 @@ function WeatherTable({ weather }: { weather: CityWeather[] }) {
   );
 }
 
-function BudgetTable({ budget }: { budget: TripBudget }) {
-  const lineItems = [
-    { label: "Flights", value: budget.flights },
-    { label: "Accommodation", value: budget.accommodation },
-    { label: "Activities", value: budget.activities },
-    { label: "Food", value: budget.food },
-    { label: "Transport", value: budget.transport },
-  ];
-  const savings = budget.budget - budget.total;
-
-  return (
-    <View>
-      {lineItems.map((item, i) => (
-        <View key={item.label} style={[styles.budgetRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
-          <Text style={styles.budgetLabel}>{item.label}</Text>
-          <Text style={styles.budgetValue}>€{item.value.toLocaleString()}</Text>
-        </View>
-      ))}
-      <View style={styles.budgetRowTotal}>
-        <Text style={[styles.budgetLabel, { fontFamily: "Helvetica-Bold" }]}>Total</Text>
-        <Text style={[styles.budgetValue, { color: TEAL }]}>€{budget.total.toLocaleString()}</Text>
-      </View>
-      {savings > 0 && (
-        <Text style={styles.budgetSavings}>
-          ✓ €{savings.toLocaleString()} under budget
-        </Text>
-      )}
-    </View>
-  );
-}
-
 function BookingLinks() {
   const bookings = [
     {
@@ -517,7 +448,6 @@ export interface TripPDFDocumentProps {
   /** Optionally override sample data with real AI-generated itinerary */
   days?: TripDay[];
   route?: CityStop[];
-  budget?: TripBudget;
   visas?: VisaInfo[];
   weather?: CityWeather[];
   tripTitle?: string;
@@ -527,7 +457,6 @@ export interface TripPDFDocumentProps {
 export function TripPDFDocument({
   days = sampleItinerary,
   route = sampleRoute,
-  budget = sampleBudget,
   visas = sampleVisas,
   weather = sampleWeather,
   tripTitle = "Japan, Vietnam & Thailand",
@@ -595,12 +524,6 @@ export function TripPDFDocument({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Expected Weather</Text>
           <WeatherTable weather={weather} />
-        </View>
-
-        {/* ── Budget breakdown ───────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Budget Breakdown</Text>
-          <BudgetTable budget={budget} />
         </View>
 
         {/* ── Booking links ──────────────────────────────────── */}

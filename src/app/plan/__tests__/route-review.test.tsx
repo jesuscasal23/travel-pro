@@ -106,8 +106,7 @@ function setMultiCityDetailsStep() {
       destinationLng: 0,
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
-      flexibleDates: false,
-      budget: 10000,
+
       travelers: 2,
       isGenerating: false,
       generationStep: 0,
@@ -134,8 +133,7 @@ function setSingleCityDetailsStep() {
       region: "",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
-      flexibleDates: false,
-      budget: 10000,
+
       travelers: 2,
       isGenerating: false,
       generationStep: 0,

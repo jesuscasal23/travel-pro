@@ -5,12 +5,11 @@ import Link from "next/link";
 import { Sparkles, Edit3, LayoutList } from "lucide-react";
 import { CityCard } from "../CityCard";
 import { getCityHeroImage } from "@/lib/utils/city-images";
-import type { CityStop, TripBudget } from "@/types";
+import type { CityStop } from "@/types";
 
 interface DesktopHeroProps {
   route: CityStop[];
   totalDays: number;
-  budget: TripBudget;
   countries: string[];
   tripId: string;
   isPartialItinerary: boolean;
@@ -21,7 +20,6 @@ interface DesktopHeroProps {
 export function DesktopHero({
   route,
   totalDays,
-  budget,
   countries,
   tripId,
   isPartialItinerary,
