@@ -49,28 +49,36 @@ export function DesktopTimeline({ day }: DesktopTimelineProps) {
         })}
       </div>
 
-      {/* Connector dots on axis */}
+      {/* Timeline axis with line */}
       <div className="relative h-4">
+        {/* Horizontal line spanning the full axis */}
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-border -translate-y-1/2" />
         {hourMarkers.map((marker) => {
           const pos = getPosition(marker.minutes);
           return (
             <div
               key={marker.minutes}
-              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-border"
+              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-border z-[1]"
               style={{ left: `${pos}%` }}
             />
           );
         })}
         {/* Activity start dots */}
         {timedActivities.map((ta, i) => {
-          const pos = getPosition(ta.startMinutes);
+          const startPos = getPosition(ta.startMinutes);
+          const endPos = getPosition(ta.endMinutes);
           const style = getCategoryStyle(ta.activity.category);
           return (
-            <div
-              key={i}
-              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-background z-10"
-              style={{ left: `${pos}%`, backgroundColor: style.strokeHsl }}
-            />
+            <div key={i}>
+              <div
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-background z-10"
+                style={{ left: `${startPos}%`, backgroundColor: style.strokeHsl }}
+              />
+              <div
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-background z-10"
+                style={{ left: `${endPos}%`, backgroundColor: style.strokeHsl }}
+              />
+            </div>
           );
         })}
       </div>
@@ -143,21 +151,22 @@ function SVGConnectors({
   const height = 24;
   const paths: string[] = [];
 
-  // Calculate block start positions (cumulative widths)
+  // Calculate block start/end positions (cumulative widths) and draw both connectors
   let cumWidth = 0;
-  timedActivities.forEach((ta, i) => {
-    const timePos = getPosition(ta.startMinutes);
-    const blockPos = (cumWidth / totalActivityMinutes) * 100;
+  timedActivities.forEach((ta) => {
+    const blockStart = (cumWidth / totalActivityMinutes) * 100;
     cumWidth += ta.durationMinutes;
+    const blockEnd = (cumWidth / totalActivityMinutes) * 100;
 
-    // SVG bezier curve from (timePos, 0) to (blockPos, height)
-    const x1 = timePos;
-    const y1 = 0;
-    const x2 = blockPos;
-    const y2 = height;
     const cpY = height * 0.5;
 
-    paths.push(`M ${x1} ${y1} C ${x1} ${cpY}, ${x2} ${cpY}, ${x2} ${y2}`);
+    // Start-time connector: from start time on axis to block left edge
+    const x1 = getPosition(ta.startMinutes);
+    paths.push(`M ${x1} 0 C ${x1} ${cpY}, ${blockStart} ${cpY}, ${blockStart} ${height}`);
+
+    // End-time connector: from end time on axis to block right edge
+    const x2 = getPosition(ta.endMinutes);
+    paths.push(`M ${x2} 0 C ${x2} ${cpY}, ${blockEnd} ${cpY}, ${blockEnd} ${height}`);
   });
 
   return (
@@ -168,7 +177,7 @@ function SVGConnectors({
       style={{ height: `${height}px` }}
     >
       {paths.map((d, i) => {
-        const style = getCategoryStyle(timedActivities[i].activity.category);
+        const style = getCategoryStyle(timedActivities[Math.floor(i / 2)].activity.category);
         return (
           <path
             key={i}

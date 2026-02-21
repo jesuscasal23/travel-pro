@@ -4,7 +4,7 @@ import { use, useState, useEffect, useRef } from "react";
 import { usePostHog } from "posthog-js/react";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useAuthStatus, useTripGeneration, useVisaEnrichment, useWeatherEnrichment } from "@/hooks/api";
+import { useAuthStatus, useTripGeneration, useCityActivityGeneration, useVisaEnrichment, useWeatherEnrichment } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { MobileLayout } from "@/components/trip/mobile/MobileLayout";
@@ -70,6 +70,21 @@ export default function TripPage({ params }: { params: Params }) {
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPartialItinerary]);
+
+  // ── Per-city activity generation ─────────────────────────────────────────────
+  const cityActivityMutation = useCityActivityGeneration();
+  const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);
+
+  const handleGenerateActivities = (cityId: string, cityName: string) => {
+    setGeneratingCityId(cityId);
+    const profile = { nationality, homeAirport, travelStyle, interests };
+    cityActivityMutation.mutate(
+      { tripId: id, cityId, cityName, profile },
+      {
+        onSettled: () => setGeneratingCityId(null),
+      },
+    );
+  };
 
   // ── Background enrichment via React Query ──────────────────────────────────
   const shouldEnrich = !!(
@@ -212,6 +227,8 @@ export default function TripPage({ params }: { params: Params }) {
     weatherLoading: weatherLoading && shouldEnrich,
     visaError: !!visaError,
     weatherError: !!weatherError,
+    generatingCityId,
+    onGenerateActivities: handleGenerateActivities,
   };
 
   if (isMobile) {

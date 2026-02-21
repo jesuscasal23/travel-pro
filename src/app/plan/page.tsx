@@ -24,39 +24,11 @@ import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSche
 import type { CityWithDays } from "@/lib/flights/types";
 import { RouteReviewStep } from "@/components/plan/RouteReviewStep";
 
-const multiCityGenerationSteps = [
-  { stage: "route",      emoji: "🧭", label: "Optimising your route" },
-  { stage: "activities", emoji: "📅", label: "Planning daily activities" },
-  { stage: "done",       emoji: "✅", label: "Your trip is ready!" },
-];
-
-const singleCityGenerationSteps = [
-  { stage: "activities", emoji: "🏘️", label: "Exploring neighborhoods" },
-  { stage: "planning",   emoji: "📅", label: "Planning daily activities" },
-  { stage: "done",       emoji: "✅", label: "Your trip is ready!" },
-];
-
-// TODO: Replace with verified facts (these are AI-generated placeholders)
-const funFacts = [
-  "Japan has over 6,800 islands, but most visitors only explore four of the main ones.",
-  "Thailand's full ceremonial name is the longest country name in the world — 168 characters.",
-  "Vietnam is home to the world's largest cave, Hang Son Doong, big enough to fit a 747.",
-  "Iceland has no mosquitoes — one of the few inhabited places on Earth without them.",
-  "New Zealand was the last major landmass to be settled by humans, around 1250 AD.",
-  "Costa Rica has no army — it was abolished in 1948 and the budget goes to education.",
-  "Bhutan measures its success by Gross National Happiness instead of GDP.",
-  "The shortest commercial flight in the world is 57 seconds, between two Scottish islands.",
-  "Colombia has the most public holidays of any country in the world — 18 per year.",
-  "Finland has more saunas than cars — roughly 3.3 million saunas for 5.5 million people.",
-];
-
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
   const [direction, setDirection] = useState(1);
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const [funFactIndex, setFunFactIndex] = useState(0);
 
   const isGuest = isAuthenticated === false;
   const [routeCities, setRouteCities] = useState<CityStop[] | null>(null);
@@ -81,7 +53,6 @@ export default function PlanPage() {
     budget, setBudget,
     travelers, setTravelers,
     isGenerating, setIsGenerating,
-    generationStep, setGenerationStep,
     setCurrentTripId, setItinerary,
   } = useTripStore();
 
@@ -92,15 +63,6 @@ export default function PlanPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clearError = (field: string) => setErrors(prev => { const { [field]: _, ...rest } = prev; return rest; });
 
-  // Cycle fun facts during generation
-  useEffect(() => {
-    if (!isGenerating) return;
-    const interval = setInterval(() => {
-      setFunFactIndex((prev) => (prev + 1) % funFacts.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [isGenerating]);
-
   const isSingleCity = tripType === "single-city";
   const isSingleCountry = tripType === "single-country";
   const isMultiCountry = tripType === "multi-city";
@@ -108,7 +70,6 @@ export default function PlanPage() {
   const totalSteps = isGuest
     ? (isSingleCity ? 4 : 5)
     : (isSingleCity ? 2 : 3);
-  const generationSteps = isSingleCity ? singleCityGenerationSteps : multiCityGenerationSteps;
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
@@ -277,8 +238,6 @@ export default function PlanPage() {
       tripType, region, destination, duration_days: dayCount, budget_eur: budget, travelers,
     });
     setIsGenerating(true);
-    setGenerationStep(0);
-    setGenerationError(null);
 
     // ── Get cities
     let route: CityStop[] = [];
@@ -330,214 +289,19 @@ export default function PlanPage() {
       setIsGenerating(false);
       router.push(`/trip/${trip.id}`);
     } catch {
-      // Trip creation failed
+      // Trip creation failed — button will re-enable
       setIsGenerating(false);
-      setGenerationError("Something went wrong. Please try again.");
     }
   }, [
     isSingleCity, isSingleCountry, isMultiCountry,
     tripType, region, destination, destinationCountry, destinationCountryCode,
     dateStart, dateEnd, flexibleDates, budget, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
-    setIsGenerating, setGenerationStep, setCurrentTripId, setItinerary,
+    setIsGenerating, setCurrentTripId, setItinerary,
     citiesToRoute, singleCityRoute, buildPartialItinerary,
     fetchRoute, createTripMutation,
     router, posthog,
   ]);
-
-  // Generation loading screen
-  if (isGenerating || generationError) {
-    const displaySteps = generationSteps.slice(0, -1); // exclude "done"
-    const progressPercent = Math.min(100, Math.round((generationStep / displaySteps.length) * 100));
-    const currentStepNum = Math.min(generationStep + 1, displaySteps.length);
-    const remainingSeconds = Math.max(0, (displaySteps.length - generationStep) * 6);
-
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="max-w-md w-full px-4">
-
-          {/* Animated globe with orbiting airplane */}
-          {!generationError && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="relative w-[120px] h-[120px] mx-auto mb-8"
-            >
-              {/* Outer dashed ring */}
-              <motion.div
-                className="absolute -inset-2.5 border-2 border-dashed border-border rounded-full"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-              />
-              {/* Inner spinning ring */}
-              <motion.div
-                className="absolute inset-0 rounded-full border-[3px] border-border border-t-primary"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              />
-              {/* Globe emoji */}
-              <motion.div
-                className="absolute inset-0 flex items-center justify-center text-5xl"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                🌏
-              </motion.div>
-              {/* Airplane orbit */}
-              <motion.div
-                className="absolute -inset-[18px]"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              >
-                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-lg">✈️</span>
-              </motion.div>
-            </motion.div>
-          )}
-
-          {/* Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
-          >
-            <h2 className="text-2xl font-bold text-foreground">
-              {generationError ? "Generation failed" : "Creating your itinerary"}
-            </h2>
-            <p className="text-muted-foreground mt-1.5 text-sm">
-              {generationError ? generationError : "Crafting the perfect trip just for you"}
-            </p>
-          </motion.div>
-
-          {/* Progress bar */}
-          {!generationError && (
-            <div className="mb-8">
-              <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full bg-linear-to-r from-primary to-teal-400"
-                  initial={{ width: "0%" }}
-                  animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                />
-              </div>
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                <span>Step {currentStepNum} of {displaySteps.length}</span>
-                <span>~{remainingSeconds}s remaining</span>
-              </div>
-            </div>
-          )}
-
-          {/* Steps */}
-          <div className="space-y-3">
-            {displaySteps.map((gs, i) => {
-              const isErrorStep = !!(generationError && i === generationStep);
-              const isCompleted = i < generationStep && !isErrorStep;
-              const isActive = i === generationStep && !generationError;
-              const isPending = i > generationStep;
-
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: isPending ? 0.35 : 1, x: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.3 }}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300
-                    ${isErrorStep ? "bg-accent/10 ring-1 ring-accent/30" : ""}
-                    ${isCompleted ? "bg-primary/[0.06]" : ""}
-                    ${isActive ? "bg-primary/10 shadow-[0_0_0_1px_rgba(13,115,119,0.2)]" : ""}
-                  `}
-                >
-                  <motion.div
-                    className={`w-10 h-10 rounded-[10px] flex items-center justify-center text-xl shrink-0 transition-all duration-300
-                      ${isErrorStep ? "bg-accent/20" : ""}
-                      ${isCompleted ? "bg-primary/10" : ""}
-                      ${isActive ? "bg-primary" : ""}
-                      ${isPending ? "bg-secondary" : ""}
-                    `}
-                    animate={isActive ? {
-                      boxShadow: [
-                        "0 0 0 0 rgba(13,115,119,0.3)",
-                        "0 0 0 8px rgba(13,115,119,0)",
-                        "0 0 0 0 rgba(13,115,119,0.3)",
-                      ],
-                    } : {}}
-                    transition={isActive ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
-                  >
-                    {isErrorStep ? "❌" : gs.emoji}
-                  </motion.div>
-
-                  <span className={`font-medium text-sm flex-1 text-left
-                    ${isErrorStep ? "text-accent" : isPending ? "text-muted-foreground" : "text-foreground"}
-                  `}>
-                    {isErrorStep ? "Generation failed" : gs.label}
-                  </span>
-
-                  {isCompleted && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                      className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0"
-                    >
-                      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.5">
-                        <polyline points="3.5 8 6.5 11 12.5 5" />
-                      </svg>
-                    </motion.div>
-                  )}
-
-                  {isActive && (
-                    <div className="w-5 h-5 border-2 border-border border-t-primary rounded-full animate-spin shrink-0" />
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Fun fact */}
-          {!generationError && (
-            <div className="mt-9 p-4 bg-secondary rounded-xl text-center">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1.5">
-                Did you know?
-              </div>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={funFactIndex}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="text-[13px] text-muted-foreground leading-relaxed"
-                >
-                  {funFacts[funFactIndex]}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* Error actions */}
-          {generationError && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8 flex flex-col items-center gap-3"
-            >
-              <Button onClick={() => handleGenerate()} className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                Try Again
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { setGenerationError(null); setIsGenerating(false); }}
-              >
-                Back to questionnaire
-              </Button>
-            </motion.div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -737,16 +501,16 @@ export default function PlanPage() {
                 Continue
               </Button>
             ) : (
-              <Button onClick={() => handleGenerate()} disabled={!canAdvance()} className="gap-2">
+              <Button onClick={() => handleGenerate()} disabled={!canAdvance()} loading={isGenerating} className="gap-2">
                 <Sparkles className="w-4 h-4" />
-                Generate My Itinerary
+                {isGenerating ? "Creating trip..." : "Generate My Itinerary"}
               </Button>
             )
           )}
         </div>
 
-        {generationError && (
-          <p className="mt-4 text-sm text-accent text-center">{generationError}</p>
+        {createTripMutation.error && (
+          <p className="mt-4 text-sm text-accent text-center">Something went wrong. Please try again.</p>
         )}
       </div>
     </div>

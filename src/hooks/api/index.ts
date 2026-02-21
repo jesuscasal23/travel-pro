@@ -7,6 +7,7 @@ export { useAuthStatus } from "./useAuth";
 export { useTrips } from "./useTrips";
 export { useCreateTrip, useSaveTripEdit, useShareTrip } from "./useTripMutations";
 export { useTripGeneration } from "./useTripGeneration";
+export { useCityActivityGeneration } from "./useCityActivityGeneration";
 export { usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey } from "./useRouteSelection";
 
 // Enrichment

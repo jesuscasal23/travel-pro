@@ -8,13 +8,16 @@ import { DayPills } from "../DayPills";
 import { ActivityCard } from "../ActivityCard";
 import { distributeActivities } from "@/lib/utils/time-distribution";
 import { groupDaysByCity } from "@/lib/utils/group-days-by-city";
+import { cityHasActivities } from "@/lib/utils/city-activities";
 import type { Itinerary, CityWeather } from "@/types";
 
 interface MobileJourneyTabProps {
   itinerary: Itinerary;
+  generatingCityId?: string | null;
+  onGenerateActivities?: (cityId: string, cityName: string) => void;
 }
 
-export function MobileJourneyTab({ itinerary }: MobileJourneyTabProps) {
+export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivities }: MobileJourneyTabProps) {
   const { route, days, flightLegs, weatherData } = itinerary;
   const [activeCityIdx, setActiveCityIdx] = useState(0);
   const cityScrollRef = useRef<HTMLDivElement>(null);
@@ -92,44 +95,73 @@ export function MobileJourneyTab({ itinerary }: MobileJourneyTabProps) {
       {cityGroups.map((group, groupIdx) => {
         const cityStop = route.find((r) => r.city === group.city) ?? route[0];
         const weather = weatherMap.get(group.city);
+        const hasActivities = cityHasActivities(itinerary, cityStop.id);
+        const isGeneratingThis = generatingCityId === cityStop.id;
         const activeDayNum = activeDayMap[groupIdx] ?? group.days[0]?.day;
         const activeDay = group.days.find((d) => d.day === activeDayNum) ?? group.days[0];
-        const timedActivities = activeDay ? distributeActivities(activeDay) : [];
+        const timedActivities = activeDay && hasActivities ? distributeActivities(activeDay) : [];
 
         return (
           <div key={group.cityId + groupIdx} className="px-4 mb-6">
             <CityHeader city={cityStop} weather={weather} variant="mobile" />
 
-            <DayPills
-              days={group.days}
-              activeDay={activeDayNum}
-              onDayClick={(dayNum) =>
-                setActiveDayMap((prev) => ({ ...prev, [groupIdx]: dayNum }))
-              }
-            />
+            {hasActivities ? (
+              <>
+                <DayPills
+                  days={group.days}
+                  activeDay={activeDayNum}
+                  onDayClick={(dayNum) =>
+                    setActiveDayMap((prev) => ({ ...prev, [groupIdx]: dayNum }))
+                  }
+                />
 
-            {/* Stacked activity cards */}
-            {activeDay && (
-              <div>
-                {/* Travel banner */}
-                {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary rounded-lg px-3 py-2 mb-2">
-                    <span className="text-primary">✈️</span>
-                    <span>
-                      {activeDay.travelFrom} → {activeDay.travelTo}
-                      {activeDay.travelDuration && <> · {activeDay.travelDuration}</>}
-                    </span>
+                {/* Stacked activity cards */}
+                {activeDay && (
+                  <div>
+                    {/* Travel banner */}
+                    {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary rounded-lg px-3 py-2 mb-2">
+                        <span className="text-primary">✈️</span>
+                        <span>
+                          {activeDay.travelFrom} → {activeDay.travelTo}
+                          {activeDay.travelDuration && <> · {activeDay.travelDuration}</>}
+                        </span>
+                      </div>
+                    )}
+
+                    {timedActivities.map((ta, i) => (
+                      <ActivityCard
+                        key={i}
+                        timedActivity={ta}
+                        isFirst={i === 0}
+                        isLast={i === timedActivities.length - 1}
+                      />
+                    ))}
                   </div>
                 )}
-
-                {timedActivities.map((ta, i) => (
-                  <ActivityCard
-                    key={i}
-                    timedActivity={ta}
-                    isFirst={i === 0}
-                    isLast={i === timedActivities.length - 1}
-                  />
+              </>
+            ) : isGeneratingThis ? (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span>Generating activities for {cityStop.city}...</span>
+                </div>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <div key={i} className="h-14 rounded-xl bg-secondary animate-pulse" />
                 ))}
+              </div>
+            ) : (
+              <div className="mt-3">
+                <button
+                  onClick={() => onGenerateActivities?.(cityStop.id, cityStop.city)}
+                  className="btn-primary flex items-center gap-2 text-sm w-full justify-center"
+                >
+                  <span>✨</span>
+                  Get activity recommendations
+                </button>
+                <p className="text-xs text-muted-foreground mt-1.5 text-center">
+                  {cityStop.days} days · Tap for personalized suggestions
+                </p>
               </div>
             )}
           </div>

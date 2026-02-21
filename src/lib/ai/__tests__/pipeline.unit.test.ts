@@ -180,6 +180,43 @@ describe("parseAndValidate", () => {
     expect(result.days[0].activities[0].cost).toBe("Free");
   });
 
+  // ── Route-only itinerary (empty activities) ─────────────────────────────────
+
+  it("accepts a route-only itinerary with empty activities arrays", () => {
+    const routeOnly = {
+      route: validRoute,
+      days: [
+        { day: 1, date: "Oct 1", city: "Tokyo", activities: [] },
+        { day: 2, date: "Oct 2", city: "Tokyo", activities: [] },
+        { day: 3, date: "Oct 3", city: "Tokyo", activities: [] },
+      ],
+      budget: validBudget,
+    };
+    const result = parseAndValidate(JSON.stringify(routeOnly));
+    expect(result.route).toHaveLength(1);
+    expect(result.days).toHaveLength(3);
+    expect(result.days[0].activities).toHaveLength(0);
+    expect(result.days[1].activities).toHaveLength(0);
+  });
+
+  it("accepts a route-only travel day with empty activities", () => {
+    const routeOnly = {
+      route: [
+        ...validRoute,
+        { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 2, countryCode: "JP" },
+      ],
+      days: [
+        { day: 1, date: "Oct 1", city: "Tokyo", activities: [] },
+        { day: 2, date: "Oct 2", city: "Kyoto", isTravel: true, travelFrom: "Tokyo", travelTo: "Kyoto", travelDuration: "2h 15min", activities: [] },
+      ],
+      budget: validBudget,
+    };
+    const result = parseAndValidate(JSON.stringify(routeOnly));
+    expect(result.days[1].isTravel).toBe(true);
+    expect(result.days[1].travelFrom).toBe("Tokyo");
+    expect(result.days[1].activities).toHaveLength(0);
+  });
+
   // ── Missing top-level fields ──────────────────────────────────────────────
 
   it("throws when route array is missing", () => {

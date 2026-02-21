@@ -4,7 +4,7 @@
 // ============================================================
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
-import { generateCoreItinerary } from "@/lib/ai/pipeline";
+import { generateRouteOnly } from "@/lib/ai/pipeline";
 import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
 import { ProfileInputSchema, CityWithDaysInputSchema } from "@/lib/api/schemas";
 import { tripToIntent } from "@/lib/services/trip-service";
@@ -54,16 +54,10 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
       };
 
       try {
-        if (isSingleCity) {
-          send({ stage: "activities", message: "Exploring neighborhoods...", pct: 20 });
-        } else {
-          send({ stage: "route", message: "Optimising your route...", pct: 15 });
-          await sleep(500);
-          send({ stage: "activities", message: "Planning daily activities...", pct: 35 });
-        }
+        send({ stage: "route", message: "Planning your route...", pct: 20 });
 
-        // Run core generation (no enrichment — visa/weather fetched by client in background)
-        const itinerary = await generateCoreItinerary(profile as UserProfile, intent, cities);
+        // Run route-only generation (no activities, no enrichment)
+        const itinerary = await generateRouteOnly(profile as UserProfile, intent, cities);
 
         // Save + activate in one atomic transaction
         await activateGeneratedItinerary(itineraryId, params.id, itinerary);

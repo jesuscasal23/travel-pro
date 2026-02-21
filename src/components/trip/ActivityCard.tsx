@@ -15,16 +15,13 @@ export function ActivityCard({ timedActivity, isFirst, isLast }: ActivityCardPro
   const { activity, startTime, endTime, durationMinutes } = timedActivity;
   const style = getCategoryStyle(activity.category);
 
-  // Duration-based min height: at least 56px, scale with duration
   const durationHours = durationMinutes / 60;
-  const minHeight = Math.max(durationHours * 40, 56);
 
   return (
     <div
       className={`relative border-x border-t border-border bg-card px-4 py-3 ${
         isFirst ? "rounded-t-xl" : ""
       } ${isLast ? "border-b rounded-b-xl" : ""}`}
-      style={{ minHeight: `${minHeight}px` }}
     >
       {/* Category color left accent */}
       <div

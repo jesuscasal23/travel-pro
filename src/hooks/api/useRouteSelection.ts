@@ -14,6 +14,8 @@ interface RouteSelectionParams {
     id: string;
     tripType: string;
     region: string;
+    destinationCountry?: string;
+    destinationCountryCode?: string;
     dateStart: string;
     dateEnd: string;
     flexibleDates: boolean;
@@ -37,6 +39,7 @@ async function fetchRouteSelection(
 
 function buildCacheKey(params: {
   region: string;
+  destinationCountry?: string;
   dateStart: string;
   dateEnd: string;
   travelStyle: string;

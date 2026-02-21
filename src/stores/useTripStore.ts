@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TravelStyle, TripType, Itinerary } from "@/types";
+import type { TravelStyle, TripType, Itinerary, TripDay } from "@/types";
 
 interface TripStoreState {
   // Onboarding
@@ -69,6 +69,9 @@ interface TripStoreActions {
 
   // Display
   setDisplayName: (name: string) => void;
+
+  // City activities
+  mergeCityActivities: (cityName: string, updatedDays: TripDay[]) => void;
 
   // Reset
   resetPlan: () => void;
@@ -146,6 +149,18 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
 
       // Display
       setDisplayName: (name) => set({ displayName: name }),
+
+      // City activities — merge generated activities for one city into the itinerary
+      mergeCityActivities: (cityName, updatedDays) =>
+        set((state) => {
+          if (!state.itinerary) return {};
+          const mergedDays = state.itinerary.days.map((day) => {
+            if (day.city !== cityName) return day;
+            const updated = updatedDays.find((u) => u.day === day.day);
+            return updated ? { ...day, activities: updated.activities } : day;
+          });
+          return { itinerary: { ...state.itinerary, days: mergedDays } };
+        }),
 
       // Reset plan to defaults
       resetPlan: () => set(initialPlanState),

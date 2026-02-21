@@ -270,15 +270,32 @@ export function RouteReviewStep({
         </span>
       </div>
       {overBudget && (
-        <p className="text-xs text-accent mt-2">
-          Your city days exceed the trip duration. Consider reducing days or removing a city.
+        <p className="text-xs text-muted-foreground mt-2">
+          Days will be adjusted automatically to fit your trip duration.
         </p>
       )}
 
       {/* Generate button */}
       <div className="mt-8">
         <Button
-          onClick={() => onConfirm(cities)}
+          onClick={() => {
+            // Auto-normalize days to fit trip duration
+            let finalCities = cities;
+            const total = cities.reduce((s, c) => s + c.days, 0);
+            if (tripDuration > 0 && total > tripDuration) {
+              const scale = tripDuration / total;
+              let remaining = tripDuration;
+              finalCities = cities.map((c, i) => {
+                if (i === cities.length - 1) {
+                  return { ...c, days: Math.max(1, remaining) };
+                }
+                const scaled = Math.max(1, Math.round(c.days * scale));
+                remaining -= scaled;
+                return { ...c, days: scaled };
+              });
+            }
+            onConfirm(finalCities);
+          }}
           disabled={cities.length < 2}
           className="w-full gap-2"
         >

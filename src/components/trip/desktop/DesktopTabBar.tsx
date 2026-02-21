@@ -35,7 +35,7 @@ export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
   );
 
   return (
-    <div className="sticky top-[108px] z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-[960px] mx-auto px-4 py-3">
         <div
           ref={containerRef}

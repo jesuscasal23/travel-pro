@@ -127,7 +127,7 @@ export interface InterestOption {
 export type TravelStyle = "backpacker" | "comfort" | "luxury";
 
 /** Trip type — single-city (one destination) or multi-city (region-based route) */
-export type TripType = "single-city" | "multi-city";
+export type TripType = "single-city" | "single-country" | "multi-city";
 
 /** Full itinerary result from AI pipeline */
 export interface Itinerary {

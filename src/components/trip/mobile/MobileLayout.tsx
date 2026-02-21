@@ -31,6 +31,8 @@ export function MobileLayout({
   weatherLoading,
   visaError,
   weatherError,
+  generatingCityId,
+  onGenerateActivities,
 }: TripLayoutProps) {
   const [activeTab, setActiveTab] = useState<MobileTab>("journey");
   const { route, budget, days } = itinerary;
@@ -106,10 +108,14 @@ export function MobileLayout({
         {activeTab === "journey" && (
           isPartialItinerary ? (
             <div className="px-4 pt-4">
-              <ItinerarySkeletonTab route={route} isGenerating={isGenerating} />
+              <ItinerarySkeletonTab route={route} />
             </div>
           ) : (
-            <MobileJourneyTab itinerary={itinerary} />
+            <MobileJourneyTab
+              itinerary={itinerary}
+              generatingCityId={generatingCityId}
+              onGenerateActivities={onGenerateActivities}
+            />
           )
         )}
         {activeTab === "prep" && (
@@ -126,7 +132,7 @@ export function MobileLayout({
         {activeTab === "money" && (
           <div className="px-4 py-4 pb-20">
             {isPartialItinerary ? (
-              <BudgetSkeletonTab isGenerating={isGenerating} />
+              <BudgetSkeletonTab />
             ) : (
               <BudgetTab budget={budget} route={route} days={days} />
             )}

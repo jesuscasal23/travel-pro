@@ -1,9 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import type { CityStop } from "@/types";
 
-export function ItinerarySkeletonTab({ route, isGenerating }: { route: CityStop[]; isGenerating: boolean }) {
+export function ItinerarySkeletonTab({ route }: { route: CityStop[] }) {
   const cityGroups = route.reduce<{ city: string; startDay: number; endDay: number; days: number }[]>((acc, city) => {
     const startDay = acc.length > 0 ? acc[acc.length - 1].endDay + 1 : 1;
     acc.push({ city: city.city, startDay, endDay: startDay + city.days - 1, days: city.days });
@@ -12,12 +11,6 @@ export function ItinerarySkeletonTab({ route, isGenerating }: { route: CityStop[
 
   return (
     <div className="space-y-3">
-      {isGenerating && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-primary/5 rounded-xl mb-4">
-          <Loader2 className="w-4 h-4 text-primary animate-spin" />
-          <span className="text-sm text-primary font-medium">Generating your daily itinerary...</span>
-        </div>
-      )}
       {cityGroups.map((group) =>
         Array.from({ length: group.days }, (_, i) => {
           const dayNum = group.startDay + i;
@@ -46,15 +39,9 @@ export function ItinerarySkeletonTab({ route, isGenerating }: { route: CityStop[
   );
 }
 
-export function BudgetSkeletonTab({ isGenerating }: { isGenerating: boolean }) {
+export function BudgetSkeletonTab() {
   return (
     <div className="space-y-8">
-      {isGenerating && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-primary/5 rounded-xl">
-          <Loader2 className="w-4 h-4 text-primary animate-spin" />
-          <span className="text-sm text-primary font-medium">Calculating your budget...</span>
-        </div>
-      )}
       <div className="bg-background border border-border rounded-xl p-6 text-center animate-pulse">
         <div className="w-24 h-4 bg-secondary rounded mx-auto" />
         <div className="w-40 h-12 bg-secondary rounded mx-auto mt-3" />

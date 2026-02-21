@@ -44,6 +44,8 @@ export function DesktopLayout({
   weatherError,
   activeCityIndex,
   onCityClick,
+  generatingCityId,
+  onGenerateActivities,
 }: DesktopLayoutProps) {
   const [activeTab, setActiveTab] = useState<DesktopTab>("journey");
   const { route, budget, days } = itinerary;
@@ -133,10 +135,14 @@ export function DesktopLayout({
         {activeTab === "journey" && (
           isPartialItinerary ? (
             <div className="max-w-[960px] mx-auto px-4 py-6">
-              <ItinerarySkeletonTab route={route} isGenerating={isGenerating} />
+              <ItinerarySkeletonTab route={route} />
             </div>
           ) : (
-            <DesktopJourneyTab itinerary={itinerary} />
+            <DesktopJourneyTab
+              itinerary={itinerary}
+              generatingCityId={generatingCityId}
+              onGenerateActivities={onGenerateActivities}
+            />
           )
         )}
         {activeTab === "prep" && (
@@ -153,7 +159,7 @@ export function DesktopLayout({
         {activeTab === "spending" && (
           <div className="max-w-[960px] mx-auto px-4 py-6">
             {isPartialItinerary ? (
-              <BudgetSkeletonTab isGenerating={isGenerating} />
+              <BudgetSkeletonTab />
             ) : (
               <BudgetTab budget={budget} route={route} days={days} />
             )}

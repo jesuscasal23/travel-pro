@@ -100,8 +100,11 @@ Distribute the trip days across these cities within the min–max ranges above.`
     : "";
 
   // When cities are pre-selected (skeleton or Haiku), lock the route; otherwise let Claude choose.
+  const isCountryTrip = intent.tripType === "single-country" && intent.destinationCountry;
   const cityRequirement = cities
     ? "Use EXACTLY the cities listed in the CITY SCHEDULE above — do not add or remove cities."
+    : isCountryTrip
+    ? `1. Choose 3–6 cities within ${intent.destinationCountry} that make geographic sense and are popular for this type of trip`
     : "1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip";
 
   const budgetRequirement = skeleton
@@ -117,7 +120,7 @@ Distribute the trip days across these cities within the min–max ranges above.`
 - Interests: ${profile.interests.length > 0 ? profile.interests.join(", ") : "general travel"}
 
 **Trip Parameters:**
-- Region: ${intent.region}
+- ${isCountryTrip ? `Country: ${intent.destinationCountry}` : `Region: ${intent.region}`}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
 - Total budget: €${intent.budget.toLocaleString()} for ${intent.travelers} traveler(s)

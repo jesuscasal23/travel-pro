@@ -25,10 +25,21 @@ export async function selectRoute(
   // Since N is unknown at this stage, approximate as totalDays × 0.7
   const sightseeingDays = Math.round(durationDays * 0.7);
 
+  const isCountryTrip = intent.tripType === "single-country" && intent.destinationCountry;
+  const regionLine = isCountryTrip
+    ? `- Country: ${intent.destinationCountry} (select cities ONLY within this country)`
+    : `- Region: ${intent.region}`;
+  const cityCountRule = isCountryTrip
+    ? "- Choose 3–6 cities in geographic order that minimise backtracking"
+    : "- Choose 4–7 cities in geographic order that minimise backtracking";
+  const countryConstraint = isCountryTrip
+    ? `\n- ALL cities MUST be within ${intent.destinationCountry}. Do NOT include cities from other countries.`
+    : "";
+
   const prompt = `Select the best cities for this trip and return ONLY a JSON array (no other text).
 
 Trip details:
-- Region: ${intent.region}
+${regionLine}
 - Total trip days: ${durationDays}
 - Estimated sightseeing days across all cities: ~${sightseeingDays}
 - Travel style: ${profile.travelStyle}
@@ -36,7 +47,7 @@ Trip details:
 - Home airport: ${profile.homeAirport}
 
 Rules:
-- Choose 4–7 cities in geographic order that minimise backtracking
+${cityCountRule}${countryConstraint}
 - Provide the main international airport IATA code for each city
 - minDays and maxDays: realistic stay range with a difference of 2–3 days
 - The sum of minDays across all cities should be roughly ${Math.round(sightseeingDays * 0.8)}
