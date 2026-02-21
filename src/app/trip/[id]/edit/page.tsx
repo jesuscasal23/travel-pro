@@ -16,6 +16,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Navbar } from "@/components/Navbar";
 import { Button, BackLink, FormField } from "@/components/ui";
+import { CityCombobox } from "@/components/ui/CityCombobox";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useTripStore } from "@/stores/useTripStore";
 import { BudgetBreakdown } from "@/components/trip/BudgetBreakdown";
@@ -23,6 +24,7 @@ import { TripNotFound } from "@/components/trip/TripNotFound";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 import { useSaveTripEdit } from "@/hooks/api";
 import type { CityStop } from "@/types";
+import type { CityEntry } from "@/data/cities";
 
 type Params = Promise<{ id: string }>;
 
@@ -110,11 +112,13 @@ export default function EditPage({ params }: { params: Params }) {
   const route = itinerary?.route ?? [];
 
   const setItinerary = useTripStore((s) => s.setItinerary);
+  const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
 
   const saveMutation = useSaveTripEdit();
 
   const [cities, setCities] = useState<CityStop[]>(itinerary ? [...itinerary.route] : []);
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
+  const [showAddCity, setShowAddCity] = useState(false);
 
   const updateDays = (cityId: string, delta: number) => {
     setCities((prev) =>
@@ -130,6 +134,25 @@ export default function EditPage({ params }: { params: Params }) {
   const toggleExpanded = (city: string) => {
     setExpandedCity((prev) => (prev === city ? null : city));
   };
+
+  const addCity = useCallback((entry: CityEntry) => {
+    const isDuplicate = cities.some(
+      (c) => c.city === entry.city && c.countryCode === entry.countryCode
+    );
+    if (isDuplicate) return;
+
+    const newCity: CityStop = {
+      id: crypto.randomUUID(),
+      city: entry.city,
+      country: entry.country,
+      countryCode: entry.countryCode,
+      lat: entry.lat,
+      lng: entry.lng,
+      days: 3,
+    };
+    setCities((prev) => [...prev, newCity]);
+    setShowAddCity(false);
+  }, [cities]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -152,13 +175,22 @@ export default function EditPage({ params }: { params: Params }) {
     const origIds = route.map((c) => c.id);
     const newIds = cities.map((c) => c.id);
 
-    const removed = origIds.filter((id) => !newIds.includes(id));
-    const reordered = origIds.join(",") !== newIds.join(",") && removed.length === 0;
+    const added = newIds.filter((cid) => !origIds.includes(cid));
+    const removed = origIds.filter((cid) => !newIds.includes(cid));
+    const reordered = origIds.filter((cid) => newIds.includes(cid)).join(",") !== newIds.filter((cid) => origIds.includes(cid)).join(",");
     const daysChanged = cities.some((c) => {
       const orig = route.find((o) => o.id === c.id);
       return orig && orig.days !== c.days;
     });
 
+    if (added.length > 0) {
+      const addedCities = cities.filter((c) => added.includes(c.id));
+      return {
+        editType: "add_city",
+        editPayload: { addedCities: addedCities.map((c) => ({ city: c.city, country: c.country, days: c.days })) },
+        description: `Added ${addedCities.map((c) => c.city).join(", ")}`,
+      };
+    }
     if (removed.length > 0) {
       return {
         editType: "remove_city",
@@ -202,6 +234,9 @@ export default function EditPage({ params }: { params: Params }) {
     const origTotalDays = itinerary.route.reduce((s, c) => s + c.days, 0);
     const ratio = origTotalDays > 0 ? totalDays / origTotalDays : 1;
 
+    // Keep days for existing cities, filter out removed ones
+    const existingDays = itinerary.days.filter((d) => cities.some((c) => c.city === d.city) || d.isTravel);
+
     const updatedData = {
       ...itinerary,
       route: cities,
@@ -218,8 +253,13 @@ export default function EditPage({ params }: { params: Params }) {
           itinerary.budget.transport * ratio
         ),
       },
-      days: itinerary.days.filter((d) => cities.some((c) => c.city === d.city) || d.isTravel),
+      days: existingDays,
     };
+
+    // Flag regeneration if cities were structurally changed (added/removed)
+    if (editType === "add_city" || editType === "remove_city") {
+      setNeedsRegeneration(true);
+    }
 
     // Guest mode: no DB, update Zustand store directly
     if (id === "guest") {
@@ -295,10 +335,30 @@ export default function EditPage({ params }: { params: Params }) {
                       />
                     ))}
 
-                    <button className="w-full border-2 border-dashed border-border rounded-xl p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                      <Plus className="w-6 h-6 mx-auto mb-1" />
-                      <span className="text-sm font-medium">Add a city</span>
-                    </button>
+                    {showAddCity ? (
+                      <div className="card-travel bg-background p-4">
+                        <div className="text-sm font-medium text-foreground mb-2">Search for a city</div>
+                        <CityCombobox
+                          value=""
+                          onChange={addCity}
+                          placeholder="Type a city name..."
+                        />
+                        <button
+                          onClick={() => setShowAddCity(false)}
+                          className="mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setShowAddCity(true)}
+                        className="w-full border-2 border-dashed border-border rounded-xl p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                      >
+                        <Plus className="w-6 h-6 mx-auto mb-1" />
+                        <span className="text-sm font-medium">Add a city</span>
+                      </button>
+                    )}
                   </div>
                 </SortableContext>
               </DndContext>

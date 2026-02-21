@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Edit3, LayoutList, Loader2 } from "lucide-react";
+import { Edit3, LayoutList, Loader2, RefreshCw } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui";
@@ -54,6 +54,8 @@ export default function TripPage({ params }: { params: Params }) {
   const interests = useTripStore((s) => s.interests);
   const dateStart = useTripStore((s) => s.dateStart);
   const setItinerary = useTripStore((s) => s.setItinerary);
+  const needsRegeneration = useTripStore((s) => s.needsRegeneration);
+  const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
 
   // ── Detect partial itinerary (no days yet — generation needed) ──────────────
   const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && id !== "guest");
@@ -154,6 +156,15 @@ export default function TripPage({ params }: { params: Params }) {
     : null;
   const isGenerating = isPartialItinerary && !generationError;
 
+  // Regenerate after structural route edit (add/remove city)
+  const handleRegenerate = () => {
+    setNeedsRegeneration(false);
+    genFiredRef.current = false;
+    generateMutation.reset();
+    // Clear days to trigger partial-itinerary detection → auto-fires SSE generation
+    setItinerary({ ...itinerary!, days: [], visaData: undefined, weatherData: undefined });
+  };
+
   // Retry generation after an error
   const handleRetry = () => {
     genFiredRef.current = false;
@@ -237,8 +248,31 @@ export default function TripPage({ params }: { params: Params }) {
         </div>
       )}
 
+      {/* Regeneration banner after structural edits */}
+      {needsRegeneration && !isPartialItinerary && !generationError && (
+        <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-primary/10 border-b border-primary/30">
+          <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+            <p className="text-sm text-foreground">
+              Your route has changed. Regenerate to update activities and budget.
+            </p>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setNeedsRegeneration(false)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Dismiss
+              </button>
+              <Button size="xs" onClick={handleRegenerate} className="gap-1.5">
+                <RefreshCw className="w-3 h-3" />
+                Regenerate
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Save-trip nudge for unauthenticated guests (hidden during generation) */}
-      {isAuthenticated === false && !isPartialItinerary && !generationError && (
+      {isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
         <div className="fixed top-[7.5rem] left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-accent/40">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
             <p className="text-sm text-foreground line-clamp-2 sm:line-clamp-none">
@@ -256,7 +290,9 @@ export default function TripPage({ params }: { params: Params }) {
 
       {/* Main content */}
       <div className={`${
-        (isAuthenticated === false && !isPartialItinerary && !generationError) || generationError
+        (isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration)
+          || generationError
+          || (needsRegeneration && !isPartialItinerary && !generationError)
           ? "pt-[10.25rem]"
           : "pt-[7.5rem]"
       } min-h-[calc(100vh-7.5rem)]`}>

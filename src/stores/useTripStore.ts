@@ -28,6 +28,7 @@ interface TripStoreState {
   // Generation
   isGenerating: boolean;
   generationStep: number;
+  needsRegeneration: boolean;
 
   // Result
   currentTripId: string;
@@ -60,6 +61,7 @@ interface TripStoreActions {
   // Generation
   setIsGenerating: (generating: boolean) => void;
   setGenerationStep: (step: number) => void;
+  setNeedsRegeneration: (needs: boolean) => void;
 
   // Result
   setCurrentTripId: (id: string) => void;
@@ -88,6 +90,7 @@ const initialPlanState = {
   travelers: 2,
   isGenerating: false,
   generationStep: 0,
+  needsRegeneration: false,
   currentTripId: "",
   itinerary: null,
 };
@@ -135,6 +138,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Generation actions
       setIsGenerating: (generating) => set({ isGenerating: generating }),
       setGenerationStep: (step) => set({ generationStep: step }),
+      setNeedsRegeneration: (needs) => set({ needsRegeneration: needs }),
 
       // Result actions
       setCurrentTripId: (id) => set({ currentTripId: id }),

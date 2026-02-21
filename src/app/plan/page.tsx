@@ -21,6 +21,7 @@ import { TravelStylePicker } from "@/components/TravelStylePicker";
 import type { CityStop, Itinerary } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSchema } from "@/lib/validation/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
+import { RouteReviewStep } from "@/components/plan/RouteReviewStep";
 
 const multiCityGenerationSteps = [
   { stage: "route",      emoji: "🧭", label: "Optimising your route" },
@@ -57,7 +58,8 @@ export default function PlanPage() {
   const [funFactIndex, setFunFactIndex] = useState(0);
 
   const isGuest = isAuthenticated === false;
-  const totalSteps = isGuest ? 4 : 2;
+  const [routeCities, setRouteCities] = useState<CityStop[] | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   const {
     planStep, setPlanStep,
@@ -99,6 +101,9 @@ export default function PlanPage() {
   }, [isGenerating]);
 
   const isSingleCity = tripType === "single-city";
+  const totalSteps = isGuest
+    ? (isSingleCity ? 4 : 5)
+    : (isSingleCity ? 2 : 3);
   const generationSteps = isSingleCity ? singleCityGenerationSteps : multiCityGenerationSteps;
 
   // Clamp persisted planStep to valid range
@@ -109,6 +114,7 @@ export default function PlanPage() {
   const showStyle = isGuest && step === 2;
   const showDestination = isGuest ? step === 3 : step === 1;
   const showDetails = isGuest ? step === 4 : step === 2;
+  const showRouteReview = !isSingleCity && step === totalSteps;
 
   // ── Speculative route selection: prefetch when user reaches details step ────
   useEffect(() => {
@@ -145,7 +151,7 @@ export default function PlanPage() {
     return true;
   };
 
-  const goNext = () => {
+  const goNext = async () => {
     if (showProfile) {
       const fieldErrors = validate(onboardingStep1Schema, { nationality });
       if (fieldErrors) { setErrors(fieldErrors); return; }
@@ -154,9 +160,36 @@ export default function PlanPage() {
       const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, dateStart, dateEnd });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
+    if (showDetails) {
+      const fieldErrors = validate(detailsStepSchema, { budget, travelers });
+      if (fieldErrors) { setErrors(fieldErrors); return; }
+    }
     setErrors({});
     setDirection(1);
     setPlanStep(step + 1);
+
+    // If advancing to route review, fetch the AI-suggested route
+    if (showDetails && !isSingleCity) {
+      setRouteLoading(true);
+      const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
+      const params = {
+        profile: { nationality, homeAirport, travelStyle, interests },
+        tripIntent: {
+          id: "speculative",
+          tripType, region,
+          dateStart, dateEnd, flexibleDates, budget, travelers,
+        },
+      };
+      try {
+        const cities = await fetchRoute(params, cacheKey);
+        if (cities && cities.length > 0) {
+          setRouteCities(citiesToRoute(cities));
+        }
+      } catch {
+        // Route selection failed — review step will show empty state
+      }
+      setRouteLoading(false);
+    }
   };
 
   const goBack = () => {
@@ -200,9 +233,12 @@ export default function PlanPage() {
     budget: { flights: 0, accommodation: 0, activities: 0, food: 0, transport: 0, total: 0, budget },
   }), [budget]);
 
-  const handleGenerate = useCallback(async () => {
-    const fieldErrors = validate(detailsStepSchema, { budget, travelers });
-    if (fieldErrors) { setErrors(fieldErrors); return; }
+  const handleGenerate = useCallback(async (routeFromReview?: CityStop[]) => {
+    // Only validate details if not coming from route review (already validated on advance)
+    if (!routeFromReview) {
+      const fieldErrors = validate(detailsStepSchema, { budget, travelers });
+      if (fieldErrors) { setErrors(fieldErrors); return; }
+    }
     setErrors({});
 
     posthog?.capture("questionnaire_completed", {
@@ -212,14 +248,16 @@ export default function PlanPage() {
     setGenerationStep(0);
     setGenerationError(null);
 
-    // ── Get cities (from React Query cache or fresh fetch)
-    let cities: CityWithDays[] | null = null;
+    // ── Get cities
     let route: CityStop[] = [];
 
-    if (isSingleCity) {
+    if (routeFromReview) {
+      // Multi-city from route review — use the user-edited cities
+      route = routeFromReview;
+    } else if (isSingleCity) {
       route = singleCityRoute();
     } else {
-      // Multi-city: fetchQuery uses cache if warm (from prefetch), else fetches fresh
+      // Fallback for multi-city without route review
       const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
       const params = {
         profile: { nationality, homeAirport, travelStyle, interests },
@@ -231,13 +269,12 @@ export default function PlanPage() {
       };
 
       try {
-        cities = await fetchRoute(params, cacheKey);
+        const cities = await fetchRoute(params, cacheKey);
+        if (cities && cities.length > 0) {
+          route = citiesToRoute(cities);
+        }
       } catch {
         // Route selection failed — proceed without pre-selected cities
-      }
-
-      if (cities && cities.length > 0) {
-        route = citiesToRoute(cities);
       }
     }
 
@@ -447,7 +484,7 @@ export default function PlanPage() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-8 flex flex-col items-center gap-3"
             >
-              <Button onClick={handleGenerate} className="gap-2">
+              <Button onClick={() => handleGenerate()} className="gap-2">
                 <Sparkles className="w-4 h-4" />
                 Try Again
               </Button>
@@ -626,6 +663,16 @@ export default function PlanPage() {
                 </div>
               )}
 
+              {/* Route review — multi-city only */}
+              {showRouteReview && (
+                <RouteReviewStep
+                  cities={routeCities ?? []}
+                  tripDuration={dayCount}
+                  onConfirm={handleGenerate}
+                  isLoading={routeLoading}
+                />
+              )}
+
             </motion.div>
           </AnimatePresence>
         </div>
@@ -637,15 +684,17 @@ export default function PlanPage() {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
 
-          {step < totalSteps ? (
-            <Button onClick={goNext} disabled={!canAdvance()} size="sm" className="gap-1.5">
-              Continue
-            </Button>
-          ) : (
-            <Button onClick={handleGenerate} disabled={!canAdvance()} className="gap-2">
-              <Sparkles className="w-4 h-4" />
-              Generate My Itinerary
-            </Button>
+          {showRouteReview ? null : (
+            step < totalSteps ? (
+              <Button onClick={goNext} disabled={!canAdvance()} size="sm" className="gap-1.5">
+                Continue
+              </Button>
+            ) : (
+              <Button onClick={() => handleGenerate()} disabled={!canAdvance()} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                Generate My Itinerary
+              </Button>
+            )
           )}
         </div>
 

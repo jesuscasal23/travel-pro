@@ -57,8 +57,9 @@ import PlanPage from "@/app/plan/page";
 // ── Store setup ───────────────────────────────────────────────────────────────
 
 /** Prime the store so the questionnaire is on the final step with valid answers.
- *  Guest mode uses a 4-step wizard (profile → style → destination → details),
- *  so the Generate button appears on step 4. */
+ *  Guest mode uses a 4-step wizard (profile → style → destination → details)
+ *  for single-city trips, so the Generate button appears on step 4.
+ *  (Multi-city adds a route review step, so we use single-city here.) */
 function setValidFinalStepState() {
   act(() => {
     useTripStore.setState({
@@ -68,7 +69,13 @@ function setValidFinalStepState() {
       homeAirport: "FRA",
       travelStyle: "comfort",
       interests: [],
-      region: "southeast-asia",
+      tripType: "single-city",
+      destination: "Bangkok",
+      destinationCountry: "Thailand",
+      destinationCountryCode: "TH",
+      destinationLat: 13.7563,
+      destinationLng: 100.5018,
+      region: "",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
       flexibleDates: false,
@@ -95,10 +102,9 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("shows an error message when trip creation returns a non-200 response", async () => {
-    // Fetch #1: speculative select-route (on mount) → no cities
-    // Fetch #2: POST /api/v1/trips (on Generate click) → fails
+    // Single-city: no speculative route selection
+    // Fetch #1: POST /api/v1/trips (on Generate click) → fails
     global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
@@ -118,7 +124,6 @@ describe("PlanPage — guest mode API failure", () => {
 
   it("does NOT navigate when trip creation fails", async () => {
     global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
@@ -171,12 +176,10 @@ describe("PlanPage — guest mode API failure", () => {
   });
 
   it("clears the error message when the user clicks Try Again", async () => {
-    // Fetch #1: speculative (mount) → no cities
-    // Fetch #2: trip creation → fails → error
-    // Fetch #3: retry trip creation → hangs → loading resumes
+    // Fetch #1: trip creation → fails → error
+    // Fetch #2: retry trip creation → hangs → loading resumes
     global.fetch = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
       .mockReturnValueOnce(new Promise(() => {}));
 
@@ -204,7 +207,6 @@ describe("PlanPage — guest mode API failure", () => {
 
   it("does not inject data into the store on failure", async () => {
     global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: null }) })
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
