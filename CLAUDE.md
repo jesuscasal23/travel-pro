@@ -163,7 +163,7 @@ Content filtering retry: backoff, max 2 retries.
 
 Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { tripId } }` — tripId is not unique.
 
-## Middleware (`src/middleware.ts`)
+## Proxy (`src/proxy.ts`)
 - **Protected routes**: `/dashboard`, `/profile` → redirect to `/login?next=...` if unauthenticated
 - **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`
 - **Rate limiting** (Upstash Redis sliding window):

@@ -85,7 +85,11 @@ export default withSentryConfig(nextConfig, {
   // Upload source maps during Vercel build (SENTRY_AUTH_TOKEN must be set)
   silent: !process.env.CI,
   // Automatically tree-shake Sentry logger in production
-  disableLogger: true,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
   // Hide source maps from the public bundle after upload
   sourcemaps: {
     deleteSourcemapsAfterUpload: true,

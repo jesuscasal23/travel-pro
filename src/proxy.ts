@@ -1,6 +1,6 @@
 // ============================================================
-// Travel Pro — Next.js Middleware
-// Handles auth protection and rate limiting at the edge
+// Travel Pro — Next.js Proxy (formerly Middleware)
+// Handles auth protection and rate limiting before requests
 // ============================================================
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -125,7 +125,7 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
   return null;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Generate a correlation ID for request tracing across logs
