@@ -35,13 +35,11 @@ export default function OnboardingPage() {
     setHomeAirport,
     setTravelStyle,
     toggleInterest,
-    setDisplayName,
-    displayName,
   } = useTripStore();
 
   const goNext = () => {
     if (step === 1) {
-      const fieldErrors = validate(onboardingStep1Schema, { nationality });
+      const fieldErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     setErrors({});
@@ -87,23 +85,14 @@ export default function OnboardingPage() {
                 <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
 
                 <div className="mt-8 space-y-5">
-                  <FormField label="Your name">
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="First name"
-                      className={inputClass}
-                    />
-                  </FormField>
                   <FormField label="Nationality" error={errors.nationality}>
                     <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
                       <option value="">Select nationality</option>
                       {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </FormField>
-                  <FormField label="Home Airport">
-                    <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
+                  <FormField label="Home Airport" error={errors.homeAirport}>
+                    <AirportCombobox value={homeAirport} onChange={(v) => { setHomeAirport(v); clearError("homeAirport"); }} />
                   </FormField>
                 </div>
               </motion.div>
@@ -155,17 +144,6 @@ export default function OnboardingPage() {
             </Button>
           </div>
 
-          {step === 1 && (
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => router.push("/plan")}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Skip for now
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

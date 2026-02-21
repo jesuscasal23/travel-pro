@@ -3,7 +3,7 @@ import { z } from "zod";
 // ── Profile (reused by onboarding, profile page, and plan guest steps) ──────
 export const profileSchema = z.object({
   nationality: z.string().min(1, "Please select your nationality"),
-  homeAirport: z.string().optional(),
+  homeAirport: z.string().min(2, "Please select your home airport"),
   travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
   interests: z.array(z.string()).max(10),
 });
@@ -11,9 +11,10 @@ export const profileSchema = z.object({
 // ── Plan Step: Destination ──────────────────────────────────────────────────
 export const destinationStepSchema = z
   .object({
-    tripType: z.enum(["single-city", "multi-city"]),
+    tripType: z.enum(["single-city", "single-country", "multi-city"]),
     region: z.string(),
     destination: z.string(),
+    destinationCountry: z.string(),
     dateStart: z.string().min(1, "Please select a start date"),
     dateEnd: z.string().min(1, "Please select an end date"),
   })
@@ -24,6 +25,10 @@ export const destinationStepSchema = z
   .refine(
     (d) => d.tripType !== "single-city" || d.destination.length > 0,
     { message: "Please select a city", path: ["destination"] },
+  )
+  .refine(
+    (d) => d.tripType !== "single-country" || d.destinationCountry.length > 0,
+    { message: "Please select a country", path: ["destinationCountry"] },
   )
   .refine(
     (d) => {
@@ -46,6 +51,7 @@ export const detailsStepSchema = z.object({
 // ── Onboarding step 1 ──────────────────────────────────────────────────────
 export const onboardingStep1Schema = z.object({
   nationality: z.string().min(1, "Please select your nationality"),
+  homeAirport: z.string().min(2, "Please select your home airport"),
 });
 
 // ── Profile save ────────────────────────────────────────────────────────────

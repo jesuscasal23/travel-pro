@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Pro — Architecture & Flow Documentation</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #c9d1d9;
+    --text-muted: #8b949e; --primary: #0d7377; --accent: #e85d4a;
+    --green: #3fb950; --yellow: #d29922; --blue: #58a6ff; --purple: #bc8cff;
+    --red: #f85149; --orange: #db6d28;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5; padding: 20px; font-size: 14px; }
+  h1 { font-size: 24px; margin-bottom: 8px; color: #fff; }
+  h2 { font-size: 18px; margin: 32px 0 12px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  h3 { font-size: 15px; margin: 20px 0 8px; color: var(--blue); }
+  h4 { font-size: 13px; margin: 12px 0 4px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  p, li { color: var(--text); }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--surface); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--purple); border: 1px solid var(--border); }
+  .subtitle { color: var(--text-muted); margin-bottom: 24px; }
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px 24px; margin-bottom: 24px; }
+  .toc ul { list-style: none; columns: 2; }
+  .toc li { padding: 2px 0; }
+  .toc li a { font-size: 13px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+  .tag-public { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .tag-auth { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .tag-owner { background: rgba(219,109,40,0.15); color: var(--orange); border: 1px solid rgba(219,109,40,0.3); }
+  .tag-tested { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .tag-untested { background: rgba(248,81,73,0.1); color: var(--text-muted); border: 1px solid var(--border); }
+  .tag-ext { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .tag-db { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+  .tag-sse { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+  .tag-phase0 { background: rgba(139,148,158,0.15); color: var(--text-muted); border: 1px solid var(--border); }
+  .tag-cron { background: rgba(188,140,255,0.1); color: var(--purple); border: 1px solid rgba(188,140,255,0.2); }
+  .tag-guest { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 18px; margin-bottom: 12px; }
+  .card-title { font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 6px; }
+  .card-route { font-family: monospace; color: var(--yellow); font-size: 13px; }
+
+  /* Flow diagrams */
+  .flow { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; margin: 16px 0; overflow-x: auto; }
+  .flow pre { color: var(--text); font-size: 12px; line-height: 1.6; white-space: pre; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 13px; }
+  th { background: var(--surface); color: var(--text-muted); text-align: left; padding: 8px 12px; border: 1px solid var(--border); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 6px 12px; border: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .toc ul { columns: 1; } }
+
+  /* Connection lines */
+  .conn { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); padding: 2px 0; }
+  .conn .arrow { color: var(--yellow); }
+
+  /* Section highlight */
+  .highlight-box { border-left: 3px solid var(--accent); background: rgba(232,93,74,0.05); padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .simplify-note { border-left: 3px solid var(--yellow); background: rgba(210,153,34,0.08); padding: 10px 14px; margin: 8px 0; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .simplify-note strong { color: var(--yellow); }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; font-size: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+
+  details { margin: 4px 0; }
+  details summary { cursor: pointer; color: var(--blue); font-size: 13px; padding: 4px 0; }
+  details summary:hover { color: #fff; }
+
+  .stat-row { display: flex; gap: 24px; margin: 12px 0; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 700; color: #fff; }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<h1>Travel Pro — Architecture & Flow Documentation</h1>
+<p class="subtitle">Generated 2026-02-21 &middot; Complete map of user flows, API routes, data models, external services &amp; test coverage</p>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-num">15</div><div class="stat-label">Pages/Views</div></div>
+  <div class="stat"><div class="stat-num">20</div><div class="stat-label">API Routes</div></div>
+  <div class="stat"><div class="stat-num">7</div><div class="stat-label">External Services</div></div>
+  <div class="stat"><div class="stat-num">5</div><div class="stat-label">DB Models</div></div>
+  <div class="stat"><div class="stat-num">11</div><div class="stat-label">Test Files</div></div>
+  <div class="stat"><div class="stat-num">2</div><div class="stat-label">User Groups</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="tag tag-public">public</span> No auth</div>
+  <div class="legend-item"><span class="tag tag-auth">auth</span> Login required</div>
+  <div class="legend-item"><span class="tag tag-owner">owner</span> Trip owner only</div>
+  <div class="legend-item"><span class="tag tag-tested">tested</span> Has automated tests</div>
+  <div class="legend-item"><span class="tag tag-untested">untested</span> No tests</div>
+  <div class="legend-item"><span class="tag tag-ext">external</span> Calls external API</div>
+  <div class="legend-item"><span class="tag tag-db">db</span> Database operation</div>
+  <div class="legend-item"><span class="tag tag-sse">SSE</span> Server-Sent Events</div>
+  <div class="legend-item"><span class="tag tag-phase0">phase 0</span> Legacy / potentially removable</div>
+</div>
+
+<div class="toc">
+  <h4>Table of Contents</h4>
+  <ul>
+    <li><a href="#user-groups">1. User Groups &amp; Permissions</a></li>
+    <li><a href="#flow-guest">2. Guest User Flow</a></li>
+    <li><a href="#flow-auth">3. Authenticated User Flow</a></li>
+    <li><a href="#flow-share">4. Shared Link Viewer Flow</a></li>
+    <li><a href="#pages">5. All Pages — Detail</a></li>
+    <li><a href="#api-routes">6. API Routes — Full Map</a></li>
+    <li><a href="#api-detail">7. API Route Details</a></li>
+    <li><a href="#external">8. External Services</a></li>
+    <li><a href="#data-models">9. Database Schema</a></li>
+    <li><a href="#types">10. TypeScript Types</a></li>
+    <li><a href="#store">11. Zustand Store</a></li>
+    <li><a href="#tests">12. Test Coverage</a></li>
+    <li><a href="#simplify">13. Simplification Opportunities</a></li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="user-groups">1. User Groups &amp; Permissions</h2>
+
+<div class="grid-3">
+  <div class="card">
+    <div class="card-title">👤 Guest (Unauthenticated)</div>
+    <p style="font-size:13px;color:var(--text-muted)">Can plan &amp; generate trips without signing up. Cannot save trips to dashboard or access profile.</p>
+    <h4>Can Access</h4>
+    <ul style="font-size:12px;padding-left:18px;">
+      <li>Landing page <code>/</code></li>
+      <li>Onboarding <code>/onboarding</code></li>
+      <li>Plan questionnaire <code>/plan</code></li>
+      <li>Trip view <code>/trip/[id]</code> (incl. guest mode)</li>
+      <li>Trip edit <code>/trip/[id]/edit</code></li>
+      <li>Trip summary <code>/trip/[id]/summary</code></li>
+      <li>Shared view <code>/share/[token]</code></li>
+      <li>Auth pages (signup/login/forgot/reset)</li>
+    </ul>
+    <h4>Cannot Access</h4>
+    <ul style="font-size:12px;padding-left:18px;color:var(--red)">
+      <li>Dashboard <code>/dashboard</code> → redirect to login</li>
+      <li>Profile <code>/profile</code> → redirect to login</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">🔑 Authenticated User</div>
+    <p style="font-size:13px;color:var(--text-muted)">Full access. Trips linked to profile. Can save, edit, share, optimize, and manage account.</p>
+    <h4>Additional Access</h4>
+    <ul style="font-size:12px;padding-left:18px;">
+      <li>Dashboard <code>/dashboard</code></li>
+      <li>Profile settings <code>/profile</code></li>
+      <li>Trip ownership operations (PATCH/DELETE)</li>
+      <li>Flight optimization</li>
+      <li>Share link generation</li>
+      <li>GDPR data export + account delete</li>
+    </ul>
+    <h4>Plan Flow</h4>
+    <p style="font-size:12px">Skips onboarding steps 1-2 (profile already saved). Starts at step 3 (destination).</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🌐 Share Link Viewer</div>
+    <p style="font-size:13px;color:var(--text-muted)">Read-only access to a shared itinerary via token. No auth required. Sees growth CTA.</p>
+    <h4>Can See</h4>
+    <ul style="font-size:12px;padding-left:18px;">
+      <li>Full itinerary (route, days, budget, visa, weather)</li>
+      <li>"Start free" CTA → <code>/signup</code></li>
+    </ul>
+    <h4>Cannot Do</h4>
+    <ul style="font-size:12px;padding-left:18px;color:var(--red)">
+      <li>Edit itinerary</li>
+      <li>Generate activities</li>
+      <li>Access any other page (unless navigating away)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="flow-guest">2. Guest User Flow</h2>
+<div class="flow"><pre>
+┌─────────────┐     ┌──────────────────┐     ┌───────────────────────────────────────────────┐
+│  Landing /   │────▶│  Onboarding      │────▶│  Plan Questionnaire /plan                      │
+│  (marketing) │     │  /onboarding     │     │                                               │
+│              │     │  Step 1: Nation.  │     │  Step 1: Nationality + Airport  (guest only)  │
+│  No API      │     │  Step 2: Style   │     │  Step 2: Travel style + interests (guest only)│
+│              │     │  Zustand only     │     │  Step 3: Destination/region + dates           │
+└─────────────┘     └──────────────────┘     │  Step 4: Budget + travelers                   │
+                                              │  Step 5: Route Review (multi-city only)        │
+                                              │                                               │
+                                              │  APIs called:                                 │
+                                              │   POST /api/generate/select-route ──▶ Haiku   │
+                                              │   POST /api/v1/trips (create)     ──▶ DB      │
+                                              │   POST /api/v1/trips/:id/generate ──▶ Haiku   │
+                                              └───────────┬───────────────────────────────────┘
+                                                          │ SSE stream completes
+                                                          ▼
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│  Trip View /trip/[id]                                                                      │
+│  40/60 split: Map (MapLibre) + Timeline                                                    │
+│                                                                                            │
+│  On mount: if partial itinerary → auto-generate via SSE                                    │
+│  Per-city: "Generate Activities" button → POST /api/v1/trips/:id/generate-activities       │
+│  Background: POST /api/v1/enrich/visa (static)  +  POST /api/v1/enrich/weather (Open-Meteo)│
+│                                                                                            │
+│  ┌──────────────────┐     ┌──────────────────────┐                                         │
+│  │ Edit /trip/[id]/ │◀───▶│ Summary /trip/[id]/   │                                         │
+│  │      edit        │     │         summary       │                                         │
+│  │                  │     │                       │                                         │
+│  │ Drag-drop cities │     │ Route, budget, visa,  │                                         │
+│  │ Add/remove/reorder│    │ weather, flights      │                                         │
+│  │ Adjust days      │     │ Share link, PDF export │                                         │
+│  │                  │     │ Affiliate links       │                                         │
+│  │ PATCH /trips/:id │     │ GET /trips/:id/share  │                                         │
+│  │ (guest=local)    │     │ GET /affiliate/redirect│                                         │
+│  └──────────────────┘     └──────────────────────┘                                         │
+└────────────────────────────────────────────────────────────────────────────────────────────┘
+                                              │
+                                              │ "Save your trip" nudge
+                                              ▼
+                                    ┌──────────────────┐
+                                    │  Signup /signup   │
+                                    │  → Login → Dashboard
+                                    └──────────────────┘
+</pre></div>
+
+<!-- ============================================================ -->
+<h2 id="flow-auth">3. Authenticated User Flow</h2>
+<div class="flow"><pre>
+┌──────────────┐      ┌──────────────┐      ┌──────────────────────────────────────────────┐
+│ Signup        │─────▶│ Auth Callback │─────▶│ Onboarding /onboarding                       │
+│ /signup       │      │ /auth/callback│      │ Step 1: Nationality + Airport                │
+│               │      │ Exchanges code│      │ Step 2: Travel style + interests             │
+│ Supabase      │      │ for session   │      │ → Zustand persisted                          │
+│ signUp()      │      │               │      │ → Navigate to /plan                          │
+└──────────────┘      └──────────────┘      └──────────────────────────────────────────────┘
+                                                            │
+      ┌─────────────────────────────────────────────────────┘
+      ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│  Plan /plan  (authenticated flow — starts at Step 3, skips nationality/style)            │
+│  Step 3: Destination + dates                                                             │
+│  Step 4: Budget + travelers                                                              │
+│  Step 5: Route review (multi-city)                                                       │
+│  → POST /api/generate/select-route → POST /api/v1/trips → POST /api/v1/trips/:id/generate│
+└──────────────────────────────┬───────────────────────────────────────────────────────────┘
+                               ▼
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│  Trip View /trip/[id]   (same as guest, plus owner actions)                               │
+│                                                                                           │
+│  ┌───────────────┐  ┌───────────────────┐  ┌────────────────────────┐                     │
+│  │ Edit           │  │ Summary            │  │ Optimize Flights       │                     │
+│  │ PATCH (to DB)  │  │ Share (owner only) │  │ POST /trips/:id/optimize│                    │
+│  │ Creates version│  │ PDF export         │  │ → Amadeus API           │                    │
+│  └───────────────┘  └───────────────────┘  └────────────────────────┘                     │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐      ┌──────────────────────────────────────────────┐
+│  Dashboard /dashboard │◀────│  Login /login                                │
+│  GET /api/v1/trips    │     │  Supabase signInWithPassword()               │
+│  Trip cards → /trip/  │     │  → redirect to /dashboard or ?next= param   │
+│  "Plan New Trip" →/plan│    └──────────────────────────────────────────────┘
+└──────────────────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│  Profile /profile                                                                        │
+│  PATCH /api/v1/profile — update settings                                                 │
+│  GET  /api/v1/profile/export — GDPR data export (JSON download)                          │
+│  DELETE /api/v1/profile — GDPR account deletion (cascade: profile→trips→itineraries)     │
+│  → Supabase admin.deleteUser()                                                           │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+</pre></div>
+
+<!-- ============================================================ -->
+<h2 id="flow-share">4. Shared Link Viewer Flow</h2>
+<div class="flow"><pre>
+External link (email, social, etc.)
+         │
+         ▼
+┌────────────────────────────────────────────┐
+│  /share/[token]   (Server Component)       │
+│                                            │
+│  DB: prisma.trip.findFirst({ shareToken }) │
+│  Renders: full itinerary read-only         │
+│  + OG meta tags for social sharing         │
+│  + "Start free" CTA → /signup              │
+│                                            │
+│  Rate limit: 60 req/min                    │
+└────────────────────────────────────────────┘
+</pre></div>
+
+<!-- ============================================================ -->
+<h2 id="pages">5. All Pages — Detail</h2>
+
+<table>
+<tr>
+  <th>Route</th><th>Auth</th><th>API Calls</th><th>External Services</th><th>DB Impact</th><th>Tests</th>
+</tr>
+<tr>
+  <td><code>/</code><br><small>Landing</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>None</td>
+  <td>None</td>
+  <td>None</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/privacy</code><br><small>Privacy Policy</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>None</td>
+  <td>None</td>
+  <td>None</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/signup</code><br><small>Registration</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>Supabase <code>auth.signUp()</code></td>
+  <td>Supabase Auth</td>
+  <td>Creates auth user</td>
+  <td><span class="tag tag-untested">untested</span> <small>(E2E partial in phase1-auth)</small></td>
+</tr>
+<tr>
+  <td><code>/login</code><br><small>Login</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>Supabase <code>auth.signInWithPassword()</code></td>
+  <td>Supabase Auth</td>
+  <td>Session created</td>
+  <td><span class="tag tag-untested">untested</span> <small>(E2E partial in phase1-auth)</small></td>
+</tr>
+<tr>
+  <td><code>/forgot-password</code></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>Supabase <code>auth.resetPasswordForEmail()</code></td>
+  <td>Supabase Auth + Email</td>
+  <td>None</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/reset-password</code></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>Supabase <code>auth.updateUser()</code></td>
+  <td>Supabase Auth</td>
+  <td>Password updated</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/auth/callback</code><br><small>Server route</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>Supabase <code>exchangeCodeForSession()</code></td>
+  <td>Supabase Auth</td>
+  <td>Session created</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/onboarding</code><br><small>2-step profile</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>None (Zustand only)</td>
+  <td>None</td>
+  <td>None (client-side)</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr style="background:rgba(63,185,80,0.04)">
+  <td><code>/plan</code><br><small>Questionnaire + Generation</small></td>
+  <td><span class="tag tag-public">public</span> <span class="tag tag-guest">guest OK</span></td>
+  <td>
+    <code>POST /api/generate/select-route</code><br>
+    <code>POST /api/v1/trips</code><br>
+    <code>POST /api/v1/trips/:id/generate</code> <span class="tag tag-sse">SSE</span>
+  </td>
+  <td>Anthropic Haiku</td>
+  <td>Creates Trip + Itinerary</td>
+  <td><span class="tag tag-tested">tested</span><br>
+    <small>plan/error-handling.test<br>plan/route-review.test<br>RouteReviewStep.test<br>E2E: planning-flow, route-review-edit-cities</small>
+  </td>
+</tr>
+<tr style="background:rgba(63,185,80,0.04)">
+  <td><code>/trip/[id]</code><br><small>Map + Timeline</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>
+    <code>POST /api/v1/trips/:id/generate</code> <span class="tag tag-sse">SSE</span><br>
+    <code>POST /api/v1/trips/:id/generate-activities</code><br>
+    <code>POST /api/v1/enrich/visa</code><br>
+    <code>POST /api/v1/enrich/weather</code>
+  </td>
+  <td>Anthropic Haiku, Open-Meteo, MapLibre</td>
+  <td>Updates Itinerary</td>
+  <td><span class="tag tag-tested">tested</span><br><small>trip/null-state.test<br>E2E: full-workflow</small></td>
+</tr>
+<tr style="background:rgba(63,185,80,0.04)">
+  <td><code>/trip/[id]/edit</code><br><small>Drag-drop city editor</small></td>
+  <td><span class="tag tag-public">public</span> <small>(guest = local only)</small></td>
+  <td><code>PATCH /api/v1/trips/:id</code></td>
+  <td>None</td>
+  <td>Creates ItineraryEdit + new Itinerary version</td>
+  <td><span class="tag tag-tested">tested</span><br><small>edit/add-city.test<br>E2E: route-review-edit-cities, phase1-auth</small></td>
+</tr>
+<tr>
+  <td><code>/trip/[id]/summary</code><br><small>Tabs: overview, budget, visa, weather, flights</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>
+    <code>GET /api/v1/trips/:id/share</code><br>
+    <code>GET /api/v1/affiliate/redirect</code>
+  </td>
+  <td>None (links to Skyscanner, Booking, GYG)</td>
+  <td>Creates shareToken, AffiliateClick</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/share/[token]</code><br><small>Public read-only</small></td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>Server-side Prisma query</td>
+  <td>None</td>
+  <td>Read only</td>
+  <td><span class="tag tag-untested">untested</span> <small>(E2E partial in phase1-auth)</small></td>
+</tr>
+<tr style="background:rgba(63,185,80,0.04)">
+  <td><code>/dashboard</code><br><small>Trip list</small></td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td><code>GET /api/v1/trips</code></td>
+  <td>None</td>
+  <td>Read only</td>
+  <td><span class="tag tag-tested">tested</span><br><small>dashboard/page.test</small></td>
+</tr>
+<tr>
+  <td><code>/profile</code><br><small>Settings + GDPR</small></td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td>
+    <code>PATCH /api/v1/profile</code><br>
+    <code>GET /api/v1/profile/export</code><br>
+    <code>DELETE /api/v1/profile</code>
+  </td>
+  <td>Supabase Admin (account delete)</td>
+  <td>Upsert Profile, cascade delete all</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="api-routes">6. API Routes — Full Map</h2>
+
+<table>
+<tr>
+  <th>Route</th><th>Method</th><th>Auth</th><th>Rate Limit</th><th>DB</th><th>External</th><th>Tests</th>
+</tr>
+
+<tr><td colspan="7" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">PHASE 0 — Legacy Generation (potentially removable)</td></tr>
+<tr>
+  <td><code>/api/generate</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>10/min</td>
+  <td>—</td>
+  <td><span class="tag tag-ext">Anthropic</span></td>
+  <td><span class="tag tag-phase0">phase 0</span> <span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/generate/select-route</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>10/min</td>
+  <td>—</td>
+  <td><span class="tag tag-ext">Anthropic</span></td>
+  <td><span class="tag tag-tested">tested</span> <small>(via plan tests)</small></td>
+</tr>
+
+<tr><td colspan="7" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">HEALTH</td></tr>
+<tr>
+  <td><code>/api/health</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>—</td>
+  <td>—</td>
+  <td>Redis PING</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+
+<tr><td colspan="7" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">TRIPS</td></tr>
+<tr>
+  <td><code>/api/v1/trips</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">findMany</span></td>
+  <td>—</td>
+  <td><span class="tag tag-tested">tested</span> <small>(dashboard test)</small></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">create</span> Trip</td>
+  <td>—</td>
+  <td><span class="tag tag-tested">tested</span> <small>(plan tests)</small></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">findUnique</span></td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id</code></td>
+  <td>PATCH</td>
+  <td><span class="tag tag-owner">owner</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">update</span> Itinerary + ItineraryEdit</td>
+  <td>—</td>
+  <td><span class="tag tag-tested">tested</span> <small>(edit tests)</small></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id</code></td>
+  <td>DELETE</td>
+  <td><span class="tag tag-owner">owner</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">delete</span> Trip (cascade)</td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id/generate</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td style="color:var(--red);font-weight:600">5/hour</td>
+  <td><span class="tag tag-db">create</span> Itinerary</td>
+  <td><span class="tag tag-ext">Anthropic</span> <span class="tag tag-sse">SSE</span></td>
+  <td><span class="tag tag-tested">tested</span> <small>(E2E full-workflow)</small></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id/generate-activities</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">update</span> Itinerary</td>
+  <td><span class="tag tag-ext">Anthropic</span></td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id/optimize</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-owner">owner</span></td>
+  <td>30/min</td>
+  <td>—</td>
+  <td><span class="tag tag-ext">Amadeus</span></td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/:id/share</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-owner">owner</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">update</span> shareToken</td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span> <small>(E2E partial)</small></td>
+</tr>
+<tr>
+  <td><code>/api/v1/trips/shared/:token</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>60/min</td>
+  <td><span class="tag tag-db">findFirst</span></td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+
+<tr><td colspan="7" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">ENRICHMENT</td></tr>
+<tr>
+  <td><code>/api/v1/enrich/visa</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>—</td>
+  <td>—</td>
+  <td>Static data (Passport Index)</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/enrich/weather</code></td>
+  <td>POST</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>—</td>
+  <td>—</td>
+  <td><span class="tag tag-ext">Open-Meteo</span> + Redis cache</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+
+<tr><td colspan="7" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">PROFILE (GDPR)</td></tr>
+<tr>
+  <td><code>/api/v1/profile</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">findUnique</span></td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/profile</code></td>
+  <td>PATCH</td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">upsert</span> Profile</td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/profile</code></td>
+  <td>DELETE</td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">deleteMany</span> (cascade)</td>
+  <td><span class="tag tag-ext">Supabase Admin</span></td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/v1/profile/export</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-auth">auth</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">findUnique</span> (deep include)</td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+
+<tr><td colspan="7" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">AFFILIATE + CRON</td></tr>
+<tr>
+  <td><code>/api/v1/affiliate/redirect</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-public">public</span></td>
+  <td>30/min</td>
+  <td><span class="tag tag-db">create</span> AffiliateClick</td>
+  <td>302 redirect (domain whitelist)</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+<tr>
+  <td><code>/api/cron/cleanup-stale-generations</code></td>
+  <td>GET</td>
+  <td><span class="tag tag-cron">CRON_SECRET</span></td>
+  <td>—</td>
+  <td><span class="tag tag-db">updateMany</span> (stale → failed)</td>
+  <td>—</td>
+  <td><span class="tag tag-untested">untested</span></td>
+</tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="api-detail">7. API Route Details — Data Flow</h2>
+
+<h3>Generation Pipeline (the core product flow)</h3>
+<div class="flow"><pre>
+Client (/plan)                      Server                               External
+─────────────                      ──────                               ────────
+
+1. POST /api/generate/select-route ──▶ selectRoute()
+   { profile, tripIntent }             │ single-city? → return destination immediately
+                                       │ multi-city?  → Haiku prompt ──────▶ Anthropic Haiku
+                                       │                                     (route-selector.ts)
+                                       ◀── { cities: CityWithDays[] }
+
+2. POST /api/v1/trips              ──▶ prisma.trip.create() ───────────▶ PostgreSQL
+   { tripType, region, dates... }      │                                  (Trip record)
+                                       ◀── { trip: { id, ... } }
+
+3. POST /api/v1/trips/:id/generate ──▶ createGeneratingRecord() ──────▶ PostgreSQL
+   { profile, cities }                 │                                  (Itinerary, status=generating)
+                                       │ generateRouteOnly() ─────────▶ Anthropic Haiku
+                                       │   (route + budget, no activities)  (route-only.ts prompt)
+                                       │ activateGeneratedItinerary() ─▶ PostgreSQL
+                                       │                                  (Itinerary, status=complete)
+   ◀── SSE stream:                     │
+     { stage: "route", pct: 20 }       │
+     { stage: "done",  pct: 100 }      │
+
+4. POST /api/v1/trips/:id/         ──▶ generateCityActivities() ──────▶ Anthropic Haiku
+       generate-activities              │                                  (city-activities.ts prompt)
+   { profile, cityId }                 │ prisma.itinerary.update() ────▶ PostgreSQL
+                                       │   merge activities into days      (Itinerary.data updated)
+                                       ◀── { days: TripDay[] }
+
+5. POST /api/v1/enrich/visa        ──▶ enrichVisa() ──────────────────▶ Static dataset
+   { nationality, route }              │                                  (visa-index.ts, 199×227)
+                                       ◀── { visaData: VisaInfo[] }
+
+6. POST /api/v1/enrich/weather     ──▶ enrichWeather() ───────────────▶ Open-Meteo Archive API
+   { route, dateStart }                │                              ──▶ Upstash Redis (cache 7d)
+                                       ◀── { weatherData: CityWeather[] }
+</pre></div>
+
+<h3>Flight Optimization Pipeline</h3>
+<div class="flow"><pre>
+Client (/trip/:id)                  Server                               External
+─────────────                      ──────                               ────────
+
+POST /api/v1/trips/:id/optimize ──▶ optimizeFlights()
+{ homeAirport, route, dates,        │
+  travelers }                        │ 1. Generate all feasible day assignments
+                                     │    (permutations of minDays..maxDays per city)
+                                     │
+                                     │ 2. Collect unique flight legs needed
+                                     │
+                                     │ 3. Parallel search all legs ──────▶ Amadeus Flight API
+                                     │    (with Redis cache, 2h TTL)   ──▶ Upstash Redis
+                                     │
+                                     │ 4. Find cheapest feasible combo
+                                     │
+                                     ◀── { skeleton: { legs, totalFlightCost, ... } }
+</pre></div>
+
+<h3>Share &amp; Affiliate Flow</h3>
+<div class="flow"><pre>
+Owner clicks "Share"                Server
+──────────────────                 ──────
+
+GET /api/v1/trips/:id/share    ──▶ ensureShareToken()
+                                    │ existing? → return it
+                                    │ new? → crypto.randomBytes(9).base64url
+                                    │        prisma.trip.update({ shareToken })
+                                    ◀── { shareToken, shareUrl }
+
+Viewer opens /share/[token]    ──▶ prisma.trip.findFirst({ shareToken })
+                                    │ include: active itinerary
+                                    ◀── Server-rendered page (OG tags for social)
+
+Viewer clicks affiliate link   ──▶ GET /api/v1/affiliate/redirect
+   ?provider=skyscanner             │ validate domain whitelist
+   &type=flight&dest=URL            │ prisma.affiliateClick.create() (async, non-blocking)
+                                    ◀── 302 Redirect to dest URL
+</pre></div>
+
+<!-- ============================================================ -->
+<h2 id="external">8. External Services</h2>
+
+<table>
+<tr><th>Service</th><th>Purpose</th><th>Env Vars</th><th>Used By</th><th>Failure Mode</th></tr>
+<tr>
+  <td><strong>Anthropic Haiku</strong><br><code>claude-haiku-4-5-20251001</code></td>
+  <td>Route selection, itinerary generation (route-only + city activities)</td>
+  <td><code>ANTHROPIC_API_KEY</code></td>
+  <td><code>/api/generate/select-route</code><br><code>/api/v1/trips/:id/generate</code><br><code>/api/v1/trips/:id/generate-activities</code></td>
+  <td>Max 2 retries on content filter. 50s SDK timeout. SSE reports error stage.</td>
+</tr>
+<tr>
+  <td><strong>Supabase Auth</strong></td>
+  <td>User authentication (email/password), session management, account deletion</td>
+  <td><code>NEXT_PUBLIC_SUPABASE_URL</code><br><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code><br><code>SUPABASE_SERVICE_ROLE_KEY</code></td>
+  <td>Auth pages, proxy, profile deletion</td>
+  <td>Auth pages show error. Proxy passes through. Delete silently fails (logged).</td>
+</tr>
+<tr>
+  <td><strong>Supabase PostgreSQL</strong><br>(via Prisma 7)</td>
+  <td>All persistent data: profiles, trips, itineraries, edits, affiliate clicks</td>
+  <td><code>DATABASE_URL</code></td>
+  <td>All /api/v1/* routes</td>
+  <td>API returns 500. Best-effort persistence in pipeline.</td>
+</tr>
+<tr>
+  <td><strong>Amadeus</strong><br>Self-Service Flight API</td>
+  <td>Flight price search &amp; optimization</td>
+  <td><code>AMADEUS_API_KEY</code><br><code>AMADEUS_API_SECRET</code></td>
+  <td><code>/api/v1/trips/:id/optimize</code></td>
+  <td>Returns null if unconfigured. Graceful degradation — flights shown without prices.</td>
+</tr>
+<tr>
+  <td><strong>Open-Meteo</strong><br>Archive API</td>
+  <td>Historical weather data for trip cities</td>
+  <td>None (free, no key)</td>
+  <td><code>/api/v1/enrich/weather</code></td>
+  <td>5s timeout per city. Falls back to neutral data (25°C, Warm, ☀️).</td>
+</tr>
+<tr>
+  <td><strong>Upstash Redis</strong></td>
+  <td>Rate limiting, Amadeus token cache, flight price cache, weather cache</td>
+  <td><code>UPSTASH_REDIS_REST_URL</code><br><code>UPSTASH_REDIS_REST_TOKEN</code></td>
+  <td>Proxy (rate limiting), Amadeus, weather enrichment</td>
+  <td>Fail-open for rate limiting. Cache miss → re-fetch.</td>
+</tr>
+<tr>
+  <td><strong>Resend</strong></td>
+  <td>Transactional email (welcome, itinerary ready)</td>
+  <td><code>RESEND_API_KEY</code></td>
+  <td>Post-signup, post-generation</td>
+  <td>Silently skipped if not configured. Non-blocking.</td>
+</tr>
+<tr>
+  <td><strong>MapLibre GL</strong><br>(via react-map-gl)</td>
+  <td>Interactive route map on trip view</td>
+  <td><code>NEXT_PUBLIC_MAPBOX_TOKEN</code></td>
+  <td>Trip view page (client-side only, SSR-safe dynamic import)</td>
+  <td>Map doesn't render. Fallback component shown.</td>
+</tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="data-models">9. Database Schema</h2>
+
+<div class="flow"><pre>
+┌──────────────┐       ┌──────────────┐       ┌──────────────────┐       ┌──────────────────┐
+│   Profile     │──1:N─▶│    Trip       │──1:N─▶│   Itinerary       │──1:N─▶│  ItineraryEdit    │
+│               │       │               │       │                   │       │                   │
+│ id (PK)       │       │ id (PK)       │       │ id (PK)           │       │ id (PK)           │
+│ userId (unique)│      │ profileId (FK)│       │ tripId (FK)       │       │ itineraryId (FK)  │
+│ nationality   │       │ tripType      │       │ data (JSON)       │       │ editType          │
+│ homeAirport   │       │ region        │       │ version           │       │ editPayload (JSON)│
+│ travelStyle   │       │ destination?  │       │ isActive          │       │ description?      │
+│ interests[]   │       │ destCountry?  │       │ promptVersion     │       │ createdAt         │
+│ activityLevel?│       │ destCode?     │       │ generationStatus  │       └──────────────────┘
+│ languages[]   │       │ dateStart     │       │ generationJobId?  │
+│ onboarding    │       │ dateEnd       │       │ createdAt         │
+│ createdAt     │       │ flexibleDates │       │ updatedAt         │
+│ updatedAt     │       │ budget        │       └──────────────────┘
+└──────────────┘       │ travelers     │
+                        │ shareToken?   │       ┌──────────────────┐
+                        │ createdAt     │──1:N─▶│  AffiliateClick   │
+                        └──────────────┘       │                   │
+                                                │ id (PK)           │
+                                                │ tripId? (FK)      │
+                                                │ provider          │
+                                                │ clickType         │
+                                                │ city?             │
+                                                │ destination?      │
+                                                │ url               │
+                                                │ ipHash?           │
+                                                │ createdAt         │
+                                                └──────────────────┘
+
+Cascade Rules:
+  Profile DELETE → Trip DELETE → Itinerary DELETE → ItineraryEdit DELETE
+  Trip DELETE → AffiliateClick SET NULL (tripId)
+
+Itinerary.data JSON structure:
+  {
+    route:       CityStop[]
+    days:        TripDay[]         (may be empty if route-only generation)
+    budget:      TripBudget
+    visaData?:   VisaInfo[]        (enriched client-side)
+    weatherData?: CityWeather[]    (enriched client-side)
+    flightLegs?: ItineraryFlightLeg[]  (from Amadeus optimization)
+    flightBaselineCost?: number
+  }
+</pre></div>
+
+<h3>Itinerary Versioning</h3>
+<p>Every edit that modifies the itinerary data creates a new <code>Itinerary</code> record at <code>version + 1</code>. The previous version is deactivated (<code>isActive = false</code>) in an atomic transaction. This means <code>tripId</code> is <strong>not unique</strong> on Itinerary — never use <code>upsert { where: { tripId } }</code>.</p>
+
+<h3>Generation Status Lifecycle</h3>
+<div class="flow"><pre>
+  pending ──▶ generating ──▶ complete
+                  │
+                  └──▶ failed  (timeout, content filter, or stale cleanup cron)
+</pre></div>
+
+<!-- ============================================================ -->
+<h2 id="types">10. Key TypeScript Types</h2>
+
+<div class="grid-2">
+<div class="card">
+<div class="card-title">Itinerary (the main data object)</div>
+<pre style="font-size:11px;color:var(--text-muted);line-height:1.5">
+interface Itinerary {
+  route:              CityStop[]
+  days:               TripDay[]
+  budget:             TripBudget
+  visaData?:          VisaInfo[]
+  weatherData?:       CityWeather[]
+  flightLegs?:        ItineraryFlightLeg[]
+  flightBaselineCost?: number
+}
+</pre>
+</div>
+<div class="card">
+<div class="card-title">CityStop</div>
+<pre style="font-size:11px;color:var(--text-muted);line-height:1.5">
+interface CityStop {
+  id:          string
+  city:        string
+  country:     string
+  lat:         number
+  lng:         number
+  days:        number
+  countryCode: string
+  iataCode?:   string
+}
+</pre>
+</div>
+<div class="card">
+<div class="card-title">TripDay &amp; DayActivity</div>
+<pre style="font-size:11px;color:var(--text-muted);line-height:1.5">
+interface TripDay {
+  day:            number
+  date:           string
+  city:           string
+  activities:     DayActivity[]
+  isTravel?:      boolean
+  travelFrom?:    string
+  travelTo?:      string
+  travelDuration?: string
+}
+
+interface DayActivity {
+  name:     string
+  category: string
+  icon:     string  // emoji
+  why:      string
+  duration: string
+  tip?:     string
+  food?:    string
+  cost?:    string
+}
+</pre>
+</div>
+<div class="card">
+<div class="card-title">TripBudget &amp; VisaInfo</div>
+<pre style="font-size:11px;color:var(--text-muted);line-height:1.5">
+interface TripBudget {
+  flights:       number
+  accommodation: number
+  activities:    number
+  food:          number
+  transport:     number
+  total:         number
+  budget:        number // user's target
+}
+
+interface VisaInfo {
+  country:      string
+  countryCode:  string
+  requirement:  "visa-free" | "visa-on-arrival"
+                | "e-visa" | "eta"
+                | "visa-required" | "no-admission"
+  maxStayDays:  number
+  notes:        string
+  icon:         string
+  label:        string
+  sourceUrl:    string
+  sourceLabel:  string
+}
+</pre>
+</div>
+</div>
+
+<h4>Enums</h4>
+<p><code>TravelStyle</code> = "backpacker" | "comfort" | "luxury" &nbsp;&bull;&nbsp; <code>TripType</code> = "single-city" | "single-country" | "multi-city"</p>
+
+<!-- ============================================================ -->
+<h2 id="store">11. Zustand Store (<code>useTripStore</code>)</h2>
+
+<table>
+<tr><th>Field</th><th>Type</th><th>Persisted</th><th>Set By</th><th>Used By</th></tr>
+<tr><td colspan="5" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">USER PROFILE (from onboarding)</td></tr>
+<tr><td><code>nationality</code></td><td>string</td><td>Yes</td><td>Onboarding, Profile</td><td>Plan, Trip view (visa enrichment)</td></tr>
+<tr><td><code>homeAirport</code></td><td>string</td><td>Yes</td><td>Onboarding, Profile</td><td>Plan, Flight optimization</td></tr>
+<tr><td><code>travelStyle</code></td><td>TravelStyle</td><td>Yes</td><td>Onboarding, Profile</td><td>Plan, Generation</td></tr>
+<tr><td><code>interests</code></td><td>string[]</td><td>Yes</td><td>Onboarding, Profile</td><td>Plan, Generation</td></tr>
+<tr><td><code>displayName</code></td><td>string</td><td>Yes</td><td>Profile</td><td>Dashboard greeting</td></tr>
+
+<tr><td colspan="5" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">TRIP PLANNING (from questionnaire)</td></tr>
+<tr><td><code>tripType</code></td><td>TripType</td><td>Yes</td><td>Plan step 3</td><td>Route selection, generation</td></tr>
+<tr><td><code>region</code></td><td>string</td><td>Yes</td><td>Plan step 3</td><td>Route selection</td></tr>
+<tr><td><code>destination</code></td><td>string</td><td>Yes</td><td>Plan step 3</td><td>Single-city generation</td></tr>
+<tr><td><code>destinationCountry</code></td><td>string</td><td>Yes</td><td>Plan step 3</td><td>Single-country generation</td></tr>
+<tr><td><code>destinationCountryCode</code></td><td>string</td><td>Yes</td><td>Plan step 3</td><td>Generation</td></tr>
+<tr><td><code>destinationLat/Lng</code></td><td>number</td><td>Yes</td><td>Plan step 3</td><td>Map centering</td></tr>
+<tr><td><code>dateStart/End</code></td><td>string</td><td>Yes</td><td>Plan step 3</td><td>Generation, optimization</td></tr>
+<tr><td><code>flexibleDates</code></td><td>boolean</td><td>Yes</td><td>Plan step 3</td><td>Generation (±3 days)</td></tr>
+<tr><td><code>budget</code></td><td>number</td><td>Yes</td><td>Plan step 4</td><td>Generation, budget display</td></tr>
+<tr><td><code>travelers</code></td><td>number</td><td>Yes</td><td>Plan step 4</td><td>Generation, optimization, summary</td></tr>
+
+<tr><td colspan="5" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">RESULT (from generation)</td></tr>
+<tr><td><code>currentTripId</code></td><td>string</td><td>Yes</td><td>Plan (after create)</td><td>Trip view navigation</td></tr>
+<tr><td><code>itinerary</code></td><td>Itinerary | null</td><td>Yes</td><td>Plan, Trip view, Edit</td><td>Trip view, Edit, Summary</td></tr>
+
+<tr><td colspan="5" style="background:var(--surface);color:var(--text-muted);font-weight:600;font-size:11px">TRANSIENT (NOT persisted — reset on refresh)</td></tr>
+<tr><td><code>planStep</code></td><td>number</td><td style="color:var(--red)">No</td><td>Plan navigation</td><td>Plan step rendering</td></tr>
+<tr><td><code>isGenerating</code></td><td>boolean</td><td style="color:var(--red)">No</td><td>Generation start/end</td><td>Loading states</td></tr>
+<tr><td><code>generationStep</code></td><td>number</td><td style="color:var(--red)">No</td><td>SSE progress</td><td>Progress indicator</td></tr>
+<tr><td><code>needsRegeneration</code></td><td>boolean</td><td style="color:var(--red)">No</td><td>Edit (structural change)</td><td>Trip view (regen prompt)</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="tests">12. Test Coverage</h2>
+
+<h3>Unit Tests (Vitest)</h3>
+<table>
+<tr><th>Test File</th><th>What It Tests</th><th>Key Scenarios</th></tr>
+<tr>
+  <td><code>src/app/dashboard/__tests__/page.test.tsx</code></td>
+  <td>Dashboard page rendering</td>
+  <td>Empty state, API errors, network errors, trip cards, "Ready" badge, no fake data</td>
+</tr>
+<tr>
+  <td><code>src/app/plan/__tests__/error-handling.test.tsx</code></td>
+  <td>Plan page — guest mode failures</td>
+  <td>Trip creation 500, network errors, error display, no nav on failure, retry clears error, store not polluted</td>
+</tr>
+<tr>
+  <td><code>src/app/plan/__tests__/route-review.test.tsx</code></td>
+  <td>Plan page — multi-city route flow</td>
+  <td>Multi vs single-city flow, "Continue" vs "Generate" buttons, route fetch, trip creation with edited cities, back nav</td>
+</tr>
+<tr>
+  <td><code>src/components/plan/__tests__/RouteReviewStep.test.tsx</code></td>
+  <td>RouteReviewStep component</td>
+  <td>City rendering, day adjustment ±, summary totals, over-budget warning, min 2 cities, add city, duplicate prevention, drag-drop</td>
+</tr>
+<tr>
+  <td><code>src/app/trip/[id]/edit/__tests__/add-city.test.tsx</code></td>
+  <td>Edit page — city operations</td>
+  <td>Add/remove city, duplicate prevention, needsRegeneration flag, save/navigate, structural vs non-structural edits</td>
+</tr>
+<tr>
+  <td><code>src/app/trip/[id]/__tests__/null-state.test.tsx</code></td>
+  <td>Trip detail — null itinerary</td>
+  <td>TripPage, SummaryPage, EditPage null states, "Trip not found" fallback, back-to-dashboard link</td>
+</tr>
+</table>
+
+<h3>E2E Tests (Playwright)</h3>
+<table>
+<tr><th>Test File</th><th>Flow Tested</th><th>Notes</th></tr>
+<tr>
+  <td><code>e2e/planning-flow.spec.ts</code></td>
+  <td>Core planning questionnaire (Phase 0)</td>
+  <td>Full guest planning flow</td>
+</tr>
+<tr>
+  <td><code>e2e/full-workflow.spec.ts</code></td>
+  <td>Complete user journey: plan → generate → view</td>
+  <td>End-to-end trip creation</td>
+</tr>
+<tr>
+  <td><code>e2e/route-review-edit-cities.spec.ts</code></td>
+  <td>Multi-city route review + city editing</td>
+  <td>Route review step interactions</td>
+</tr>
+<tr>
+  <td><code>e2e/phase1-auth-edit-share.spec.ts</code></td>
+  <td>Auth, editing, and sharing (Phase 1)</td>
+  <td>Requires E2E_TEST_EMAIL + E2E_TEST_PASSWORD</td>
+</tr>
+<tr>
+  <td><code>e2e/airport-dropdown.spec.ts</code></td>
+  <td>Airport combobox in onboarding/planning</td>
+  <td>Dropdown interaction tests</td>
+</tr>
+</table>
+
+<h3>Coverage Heat Map</h3>
+<table>
+<tr><th>Area</th><th>Unit</th><th>E2E</th><th>Coverage Assessment</th></tr>
+<tr style="background:rgba(63,185,80,0.06)">
+  <td>Plan questionnaire + route review</td><td style="color:var(--green)">3 files</td><td style="color:var(--green)">3 specs</td><td style="color:var(--green)"><strong>Well covered</strong></td>
+</tr>
+<tr style="background:rgba(63,185,80,0.06)">
+  <td>Trip edit (add/remove city)</td><td style="color:var(--green)">1 file</td><td style="color:var(--green)">2 specs</td><td style="color:var(--green)"><strong>Well covered</strong></td>
+</tr>
+<tr style="background:rgba(63,185,80,0.04)">
+  <td>Dashboard</td><td style="color:var(--green)">1 file</td><td>—</td><td>Adequate (rendering only)</td>
+</tr>
+<tr style="background:rgba(63,185,80,0.04)">
+  <td>Trip null states</td><td style="color:var(--green)">1 file</td><td>—</td><td>Adequate</td>
+</tr>
+<tr>
+  <td>Trip view (map + timeline)</td><td>—</td><td style="color:var(--yellow)">partial</td><td style="color:var(--yellow)">Minimal — SSE, per-city gen untested</td>
+</tr>
+<tr>
+  <td>Trip summary (share, PDF, affiliate)</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Auth pages (signup, login, reset)</td><td>—</td><td style="color:var(--yellow)">partial</td><td style="color:var(--yellow)">E2E touches login/signup, but not unit tested</td>
+</tr>
+<tr>
+  <td>Onboarding</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Profile (settings, export, delete)</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Share page</td><td>—</td><td style="color:var(--yellow)">partial</td><td style="color:var(--yellow)">Phase 1 E2E touches it</td>
+</tr>
+<tr>
+  <td>API routes (direct)</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No direct API tests</strong> (only through page tests)</td>
+</tr>
+<tr>
+  <td>AI pipeline (prompts, parsing)</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Flight optimization</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Affiliate redirect</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Weather/visa enrichment</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+<tr>
+  <td>Cron job (stale cleanup)</td><td>—</td><td>—</td><td style="color:var(--red)"><strong>No coverage</strong></td>
+</tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="simplify">13. Simplification Opportunities</h2>
+
+<div class="simplify-note">
+  <strong>1. Phase 0 generation route (<code>POST /api/generate</code>)</strong><br>
+  This legacy route is from the Phase 0 demo. The Phase 1 flow uses <code>/api/v1/trips/:id/generate</code> instead.
+  The route selection endpoint <code>/api/generate/select-route</code> is still actively used by the plan page, but the main <code>/api/generate</code> route appears to be dead code.
+  <br><em>Action: Verify no clients call <code>/api/generate</code> and remove it.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>2. Duplicate state: Zustand store vs Database</strong><br>
+  The Zustand store persists the entire <code>itinerary</code> object to localStorage, which duplicates what's stored in the database <code>Itinerary.data</code>. For authenticated users, the DB is the source of truth, but the store is also kept in sync. This creates potential consistency issues.
+  <br><em>Action: Consider making Zustand the cache-only layer for the current session and always fetching from DB for authenticated users.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>3. Guest trip → auth linking gap</strong><br>
+  When a guest creates a trip and later signs up, the trip's <code>profileId</code> remains <code>null</code>. There is no mechanism to retroactively link guest trips to a new account. This means guest trips are essentially orphaned.
+  <br><em>Action: Either implement trip claiming (via localStorage tripId after signup) or explicitly communicate that guest trips are temporary.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>4. Two-step generation (route-only → per-city activities)</strong><br>
+  The new generation flow splits into <code>generateRouteOnly()</code> + <code>generateCityActivities()</code> (per city). This requires N+1 Anthropic API calls (1 for route + N for cities). The old pipeline did it in one call with higher token budget.
+  <br><em>Trade-off: Better UX (progressive loading) vs. higher API cost and complexity. Consider whether the progressive loading is worth the extra calls.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>5. Enrichment as separate API routes</strong><br>
+  Visa and weather enrichment are separate POST endpoints (<code>/api/v1/enrich/visa</code>, <code>/api/v1/enrich/weather</code>) called from the client. Since visa is purely static data (no external API), it could be done client-side. Weather could be folded into the generation pipeline.
+  <br><em>Action: Move visa lookup to client-side utility. Consider whether weather enrichment needs its own route or could be part of generation.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>6. Unused DB models</strong><br>
+  The Prisma schema mentions 5 models currently, but the CLAUDE.md references 8 models (including Experiment, ExperimentAssignment, AnalyticsEvent). Check if those 3 were removed from the schema or if they are unused but still defined.
+  <br><em>Action: Audit schema for unused models and remove them.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>7. Onboarding duplication</strong><br>
+  The onboarding page (<code>/onboarding</code>) and plan page steps 1-2 (guest mode) collect the same data (nationality, airport, travel style, interests). Both write to the same Zustand fields. The plan page effectively duplicates onboarding for guests.
+  <br><em>Action: Consider whether <code>/onboarding</code> is still needed or if the plan page's guest flow makes it redundant.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>8. Affiliate click tracking</strong><br>
+  <code>AffiliateClick</code> records are created but there's no UI to view or analyze them. The affiliate links themselves are static URL patterns, not actual partner integrations with revenue tracking.
+  <br><em>Action: Either build analytics dashboard for affiliate data or simplify by removing the tracking if it's not being used.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>9. Resend email integration</strong><br>
+  Email templates exist for welcome and itinerary-ready notifications, but it's unclear where <code>sendWelcomeEmail()</code> and <code>sendItineraryReadyEmail()</code> are actually called from in the current flow. They may not be wired up.
+  <br><em>Action: Verify email sending is actually triggered. If not, either wire it up or remove the dead code.</em>
+</div>
+
+<div class="simplify-note">
+  <strong>10. Test coverage gaps (critical paths)</strong><br>
+  The core revenue path (trip summary → affiliate links → booking) has zero test coverage. Profile/GDPR operations (data export, account delete) are also untested. The AI pipeline (prompt assembly, JSON parsing, content filter retry) has no unit tests.
+  <br><em>Action: Prioritize tests for: (a) AI pipeline parsing/validation, (b) profile GDPR operations, (c) summary/share flow.</em>
+</div>
+
+<hr style="margin: 32px 0; border-color: var(--border);">
+
+<p style="color:var(--text-muted);font-size:12px;text-align:center;">
+  Generated by Claude Code &middot; Travel Pro Architecture Documentation &middot; 2026-02-21<br>
+  Source: codebase analysis of <code>src/</code>, <code>prisma/</code>, <code>e2e/</code>, and <code>CLAUDE.md</code>
+</p>
+
+</body>
+</html>

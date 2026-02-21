@@ -101,8 +101,8 @@ export default function ProfilePage() {
                   {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
               </FormField>
-              <FormField label="Home Airport">
-                <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
+              <FormField label="Home Airport" error={errors.homeAirport}>
+                <AirportCombobox value={homeAirport} onChange={(v) => { setHomeAirport(v); clearError("homeAirport"); }} />
               </FormField>
             </div>
           </section>

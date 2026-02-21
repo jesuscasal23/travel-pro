@@ -209,7 +209,7 @@ describe("RouteReviewStep", () => {
       />
     );
 
-    expect(screen.getByText(/exceed the trip duration/i)).toBeInTheDocument();
+    expect(screen.getByText(/adjusted automatically to fit your trip duration/i)).toBeInTheDocument();
   });
 
   it("does not show over-budget warning when within duration", () => {
@@ -222,7 +222,7 @@ describe("RouteReviewStep", () => {
       />
     );
 
-    expect(screen.queryByText(/exceed the trip duration/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/adjusted automatically to fit your trip duration/i)).not.toBeInTheDocument();
   });
 
   it("disables Generate button when fewer than 2 cities", () => {

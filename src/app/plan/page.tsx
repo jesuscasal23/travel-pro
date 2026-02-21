@@ -16,6 +16,7 @@ import { useAuthStatus, usePrefetchRouteSelection, useFetchRouteSelection, build
 import { slideVariants } from "@/lib/animations";
 import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { CityCombobox } from "@/components/ui/CityCombobox";
+import { CountryCombobox } from "@/components/ui/CountryCombobox";
 import { ChipGroup } from "@/components/ui/Chip";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
 import type { CityStop, Itinerary } from "@/types";
@@ -101,6 +102,9 @@ export default function PlanPage() {
   }, [isGenerating]);
 
   const isSingleCity = tripType === "single-city";
+  const isSingleCountry = tripType === "single-country";
+  const isMultiCountry = tripType === "multi-city";
+  const needsRouteReview = isSingleCountry || isMultiCountry;
   const totalSteps = isGuest
     ? (isSingleCity ? 4 : 5)
     : (isSingleCity ? 2 : 3);
@@ -114,26 +118,30 @@ export default function PlanPage() {
   const showStyle = isGuest && step === 2;
   const showDestination = isGuest ? step === 3 : step === 1;
   const showDetails = isGuest ? step === 4 : step === 2;
-  const showRouteReview = !isSingleCity && step === totalSteps;
+  const showRouteReview = needsRouteReview && step === totalSteps;
 
   // ── Speculative route selection: prefetch when user reaches details step ────
   useEffect(() => {
-    if (isSingleCity || !region || !dateStart || !dateEnd) return;
+    if (!needsRouteReview || !dateStart || !dateEnd) return;
     if (!showDetails) return;
+    // single-country needs destinationCountry; multi-country needs region
+    if (isSingleCountry && !destinationCountry) return;
+    if (isMultiCountry && !region) return;
 
-    const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
+    const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
     const params = {
       profile: { nationality, homeAirport, travelStyle, interests },
       tripIntent: {
         id: "speculative",
         tripType, region,
+        destinationCountry, destinationCountryCode,
         dateStart, dateEnd, flexibleDates,
         budget, travelers,
       },
     };
     prefetchRoute(params, cacheKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showDetails, isSingleCity, region, dateStart, dateEnd, travelStyle]);
+  }, [showDetails, needsRouteReview, isSingleCountry, isMultiCountry, region, destinationCountry, dateStart, dateEnd, travelStyle]);
 
   const dayCount = (() => {
     if (!dateStart || !dateEnd) return 0;
@@ -144,7 +152,11 @@ export default function PlanPage() {
     if (showProfile) return !!nationality;
     if (showStyle) return true; // style has default, interests optional
     if (showDestination) {
-      const hasDestination = isSingleCity ? !!destination : !!region;
+      const hasDestination = isSingleCity
+        ? !!destination
+        : isSingleCountry
+        ? !!destinationCountry
+        : !!region;
       return hasDestination && !!dateStart && !!dateEnd && dayCount > 0;
     }
     if (showDetails) return budget > 0 && travelers > 0;
@@ -153,11 +165,11 @@ export default function PlanPage() {
 
   const goNext = async () => {
     if (showProfile) {
-      const fieldErrors = validate(onboardingStep1Schema, { nationality });
+      const fieldErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     if (showDestination) {
-      const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, dateStart, dateEnd });
+      const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, destinationCountry, dateStart, dateEnd });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     if (showDetails) {
@@ -169,14 +181,15 @@ export default function PlanPage() {
     setPlanStep(step + 1);
 
     // If advancing to route review, fetch the AI-suggested route
-    if (showDetails && !isSingleCity) {
+    if (showDetails && needsRouteReview) {
       setRouteLoading(true);
-      const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
+      const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
       const params = {
         profile: { nationality, homeAirport, travelStyle, interests },
         tripIntent: {
           id: "speculative",
           tripType, region,
+          destinationCountry, destinationCountryCode,
           dateStart, dateEnd, flexibleDates, budget, travelers,
         },
       };
@@ -199,8 +212,9 @@ export default function PlanPage() {
   };
 
   // ── Helper: convert CityWithDays[] → CityStop[] for partial itinerary ────
-  const citiesToRoute = useCallback((cities: CityWithDays[]): CityStop[] =>
-    cities.map((c) => ({
+  const citiesToRoute = useCallback((cities: CityWithDays[]): CityStop[] => {
+    // Start with the average of min/max for each city
+    const raw = cities.map((c) => ({
       id: c.id,
       city: c.city,
       country: c.country,
@@ -209,8 +223,26 @@ export default function PlanPage() {
       lng: c.lng,
       days: Math.round((c.minDays + c.maxDays) / 2),
       iataCode: c.iataCode || undefined,
-    })),
-  []);
+    }));
+
+    // If total exceeds the trip duration, scale down proportionally
+    const total = raw.reduce((s, c) => s + c.days, 0);
+    if (dayCount > 0 && total > dayCount) {
+      const scale = dayCount / total;
+      let remaining = dayCount;
+      for (let i = 0; i < raw.length; i++) {
+        if (i === raw.length - 1) {
+          // Last city gets whatever is left to avoid rounding drift
+          raw[i].days = Math.max(1, remaining);
+        } else {
+          raw[i].days = Math.max(1, Math.round(raw[i].days * scale));
+          remaining -= raw[i].days;
+        }
+      }
+    }
+
+    return raw;
+  }, [dayCount]);
 
   // ── Helper: build single-city route from store destination fields ──────────
   const singleCityRoute = useCallback((): CityStop[] => {
@@ -257,13 +289,14 @@ export default function PlanPage() {
     } else if (isSingleCity) {
       route = singleCityRoute();
     } else {
-      // Fallback for multi-city without route review
-      const cacheKey = buildCacheKey({ region, dateStart, dateEnd, travelStyle });
+      // Fallback for multi-city/single-country without route review
+      const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
       const params = {
         profile: { nationality, homeAirport, travelStyle, interests },
         tripIntent: {
           id: "speculative",
           tripType, region,
+          destinationCountry, destinationCountryCode,
           dateStart, dateEnd, flexibleDates, budget, travelers,
         },
       };
@@ -282,8 +315,12 @@ export default function PlanPage() {
     try {
       const { trip } = await createTripMutation.mutateAsync({
         tripType,
-        region: isSingleCity ? "" : region,
-        ...(isSingleCity ? { destination, destinationCountry, destinationCountryCode } : {}),
+        region: isMultiCountry ? region : "",
+        ...(isSingleCity
+          ? { destination, destinationCountry, destinationCountryCode }
+          : isSingleCountry
+          ? { destinationCountry, destinationCountryCode }
+          : {}),
         dateStart, dateEnd, flexibleDates, budget, travelers,
       });
 
@@ -298,7 +335,7 @@ export default function PlanPage() {
       setGenerationError("Something went wrong. Please try again.");
     }
   }, [
-    isSingleCity,
+    isSingleCity, isSingleCountry, isMultiCountry,
     tripType, region, destination, destinationCountry, destinationCountryCode,
     dateStart, dateEnd, flexibleDates, budget, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
@@ -527,8 +564,8 @@ export default function PlanPage() {
                         {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
                     </FormField>
-                    <FormField label="Home Airport">
-                      <AirportCombobox value={homeAirport} onChange={setHomeAirport} />
+                    <FormField label="Home Airport" error={errors.homeAirport}>
+                      <AirportCombobox value={homeAirport} onChange={(v) => { setHomeAirport(v); clearError("homeAirport"); }} />
                     </FormField>
                   </div>
                 </div>
@@ -559,22 +596,25 @@ export default function PlanPage() {
 
                   {/* Trip type toggle */}
                   <div className="flex gap-0 p-1 bg-secondary rounded-xl mb-6">
-                    <button
-                      onClick={() => { setTripType("single-city"); setRegion(""); }}
-                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
-                        isSingleCity ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      One City
-                    </button>
-                    <button
-                      onClick={() => { setTripType("multi-city"); clearDestination(); }}
-                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
-                        !isSingleCity ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      Multi-City
-                    </button>
+                    {([
+                      { value: "single-city", label: "One City" },
+                      { value: "single-country", label: "One Country" },
+                      { value: "multi-city", label: "Multi-Country" },
+                    ] as const).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => {
+                          setTripType(opt.value);
+                          setRegion("");
+                          clearDestination();
+                        }}
+                        className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                          tripType === opt.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
 
                   {/* Destination input */}
@@ -583,6 +623,13 @@ export default function PlanPage() {
                       <CityCombobox
                         value={destination ? `${destination}, ${destinationCountry}` : ""}
                         onChange={(entry) => { setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng); clearError("destination"); }}
+                      />
+                    </FormField>
+                  ) : isSingleCountry ? (
+                    <FormField label="Country" className="mb-6" error={errors.destinationCountry}>
+                      <CountryCombobox
+                        value={destinationCountry}
+                        onChange={(entry) => { setDestination("", entry.country, entry.countryCode, entry.lat, entry.lng); clearError("destinationCountry"); }}
                       />
                     </FormField>
                   ) : (
@@ -663,7 +710,7 @@ export default function PlanPage() {
                 </div>
               )}
 
-              {/* Route review — multi-city only */}
+              {/* Route review — single-country & multi-country */}
               {showRouteReview && (
                 <RouteReviewStep
                   cities={routeCities ?? []}
