@@ -175,13 +175,13 @@ describe("PlanPage — guest mode API failure", () => {
     expect(mockRouterPush).not.toHaveBeenCalled();
   });
 
-  it("clears the error message when the user clicks Try Again", async () => {
+  it("clears the error message when the user clicks Generate again", async () => {
     // Fetch #1: trip creation → fails → error
-    // Fetch #2: retry trip creation → hangs → loading resumes
+    // Fetch #2: retry trip creation → succeeds
     global.fetch = vi
       .fn()
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
-      .mockReturnValueOnce(new Promise(() => {}));
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ trip: { id: "trip-123" } }) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
@@ -189,19 +189,15 @@ describe("PlanPage — guest mode API failure", () => {
       screen.getByRole("button", { name: /generate my itinerary/i })
     );
 
-    // First click → error appears on generation screen
+    // First click → error appears inline
     fireEvent.click(generateBtn);
     await waitFor(() => screen.getByText(/something went wrong/i));
 
-    // User stays on generation screen — click "Try Again" to retry
-    const retryBtn = screen.getByRole("button", { name: /try again/i });
-    act(() => { fireEvent.click(retryBtn); });
+    // User clicks Generate again → navigates on success
+    act(() => { fireEvent.click(generateBtn); });
 
-    // Error should be cleared as generation restarts
     await waitFor(() =>
-      expect(
-        screen.queryByText(/something went wrong.*please try again/i)
-      ).not.toBeInTheDocument()
+      expect(mockRouterPush).toHaveBeenCalledWith("/trip/trip-123")
     );
   });
 
