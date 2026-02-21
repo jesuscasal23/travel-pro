@@ -4,6 +4,9 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle, ExternalLink, Shield, Thermometer, Backpack, Check, Loader2 } from "lucide-react";
 import { generatePackingList } from "@/lib/utils/generate-packing-list";
+import { shouldHideVisaSection } from "@/lib/utils/visa-utils";
+import { NATIONALITY_TO_ISO2 } from "@/data/nationality-to-iso2";
+import { useTripStore } from "@/stores/useTripStore";
 import type { Itinerary } from "@/types";
 
 interface EssentialsTabProps {
@@ -57,6 +60,14 @@ export function EssentialsTab({ itinerary, visaLoading, weatherLoading, visaErro
   const { route, days, visaData, weatherData } = itinerary;
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
 
+  const nationality = useTripStore((s) => s.nationality);
+  const passportCode = NATIONALITY_TO_ISO2[nationality] ?? (nationality.length === 2 ? nationality.toUpperCase() : undefined);
+  const destinationCodes = useMemo(() => [...new Set(route.map((r) => r.countryCode))], [route]);
+  const hideVisa = useMemo(
+    () => shouldHideVisaSection(visaData, passportCode, destinationCodes),
+    [visaData, passportCode, destinationCodes],
+  );
+
   const hasVisa = visaData && visaData.length > 0;
   const hasWeather = weatherData && weatherData.length > 0;
 
@@ -98,61 +109,63 @@ export function EssentialsTab({ itinerary, visaLoading, weatherLoading, visaErro
 
   return (
     <div className="space-y-10">
-      {/* Visas */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center gap-2 mb-1">
-          <Shield className="w-5 h-5 text-foreground" />
-          <h2 className="text-xl font-bold text-foreground">Visas</h2>
-          {!hasVisa && !visaError && visaLoading && <LoadingLabel />}
-          {!hasVisa && visaError && <ErrorLabel />}
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Always verify with official embassy sites before travel.
-        </p>
-
-        {visaError && !hasVisa ? (
-          <ErrorCard message="Visa information couldn't be loaded. Check your nationality in your profile and try refreshing." />
-        ) : hasVisa ? (
-          <div className="space-y-3">
-            {visaData.map((visa) => (
-              <div
-                key={visa.countryCode}
-                className="flex items-center justify-between p-4 bg-background border border-border rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider bg-secondary px-2 py-1 rounded">
-                    {visa.countryCode}
-                  </span>
-                  <span className="font-semibold text-foreground">{visa.country}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 ${
-                    visa.requirement === "visa-free"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                      : visa.requirement === "e-visa" || visa.requirement === "eta"
-                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
-                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200"
-                  }`}>
-                    {visa.requirement === "visa-free" && <Check className="w-3 h-3" />}
-                    {visa.requirement !== "visa-free" && "⚠"}
-                    {" "}{visa.label}
-                  </span>
-                  <a
-                    href={visa.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    Official site <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
-            ))}
+      {/* Visas — hidden when all destinations are own country or Schengen-to-Schengen */}
+      {!hideVisa && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="w-5 h-5 text-foreground" />
+            <h2 className="text-xl font-bold text-foreground">Visas</h2>
+            {!hasVisa && !visaError && visaLoading && <LoadingLabel />}
+            {!hasVisa && visaError && <ErrorLabel />}
           </div>
-        ) : (
-          <SectionSkeleton lines={countries.length || 3} />
-        )}
-      </motion.div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Always verify with official embassy sites before travel.
+          </p>
+
+          {visaError && !hasVisa ? (
+            <ErrorCard message="Visa information couldn't be loaded. Check your nationality in your profile and try refreshing." />
+          ) : hasVisa ? (
+            <div className="space-y-3">
+              {visaData.map((visa) => (
+                <div
+                  key={visa.countryCode}
+                  className="flex items-center justify-between p-4 bg-background border border-border rounded-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider bg-secondary px-2 py-1 rounded">
+                      {visa.countryCode}
+                    </span>
+                    <span className="font-semibold text-foreground">{visa.country}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 ${
+                      visa.requirement === "visa-free"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                        : visa.requirement === "e-visa" || visa.requirement === "eta"
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
+                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200"
+                    }`}>
+                      {visa.requirement === "visa-free" && <Check className="w-3 h-3" />}
+                      {visa.requirement !== "visa-free" && "⚠"}
+                      {" "}{visa.label}
+                    </span>
+                    <a
+                      href={visa.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      Official site <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <SectionSkeleton lines={countries.length || 3} />
+          )}
+        </motion.div>
+      )}
 
       {/* Weather & Seasonality */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>

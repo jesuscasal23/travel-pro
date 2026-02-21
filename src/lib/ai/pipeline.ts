@@ -2,7 +2,7 @@
 // Travel Pro — AI Generation Pipeline
 //
 // Stage 1: Assemble prompt
-// Stage 2: Call Claude (claude-haiku-4-5-20251001, maxTokens 10000/4000, temp 0.7, 50s timeout)
+// Stage 2: Call Claude (claude-haiku-4-5-20251001, maxTokens 10000/8000, temp 0.7, 50s timeout)
 // Stage 3: Parse + validate with Zod
 // Stage 4: Enrich (visa + weather) in parallel
 // Stage 5: Store via Prisma
@@ -12,9 +12,19 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
 import { SYSTEM_PROMPT_SINGLE_CITY, assembleSingleCityPrompt } from "./prompts/single-city";
+import {
+  SYSTEM_PROMPT_ROUTE_ONLY,
+  SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY,
+  assembleRouteOnlyPrompt,
+  assembleRouteOnlySingleCityPrompt,
+} from "./prompts/route-only";
+import {
+  SYSTEM_PROMPT_CITY_ACTIVITIES,
+  assembleCityActivitiesPrompt,
+} from "./prompts/city-activities";
 import { selectRoute } from "./prompts/route-selector";
 import { enrichVisa, enrichWeather } from "./enrichment";
-import type { UserProfile, TripIntent, Itinerary } from "@/types";
+import type { UserProfile, TripIntent, Itinerary, TripDay } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
@@ -91,6 +101,22 @@ const claudeItinerarySchema = z.object({
 });
 
 type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
+
+/** Schema for per-city activity generation output. */
+const cityActivitiesOutputSchema = z.object({
+  days: z.array(
+    z.object({
+      day: z.number(),
+      date: z.string(),
+      city: z.string(),
+      isTravel: z.boolean().optional(),
+      travelFrom: z.string().optional(),
+      travelTo: z.string().optional(),
+      travelDuration: z.string().optional(),
+      activities: z.array(dayActivitySchema),
+    })
+  ),
+});
 
 // ============================================================
 // Helpers
@@ -229,7 +255,7 @@ export async function generateCoreItinerary(
     log.info("Single-city mode", { destination: tripIntent.destination, country: tripIntent.destinationCountry, elapsed: elapsed() });
     userPrompt = assembleSingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
-    maxTokens = 4000;
+    maxTokens = 8000;
   } else {
     let cities: CityWithDays[] | undefined = preSelectedCities;
 
@@ -268,6 +294,137 @@ export async function generateCoreItinerary(
 
   log.info("Core generation complete (enrichment deferred)", { tripId: tripIntent.id, elapsed: elapsed() });
   return parsed;
+}
+
+// ============================================================
+// Route-Only Generation (no activities)
+// ============================================================
+
+/**
+ * Generate only the route, day stubs (empty activities), and budget estimate.
+ * Much faster/cheaper than full generation — activities are added per-city later.
+ */
+export async function generateRouteOnly(
+  profile: UserProfile,
+  tripIntent: TripIntent,
+  preSelectedCities?: CityWithDays[]
+): Promise<Itinerary> {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+  const isSingleCityTrip = tripIntent.tripType === "single-city";
+
+  let userPrompt: string;
+  let systemPrompt: string;
+  let maxTokens: number;
+
+  if (isSingleCityTrip) {
+    log.info("Route-only: single-city mode", { destination: tripIntent.destination, elapsed: elapsed() });
+    userPrompt = assembleRouteOnlySingleCityPrompt(profile, tripIntent);
+    systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY;
+    maxTokens = 2000;
+  } else {
+    let cities: CityWithDays[] | undefined = preSelectedCities;
+
+    if (!cities) {
+      const tA = Date.now();
+      try {
+        log.info("Route-only Stage A: Selecting route with Haiku");
+        cities = await selectRoute(profile, tripIntent, getAnthropic());
+        log.info("Route-only Stage A complete", { duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`, cities: cities.map(c => c.city), elapsed: elapsed() });
+      } catch (e) {
+        log.warn("Route-only Stage A failed, falling back", { error: getErrorMessage(e), elapsed: elapsed() });
+        cities = undefined;
+      }
+    }
+
+    userPrompt = assembleRouteOnlyPrompt(profile, tripIntent, undefined, cities);
+    systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY;
+    maxTokens = 2000;
+  }
+
+  log.info("Route-only prompt assembled", { elapsed: elapsed() });
+
+  const t2 = Date.now();
+  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens);
+  log.info("Route-only Claude call complete", {
+    duration: `${((Date.now() - t2) / 1000).toFixed(1)}s`,
+    model: claudeResult.model,
+    inputTokens: claudeResult.inputTokens,
+    outputTokens: claudeResult.outputTokens,
+    elapsed: elapsed(),
+  });
+
+  const parsed = parseAndValidate(claudeResult.text);
+  log.info("Route-only generation complete", { tripId: tripIntent.id, cities: parsed.route.length, days: parsed.days.length, elapsed: elapsed() });
+  return parsed;
+}
+
+// ============================================================
+// Per-City Activity Generation
+// ============================================================
+
+/**
+ * Generate activities for a single city within an existing route-only itinerary.
+ * Returns the updated TripDay[] for that city with activities populated.
+ */
+export async function generateCityActivities(
+  profile: UserProfile,
+  tripIntent: TripIntent,
+  itinerary: Itinerary,
+  cityId: string
+): Promise<TripDay[]> {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+
+  const cityStop = itinerary.route.find((r) => r.id === cityId);
+  if (!cityStop) {
+    throw new Error(`City "${cityId}" not found in itinerary route`);
+  }
+
+  const cityDays = itinerary.days.filter((d) => d.city === cityStop.city);
+  if (cityDays.length === 0) {
+    throw new Error(`No days found for city "${cityStop.city}"`);
+  }
+
+  log.info("Generating activities for city", { cityId, city: cityStop.city, days: cityDays.length, elapsed: elapsed() });
+
+  const userPrompt = assembleCityActivitiesPrompt(profile, tripIntent, cityStop, cityDays);
+
+  const claudeResult = await callClaude(userPrompt, SYSTEM_PROMPT_CITY_ACTIVITIES, 4000);
+  log.info("City activities Claude call complete", {
+    cityId,
+    duration: `${((Date.now() - t0) / 1000).toFixed(1)}s`,
+    inputTokens: claudeResult.inputTokens,
+    outputTokens: claudeResult.outputTokens,
+    elapsed: elapsed(),
+  });
+
+  // Parse + validate city activities output
+  const json = extractJSON(claudeResult.text);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch (e) {
+    throw new Error(`City activities output is not valid JSON: ${getErrorMessage(e)}`);
+  }
+
+  const result = cityActivitiesOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    const issues = result.error.issues
+      .slice(0, 5)
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`City activities schema validation failed: ${issues}`);
+  }
+
+  log.info("City activities generation complete", {
+    cityId,
+    daysGenerated: result.data.days.length,
+    totalActivities: result.data.days.reduce((sum, d) => sum + d.activities.length, 0),
+    elapsed: elapsed(),
+  });
+
+  return result.data.days;
 }
 
 // ============================================================
