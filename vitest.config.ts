@@ -10,8 +10,8 @@ export default defineConfig({
     // Server-side test files override this with @vitest-environment node.
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
-    // Exclude e2e tests — those run under Playwright
-    exclude: ["**/node_modules/**", "**/e2e/**"],
+    // Exclude e2e and integration tests — they run under separate configs
+    exclude: ["**/node_modules/**", "**/e2e/**", "**/integration/**"],
   },
   resolve: {
     alias: {
