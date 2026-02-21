@@ -41,6 +41,9 @@ yarn-error.log*
 # prisma
 /prisma/generated/
 
+# City images (downloaded via scripts/download-city-images.ts)
+public/images/cities/**/*.webp
+
 # vercel
 .vercel
 

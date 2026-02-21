@@ -1,11 +1,48 @@
 /**
- * City image URL helper — uses curated Unsplash photos for known cities,
- * falls back to Unsplash source search for unknown cities.
+ * City image URL helper.
+ *
+ * Priority:
+ * 1. Local manifest (downloaded via `npm run download:images`)
+ * 2. Curated Unsplash URLs (hardcoded fallback for 32 popular cities)
+ * 3. Generic placeholder gradient
  */
 
 /** Tiny teal-tinted SVG for use as next/image blurDataURL */
 export const CITY_IMAGE_BLUR =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSI2Ij48cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iNiIgZmlsbD0iIzBENzM3NyIgb3BhY2l0eT0iMC4zIi8+PC9zdmc+";
+
+// ── Manifest-based lookup (populated by download:images script) ──
+
+interface ManifestEntry {
+  slug: string;
+  city: string;
+  country: string;
+  countryCode: string;
+}
+
+let manifestMap: Map<string, string> | null = null;
+
+function getManifestMap(): Map<string, string> {
+  if (manifestMap) return manifestMap;
+  manifestMap = new Map();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require("../../../../public/images/cities/manifest.json") as {
+      entries: ManifestEntry[];
+    };
+    for (const entry of manifest.entries) {
+      manifestMap.set(
+        entry.city.toLowerCase(),
+        `/images/cities/${entry.countryCode}/${entry.slug}.webp`
+      );
+    }
+  } catch {
+    // Manifest doesn't exist yet — fall through to curated/placeholder
+  }
+  return manifestMap;
+}
+
+// ── Curated fallback (hardcoded Unsplash URLs for popular cities) ──
 
 const CURATED_IMAGES: Record<string, string> = {
   "Tokyo": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&h=600&fit=crop&q=80",
@@ -41,13 +78,26 @@ const CURATED_IMAGES: Record<string, string> = {
   "Mexico City": "https://images.unsplash.com/photo-1585464231875-d9ef1f5ad396?w=800&h=600&fit=crop&q=80",
 };
 
-export function getCityImage(cityName: string, width = 800, height = 600): string {
+// ── Public API ──
+
+export function getCityImage(cityName: string): string {
+  // 1. Check local manifest
+  const local = getManifestMap().get(cityName.toLowerCase());
+  if (local) return local;
+
+  // 2. Check curated Unsplash URLs
   if (CURATED_IMAGES[cityName]) return CURATED_IMAGES[cityName];
-  const query = encodeURIComponent(`${cityName} city travel`);
-  return `https://source.unsplash.com/${width}x${height}/?${query}`;
+
+  // 3. Return teal placeholder SVG (no external request)
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">` +
+      `<rect width="800" height="600" fill="#0D7377" opacity="0.15"/>` +
+      `<text x="400" y="310" font-family="system-ui" font-size="24" fill="#0D7377" text-anchor="middle">${cityName}</text>` +
+      `</svg>`
+  )}`;
 }
 
-/** Get a hero-sized image (wider, cropped for banner) */
+/** Get a hero-sized image (same source, CSS handles cropping) */
 export function getCityHeroImage(cityName: string): string {
-  return getCityImage(cityName, 1200, 600);
+  return getCityImage(cityName);
 }
