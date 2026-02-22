@@ -9,6 +9,8 @@ import { useTripStore } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { MobileLayout } from "@/components/trip/mobile/MobileLayout";
 import { DesktopLayout } from "@/components/trip/desktop/DesktopLayout";
+import { getCityHeroImage } from "@/lib/utils/city-images";
+import type { Itinerary } from "@/types";
 
 type Params = Promise<{ id: string }>;
 
@@ -31,6 +33,29 @@ export default function TripPage({ params }: { params: Params }) {
   const setItinerary = useTripStore((s) => s.setItinerary);
   const needsRegeneration = useTripStore((s) => s.needsRegeneration);
   const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
+
+  // ── Sync Zustand store with DB on mount (non-guest trips) ───────────────────
+  const syncFiredRef = useRef(false);
+  useEffect(() => {
+    if (id === "guest" || syncFiredRef.current) return;
+    syncFiredRef.current = true;
+
+    fetch(`/api/v1/trips/${id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.trip?.itineraries?.[0]?.data) return;
+        const dbItinerary = data.trip.itineraries[0].data as Itinerary;
+        // Only update if the DB version has data the local store lacks
+        const local = useTripStore.getState().itinerary;
+        const dbHasActivities = dbItinerary.days?.some((d: { activities?: unknown[] }) => d.activities && d.activities.length > 0);
+        const localHasActivities = local?.days?.some((d) => d.activities && d.activities.length > 0);
+        if (dbHasActivities && !localHasActivities) {
+          setItinerary(dbItinerary);
+        }
+      })
+      .catch(() => {/* best-effort sync */});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // ── Detect partial itinerary (no days yet — generation needed) ──────────────
   const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && id !== "guest");
@@ -81,6 +106,9 @@ export default function TripPage({ params }: { params: Params }) {
     cityActivityMutation.mutate(
       { tripId: id, cityId, cityName, profile },
       {
+        onSuccess: (mergedItinerary) => {
+          setItinerary(mergedItinerary);
+        },
         onSettled: () => setGeneratingCityId(null),
       },
     );
@@ -125,16 +153,35 @@ export default function TripPage({ params }: { params: Params }) {
 
   // Wait for hydration so we pick the correct layout on first paint
   if (isMobile === null) {
+    const heroStop = route[0];
+    const heroImage = heroStop ? getCityHeroImage(heroStop.city, heroStop.countryCode) : null;
+
     return (
       <div className="min-h-screen bg-background">
-        {/* Hero skeleton */}
-        <div className="w-full h-56 bg-secondary animate-pulse" />
+        {/* Hero skeleton with real image if available */}
+        <div className="relative w-full h-56 overflow-hidden">
+          {heroImage ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroImage}
+                alt=""
+                loading="eager"
+                fetchPriority="high"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+            </>
+          ) : (
+            <div className="w-full h-full bg-secondary animate-pulse" />
+          )}
+        </div>
 
         {/* Content skeleton */}
         <div className="max-w-[960px] mx-auto px-4 py-6 space-y-6">
           {/* City cards row */}
-          <div className="flex gap-3 overflow-hidden">
-            {Array.from({ length: 4 }, (_, i) => (
+          <div className="flex gap-3 overflow-hidden justify-center">
+            {(route.length > 0 ? route : Array.from({ length: 4 })).map((_, i) => (
               <div key={i} className="flex-shrink-0 w-24 h-32 rounded-2xl bg-secondary animate-pulse" />
             ))}
           </div>

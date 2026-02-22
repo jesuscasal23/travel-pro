@@ -9,13 +9,20 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileJourneyTab } from "./MobileJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
+import { EditModeBanner } from "../edit/EditModeBanner";
+import { EditToolbar } from "../edit/EditToolbar";
+import { EditRouteSheet } from "../edit/EditRouteSheet";
+import { EditModeJourneyContent } from "../edit/EditModeJourneyContent";
+import { useEditStore } from "@/stores/useEditStore";
+import { useTripStore } from "@/stores/useTripStore";
+import { recalculateTravelDays } from "@/lib/utils/recalculate-travel-days";
 import type { MobileTab } from "../types";
 import type { TripLayoutProps } from "../types";
+import type { CityStop } from "@/types";
 
 export function MobileLayout({
   itinerary,
   tripId,
-  tripTitle,
   totalDays,
   countries,
   isAuthenticated,
@@ -34,21 +41,102 @@ export function MobileLayout({
   onGenerateActivities,
 }: TripLayoutProps) {
   const [activeTab, setActiveTab] = useState<MobileTab>("journey");
+  const [activeDayMap, setActiveDayMap] = useState<Record<number, number>>({});
   const { route } = itinerary;
+
+  const {
+    isEditMode,
+    draft,
+    undoStack,
+    isRouteSheetOpen,
+    enterEditMode,
+    exitEditMode,
+    saveAndExit,
+    updateDraft,
+    undo,
+    setRouteSheetOpen,
+  } = useEditStore();
+
+  const setItinerary = useTripStore((s) => s.setItinerary);
+  const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
+
+  function handleEnterEdit() {
+    enterEditMode(itinerary);
+    setActiveTab("journey");
+  }
+
+  function handleDiscard() {
+    exitEditMode();
+  }
+
+  function handleSave() {
+    if (!draft) return;
+    saveAndExit((saved) => {
+      const routeChanged =
+        JSON.stringify(saved.route.map((c) => ({ id: c.id, days: c.days }))) !==
+        JSON.stringify(itinerary.route.map((c) => ({ id: c.id, days: c.days })));
+
+      const citiesAddedOrRemoved =
+        saved.route.length !== itinerary.route.length ||
+        saved.route.some((c, i) => c.id !== itinerary.route[i]?.id);
+
+      let finalItinerary = saved;
+      if (routeChanged) {
+        finalItinerary = {
+          ...saved,
+          days: recalculateTravelDays(saved.days, saved.route),
+        };
+      }
+
+      setItinerary(finalItinerary);
+
+      if (citiesAddedOrRemoved) {
+        setNeedsRegeneration(true);
+      }
+
+      if (isAuthenticated && tripId !== "guest") {
+        fetch(`/api/v1/trips/${tripId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itinerary: finalItinerary }),
+        }).catch(() => {/* best-effort */});
+      }
+    });
+  }
+
+  function handleRouteCitiesChange(cities: CityStop[]) {
+    updateDraft((d) => ({ ...d, route: cities }));
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Edit mode banner */}
+      {isEditMode && <EditModeBanner />}
+
       {/* Hero section */}
-      {!isPartialItinerary && (
-        <MobileHero
-          route={route}
-          totalDays={totalDays}
-          countries={countries}
-        />
+      <MobileHero
+        route={isEditMode && draft ? draft.route : route}
+        totalDays={totalDays}
+        countries={countries}
+        isEditMode={isEditMode}
+        onToggleEditMode={isEditMode ? handleDiscard : handleEnterEdit}
+        isPartialItinerary={isPartialItinerary}
+      />
+
+      {/* Edit route button */}
+      {isEditMode && draft && (
+        <div className="px-4 py-2 border-b border-border">
+          <button
+            onClick={() => setRouteSheetOpen(true)}
+            className="btn-ghost text-sm w-full py-2"
+          >
+            ✏️ Edit Route
+          </button>
+        </div>
       )}
 
       {/* Generation banner */}
-      {isGenerating && (
+      {!isEditMode && isGenerating && (
         <div className="px-4 py-3 bg-primary/5 border-b border-primary/20">
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 text-primary animate-spin" />
@@ -58,7 +146,7 @@ export function MobileLayout({
       )}
 
       {/* Error banner */}
-      {generationError && (
+      {!isEditMode && generationError && (
         <div className="px-4 py-3 bg-accent/10 border-b border-accent/30">
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-foreground">{generationError}</p>
@@ -68,7 +156,7 @@ export function MobileLayout({
       )}
 
       {/* Regeneration banner */}
-      {needsRegeneration && !isPartialItinerary && !generationError && (
+      {!isEditMode && needsRegeneration && !isPartialItinerary && !generationError && (
         <div className="px-4 py-3 bg-primary/10 border-b border-primary/30">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-foreground">Route changed. Regenerate?</p>
@@ -85,7 +173,7 @@ export function MobileLayout({
       )}
 
       {/* Save-trip nudge */}
-      {isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
+      {!isEditMode && isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
         <div className="px-4 py-2.5 bg-background/95 border-b border-accent/40">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-foreground line-clamp-2">
@@ -108,6 +196,18 @@ export function MobileLayout({
             <div className="px-4 pt-4">
               <ItinerarySkeletonTab route={route} />
             </div>
+          ) : isEditMode && draft ? (
+            <div className="pb-20">
+              <EditModeJourneyContent
+                draft={draft}
+                activeDayMap={activeDayMap}
+                onDayChange={(groupIdx, dayNum) =>
+                  setActiveDayMap((prev) => ({ ...prev, [groupIdx]: dayNum }))
+                }
+                generatingCityId={generatingCityId}
+                onGenerateActivities={onGenerateActivities}
+              />
+            </div>
           ) : (
             <MobileJourneyTab
               itinerary={itinerary}
@@ -129,8 +229,29 @@ export function MobileLayout({
         )}
       </div>
 
-      {/* Bottom nav */}
-      <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Bottom nav OR edit toolbar */}
+      {isEditMode ? (
+        <EditToolbar
+          variant="mobile"
+          canUndo={undoStack.length > 0}
+          hasChanges={undoStack.length > 0}
+          onUndo={undo}
+          onDiscard={handleDiscard}
+          onSave={handleSave}
+        />
+      ) : (
+        <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
+
+      {/* Route editing bottom sheet */}
+      {isEditMode && isRouteSheetOpen && draft && (
+        <EditRouteSheet
+          variant="mobile"
+          cities={draft.route}
+          onCitiesChange={handleRouteCitiesChange}
+          onClose={() => setRouteSheetOpen(false)}
+        />
+      )}
     </div>
   );
 }

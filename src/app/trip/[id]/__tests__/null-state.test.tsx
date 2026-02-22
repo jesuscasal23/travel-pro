@@ -5,7 +5,7 @@
 // (instead of crashing or showing sample data) when useItinerary
 // returns null.
 //
-// Pages tested: trip/[id]/page, trip/[id]/summary/page, trip/[id]/edit/page
+// Pages tested: trip/[id]/page, trip/[id]/summary/page
 // ============================================================
 
 import React, { Suspense } from "react";
@@ -90,7 +90,6 @@ vi.mock("framer-motion", () => mockFramerMotion());
 
 import TripPage from "@/app/trip/[id]/page";
 import SummaryPage from "@/app/trip/[id]/summary/page";
-import EditPage from "@/app/trip/[id]/edit/page";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -163,27 +162,3 @@ describe("SummaryPage — null itinerary", () => {
   });
 });
 
-describe("EditPage — null itinerary", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("renders the 'Trip not found' message", async () => {
-    await renderWithSuspense(<EditPage params={resolvedParams} />);
-    await waitFor(() => expect(screen.getByText("Trip not found.")).toBeInTheDocument());
-  });
-
-  it("renders a link back to the dashboard", async () => {
-    await renderWithSuspense(<EditPage params={resolvedParams} />);
-    await waitFor(() => {
-      const link = screen.getByText("Back to dashboard");
-      expect(link.closest("a")).toHaveAttribute("href", "/dashboard");
-    });
-  });
-
-  it("does not render the drag-drop city list", async () => {
-    await renderWithSuspense(<EditPage params={resolvedParams} />);
-    await waitFor(() => screen.getByText("Trip not found."));
-    expect(screen.queryByText("Route Cities")).not.toBeInTheDocument();
-  });
-});

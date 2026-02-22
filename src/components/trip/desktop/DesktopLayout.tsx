@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Loader2, RefreshCw } from "lucide-react";
@@ -11,7 +11,15 @@ import { DesktopTabBar } from "./DesktopTabBar";
 import { DesktopJourneyTab } from "./DesktopJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
+import { EditModeBanner } from "../edit/EditModeBanner";
+import { EditToolbar } from "../edit/EditToolbar";
+import { EditRouteSheet } from "../edit/EditRouteSheet";
+import { EditModeJourneyContent } from "../edit/EditModeJourneyContent";
+import { useEditStore } from "@/stores/useEditStore";
+import { useTripStore } from "@/stores/useTripStore";
+import { recalculateTravelDays } from "@/lib/utils/recalculate-travel-days";
 import type { DesktopTab, DesktopLayoutProps } from "../types";
+import type { CityStop } from "@/types";
 
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
   ssr: false,
@@ -26,7 +34,6 @@ const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
 export function DesktopLayout({
   itinerary,
   tripId,
-  tripTitle,
   totalDays,
   countries,
   isAuthenticated,
@@ -47,18 +54,105 @@ export function DesktopLayout({
   onGenerateActivities,
 }: DesktopLayoutProps) {
   const [activeTab, setActiveTab] = useState<DesktopTab>("journey");
+  const [activeDayMap, setActiveDayMap] = useState<Record<number, number>>({});
   const { route } = itinerary;
+
+  const {
+    isEditMode,
+    draft,
+    undoStack,
+    isRouteSheetOpen,
+    enterEditMode,
+    exitEditMode,
+    saveAndExit,
+    updateDraft,
+    undo,
+    setRouteSheetOpen,
+  } = useEditStore();
+
+  const setItinerary = useTripStore((s) => s.setItinerary);
+  const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
+
+  // Keyboard shortcuts: Ctrl/Cmd+Z = undo, Escape = exit edit mode
+  useEffect(() => {
+    if (!isEditMode) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        undo();
+      } else if (e.key === "Escape") {
+        exitEditMode();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isEditMode, undo, exitEditMode]);
+
+  function handleEnterEdit() {
+    enterEditMode(itinerary);
+    setActiveTab("journey");
+  }
+
+  function handleDiscard() {
+    exitEditMode();
+  }
+
+  function handleSave() {
+    if (!draft) return;
+    saveAndExit((saved) => {
+      const routeChanged =
+        JSON.stringify(saved.route.map((c) => ({ id: c.id, days: c.days }))) !==
+        JSON.stringify(itinerary.route.map((c) => ({ id: c.id, days: c.days })));
+
+      const citiesAddedOrRemoved =
+        saved.route.length !== itinerary.route.length ||
+        saved.route.some((c, i) => c.id !== itinerary.route[i]?.id);
+
+      let finalItinerary = saved;
+      if (routeChanged) {
+        finalItinerary = {
+          ...saved,
+          days: recalculateTravelDays(saved.days, saved.route),
+        };
+      }
+
+      setItinerary(finalItinerary);
+
+      if (citiesAddedOrRemoved) {
+        setNeedsRegeneration(true);
+      }
+
+      if (isAuthenticated && tripId !== "guest") {
+        fetch(`/api/v1/trips/${tripId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itinerary: finalItinerary }),
+        }).catch(() => {/* best-effort */});
+      }
+    });
+  }
+
+  function handleRouteCitiesChange(cities: CityStop[]) {
+    updateDraft((d) => ({ ...d, route: cities }));
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar isAuthenticated={isAuthenticated ?? false} />
 
+      {/* Edit mode banner (below navbar) */}
+      {isEditMode && (
+        <div className="pt-16">
+          <EditModeBanner />
+        </div>
+      )}
+
       {/* Fixed top bar for banners */}
-      <div className="pt-16">
+      <div className={isEditMode ? "" : "pt-16"}>
         {/* Generation banner */}
-        {isGenerating && (
+        {!isEditMode && isGenerating && (
           <div className="bg-primary/5 border-b border-primary/20">
-            <div className="max-w-[960px] mx-auto px-4 py-2.5 flex items-center gap-2">
+            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center gap-2">
               <Loader2 className="w-4 h-4 text-primary animate-spin" />
               <span className="text-sm text-primary font-medium">Generating your itinerary...</span>
             </div>
@@ -66,9 +160,9 @@ export function DesktopLayout({
         )}
 
         {/* Error banner */}
-        {generationError && (
+        {!isEditMode && generationError && (
           <div className="bg-accent/10 border-b border-accent/30">
-            <div className="max-w-[960px] mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
               <p className="text-sm text-foreground">{generationError}</p>
               <Button size="xs" onClick={onRetry} className="shrink-0">Try again</Button>
             </div>
@@ -76,9 +170,9 @@ export function DesktopLayout({
         )}
 
         {/* Regeneration banner */}
-        {needsRegeneration && !isPartialItinerary && !generationError && (
+        {!isEditMode && needsRegeneration && !isPartialItinerary && !generationError && (
           <div className="bg-primary/10 border-b border-primary/30">
-            <div className="max-w-[960px] mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
               <p className="text-sm text-foreground">
                 Your route has changed. Regenerate to update activities.
               </p>
@@ -95,9 +189,9 @@ export function DesktopLayout({
         )}
 
         {/* Save-trip nudge */}
-        {isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
+        {!isEditMode && isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
           <div className="bg-background/95 backdrop-blur-sm border-b border-accent/40">
-            <div className="max-w-[960px] mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
               <p className="text-sm text-foreground">
                 Want to keep this itinerary? Create a free account to save it and access it from any device.
               </p>
@@ -113,59 +207,98 @@ export function DesktopLayout({
       </div>
 
       {/* Hero */}
-      {!isPartialItinerary && (
-        <DesktopHero
-          route={route}
-          totalDays={totalDays}
-          countries={countries}
-          tripId={tripId}
-          isPartialItinerary={isPartialItinerary}
-          activeCityIndex={activeCityIndex}
-          onCityClick={onCityClick}
+      <DesktopHero
+        route={isEditMode && draft ? draft.route : route}
+        totalDays={totalDays}
+        countries={countries}
+        tripId={tripId}
+        isPartialItinerary={isPartialItinerary}
+        activeCityIndex={activeCityIndex}
+        onCityClick={onCityClick}
+        isEditMode={isEditMode}
+        onToggleEditMode={isEditMode ? handleDiscard : handleEnterEdit}
+        onEditRoute={() => setRouteSheetOpen(true)}
+      />
+
+      {/* Inline route editing panel (desktop) */}
+      {isEditMode && isRouteSheetOpen && draft && (
+        <EditRouteSheet
+          variant="desktop"
+          cities={draft.route}
+          onCitiesChange={handleRouteCitiesChange}
+          onClose={() => setRouteSheetOpen(false)}
         />
       )}
 
-      {/* Tab bar */}
-      <DesktopTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Tab bar (hidden in edit mode — edit mode shows all cities inline) */}
+      {!isEditMode && <DesktopTabBar activeTab={activeTab} onTabChange={setActiveTab} />}
 
       {/* Tab content */}
       <div className="animate-tab-in">
-        {activeTab === "journey" && (
-          isPartialItinerary ? (
-            <div className="max-w-[960px] mx-auto px-4 py-6">
-              <ItinerarySkeletonTab route={route} />
-            </div>
-          ) : (
-            <DesktopJourneyTab
-              itinerary={itinerary}
+        {isEditMode && draft ? (
+          <div className="max-w-240 mx-auto pb-24">
+            <EditModeJourneyContent
+              draft={draft}
+              activeDayMap={activeDayMap}
+              onDayChange={(groupIdx, dayNum) =>
+                setActiveDayMap((prev) => ({ ...prev, [groupIdx]: dayNum }))
+              }
               generatingCityId={generatingCityId}
               onGenerateActivities={onGenerateActivities}
             />
-          )
-        )}
-        {activeTab === "prep" && (
-          <div className="max-w-[960px] mx-auto px-4 py-6">
-            <EssentialsTab
-              itinerary={itinerary}
-              visaLoading={visaLoading}
-              weatherLoading={weatherLoading}
-              visaError={visaError}
-              weatherError={weatherError}
-            />
           </div>
-        )}
-        {activeTab === "route" && (
-          <div className="max-w-[960px] mx-auto px-4 py-6">
-            <div className="h-[500px] rounded-xl overflow-hidden border border-border">
-              <RouteMap
-                cities={route}
-                activeCityIndex={activeCityIndex}
-                onCityClick={onCityClick}
-              />
-            </div>
-          </div>
+        ) : (
+          <>
+            {activeTab === "journey" && (
+              isPartialItinerary ? (
+                <div className="max-w-240 mx-auto px-4 py-6">
+                  <ItinerarySkeletonTab route={route} />
+                </div>
+              ) : (
+                <DesktopJourneyTab
+                  itinerary={itinerary}
+                  generatingCityId={generatingCityId}
+                  onGenerateActivities={onGenerateActivities}
+                />
+              )
+            )}
+            {activeTab === "prep" && (
+              <div className="max-w-240 mx-auto px-4 py-6">
+                <EssentialsTab
+                  itinerary={itinerary}
+                  visaLoading={visaLoading}
+                  weatherLoading={weatherLoading}
+                  visaError={visaError}
+                  weatherError={weatherError}
+                />
+              </div>
+            )}
+            {activeTab === "route" && (
+              <div className="max-w-240 mx-auto px-4 py-6">
+                <div className="h-125 rounded-xl overflow-hidden border border-border">
+                  <RouteMap
+                    cities={route}
+                    activeCityIndex={activeCityIndex}
+                    onCityClick={onCityClick}
+                  />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {/* Floating edit toolbar (desktop) */}
+      {isEditMode && (
+        <EditToolbar
+          variant="desktop"
+          canUndo={undoStack.length > 0}
+          hasChanges={undoStack.length > 0}
+          onUndo={undo}
+          onDiscard={handleDiscard}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 }

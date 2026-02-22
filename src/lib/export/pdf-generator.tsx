@@ -222,7 +222,65 @@ const styles = StyleSheet.create({
     color: HEADING,
   },
 
-  // ── Day table column widths ───────────────────────────────────
+  // ── Expanded day section styles ───────────────────────────────
+  daySectionTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: HEADING,
+    marginBottom: 4,
+    paddingBottom: 3,
+    borderBottomWidth: 0.5,
+    borderBottomColor: BORDER,
+  },
+  dayActivityRow: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "flex-start" as const,
+    marginBottom: 2,
+  },
+  dayActivityName: {
+    fontSize: 8.5,
+    fontFamily: "Helvetica-Bold",
+    color: HEADING,
+    flex: 1,
+  },
+  dayActivityMeta: {
+    fontSize: 7.5,
+    color: MUTED,
+    textAlign: "right" as const,
+    marginLeft: 8,
+  },
+  dayActivityWhy: {
+    fontSize: 7.5,
+    color: MUTED,
+    marginBottom: 1,
+  },
+  dayActivityTip: {
+    fontSize: 7,
+    color: MUTED,
+    fontFamily: "Helvetica-Oblique",
+    marginBottom: 1,
+  },
+  dayActivityFood: {
+    fontSize: 7,
+    color: "#92400E",
+    marginBottom: 4,
+  },
+  dayTravelRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    backgroundColor: TRAVEL_ROW,
+    borderRadius: 3,
+    marginBottom: 4,
+  },
+  dayTravelText: {
+    fontSize: 8,
+    color: MUTED,
+  },
+
+  // ── Day table column widths (legacy) ─────────────────────────
   colDay: { width: "9%" },
   colCity: { width: "16%" },
   colActivities: { width: "75%" },
@@ -324,38 +382,70 @@ function RouteOverview({ route }: { route: CityStop[] }) {
   );
 }
 
-function DayTable({ days }: { days: TripDay[] }) {
+/** Groups consecutive days by city, then renders each group as a section */
+function DaySections({ days }: { days: TripDay[] }) {
+  // Group into city blocks (consecutive days with the same city)
+  const groups: { city: string; days: TripDay[] }[] = [];
+  for (const day of days) {
+    const last = groups[groups.length - 1];
+    if (last && last.city === day.city) {
+      last.days.push(day);
+    } else {
+      groups.push({ city: day.city, days: [day] });
+    }
+  }
+
   return (
-    <View style={styles.table}>
-      {/* Header */}
-      <View style={styles.tableHead}>
-        <Text style={[styles.tableHeadCell, styles.colDay]}>Day</Text>
-        <Text style={[styles.tableHeadCell, styles.colCity]}>City</Text>
-        <Text style={[styles.tableHeadCell, styles.colActivities]}>Activities</Text>
-      </View>
+    <>
+      {groups.map((group, gi) => (
+        <View key={gi} style={{ marginBottom: 12 }}>
+          {/* City heading */}
+          <Text style={styles.daySectionTitle}>{group.city}</Text>
 
-      {days.map((day, i) => {
-        const rowStyle = day.isTravel
-          ? styles.tableRowTravel
-          : i % 2 === 1
-          ? styles.tableRowAlt
-          : {};
-        const activitiesSummary = day.activities.map((a) => a.name).join(" · ");
-        const travelNote = day.isTravel
-          ? `✈ ${day.travelFrom} → ${day.travelTo}  `
-          : "";
+          {group.days.map((day) => (
+            <View key={day.day} style={{ marginBottom: 8 }}>
+              {/* Day label */}
+              <Text style={[styles.tableCellBold, { marginBottom: 3 }]}>
+                Day {day.day}
+                {day.date ? `  ·  ${day.date}` : ""}
+              </Text>
 
-        return (
-          <View key={day.day} style={[styles.tableRow, rowStyle]}>
-            <Text style={[styles.tableCellBold, styles.colDay]}>{day.day}</Text>
-            <Text style={[styles.tableCell, styles.colCity]}>{day.city}</Text>
-            <Text style={[styles.tableCell, styles.colActivities]}>
-              {travelNote}{activitiesSummary}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
+              {/* Travel day */}
+              {day.isTravel && day.travelFrom && day.travelTo ? (
+                <View style={styles.dayTravelRow}>
+                  <Text style={styles.dayTravelText}>
+                    ✈  {day.travelFrom} → {day.travelTo}
+                    {day.travelDuration ? `  ·  ${day.travelDuration}` : ""}
+                  </Text>
+                </View>
+              ) : day.activities.length === 0 ? (
+                <Text style={styles.tableCellMuted}>Rest / Free Day</Text>
+              ) : (
+                day.activities.map((act, ai) => (
+                  <View key={ai} style={{ marginBottom: 5 }}>
+                    <View style={styles.dayActivityRow}>
+                      <Text style={styles.dayActivityName}>{act.name}</Text>
+                      <Text style={styles.dayActivityMeta}>
+                        {[act.duration, act.cost].filter(Boolean).join("  ·  ")}
+                      </Text>
+                    </View>
+                    {act.why ? (
+                      <Text style={styles.dayActivityWhy}>{act.why}</Text>
+                    ) : null}
+                    {act.tip ? (
+                      <Text style={styles.dayActivityTip}>💡 {act.tip}</Text>
+                    ) : null}
+                    {act.food ? (
+                      <Text style={styles.dayActivityFood}>🍽️  {act.food}</Text>
+                    ) : null}
+                  </View>
+                ))
+              )}
+            </View>
+          ))}
+        </View>
+      ))}
+    </>
   );
 }
 
@@ -508,10 +598,10 @@ export function TripPDFDocument({
         {/* ── Route overview ─────────────────────────────────── */}
         <RouteOverview route={route} />
 
-        {/* ── Day-by-day table ───────────────────────────────── */}
+        {/* ── Day-by-day sections ────────────────────────────── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Day-by-Day Itinerary</Text>
-          <DayTable days={days} />
+          <DaySections days={days} />
         </View>
 
         {/* ── Visa requirements ──────────────────────────────── */}

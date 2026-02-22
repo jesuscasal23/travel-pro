@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Edit3, LayoutList } from "lucide-react";
+import { Pencil, LayoutList } from "lucide-react";
 import { CityCard } from "../CityCard";
-import { getCityHeroImage } from "@/lib/utils/city-images";
+import { getCityHeroImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import type { CityStop } from "@/types";
 
 interface DesktopHeroProps {
@@ -15,6 +15,9 @@ interface DesktopHeroProps {
   isPartialItinerary: boolean;
   activeCityIndex: number | null;
   onCityClick: (index: number) => void;
+  isEditMode: boolean;
+  onToggleEditMode: () => void;
+  onEditRoute: () => void;
 }
 
 export function DesktopHero({
@@ -25,9 +28,16 @@ export function DesktopHero({
   isPartialItinerary,
   activeCityIndex,
   onCityClick,
+  isEditMode,
+  onToggleEditMode,
+  onEditRoute,
 }: DesktopHeroProps) {
-  const heroCity = route[0]?.city ?? "travel";
-  const heroImage = getCityHeroImage(heroCity);
+  const heroStop = route[0];
+  const heroCity = heroStop?.city ?? "travel";
+  const initialSrc = heroStop
+    ? getCityHeroImage(heroStop.city, heroStop.countryCode)
+    : getCityPlaceholder(heroCity);
+  const [heroImage, setHeroImage] = useState(initialSrc);
   const cityScrollRef = useRef<HTMLDivElement>(null);
 
   const handleCityKeyDown = useCallback(
@@ -56,6 +66,7 @@ export function DesktopHero({
         loading="eager"
         fetchPriority="high"
         className="absolute inset-0 w-full h-full object-cover"
+        onError={() => setHeroImage(getCityPlaceholder(heroCity))}
       />
 
       {/* Overlay with blur */}
@@ -65,11 +76,10 @@ export function DesktopHero({
       <div className="absolute inset-0 bg-radial-[at_25%_25%] from-primary/5 to-transparent" />
 
       {/* Content */}
-      <div className="relative max-w-[960px] mx-auto px-4 py-10 text-center">
+      <div className="relative max-w-240 mx-auto px-4 py-10 text-center">
         {/* Badge */}
         <div className="inline-flex items-center gap-1.5 bg-primary/20 backdrop-blur-sm rounded-full px-3 py-1 mb-3">
-          <Sparkles className="w-3 h-3 text-primary" />
-          <span className="text-xs font-medium text-primary">AI-crafted just for you</span>
+          <span className="text-xs font-medium text-primary">✨ AI-crafted just for you</span>
         </div>
 
         {/* Title */}
@@ -105,18 +115,23 @@ export function DesktopHero({
         {/* Action buttons */}
         {!isPartialItinerary && (
           <div className="flex items-center justify-center gap-3 mt-6">
-            <Link
-              href={`/trip/${tripId}/edit`}
-              className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5"
+            <button
+              onClick={isEditMode ? onEditRoute : onToggleEditMode}
+              className={`text-sm py-2 px-4 flex items-center gap-1.5 ${
+                isEditMode ? "btn-ghost" : "btn-ghost"
+              }`}
             >
-              <Edit3 className="w-4 h-4" /> Edit route
-            </Link>
-            <Link
-              href={`/trip/${tripId}/summary`}
-              className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
-            >
-              <LayoutList className="w-4 h-4" /> Summary & Share
-            </Link>
+              <Pencil className="w-4 h-4" />
+              {isEditMode ? "Edit Route" : "Edit trip"}
+            </button>
+            {!isEditMode && (
+              <Link
+                href={`/trip/${tripId}/summary`}
+                className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
+              >
+                <LayoutList className="w-4 h-4" /> Summary & Share
+              </Link>
+            )}
           </div>
         )}
       </div>
