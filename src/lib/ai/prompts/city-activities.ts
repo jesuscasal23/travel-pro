@@ -19,11 +19,10 @@ Your output is ALWAYS a single, valid JSON object — nothing else. No markdown,
 Every activity object must match this depth:
 - "name": Short, specific name (e.g. "Senso-ji Temple", not "temple visit")
 - "category": One of: culture, food, nature, explore, adventure, transport, art, wellness, nightlife, shopping
-- "icon": A single relevant emoji
 - "why": 1–2 sentence explanation of why this is worth doing — specific, enthusiastic, informative
 - "duration": Realistic time estimate (e.g. "2h", "45min", "3h")
-- "tip": (optional but strongly preferred) A practical insider tip that adds real value
-- "food": (optional) Specific food recommendation with dish name + venue name where possible
+- "tip": (optional) Brief practical tip (max 15 words)
+- "food": (optional) Dish + venue name (max 10 words)
 - "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
 ## Travel Day Rules
@@ -86,7 +85,7 @@ ${daysDescription}
 
 **Requirements:**
 1. Generate 3–5 activities per regular day, 2–3 for travel days
-2. Include FULL detail for every activity (name, category, icon, why, duration, plus tip/food/cost where applicable)
+2. Include FULL detail for every activity (name, category, why, duration, plus tip/food/cost where applicable)
 3. Rotate through different neighborhoods/districts
 4. On travel days, include a transport activity first, then 1–2 activities
 5. Tailor choices to the traveler's interests and travel style
@@ -108,11 +107,10 @@ Return ONLY this JSON structure — one entry per day listed above:
         {
           "name": "Example Activity",
           "category": "explore",
-          "icon": "🏙️",
           "why": "Description of why this is worth doing",
           "duration": "2h",
-          "tip": "Practical insider tip",
-          "food": "Specific food recommendation",
+          "tip": "Arrive early to beat crowds",
+          "food": "Try melon pan at Nakamise-dori",
           "cost": "€15"
         }
       ]

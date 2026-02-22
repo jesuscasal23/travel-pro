@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-02-21T22:57:54.876Z",
-  "count": 393,
+  "generatedAt": "2026-02-22T00:00:51.718Z",
+  "count": 431,
   "entries": [
     {
       "slug": "tokyo",
@@ -3538,6 +3538,348 @@
       "unsplashId": "GwRT1EuMjvM",
       "photographer": "Clayton Majona",
       "photographerUrl": "https://unsplash.com/@phathisile"
+    },
+    {
+      "slug": "durban",
+      "city": "Durban",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "JS__ZrWSl20",
+      "photographer": "Tarun Poluri",
+      "photographerUrl": "https://unsplash.com/@ishootiniphone"
+    },
+    {
+      "slug": "kruger-park",
+      "city": "Kruger Park",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "_Cc4wpajZ0k",
+      "photographer": "Rohan Reddy",
+      "photographerUrl": "https://unsplash.com/@rofotoqoto"
+    },
+    {
+      "slug": "garden-route",
+      "city": "Garden Route",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "2QRigFju5hg",
+      "photographer": "Martijn Vermeltfoort",
+      "photographerUrl": "https://unsplash.com/@m_vermeltfoort"
+    },
+    {
+      "slug": "stellenbosch",
+      "city": "Stellenbosch",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "DKyrKiJ7Dk4",
+      "photographer": "Reme Le Hane",
+      "photographerUrl": "https://unsplash.com/@remelehane"
+    },
+    {
+      "slug": "victoria-falls",
+      "city": "Victoria Falls",
+      "country": "Zimbabwe",
+      "countryCode": "zw",
+      "unsplashId": "eE0yTu74eAc",
+      "photographer": "Colin Hobson",
+      "photographerUrl": "https://unsplash.com/@stewartphotography"
+    },
+    {
+      "slug": "harare",
+      "city": "Harare",
+      "country": "Zimbabwe",
+      "countryCode": "zw",
+      "unsplashId": "ysSUIoTQL3A",
+      "photographer": "Omoniyi David",
+      "photographerUrl": "https://unsplash.com/@mocream_coffee"
+    },
+    {
+      "slug": "windhoek",
+      "city": "Windhoek",
+      "country": "Namibia",
+      "countryCode": "na",
+      "unsplashId": "BPcfZtn4swA",
+      "photographer": "Sheila C",
+      "photographerUrl": "https://unsplash.com/@qld_traveller"
+    },
+    {
+      "slug": "sossusvlei",
+      "city": "Sossusvlei",
+      "country": "Namibia",
+      "countryCode": "na",
+      "unsplashId": "P47CcwNPU30",
+      "photographer": "Bernd 📷 Dittrich",
+      "photographerUrl": "https://unsplash.com/@hdbernd"
+    },
+    {
+      "slug": "swakopmund",
+      "city": "Swakopmund",
+      "country": "Namibia",
+      "countryCode": "na",
+      "unsplashId": "WypbV9rXQmQ",
+      "photographer": "David Lartey",
+      "photographerUrl": "https://unsplash.com/@dbilovd"
+    },
+    {
+      "slug": "gaborone",
+      "city": "Gaborone",
+      "country": "Botswana",
+      "countryCode": "bw",
+      "unsplashId": "4mInE2lVn7I",
+      "photographer": "Fathima S Meer",
+      "photographerUrl": "https://unsplash.com/@fathimawaxwordz"
+    },
+    {
+      "slug": "okavango-delta",
+      "city": "Okavango Delta",
+      "country": "Botswana",
+      "countryCode": "bw",
+      "unsplashId": "5LZICvitp3I",
+      "photographer": "Amanda Silva",
+      "photographerUrl": "https://unsplash.com/@the_wander_theory"
+    },
+    {
+      "slug": "maputo",
+      "city": "Maputo",
+      "country": "Mozambique",
+      "countryCode": "mz",
+      "unsplashId": "czjCTRTzHSE",
+      "photographer": "Mister Paps",
+      "photographerUrl": "https://unsplash.com/@themisterpaps"
+    },
+    {
+      "slug": "lusaka",
+      "city": "Lusaka",
+      "country": "Zambia",
+      "countryCode": "zm",
+      "unsplashId": "l6a_OumPCPU",
+      "photographer": "Ed Wingate",
+      "photographerUrl": "https://unsplash.com/@ed_wingate"
+    },
+    {
+      "slug": "antananarivo",
+      "city": "Antananarivo",
+      "country": "Madagascar",
+      "countryCode": "mg",
+      "unsplashId": "1FKA0bgYeac",
+      "photographer": "Sandy Ravaloniaina",
+      "photographerUrl": "https://unsplash.com/@th3sand7"
+    },
+    {
+      "slug": "accra",
+      "city": "Accra",
+      "country": "Ghana",
+      "countryCode": "gh",
+      "unsplashId": "-CgUhaShACE",
+      "photographer": "Ifeoluwa B.",
+      "photographerUrl": "https://unsplash.com/@ife_"
+    },
+    {
+      "slug": "cape-coast",
+      "city": "Cape Coast",
+      "country": "Ghana",
+      "countryCode": "gh",
+      "unsplashId": "9ITcNh-smyI",
+      "photographer": "Ato Aikins",
+      "photographerUrl": "https://unsplash.com/@ato_aikins"
+    },
+    {
+      "slug": "dakar",
+      "city": "Dakar",
+      "country": "Senegal",
+      "countryCode": "sn",
+      "unsplashId": "3oN2pHyABQs",
+      "photographer": "Vince Gx",
+      "photographerUrl": "https://unsplash.com/@vincegx"
+    },
+    {
+      "slug": "abuja",
+      "city": "Abuja",
+      "country": "Nigeria",
+      "countryCode": "ng",
+      "unsplashId": "KiAjiO-wR88",
+      "photographer": "Baqeer Gashua",
+      "photographerUrl": "https://unsplash.com/@baqeer"
+    },
+    {
+      "slug": "abidjan",
+      "city": "Abidjan",
+      "country": "Ivory Coast",
+      "countryCode": "ci",
+      "unsplashId": "pBYfTtWVzuk",
+      "photographer": "Ariel Nathan ADA MBITA",
+      "photographerUrl": "https://unsplash.com/@adambita237"
+    },
+    {
+      "slug": "bamako",
+      "city": "Bamako",
+      "country": "Mali",
+      "countryCode": "ml",
+      "unsplashId": "m1o7IglzjrQ",
+      "photographer": "Bob Brewer",
+      "photographerUrl": "https://unsplash.com/@brewbottle"
+    },
+    {
+      "slug": "freetown",
+      "city": "Freetown",
+      "country": "Sierra Leone",
+      "countryCode": "sl",
+      "unsplashId": "GHkBLWi7V60",
+      "photographer": "Random Institute",
+      "photographerUrl": "https://unsplash.com/@randominstitute"
+    },
+    {
+      "slug": "cotonou",
+      "city": "Cotonou",
+      "country": "Benin",
+      "countryCode": "bj",
+      "unsplashId": "AwzACSgAupA",
+      "photographer": "Ifeoluwa B.",
+      "photographerUrl": "https://unsplash.com/@ife_"
+    },
+    {
+      "slug": "conakry",
+      "city": "Conakry",
+      "country": "Guinea",
+      "countryCode": "gn",
+      "unsplashId": "5Hy1HNPJjcU",
+      "photographer": "Kurt Cotoaga",
+      "photographerUrl": "https://unsplash.com/@kydroon"
+    },
+    {
+      "slug": "banjul",
+      "city": "Banjul",
+      "country": "Gambia",
+      "countryCode": "gm",
+      "unsplashId": "uOgB_xCBT4M",
+      "photographer": "Kurt Cotoaga",
+      "photographerUrl": "https://unsplash.com/@kydroon"
+    },
+    {
+      "slug": "kinshasa",
+      "city": "Kinshasa",
+      "country": "DR Congo",
+      "countryCode": "cd",
+      "unsplashId": "LFMCl_iwZIA",
+      "photographer": "Rachel Lees",
+      "photographerUrl": "https://unsplash.com/@rachel_lees"
+    },
+    {
+      "slug": "brazzaville",
+      "city": "Brazzaville",
+      "country": "Congo",
+      "countryCode": "cg",
+      "unsplashId": "m92O8Mbxp4s",
+      "photographer": "Valdhy Mbemba",
+      "photographerUrl": "https://unsplash.com/@valdhy_mbemba"
+    },
+    {
+      "slug": "douala",
+      "city": "Douala",
+      "country": "Cameroon",
+      "countryCode": "cm",
+      "unsplashId": "bZnciM7XIYw",
+      "photographer": "Edouard TAMBA",
+      "photographerUrl": "https://unsplash.com/@tamba"
+    },
+    {
+      "slug": "libreville",
+      "city": "Libreville",
+      "country": "Gabon",
+      "countryCode": "ga",
+      "unsplashId": "wM9t5Rttv-k",
+      "photographer": "JEaLiFe Pictures",
+      "photographerUrl": "https://unsplash.com/@jealife_pictures"
+    },
+    {
+      "slug": "luanda",
+      "city": "Luanda",
+      "country": "Angola",
+      "countryCode": "ao",
+      "unsplashId": "P84xh3q3ccE",
+      "photographer": "Shawn Clark",
+      "photographerUrl": "https://unsplash.com/@shawnmclark"
+    },
+    {
+      "slug": "mauritius",
+      "city": "Mauritius",
+      "country": "Mauritius",
+      "countryCode": "mu",
+      "unsplashId": "VUwfSCgpi0w",
+      "photographer": "Liga Meijere",
+      "photographerUrl": "https://unsplash.com/@meijere_liga"
+    },
+    {
+      "slug": "seychelles",
+      "city": "Seychelles",
+      "country": "Seychelles",
+      "countryCode": "sc",
+      "unsplashId": "HoNnEDKIar4",
+      "photographer": "Alessandro Russo",
+      "photographerUrl": "https://unsplash.com/@aleermejo_inwind_it"
+    },
+    {
+      "slug": "reunion",
+      "city": "Reunion",
+      "country": "France",
+      "countryCode": "re",
+      "unsplashId": "KaGWg7sqJV0",
+      "photographer": "Kiarash Mansouri",
+      "photographerUrl": "https://unsplash.com/@kiarash_mansouri"
+    },
+    {
+      "slug": "zanzibar-city",
+      "city": "Zanzibar City",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "iCds42Otudg",
+      "photographer": "Moses Londo",
+      "photographerUrl": "https://unsplash.com/@moseslondo"
+    },
+    {
+      "slug": "praia",
+      "city": "Praia",
+      "country": "Cape Verde",
+      "countryCode": "cv",
+      "unsplashId": "i010CaxDLEM",
+      "photographer": "Dominique Josse",
+      "photographerUrl": "https://unsplash.com/@djosse"
+    },
+    {
+      "slug": "new-york",
+      "city": "New York",
+      "country": "United States",
+      "countryCode": "us",
+      "unsplashId": "vJAsR7Rmp1Y",
+      "photographer": "Denil Dominic",
+      "photographerUrl": "https://unsplash.com/@denildominic"
+    },
+    {
+      "slug": "los-angeles",
+      "city": "Los Angeles",
+      "country": "United States",
+      "countryCode": "us",
+      "unsplashId": "_vNOsPb_Uig",
+      "photographer": "Jun Yu",
+      "photographerUrl": "https://unsplash.com/@junxy"
+    },
+    {
+      "slug": "san-francisco",
+      "city": "San Francisco",
+      "country": "United States",
+      "countryCode": "us",
+      "unsplashId": "zgKRz5xcBHY",
+      "photographer": "Pedro Gandra",
+      "photographerUrl": "https://unsplash.com/@pedrogandra"
+    },
+    {
+      "slug": "miami",
+      "city": "Miami",
+      "country": "United States",
+      "countryCode": "us",
+      "unsplashId": "yGDGdaHbcpg",
+      "photographer": "Federico Mata",
+      "photographerUrl": "https://unsplash.com/@fmatah"
     }
   ]
 }

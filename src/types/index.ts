@@ -30,7 +30,7 @@ export interface ItineraryFlightLeg {
 export interface DayActivity {
   name: string;
   category: string;
-  icon: string; // emoji
+  icon?: string; // legacy — now derived from category client-side
   why: string;
   duration: string;
   tip?: string;

@@ -54,7 +54,7 @@ function getAnthropic(): Anthropic {
 const dayActivitySchema = z.object({
   name: z.string(),
   category: z.string(),
-  icon: z.string(),
+  icon: z.string().optional(),
   why: z.string(),
   duration: z.string(),
   tip: z.string().optional(),
@@ -375,8 +375,8 @@ export async function generateCityActivities(
     throw new Error(`No days found for city "${cityStop.city}"`);
   }
 
-  // Scale token budget by number of days (~800 tokens/day), floor 2000, cap 8000
-  const maxTokens = Math.min(8000, Math.max(2000, cityDays.length * 800));
+  // Scale token budget by number of days (~1200 tokens/day for 3-5 rich activities), floor 4000, cap 8000
+  const maxTokens = Math.min(8000, Math.max(4000, cityDays.length * 1200));
 
   log.info("Generating activities for city", { cityId, city: cityStop.city, days: cityDays.length, maxTokens, elapsed: elapsed() });
 

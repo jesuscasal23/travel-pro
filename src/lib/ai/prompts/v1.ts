@@ -1,8 +1,8 @@
 // ============================================================
 // Travel Pro — Prompt Template v1
 // Quality bar: match sampleItinerary depth (src/data/sampleData.ts)
-// Every activity must include: name, category, icon, why, duration
-// Strongly desired: tip, food, cost
+// Every activity must include: name, category, why, duration
+// Optional: tip, food, cost
 // ============================================================
 
 import type { UserProfile, TripIntent } from "@/types";
@@ -22,11 +22,10 @@ Your output is ALWAYS a single, valid JSON object — nothing else. No markdown,
 Every activity object must match this depth:
 - "name": Short, specific name (e.g. "Senso-ji Temple", not "temple visit")
 - "category": One of: culture, food, nature, explore, adventure, transport, art, wellness, nightlife, shopping
-- "icon": A single relevant emoji
 - "why": 1–2 sentence explanation of why this is worth doing — specific, enthusiastic, informative
 - "duration": Realistic time estimate (e.g. "2h", "45min", "3h")
-- "tip": (optional but strongly preferred) A practical insider tip that adds real value
-- "food": (optional) Specific food recommendation with dish name + venue name where possible
+- "tip": (optional) Brief practical tip (max 15 words)
+- "food": (optional) Dish + venue name (max 10 words)
 - "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
 ## Travel Day Rules
@@ -116,7 +115,7 @@ ${skeletonBlock}
 **Requirements:**
 ${cityRequirement}
 2. Allocate days per city proportionally (longer stays in richer destinations)
-3. Plan 3–4 activities per day with FULL detail (name, category, icon, why, duration, plus tip/food/cost where applicable)
+3. Plan 3–4 activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable)
 4. Include realistic travel days when moving between cities (flight/train/bus with cost and duration)
 5. Tailor activity choices to the traveler's stated interests and travel style
 6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
@@ -146,11 +145,10 @@ Return ONLY this JSON structure (no wrapping, no markdown):
         {
           "name": "Senso-ji Temple",
           "category": "culture",
-          "icon": "⛩️",
           "why": "Tokyo's oldest temple — stunning Kaminarimon gate and Nakamise shopping street lined with traditional crafts",
           "duration": "2h",
-          "tip": "Visit before 9am to avoid crowds and get the best photos",
-          "food": "Try melon pan from a street stall on Nakamise-dori",
+          "tip": "Visit before 9am to beat the crowds",
+          "food": "Melon pan at Nakamise-dori stall",
           "cost": "Free"
         }
       ]
@@ -167,19 +165,17 @@ Return ONLY this JSON structure (no wrapping, no markdown):
         {
           "name": "Shinkansen to Kyoto",
           "category": "transport",
-          "icon": "🚅",
           "why": "The bullet train experience is a highlight in itself — 300km/h through Japanese countryside with views of Mt. Fuji",
           "duration": "2h 15min",
-          "tip": "Book a window seat on the right side (facing Kyoto) for Mt. Fuji views",
+          "tip": "Right-side window seat for Mt. Fuji views",
           "cost": "€120"
         },
         {
           "name": "Fushimi Inari Shrine",
           "category": "culture",
-          "icon": "⛩️",
           "why": "10,000 vermillion torii gates winding up a sacred mountainside — Kyoto's most iconic sight",
           "duration": "2.5h",
-          "tip": "Hike past the midpoint where 90% of tourists turn back for a completely different experience",
+          "tip": "Hike past the midpoint for a quieter experience",
           "cost": "Free"
         }
       ]

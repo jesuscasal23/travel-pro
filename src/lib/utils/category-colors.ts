@@ -29,3 +29,21 @@ const DEFAULT_STYLE: CategoryStyle = {
 export function getCategoryStyle(category: string): CategoryStyle {
   return CATEGORY_MAP[category.toLowerCase()] ?? DEFAULT_STYLE;
 }
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  culture: "🏛️",
+  explore: "🏙️",
+  food: "🍜",
+  art: "🎨",
+  nightlife: "🌙",
+  nature: "🌿",
+  transport: "🚆",
+  adventure: "⛰️",
+  wellness: "🧘",
+  shopping: "🛍️",
+};
+
+/** Derive a default emoji from an activity category. */
+export function getCategoryEmoji(category: string): string {
+  return CATEGORY_EMOJI[category.toLowerCase()] ?? "📍";
+}

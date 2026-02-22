@@ -27,11 +27,10 @@ Your output is ALWAYS a single, valid JSON object — nothing else. No markdown,
 Every activity object must match this depth:
 - "name": Short, specific name (e.g. "Tsukiji Outer Market breakfast", not "market visit")
 - "category": One of: culture, food, nature, explore, adventure, transport, art, wellness, nightlife, shopping
-- "icon": A single relevant emoji
 - "why": 1–2 sentence explanation of why this is worth doing — specific, enthusiastic, informative
 - "duration": Realistic time estimate (e.g. "2h", "45min", "3h")
-- "tip": (optional but strongly preferred) A practical insider tip that adds real value
-- "food": (optional) Specific food recommendation with dish name + venue name where possible
+- "tip": (optional) Brief practical tip (max 15 words)
+- "food": (optional) Dish + venue name (max 10 words)
 - "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
 ## Route Structure
@@ -72,7 +71,7 @@ export function assembleSingleCityPrompt(
 **Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities
 2. Rotate through different neighborhoods/districts each day
-3. Plan 4–5 activities per day with FULL detail (name, category, icon, why, duration, plus tip/food/cost where applicable)
+3. Plan 4–5 activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable)
 ${durationDays >= 4 ? `4. Include 1–2 day trips to nearby towns or attractions (within 1–2 hours)` : "4. Focus on the city center and most iconic neighborhoods"}
 5. Tailor activity choices to the traveler's stated interests and travel style
 6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
@@ -101,11 +100,10 @@ Return ONLY this JSON structure (no wrapping, no markdown):
         {
           "name": "Example Activity",
           "category": "explore",
-          "icon": "🏙️",
           "why": "Description of why this is worth doing",
           "duration": "2h",
-          "tip": "Practical insider tip",
-          "food": "Specific food recommendation",
+          "tip": "Arrive early to beat crowds",
+          "food": "Try melon pan at Nakamise-dori",
           "cost": "€15"
         }
       ]

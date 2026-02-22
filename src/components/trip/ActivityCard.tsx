@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { getCategoryStyle } from "@/lib/utils/category-colors";
+import { getCategoryStyle, getCategoryEmoji } from "@/lib/utils/category-colors";
 import { parseDurationMinutes } from "@/lib/utils/duration";
 import type { TimedActivity } from "@/lib/utils/time-distribution";
 
@@ -34,7 +34,7 @@ export function ActivityCard({ timedActivity, isFirst, isLast }: ActivityCardPro
         {/* Header: name + time badge */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm flex-shrink-0">{activity.icon}</span>
+            <span className="text-sm flex-shrink-0">{activity.icon ?? getCategoryEmoji(activity.category)}</span>
             <h4 className="font-semibold text-sm text-foreground truncate">{activity.name}</h4>
           </div>
           <span className={`flex-shrink-0 ${style.badgeBg} text-white font-mono text-[10px] font-medium px-2 py-0.5 rounded-full`}>

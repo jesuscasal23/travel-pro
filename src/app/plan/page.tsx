@@ -66,8 +66,8 @@ export default function PlanPage() {
   const isMultiCountry = tripType === "multi-city";
   const needsRouteReview = isSingleCountry || isMultiCountry;
   const totalSteps = isGuest
-    ? (isSingleCity ? 4 : 5)
-    : (isSingleCity ? 2 : 3);
+    ? (isSingleCity ? 3 : 4)
+    : (isSingleCity ? 1 : 2);
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
@@ -76,13 +76,12 @@ export default function PlanPage() {
   const showProfile = isGuest && step === 1;
   const showStyle = isGuest && step === 2;
   const showDestination = isGuest ? step === 3 : step === 1;
-  const showDetails = isGuest ? step === 4 : step === 2;
   const showRouteReview = needsRouteReview && step === totalSteps;
 
-  // ── Speculative route selection: prefetch when user reaches details step ────
+  // ── Speculative route selection: prefetch when user reaches destination step ──
   useEffect(() => {
     if (!needsRouteReview || !dateStart || !dateEnd) return;
-    if (!showDetails) return;
+    if (!showDestination) return;
     // single-country needs destinationCountry; multi-country needs region
     if (isSingleCountry && !destinationCountry) return;
     if (isMultiCountry && !region) return;
@@ -100,7 +99,7 @@ export default function PlanPage() {
     };
     prefetchRoute(params, cacheKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showDetails, needsRouteReview, isSingleCountry, isMultiCountry, region, destinationCountry, dateStart, dateEnd, travelStyle]);
+  }, [showDestination, needsRouteReview, isSingleCountry, isMultiCountry, region, destinationCountry, dateStart, dateEnd, travelStyle]);
 
   const dayCount = (() => {
     if (!dateStart || !dateEnd) return 0;
@@ -116,9 +115,8 @@ export default function PlanPage() {
         : isSingleCountry
         ? !!destinationCountry
         : !!region;
-      return hasDestination && !!dateStart && !!dateEnd && dayCount > 0;
+      return hasDestination && !!dateStart && !!dateEnd && dayCount > 0 && travelers > 0;
     }
-    if (showDetails) return travelers > 0;
     return true;
   };
 
@@ -130,17 +128,15 @@ export default function PlanPage() {
     if (showDestination) {
       const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, destinationCountry, dateStart, dateEnd });
       if (fieldErrors) { setErrors(fieldErrors); return; }
-    }
-    if (showDetails) {
-      const fieldErrors = validate(detailsStepSchema, { travelers });
-      if (fieldErrors) { setErrors(fieldErrors); return; }
+      const detailErrors = validate(detailsStepSchema, { travelers });
+      if (detailErrors) { setErrors(detailErrors); return; }
     }
     setErrors({});
     setDirection(1);
     setPlanStep(step + 1);
 
     // If advancing to route review, fetch the AI-suggested route
-    if (showDetails && needsRouteReview) {
+    if (showDestination && needsRouteReview) {
       setRouteLoading(true);
       const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
       const params = {
@@ -224,9 +220,9 @@ export default function PlanPage() {
   }), []);
 
   const handleGenerate = useCallback(async (routeFromReview?: CityStop[]) => {
-    // Only validate details if not coming from route review (already validated on advance)
+    // Only validate if not coming from route review (already validated on advance)
     if (!routeFromReview) {
-      const fieldErrors = validate(detailsStepSchema, { travelers });
+      const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, destinationCountry, dateStart, dateEnd });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
     setErrors({});
@@ -427,26 +423,16 @@ export default function PlanPage() {
                       </div>
                     )}
                   </div>
-                </div>
-              )}
 
-              {/* Trip details — Travelers */}
-              {showDetails && (
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-1">Trip details</h2>
-                  <p className="text-muted-foreground mb-8">A few quick choices and we&apos;re ready to plan.</p>
-
-                  <div className="space-y-8">
-                    {/* Travelers */}
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-4">Travelers</label>
-                      <div className="flex items-center justify-center gap-8">
-                        <button onClick={() => setTravelers(Math.max(1, travelers - 1))}
-                          className="w-11 h-11 rounded-full border-2 border-border flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-all text-2xl font-bold text-foreground">−</button>
-                        <span className="text-5xl font-bold text-primary w-16 text-center">{travelers}</span>
-                        <button onClick={() => setTravelers(Math.min(10, travelers + 1))}
-                          className="w-11 h-11 rounded-full border-2 border-border flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-all text-2xl font-bold text-foreground">+</button>
-                      </div>
+                  {/* Travelers */}
+                  <div className="mt-8">
+                    <label className="block text-sm font-medium text-foreground mb-4">Travelers</label>
+                    <div className="flex items-center justify-center gap-8">
+                      <button onClick={() => setTravelers(Math.max(1, travelers - 1))}
+                        className="w-11 h-11 rounded-full border-2 border-border flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-all text-2xl font-bold text-foreground">−</button>
+                      <span className="text-5xl font-bold text-primary w-16 text-center">{travelers}</span>
+                      <button onClick={() => setTravelers(Math.min(10, travelers + 1))}
+                        className="w-11 h-11 rounded-full border-2 border-border flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-all text-2xl font-bold text-foreground">+</button>
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCategoryStyle } from "../category-colors";
+import { getCategoryStyle, getCategoryEmoji } from "../category-colors";
 
 describe("getCategoryStyle", () => {
   it("returns style for known categories", () => {
@@ -47,5 +47,23 @@ describe("getCategoryStyle", () => {
     const style = getCategoryStyle("food");
     expect(style.bgClass).toBe("bg-amber-500");
     expect(style.badgeBg).toBe("bg-amber-500");
+  });
+});
+
+describe("getCategoryEmoji", () => {
+  it("returns correct emoji for each known category", () => {
+    expect(getCategoryEmoji("culture")).toBe("🏛️");
+    expect(getCategoryEmoji("food")).toBe("🍜");
+    expect(getCategoryEmoji("transport")).toBe("🚆");
+    expect(getCategoryEmoji("nature")).toBe("🌿");
+  });
+
+  it("is case-insensitive", () => {
+    expect(getCategoryEmoji("Culture")).toBe("🏛️");
+    expect(getCategoryEmoji("FOOD")).toBe("🍜");
+  });
+
+  it("returns fallback emoji for unknown category", () => {
+    expect(getCategoryEmoji("unknown")).toBe("📍");
   });
 });

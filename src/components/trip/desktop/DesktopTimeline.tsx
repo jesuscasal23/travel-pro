@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
-import { getCategoryStyle } from "@/lib/utils/category-colors";
+import { getCategoryStyle, getCategoryEmoji } from "@/lib/utils/category-colors";
 import { distributeActivities, getDayTimeRange, getHourMarkers } from "@/lib/utils/time-distribution";
 import type { TripDay } from "@/types";
 import type { TimedActivity } from "@/lib/utils/time-distribution";
@@ -108,7 +108,7 @@ export function DesktopTimeline({ day }: DesktopTimelineProps) {
               }}
             >
               <div className="flex items-start gap-1.5 min-w-0">
-                <span className="text-xs flex-shrink-0">{ta.activity.icon}</span>
+                <span className="text-xs flex-shrink-0">{ta.activity.icon ?? getCategoryEmoji(ta.activity.category)}</span>
                 <h4 className={`text-xs font-semibold truncate ${style.textClass}`}>
                   {ta.activity.name}
                 </h4>

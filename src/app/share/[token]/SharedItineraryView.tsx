@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { MapPin, Calendar, Users } from "lucide-react";
+import { getCategoryEmoji } from "@/lib/utils/category-colors";
 import type { Itinerary } from "@/types";
 import type { Trip } from "@prisma/client";
 
@@ -82,7 +83,7 @@ export default function SharedItineraryView({ itinerary, trip }: Props) {
               <div className="space-y-3">
                 {day.activities.map((activity, i) => (
                   <div key={i} className="flex gap-3">
-                    <span className="text-xl shrink-0">{activity.icon}</span>
+                    <span className="text-xl shrink-0">{activity.icon ?? getCategoryEmoji(activity.category)}</span>
                     <div className="min-w-0">
                       <p className="font-medium text-foreground text-sm">{activity.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{activity.why}</p>
