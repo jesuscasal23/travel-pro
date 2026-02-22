@@ -15,8 +15,8 @@ const securityHeaders = [
       `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://eu-assets.i.posthog.com`,
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
-      // Mapbox tiles, CARTO basemap sprites/glyphs, local assets
-      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com https://images.unsplash.com https://source.unsplash.com",
+      // Mapbox tiles, MapLibre demo tiles sprites/glyphs, local assets
+      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com https://demotiles.maplibre.org https://images.unsplash.com https://source.unsplash.com",
       // External API connections
       [
         "connect-src 'self'",
@@ -39,9 +39,8 @@ const securityHeaders = [
         "https://sentry.io",
         // Resend email (server-side only, but include for CSP completeness)
         "https://api.resend.com",
-        // CARTO basemap tiles (used by MapLibre RouteMap — style JSON + vector tiles)
-        "https://basemaps.cartocdn.com",
-        "https://*.basemaps.cartocdn.com",
+        // MapLibre demo tiles (used by MapLibre RouteMap — style JSON + vector tiles)
+        "https://demotiles.maplibre.org",
         // Amadeus flight search API (sandbox + production)
         "https://test.api.amadeus.com",
         "https://api.amadeus.com",

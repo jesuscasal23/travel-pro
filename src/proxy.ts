@@ -162,6 +162,10 @@ export async function proxy(request: NextRequest) {
   }
 
   // For protected routes, check Supabase session
+  // Skip auth if Supabase is not configured (local dev without Supabase)
+  if (isProtected(pathname) && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+    return next();
+  }
   if (isProtected(pathname)) {
     const response = NextResponse.next({
       request: {

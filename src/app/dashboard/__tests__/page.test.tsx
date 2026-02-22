@@ -11,8 +11,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act } from "@testing-library/react";
-import { useTripStore } from "@/stores/useTripStore";
 import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -59,9 +57,6 @@ const mockTrips = [
 
 describe("DashboardPage", () => {
   beforeEach(() => {
-    act(() => {
-      useTripStore.setState({ displayName: "Alex" });
-    });
     vi.restoreAllMocks();
   });
 

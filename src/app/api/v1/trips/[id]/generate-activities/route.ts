@@ -40,11 +40,12 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate-activities", asy
   const cityStop = itinerary.route.find((r) => r.id === cityId);
   if (!cityStop) throw new ApiError(400, `City "${cityId}" not found in itinerary route`);
 
-  // Check if city already has activities
+  // If city already has activities, return current itinerary (idempotent)
   const cityDays = itinerary.days.filter((d) => d.city === cityStop.city);
   const alreadyHasActivities = cityDays.some((d) => d.activities.length > 0);
   if (alreadyHasActivities) {
-    throw new ApiError(409, `Activities already generated for "${cityStop.city}"`);
+    log.info("Activities already exist for city, returning current itinerary", { tripId: params.id, cityId, city: cityStop.city });
+    return Response.json({ itinerary });
   }
 
   const intent = tripToIntent(trip);
@@ -73,5 +74,5 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate-activities", asy
 
   log.info("City activities saved", { tripId: params.id, cityId, activitiesCount: updatedDays.reduce((s, d) => s + d.activities.length, 0) });
 
-  return Response.json({ days: updatedDays });
+  return Response.json({ itinerary: mergedItinerary });
 });

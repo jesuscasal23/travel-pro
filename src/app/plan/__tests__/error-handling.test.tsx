@@ -64,7 +64,6 @@ function setValidFinalStepState() {
   act(() => {
     useTripStore.setState({
       planStep: 3,
-      displayName: "Test",
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "comfort",

@@ -28,12 +28,10 @@ export default function ProfilePage() {
   const deleteMutation = useDeleteAccount();
 
   const {
-    displayName,
     nationality,
     homeAirport,
     travelStyle,
     interests,
-    setDisplayName,
     setNationality,
     setHomeAirport,
     setTravelStyle,
@@ -88,14 +86,6 @@ export default function ProfilePage() {
           <section className="card-travel p-6">
             <h2 className="text-base font-semibold text-foreground mb-5">Personal</h2>
             <div className="space-y-4">
-              <FormField label="First name">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className={inputClass}
-                />
-              </FormField>
               <FormField label="Nationality" error={errors.nationality}>
                 <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
                   {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}

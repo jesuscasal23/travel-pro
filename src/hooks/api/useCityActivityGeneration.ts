@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useTripStore } from "@/stores/useTripStore";
-import type { TripDay } from "@/types";
+import type { Itinerary } from "@/types";
 
 interface GenerateCityActivitiesParams {
   tripId: string;
@@ -15,14 +14,12 @@ interface GenerateCityActivitiesParams {
 }
 
 export function useCityActivityGeneration() {
-  const mergeCityActivities = useTripStore((s) => s.mergeCityActivities);
-
   return useMutation({
     mutationFn: async ({
       tripId,
       cityId,
       profile,
-    }: GenerateCityActivitiesParams): Promise<TripDay[]> => {
+    }: GenerateCityActivitiesParams): Promise<Itinerary> => {
       const res = await fetch(`/api/v1/trips/${tripId}/generate-activities`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,10 +32,7 @@ export function useCityActivityGeneration() {
       }
 
       const data = await res.json();
-      return data.days as TripDay[];
-    },
-    onSuccess: (updatedDays, variables) => {
-      mergeCityActivities(variables.cityName, updatedDays);
+      return data.itinerary as Itinerary;
     },
   });
 }

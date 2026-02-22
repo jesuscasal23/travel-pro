@@ -28,6 +28,7 @@ import type { UserProfile, TripIntent, Itinerary, TripDay } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
+import { discoverNewCities } from "@/lib/services/city-discovery";
 
 const log = createLogger("pipeline");
 
@@ -282,6 +283,10 @@ export async function generateCoreItinerary(
   log.info("Stage 3 (parse+validate) done", { duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`, cities: parsed.route.length, days: parsed.days.length, elapsed: elapsed() });
 
   log.info("Core generation complete (enrichment deferred)", { tripId: tripIntent.id, elapsed: elapsed() });
+
+  // Best-effort: discover unknown cities (non-blocking)
+  discoverNewCities(parsed.route, tripIntent.id).catch(() => {});
+
   return parsed;
 }
 
@@ -345,6 +350,10 @@ export async function generateRouteOnly(
 
   const parsed = parseAndValidate(claudeResult.text);
   log.info("Route-only generation complete", { tripId: tripIntent.id, cities: parsed.route.length, days: parsed.days.length, elapsed: elapsed() });
+
+  // Best-effort: discover unknown cities (non-blocking)
+  discoverNewCities(parsed.route, tripIntent.id).catch(() => {});
+
   return parsed;
 }
 

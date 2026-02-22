@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import { BoardingPassCard } from "../BoardingPassCard";
 import { CityHeader } from "../CityHeader";
 import { DayPills } from "../DayPills";
-import { DesktopTimeline } from "./DesktopTimeline";
+import { ActivityCard } from "../ActivityCard";
+import { distributeActivities } from "@/lib/utils/time-distribution";
 import { groupDaysByCity } from "@/lib/utils/group-days-by-city";
 import { cityHasActivities } from "@/lib/utils/city-activities";
 import type { Itinerary, CityWeather } from "@/types";
@@ -72,20 +73,29 @@ export function DesktopJourneyTab({ itinerary, generatingCityId, onGenerateActiv
                   }
                 />
 
-                {/* Travel banner */}
-                {activeDay?.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary rounded-lg px-4 py-2.5 mt-2">
-                    <span className="text-primary">✈️</span>
-                    <span>
-                      {activeDay.travelFrom} → {activeDay.travelTo}
-                      {activeDay.travelDuration && <> · {activeDay.travelDuration}</>}
-                    </span>
-                  </div>
-                )}
+                {activeDay && (
+                  <div>
+                    {/* Travel banner */}
+                    {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary rounded-lg px-4 py-2.5 mt-2 mb-2">
+                        <span className="text-primary">✈️</span>
+                        <span>
+                          {activeDay.travelFrom} → {activeDay.travelTo}
+                          {activeDay.travelDuration && <> · {activeDay.travelDuration}</>}
+                        </span>
+                      </div>
+                    )}
 
-                {/* Desktop proportional timeline */}
-                {activeDay && activeDay.activities.length > 0 && (
-                  <DesktopTimeline day={activeDay} />
+                    {/* Stacked activity cards */}
+                    {distributeActivities(activeDay).map((ta, i, arr) => (
+                      <ActivityCard
+                        key={i}
+                        timedActivity={ta}
+                        isFirst={i === 0}
+                        isLast={i === arr.length - 1}
+                      />
+                    ))}
+                  </div>
                 )}
               </>
             ) : isGeneratingThis ? (

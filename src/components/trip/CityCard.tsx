@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { getCityImage, CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
+import { getCityImage, getCityPlaceholder, CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
 import type { CityStop } from "@/types";
 
 interface CityCardProps {
@@ -13,6 +14,7 @@ interface CityCardProps {
 
 export function CityCard({ city, isActive, onClick, variant }: CityCardProps) {
   const isMobile = variant === "mobile";
+  const [src, setSrc] = useState(() => getCityImage(city.city, city.countryCode));
 
   return (
     <button
@@ -29,7 +31,7 @@ export function CityCard({ city, isActive, onClick, variant }: CityCardProps) {
       }`}
     >
       <Image
-        src={getCityImage(city.city)}
+        src={src}
         alt={city.city}
         fill
         className="object-cover"
@@ -37,6 +39,7 @@ export function CityCard({ city, isActive, onClick, variant }: CityCardProps) {
         placeholder="blur"
         blurDataURL={CITY_IMAGE_BLUR}
         unoptimized
+        onError={() => setSrc(getCityPlaceholder(city.city))}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-2">

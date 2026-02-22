@@ -5,7 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "./keys";
 
 async function fetchAuthStatus(): Promise<boolean> {
-  const { data: { user } } = await createClient().auth.getUser();
+  const client = createClient();
+  if (!client) return false;
+  const { data: { user } } = await client.auth.getUser();
   return !!user;
 }
 

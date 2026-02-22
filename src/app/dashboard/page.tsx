@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Compass, MapPin, Plane, Plus, RefreshCw } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button, EmptyState, SkeletonCard } from "@/components/ui";
-import { useTripStore } from "@/stores/useTripStore";
 import { statusBadge, statusLabel } from "@/lib/utils/status-helpers";
 import { useTrips } from "@/hooks/api";
 
@@ -17,20 +16,18 @@ const gradients = [
 ];
 
 export default function DashboardPage() {
-  const displayName = useTripStore((s) => s.displayName) || "Explorer";
-
   const { data: trips = [], isLoading: loading, error, refetch } = useTrips();
   const isEmpty = !loading && !error && trips.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated displayName={displayName} />
+      <Navbar isAuthenticated />
 
       <div className="pt-24 pb-16 max-w-5xl mx-auto px-4">
         {/* Greeting */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {displayName}.
+            Welcome back.
           </h1>
           <p className="text-muted-foreground mt-1">Ready for your next adventure?</p>
         </motion.div>

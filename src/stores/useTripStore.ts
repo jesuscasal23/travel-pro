@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TravelStyle, TripType, Itinerary, TripDay } from "@/types";
+import type { TravelStyle, TripType, Itinerary } from "@/types";
 
 interface TripStoreState {
   // Onboarding
@@ -32,8 +32,6 @@ interface TripStoreState {
   currentTripId: string;
   itinerary: Itinerary | null;
 
-  // Display
-  displayName: string;
 }
 
 interface TripStoreActions {
@@ -62,12 +60,6 @@ interface TripStoreActions {
   // Result
   setCurrentTripId: (id: string) => void;
   setItinerary: (itinerary: Itinerary | null) => void;
-
-  // Display
-  setDisplayName: (name: string) => void;
-
-  // City activities
-  mergeCityActivities: (cityName: string, updatedDays: TripDay[]) => void;
 
   // Reset
   resetPlan: () => void;
@@ -101,8 +93,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       homeAirport: "",
       travelStyle: "comfort",
       interests: [],
-      displayName: "",
-
       // Plan defaults
       ...initialPlanState,
 
@@ -139,21 +129,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setCurrentTripId: (id) => set({ currentTripId: id }),
       setItinerary: (itinerary) => set({ itinerary }),
 
-      // Display
-      setDisplayName: (name) => set({ displayName: name }),
-
-      // City activities — merge generated activities for one city into the itinerary
-      mergeCityActivities: (cityName, updatedDays) =>
-        set((state) => {
-          if (!state.itinerary) return {};
-          const mergedDays = state.itinerary.days.map((day) => {
-            if (day.city !== cityName) return day;
-            const updated = updatedDays.find((u) => u.day === day.day);
-            return updated ? { ...day, activities: updated.activities } : day;
-          });
-          return { itinerary: { ...state.itinerary, days: mergedDays } };
-        }),
-
       // Reset plan to defaults
       resetPlan: () => set(initialPlanState),
     }),
@@ -171,7 +146,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         homeAirport: state.homeAirport,
         travelStyle: state.travelStyle,
         interests: state.interests,
-        displayName: state.displayName,
         tripType: state.tripType,
         region: state.region,
         destination: state.destination,

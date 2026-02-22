@@ -133,3 +133,27 @@ model AffiliateClick {
   @@index([createdAt])
   @@map("affiliate_clicks")
 }
+
+// ============================================================
+// DiscoveredCity — cities found in AI output but missing from cities.ts
+// ============================================================
+
+model DiscoveredCity {
+  id          String  @id @default(uuid())
+  city        String
+  country     String
+  countryCode String  @map("country_code")
+  lat         Float
+  lng         Float
+
+  timesProposed Int      @default(1) @map("times_proposed")
+  firstTripId   String?  @map("first_trip_id")
+  approved      Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([city, countryCode], name: "city_country_unique")
+  @@index([approved])
+  @@map("discovered_cities")
+}

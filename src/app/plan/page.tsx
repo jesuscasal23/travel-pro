@@ -30,7 +30,10 @@ export default function PlanPage() {
   const isAuthenticated = useAuthStatus();
   const [direction, setDirection] = useState(1);
 
-  const isGuest = isAuthenticated === false;
+  // Treat as guest unless auth explicitly confirmed — null (loading) defaults to guest
+  // so profile steps aren't skipped. Also show profile steps for authenticated users
+  // who haven't completed their profile yet (no nationality set).
+  const isGuest = isAuthenticated !== true || !nationality;
   const [routeCities, setRouteCities] = useState<CityStop[] | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
 

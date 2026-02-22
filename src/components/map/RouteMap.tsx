@@ -12,8 +12,8 @@ interface RouteMapProps {
   onCityClick: (index: number) => void;
 }
 
-// Free CARTO Positron style — clean light basemap, no API key required
-const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+// MapLibre demo tiles — free, no API key required
+const MAP_STYLE = "https://demotiles.maplibre.org/style.json";
 
 export default function RouteMap({ cities, activeCityIndex, onCityClick }: RouteMapProps) {
   const mapRef = useRef<MapRef>(null);
