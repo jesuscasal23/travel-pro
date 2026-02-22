@@ -375,8 +375,7 @@ export async function generateCityActivities(
     throw new Error(`No days found for city "${cityStop.city}"`);
   }
 
-  // Scale token budget by number of days (~1200 tokens/day for 3-5 rich activities), floor 4000, cap 8000
-  const maxTokens = Math.min(8000, Math.max(4000, cityDays.length * 1200));
+  const maxTokens = 8000;
 
   log.info("Generating activities for city", { cityId, city: cityStop.city, days: cityDays.length, maxTokens, elapsed: elapsed() });
 
