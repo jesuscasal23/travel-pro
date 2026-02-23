@@ -50,6 +50,7 @@ function SignupForm() {
     setServerError(null);
 
     const supabase = createClient();
+    if (!supabase) { setServerError("Auth service unavailable."); setIsLoading(false); return; }
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,

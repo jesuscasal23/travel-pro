@@ -47,6 +47,7 @@ export default function ResetPasswordPage() {
     setServerError(null);
 
     const supabase = createClient();
+    if (!supabase) { setServerError("Auth service unavailable."); setIsLoading(false); return; }
     const { error } = await supabase.auth.updateUser({
       password: data.password,
     });
