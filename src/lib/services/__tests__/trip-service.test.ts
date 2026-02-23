@@ -49,6 +49,7 @@ describe("tripToIntent", () => {
     dateEnd: "2026-04-22",
     flexibleDates: false,
     travelers: 2,
+    description: null,
   };
 
   it("maps all fields correctly from a complete Trip record", () => {

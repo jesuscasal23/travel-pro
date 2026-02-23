@@ -40,7 +40,6 @@ function makeItinerary(overrides?: Partial<Itinerary>): Itinerary {
         activities: [],
       },
     ],
-    budget: { flights: 500, accommodation: 300, activities: 200, food: 150, transport: 50, total: 1200, budget: 1500 },
     ...overrides,
   };
 }
@@ -100,7 +99,7 @@ describe("useEditStore", () => {
       const originalActivity = itinerary.days[0].activities[0];
       act(() => result.current.enterEditMode(itinerary));
       // Original should not have _editId
-      expect((originalActivity as Record<string, unknown>)._editId).toBeUndefined();
+      expect((originalActivity as unknown as Record<string, unknown>)._editId).toBeUndefined();
     });
   });
 
@@ -250,7 +249,7 @@ describe("useEditStore", () => {
       expect(saved).not.toBeNull();
       saved!.days.forEach((day) => {
         day.activities.forEach((act) => {
-          expect((act as Record<string, unknown>)._editId).toBeUndefined();
+          expect((act as unknown as Record<string, unknown>)._editId).toBeUndefined();
         });
       });
     });

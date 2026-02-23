@@ -29,11 +29,6 @@ export default function PlanPage() {
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
   const [direction, setDirection] = useState(1);
-
-  // Treat as guest unless auth explicitly confirmed — null (loading) defaults to guest
-  // so profile steps aren't skipped. Also show profile steps for authenticated users
-  // who haven't completed their profile yet (no nationality set).
-  const isGuest = isAuthenticated !== true || !nationality;
   const [routeCities, setRouteCities] = useState<CityStop[] | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
 
@@ -57,6 +52,11 @@ export default function PlanPage() {
     isGenerating, setIsGenerating,
     setCurrentTripId, setItinerary,
   } = useTripStore();
+
+  // Treat as guest unless auth explicitly confirmed — null (loading) defaults to guest
+  // so profile steps aren't skipped. Also show profile steps for authenticated users
+  // who haven't completed their profile yet (no nationality set).
+  const isGuest = isAuthenticated !== true || !nationality;
 
   const prefetchRoute = usePrefetchRouteSelection();
   const fetchRoute = useFetchRouteSelection();
