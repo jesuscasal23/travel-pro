@@ -68,7 +68,7 @@ export function assembleSingleCityPrompt(
 - City: ${intent.destination}, ${intent.destinationCountry}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
-**Requirements:**
+${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n` : ""}**Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities
 2. Rotate through different neighborhoods/districts each day
 3. Plan 4–5 activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable)

@@ -14,6 +14,7 @@ interface CreateTripParams {
   dateEnd: string;
   flexibleDates?: boolean;
   travelers: number;
+  description?: string;
 }
 
 export function useCreateTrip() {

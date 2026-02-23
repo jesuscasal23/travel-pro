@@ -26,6 +26,7 @@ const CreateTripSchema = z.object({
   dateEnd: z.string().max(20),
   flexibleDates: z.boolean().default(false),
   travelers: z.number().int().min(1).max(20).default(2),
+  description: z.string().max(2000).optional(),
 });
 
 export const GET = apiHandler("GET /api/v1/trips", async () => {

@@ -79,7 +79,7 @@ export function assembleCityActivitiesPrompt(
 **Trip Context:**
 - Region: ${intent.region || `${city.city}, ${city.country}`}
 - This city: ${city.city}, ${city.country} — ${cityDays.length} day(s)
-
+${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n` : ""}
 **Days to fill with activities:**
 ${daysDescription}
 

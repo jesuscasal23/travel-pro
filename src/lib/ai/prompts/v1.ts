@@ -91,6 +91,10 @@ ${cities
 Distribute the trip days across these cities within the min–max ranges above.`
     : "";
 
+  const descriptionBlock = intent.description?.trim()
+    ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n`
+    : "";
+
   // When cities are pre-selected (skeleton or Haiku), lock the route; otherwise let Claude choose.
   const isCountryTrip = intent.tripType === "single-country" && intent.destinationCountry;
   const cityRequirement = cities
@@ -111,7 +115,7 @@ Distribute the trip days across these cities within the min–max ranges above.`
 - ${isCountryTrip ? `Country: ${intent.destinationCountry}` : `Region: ${intent.region}`}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
-${skeletonBlock}
+${skeletonBlock}${descriptionBlock}
 **Requirements:**
 ${cityRequirement}
 2. Allocate days per city proportionally (longer stays in richer destinations)

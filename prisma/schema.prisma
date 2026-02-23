@@ -51,6 +51,7 @@ model Trip {
   dateEnd       String   @map("date_end")
   flexibleDates Boolean  @default(false) @map("flexible_dates")
   travelers     Int      @default(2)
+  description   String?
   shareToken    String?  @unique @map("share_token")
 
   createdAt DateTime @default(now()) @map("created_at")

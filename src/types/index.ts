@@ -154,4 +154,5 @@ export interface TripIntent {
   dateStart: string;
   dateEnd: string;
   travelers: number;
+  description?: string;
 }

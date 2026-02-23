@@ -13,6 +13,7 @@ interface TripStoreState {
   // Quick Plan questionnaire
   planStep: number;
   tripType: TripType;
+  tripDescription: string;
   region: string;
   destination: string;
   destinationCountry: string;
@@ -45,6 +46,7 @@ interface TripStoreActions {
   // Quick Plan
   setPlanStep: (step: number) => void;
   setTripType: (tripType: TripType) => void;
+  setTripDescription: (description: string) => void;
   setRegion: (region: string) => void;
   setDestination: (city: string, country: string, countryCode: string, lat: number, lng: number) => void;
   clearDestination: () => void;
@@ -68,6 +70,7 @@ interface TripStoreActions {
 const initialPlanState = {
   planStep: 1,
   tripType: "multi-city" as TripType,
+  tripDescription: "",
   region: "",
   destination: "",
   destinationCountry: "",
@@ -111,6 +114,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Plan actions
       setPlanStep: (step) => set({ planStep: step }),
       setTripType: (tripType) => set({ tripType }),
+      setTripDescription: (description) => set({ tripDescription: description }),
       setRegion: (region) => set({ region }),
       setDestination: (city, country, countryCode, lat, lng) =>
         set({ destination: city, destinationCountry: country, destinationCountryCode: countryCode, destinationLat: lat, destinationLng: lng }),
@@ -147,6 +151,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         travelStyle: state.travelStyle,
         interests: state.interests,
         tripType: state.tripType,
+        tripDescription: state.tripDescription,
         region: state.region,
         destination: state.destination,
         destinationCountry: state.destinationCountry,

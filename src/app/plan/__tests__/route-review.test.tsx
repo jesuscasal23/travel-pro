@@ -88,11 +88,11 @@ const mockCitiesWithDays = [
 
 // ── Store helpers ─────────────────────────────────────────────────────────────
 
-/** Guest on the Destination step (step 3) with multi-city selected */
+/** Guest on the Destination step (step 4, after new Description step) with multi-city selected */
 function setMultiCityDestinationStep() {
   act(() => {
     useTripStore.setState({
-      planStep: 3,
+      planStep: 4,
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "comfort",
@@ -115,11 +115,11 @@ function setMultiCityDestinationStep() {
   });
 }
 
-/** Guest on the Destination step (step 3) with single-city selected */
+/** Guest on the Destination step (step 4) with single-city selected */
 function setSingleCityDestinationStep() {
   act(() => {
     useTripStore.setState({
-      planStep: 3,
+      planStep: 4,
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "comfort",

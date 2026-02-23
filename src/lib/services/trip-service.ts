@@ -21,6 +21,7 @@ interface TripRecord {
   dateEnd: string;
   flexibleDates: boolean;
   travelers: number;
+  description: string | null;
 }
 
 /**
@@ -38,6 +39,7 @@ export function tripToIntent(trip: TripRecord): TripIntent {
     dateStart: trip.dateStart,
     dateEnd: trip.dateEnd,
     travelers: trip.travelers,
+    description: trip.description ?? undefined,
   };
 }
 

@@ -46,6 +46,7 @@ export default function PlanPage() {
     interests, toggleInterest,
     // Plan fields
     tripType, setTripType,
+    tripDescription, setTripDescription,
     region, setRegion,
     destination, destinationCountry, destinationCountryCode,
     destinationLat, destinationLng,
@@ -69,8 +70,8 @@ export default function PlanPage() {
   const isMultiCountry = tripType === "multi-city";
   const needsRouteReview = isSingleCountry || isMultiCountry;
   const totalSteps = isGuest
-    ? (isSingleCity ? 3 : 4)
-    : (isSingleCity ? 1 : 2);
+    ? (isSingleCity ? 4 : 5)
+    : (isSingleCity ? 2 : 3);
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
@@ -78,7 +79,8 @@ export default function PlanPage() {
   // Which content to show based on step + auth
   const showProfile = isGuest && step === 1;
   const showStyle = isGuest && step === 2;
-  const showDestination = isGuest ? step === 3 : step === 1;
+  const showDescription = isGuest ? step === 3 : step === 1;
+  const showDestination = isGuest ? step === 4 : step === 2;
   const showRouteReview = needsRouteReview && step === totalSteps;
 
   // ── Speculative route selection: prefetch when user reaches destination step ──
@@ -112,6 +114,7 @@ export default function PlanPage() {
   const canAdvance = () => {
     if (showProfile) return !!nationality;
     if (showStyle) return true; // style has default, interests optional
+    if (showDescription) return true; // always optional
     if (showDestination) {
       const hasDestination = isSingleCity
         ? !!destination
@@ -277,6 +280,7 @@ export default function PlanPage() {
           ? { destinationCountry, destinationCountryCode }
           : {}),
         dateStart, dateEnd, travelers,
+        ...(tripDescription.trim() ? { description: tripDescription.trim() } : {}),
       });
 
       setItinerary(buildPartialItinerary(route));
@@ -290,7 +294,7 @@ export default function PlanPage() {
     }
   }, [
     isSingleCity, isSingleCountry, isMultiCountry,
-    tripType, region, destination, destinationCountry, destinationCountryCode,
+    tripType, region, tripDescription, destination, destinationCountry, destinationCountryCode,
     dateStart, dateEnd, travelers,
     dayCount, nationality, homeAirport, travelStyle, interests,
     setIsGenerating, setCurrentTripId, setItinerary,
@@ -344,6 +348,41 @@ export default function PlanPage() {
                     <FormField label="Interests">
                       <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
                     </FormField>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3 (guest) / Step 1 (auth) — Any special requests? */}
+              {showDescription && (
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">Any special requests?</h2>
+                  <p className="mt-2 text-muted-foreground text-sm">
+                    Optional — tell us what kind of trip you want. Pace, priorities, things to avoid.
+                  </p>
+
+                  <div className="mt-8">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Your notes <span className="text-muted-foreground font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                      value={tripDescription}
+                      onChange={(e) => setTripDescription(e.target.value)}
+                      placeholder="e.g. We love street food and slow mornings. Prefer off-the-beaten-path spots over tourist traps. One of us has a shellfish allergy."
+                      rows={5}
+                      maxLength={2000}
+                      className={`${inputClass} resize-none`}
+                    />
+                    {tripDescription.length > 1800 && (
+                      <p className="text-xs text-muted-foreground mt-1 text-right">
+                        {2000 - tripDescription.length} characters remaining
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-6 bg-primary/5 rounded-xl p-4">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Tip:</span> Mentions of pace, food preferences, must-avoids, or experience types all help Claude personalise your itinerary.
+                    </p>
                   </div>
                 </div>
               )}

@@ -57,13 +57,13 @@ import PlanPage from "@/app/plan/page";
 // ── Store setup ───────────────────────────────────────────────────────────────
 
 /** Prime the store so the questionnaire is on the final step with valid answers.
- *  Guest mode uses a 3-step wizard (profile → style → destination+travelers)
- *  for single-city trips, so the Generate button appears on step 3.
+ *  Guest mode uses a 4-step wizard (profile → style → description → destination+travelers)
+ *  for single-city trips, so the Generate button appears on step 4.
  *  (Multi-city adds a route review step, so we use single-city here.) */
 function setValidFinalStepState() {
   act(() => {
     useTripStore.setState({
-      planStep: 3,
+      planStep: 4,
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "comfort",

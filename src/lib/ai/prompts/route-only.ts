@@ -115,7 +115,7 @@ Distribute the trip days across these cities within the min–max ranges above.`
 - Region: ${intent.region}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
-${skeletonBlock}
+${skeletonBlock}${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n` : ""}
 **Requirements:**
 ${cityRequirement}
 2. Allocate days per city proportionally (longer stays in richer destinations)
@@ -188,7 +188,7 @@ export function assembleRouteOnlySingleCityPrompt(
 - City: ${intent.destination}, ${intent.destinationCountry}
 - Start date: ${intent.dateStart || "October 1"}
 - End date: ${intent.dateEnd || `October ${durationDays}`}
-
+${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n` : ""}
 **Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities
 2. Create one day entry per day with the correct date — all have "isTravel": false

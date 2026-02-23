@@ -45,7 +45,7 @@ ${regionLine}
 - Travel style: ${profile.travelStyle}
 - Interests: ${profile.interests.join(", ") || "general travel"}
 - Home airport: ${profile.homeAirport}
-
+${intent.description?.trim() ? `- Traveler notes: ${intent.description.trim()}` : ""}
 Rules:
 ${cityCountRule}${countryConstraint}
 - Provide the main international airport IATA code for each city
