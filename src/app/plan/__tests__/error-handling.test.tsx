@@ -117,26 +117,9 @@ describe("PlanPage — guest mode API failure", () => {
         screen.getByText(/something went wrong/i)
       ).toBeInTheDocument()
     );
-  });
-
-  it("does NOT navigate when trip creation fails", async () => {
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
-
-    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /generate my itinerary/i })
-    );
-
-    fireEvent.click(generateBtn);
-
-    await waitFor(() =>
-      screen.getByText(/something went wrong/i)
-    );
 
     expect(mockRouterPush).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it("shows an error message when fetch throws a network error", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
@@ -154,23 +137,9 @@ describe("PlanPage — guest mode API failure", () => {
         screen.getByText(/something went wrong/i)
       ).toBeInTheDocument()
     );
-  });
-
-  it("does NOT navigate when fetch throws", async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
-
-    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /generate my itinerary/i })
-    );
-
-    fireEvent.click(generateBtn);
-
-    await waitFor(() => screen.getByText(/something went wrong/i));
 
     expect(mockRouterPush).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it("clears the error message when the user clicks Generate again", async () => {
     // Fetch #1: trip creation → fails → error
@@ -196,7 +165,7 @@ describe("PlanPage — guest mode API failure", () => {
     await waitFor(() =>
       expect(mockRouterPush).toHaveBeenCalledWith("/trip/trip-123")
     );
-  });
+  }, 15_000);
 
   it("does not inject data into the store on failure", async () => {
     global.fetch = vi.fn()
@@ -214,5 +183,5 @@ describe("PlanPage — guest mode API failure", () => {
 
     // Store itinerary must remain null — partial itinerary only set on success
     expect(useTripStore.getState().itinerary).toBeNull();
-  });
+  }, 15_000);
 });

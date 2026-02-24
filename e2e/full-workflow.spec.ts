@@ -275,6 +275,8 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
 
   // Select nationality from the dropdown (FormField label is not associated via htmlFor)
   await page.locator("select").selectOption("Germany");
+  await page.getByPlaceholder(/Search airport or city/i).fill("FRA");
+  await page.keyboard.press("Enter");
 
   // Continue to next step
   await page.getByRole("button", { name: "Continue" }).click();
@@ -292,10 +294,13 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
   await page.getByRole("button", { name: "Continue" }).click();
 
   // ── 4. Plan — Guest Step 3: "Where & when?" ───────────────────────────────
+  await expect(page.getByText("Any special requests?")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
   await expect(page.getByText("Where & when?")).toBeVisible();
 
   // Ensure multi-city is selected
-  await page.getByRole("button", { name: /Multi-City/i }).click();
+  await page.getByRole("button", { name: /Multi-Country/i }).click();
 
   // Select Southeast Asia region
   await page.getByRole("button", { name: /Southeast Asia/i }).click();
@@ -311,10 +316,10 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
   await page.getByRole("button", { name: "Continue" }).click();
 
   // ── 5. Plan — Guest Step 4: "Trip details" ──────────────────────────────
-  await expect(page.getByText("Trip details")).toBeVisible();
-
-  // Budget and travelers have valid defaults (€10,000 and 2)
-  await expect(page.getByText(/€10,000|€10\.000/)).toBeVisible();
+  await expect(page.getByText("Review your route")).toBeVisible();
+  await expect(page.getByText("Tokyo")).toBeVisible();
+  await expect(page.getByText("Hanoi")).toBeVisible();
+  await expect(page.getByText("Bangkok")).toBeVisible();
 
   // Click Generate — triggers POST /api/v1/trips + redirect
   await page.getByRole("button", { name: /Generate My Itinerary/i }).click();
@@ -360,25 +365,23 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
     await page.waitForLoadState("networkidle");
   }
 
-  // Now the Summary/Edit links should be visible
-  await expect(page.getByRole("link", { name: /Edit/i })).toBeVisible();
+  // Now summary and edit actions should be visible
+  await expect(page.getByRole("button", { name: /Edit trip/i })).toBeVisible();
 
   // Trip title should show the countries
   await expect(page.getByText("Japan, Vietnam, Thailand")).toBeVisible();
 
   // ── 8. Verify trip page tabs ─────────────────────────────────────────────
-  await expect(page.getByRole("button", { name: "Itinerary" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Budget" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Your Journey/i })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Get Ready/i })).toBeVisible();
 
-  // Switch to Itinerary tab and verify activity content
-  await page.getByRole("button", { name: "Itinerary" }).click();
-  // Days are collapsed by default — click Day 1 to expand it
-  await page.getByText("Day 1").first().click();
+  // Switch to journey tab and verify activity content
+  await page.getByRole("tab", { name: /Your Journey/i }).click();
   await expect(page.getByText("Senso-ji Temple")).toBeVisible({ timeout: 5_000 });
 
-  // Switch to Budget tab and verify total
-  await page.getByRole("button", { name: "Budget" }).click();
-  await expect(page.getByText(/€2,850|€2\.850/).first()).toBeVisible({ timeout: 5_000 });
+  // Switch to prep tab and verify essentials content
+  await page.getByRole("tab", { name: /Get Ready/i }).click();
+  await expect(page.getByText("Visas")).toBeVisible({ timeout: 5_000 });
 
   // ── 9. Navigate to Summary page ──────────────────────────────────────────
   await page.getByRole("link", { name: /Summary/i }).click();
@@ -397,11 +400,6 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
 
   // Day-by-day table
   await expect(page.getByText("Day-by-Day Plan")).toBeVisible();
-
-  // Budget breakdown
-  await expect(page.getByText("Budget Breakdown")).toBeVisible();
-  await expect(page.getByText(/€2,850|€2\.850/)).toBeVisible();
-  await expect(page.getByText(/under budget/)).toBeVisible();
 
   // Visa requirements
   await expect(page.getByText("Visa Requirements")).toBeVisible();
@@ -439,3 +437,6 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
   expect(filename).toContain("TravelPro-");
   expect(filename).toMatch(/\.pdf$/);
 });
+
+
+

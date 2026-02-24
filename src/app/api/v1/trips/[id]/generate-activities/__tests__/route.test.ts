@@ -159,17 +159,6 @@ describe("POST /api/v1/trips/:id/generate-activities", () => {
     expect(kyotoDays[0].activities).toHaveLength(0);
   });
 
-  it("does NOT return just the city days (old format)", async () => {
-    const res = await callPOST({ profile: validProfile, cityId: "tokyo" });
-    const json = await res.json();
-
-    // Old API returned { days: [...] } — should no longer
-    expect(json.days).toBeUndefined();
-    // New API returns { itinerary: { route, days, ... } }
-    expect(json.itinerary.route).toBeDefined();
-    expect(json.itinerary.days).toBeDefined();
-  });
-
   it("persists the merged itinerary to the database", async () => {
     await callPOST({ profile: validProfile, cityId: "tokyo" });
 

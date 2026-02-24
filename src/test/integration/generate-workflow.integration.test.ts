@@ -235,10 +235,10 @@ describe("POST /api/v1/trips/[id]/generate — single-city", () => {
     // 4. Parse all SSE events
     const events = await readSSEEvents(response);
 
-    // 5. Verify event sequence: activities → done (single-city skips "route" stage)
+    // 5. Verify event sequence: route → done
     expect(events.length).toBeGreaterThanOrEqual(2);
     expect(events[0]).toMatchObject({
-      stage: "activities",
+      stage: "route",
       pct: 20,
     });
 
@@ -326,10 +326,9 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
     // 3. Parse SSE events
     const events = await readSSEEvents(response);
 
-    // 4. Verify event sequence: route → activities → done (multi-city)
-    expect(events.length).toBeGreaterThanOrEqual(3);
-    expect(events[0]).toMatchObject({ stage: "route", pct: 15 });
-    expect(events[1]).toMatchObject({ stage: "activities", pct: 35 });
+    // 4. Verify event sequence: route → done
+    expect(events.length).toBeGreaterThanOrEqual(2);
+    expect(events[0]).toMatchObject({ stage: "route", pct: 20 });
 
     const doneEvent = events.find((e) => e.stage === "done");
     expect(doneEvent).toBeDefined();

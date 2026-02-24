@@ -90,9 +90,10 @@ test("E2E-01c: Continue disabled on destination step until region and dates are 
     store.state = {
       ...store.state,
       nationality: "Germany",
+      homeAirport: "FRA - Frankfurt",
       travelStyle: "comfort",
       interests: ["Culture & History"],
-      planStep: 3,
+      planStep: 4,
     };
     localStorage.setItem("travel-pro-store", JSON.stringify(store));
   });
@@ -127,6 +128,8 @@ test("E2E-01d: Back button navigates between steps", async ({ page }) => {
   // Step 1: Profile
   await expect(page.getByText("Where are you from?")).toBeVisible({ timeout: 15_000 });
   await page.locator("select").selectOption("Germany");
+  await page.getByPlaceholder(/Search airport or city/i).fill("FRA");
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Step 2: Travel style

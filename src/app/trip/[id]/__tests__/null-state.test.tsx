@@ -155,10 +155,4 @@ describe("SummaryPage — null itinerary", () => {
       expect(link.closest("a")).toHaveAttribute("href", "/dashboard");
     });
   });
-
-  it("does not render the PDF export button", async () => {
-    await renderWithSuspense(<SummaryPage params={resolvedParams} />);
-    await waitFor(() => screen.getByText("Trip not found."));
-  });
 });
-

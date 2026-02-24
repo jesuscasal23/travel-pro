@@ -52,22 +52,6 @@ describe("useItinerary", () => {
     expect(result.current).toBe(mockItinerary);
   });
 
-  it("does not fall back to sample data when the store is empty", () => {
-    const { result } = renderHook(() => useItinerary());
-    // Must be strictly null — no sampleFullItinerary fallback
-    expect(result.current).toBeNull();
-  });
-
-  it("returns the correct route from a stored itinerary", () => {
-    act(() => {
-      useTripStore.setState({ itinerary: mockItinerary });
-    });
-
-    const { result } = renderHook(() => useItinerary());
-    expect(result.current?.route).toHaveLength(1);
-    expect(result.current?.route[0].city).toBe("Tokyo");
-  });
-
   it("reflects a store update from null to itinerary", () => {
     const { result } = renderHook(() => useItinerary());
     expect(result.current).toBeNull();

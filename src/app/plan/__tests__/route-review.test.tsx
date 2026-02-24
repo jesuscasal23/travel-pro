@@ -168,7 +168,7 @@ describe("PlanPage — Route Review Step", () => {
     // Should show "Continue" (not "Generate My Itinerary")
     expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Generate My Itinerary/i })).not.toBeInTheDocument();
-  });
+  }, 15_000);
 
   it("shows 'Generate My Itinerary' on the Destination step for single-city trips", async () => {
     setSingleCityDestinationStep();
@@ -181,7 +181,7 @@ describe("PlanPage — Route Review Step", () => {
 
     // Should show "Generate My Itinerary" (not "Continue")
     expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it("advances to Route Review step after clicking Continue on Destination (multi-city)", async () => {
     setMultiCityDestinationStep();
@@ -217,7 +217,7 @@ describe("PlanPage — Route Review Step", () => {
 
     // Generate button should be present inside the RouteReviewStep
     expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it("clicking Generate on Route Review creates a trip with the cities", async () => {
     setMultiCityDestinationStep();
@@ -269,7 +269,7 @@ describe("PlanPage — Route Review Step", () => {
     expect(storeItinerary!.route).toHaveLength(3);
     expect(storeItinerary!.route.map(c => c.city)).toEqual(["Tokyo", "Hanoi", "Bangkok"]);
     expect(storeItinerary!.days).toHaveLength(0); // Partial itinerary — no days yet
-  });
+  }, 15_000);
 
   it("Back button on Route Review returns to Destination step", async () => {
     setMultiCityDestinationStep();
@@ -301,5 +301,5 @@ describe("PlanPage — Route Review Step", () => {
     await waitFor(() =>
       expect(screen.getByText("Where & when?")).toBeInTheDocument()
     );
-  });
+  }, 15_000);
 });

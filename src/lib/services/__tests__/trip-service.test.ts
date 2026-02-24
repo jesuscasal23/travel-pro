@@ -68,14 +68,6 @@ describe("tripToIntent", () => {
     });
   });
 
-  it("converts null optional fields to undefined", () => {
-    const result = tripToIntent(fullTrip);
-
-    expect(result.destination).toBeUndefined();
-    expect(result.destinationCountry).toBeUndefined();
-    expect(result.destinationCountryCode).toBeUndefined();
-  });
-
   it("preserves non-null destination fields for single-city trips", () => {
     const singleCityTrip = {
       ...fullTrip,

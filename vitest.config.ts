@@ -10,8 +10,17 @@ export default defineConfig({
     // Server-side test files override this with @vitest-environment node.
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
-    // Exclude e2e and integration tests — they run under separate configs
+    // Exclude e2e and integration tests - they run under separate configs
     exclude: ["**/node_modules/**", "**/e2e/**", "**/integration/**"],
+    coverage: {
+      provider: "v8",
+      thresholds: {
+        lines: 50,
+        statements: 50,
+        functions: 50,
+        branches: 50,
+      },
+    },
   },
   resolve: {
     alias: {

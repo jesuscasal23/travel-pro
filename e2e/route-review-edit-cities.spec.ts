@@ -103,22 +103,24 @@ async function fillQuestionnaire(page: Page) {
   // Step 1: Profile — select nationality
   await expect(page.getByText("Where are you from?")).toBeVisible({ timeout: 15_000 });
   await page.locator("select").selectOption("Germany");
+  await page.getByPlaceholder(/Search airport or city/i).fill("FRA");
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Step 2: Travel style
   await expect(page.getByText("Your travel style")).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  // Step 3: Destination — select multi-city + region + dates
+  // Step 3: Special requests (optional)
+  await expect(page.getByText("Any special requests?")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // Step 4: Destination — select multi-city + region + dates
   await expect(page.getByText("Where & when?")).toBeVisible();
   // Multi-city is the default, just pick a region
   await page.getByRole("button", { name: /Southeast Asia/i }).click();
   await page.locator('input[type="date"]').first().fill("2026-04-01");
   await page.locator('input[type="date"]').last().fill("2026-04-22");
-  await page.getByRole("button", { name: "Continue" }).click();
-
-  // Step 4: Details — budget + travelers
-  await expect(page.getByText("Trip details")).toBeVisible();
 }
 
 // ── Setup ────────────────────────────────────────────────────────────────────
@@ -140,7 +142,7 @@ test("E2E-05a: Guest multi-city → Route Review shows AI-suggested cities", asy
   await setupMocks(page);
   await fillQuestionnaire(page);
 
-  // Details step should show "Continue" (not "Generate")
+  // Destination step should show "Continue" (not "Generate")
   const continueBtn = page.getByRole("button", { name: "Continue" });
   await expect(continueBtn).toBeVisible();
 
@@ -204,6 +206,6 @@ test("E2E-05c: Guest multi-city → Back from Route Review returns to Details", 
   // Click Back
   await page.getByRole("button", { name: /Back/i }).click();
 
-  // Should return to Details step
-  await expect(page.getByText("Trip details")).toBeVisible();
+  // Should return to Destination step
+  await expect(page.getByText("Where & when?")).toBeVisible();
 });

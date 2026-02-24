@@ -9,6 +9,10 @@ export interface ManifestEntry {
   unsplashId: string;
   photographer: string;
   photographerUrl: string;
+  // Second image (optional — added in second-pass run)
+  unsplashId2?: string;
+  photographer2?: string;
+  photographerUrl2?: string;
 }
 
 export interface Manifest {
@@ -58,17 +62,19 @@ export async function writeManifest(manifest: Manifest): Promise<void> {
   await writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 2), "utf-8");
 }
 
-export function getImagePath(countryCode: string, slug: string): string {
+export function getImagePath(countryCode: string, slug: string, index = 1): string {
+  const filename = index === 1 ? `${slug}.webp` : `${slug}-2.webp`;
   return join(
     process.cwd(),
     "public",
     "images",
     "cities",
     countryCode.toLowerCase(),
-    `${slug}.webp`
+    filename
   );
 }
 
-export function getImagePublicPath(countryCode: string, slug: string): string {
-  return `/images/cities/${countryCode.toLowerCase()}/${slug}.webp`;
+export function getImagePublicPath(countryCode: string, slug: string, index = 1): string {
+  const filename = index === 1 ? `${slug}.webp` : `${slug}-2.webp`;
+  return `/images/cities/${countryCode.toLowerCase()}/${filename}`;
 }

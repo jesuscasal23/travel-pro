@@ -68,12 +68,14 @@ interface UnsplashSearchResponse {
 
 async function searchUnsplash(
   query: string,
-  accessKey: string
+  accessKey: string,
+  resultIndex = 0
 ): Promise<UnsplashPhoto | null> {
   const url = new URL("https://api.unsplash.com/search/photos");
   url.searchParams.set("query", query);
   url.searchParams.set("orientation", "landscape");
-  url.searchParams.set("per_page", "1");
+  // Fetch 2 results when we want the second one, otherwise 1 is enough
+  url.searchParams.set("per_page", resultIndex > 0 ? "2" : "1");
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Client-ID ${accessKey}` },
@@ -89,7 +91,7 @@ async function searchUnsplash(
   }
 
   const data = (await res.json()) as UnsplashSearchResponse;
-  return data.results[0] ?? null;
+  return data.results[resultIndex] ?? null;
 }
 
 async function downloadImage(
@@ -111,7 +113,7 @@ async function downloadImage(
 
 // ── Main ───────────────────────────────────────────────────────
 
-const BATCH_SIZE = 49; // Stay under 50 req/hour limit
+const BATCH_SIZE = 24; // 2 requests per city → stay under 50 req/hour limit
 const BATCH_WAIT_MS = 62 * 60 * 1000; // 62 minutes between batches
 const REQUEST_DELAY_MS = 200; // Small delay between individual requests
 
@@ -135,62 +137,79 @@ async function main(): Promise<void> {
   // Load existing manifest for resume support
   const manifest = await readManifest();
   const existingSlugs = new Set(manifest.entries.map((e) => e.slug));
+  // Track which cities still need their second image
+  const slugsNeedingImage2 = new Set(
+    manifest.entries.filter((e) => !e.unsplashId2).map((e) => e.slug)
+  );
   console.log(`Manifest has ${manifest.entries.length} existing entries.`);
+  console.log(`  ${slugsNeedingImage2.size} entries still need a second image.`);
 
-  // Filter to cities that still need images
-  const pending = CITIES.filter((c) => {
-    const slug = slugify(c.city);
-    return !existingSlugs.has(slug);
-  });
+  // Cities needing first image
+  const pendingFirst = CITIES.filter((c) => !existingSlugs.has(slugify(c.city)));
+  // Cities needing second image (already have first)
+  const pendingSecond = CITIES.filter(
+    (c) => existingSlugs.has(slugify(c.city)) && slugsNeedingImage2.has(slugify(c.city))
+  );
 
-  if (pending.length === 0) {
-    console.log("All cities already have images. Nothing to do.");
+  const totalPending = pendingFirst.length + pendingSecond.length;
+  if (totalPending === 0) {
+    console.log("All cities already have two images. Nothing to do.");
     return;
   }
 
-  console.log(`${pending.length} cities need images. Starting download...\n`);
+  console.log(
+    `${pendingFirst.length} cities need first image, ` +
+    `${pendingSecond.length} cities need second image. Starting download...\n`
+  );
 
   let batchCount = 0;
   let downloadedInBatch = 0;
   let totalDownloaded = 0;
   let failedCities: string[] = [];
 
-  for (let i = 0; i < pending.length; i++) {
-    const city = pending[i];
+  // ── Helper: check + wait for batch limit ──────────────────────
+  async function checkBatchLimit(label: string, lastItem: boolean): Promise<void> {
+    if (downloadedInBatch >= BATCH_SIZE && !lastItem) {
+      console.log(`\n  Batch ${batchCount + 1} complete (${downloadedInBatch} requests). ${label}`);
+      await writeManifest(manifest);
+      console.log(`  Manifest saved (${manifest.entries.length} entries).`);
+      downloadedInBatch = 0;
+      batchCount++;
+      await waitForNextBatch(batchCount);
+    }
+  }
+
+  // ── Phase 1: cities that need their first image ────────────────
+  for (let i = 0; i < pendingFirst.length; i++) {
+    const city = pendingFirst[i];
     const slug = slugify(city.city);
     const cc = city.countryCode.toLowerCase();
     const progress = `[${manifest.entries.length + 1}/${CITIES.length}]`;
 
     try {
-      // Search for city image
-      let photo = await searchUnsplash(
-        `${city.city} ${city.country} travel`,
-        accessKey
-      );
+      // --- Primary search (result index 0 = first photo) ---
+      let photo = await searchUnsplash(`${city.city} ${city.country} travel`, accessKey, 0);
+      downloadedInBatch++;
 
       // Country fallback if no results
       if (!photo) {
         console.log(`  ${progress} No results for "${city.city}", trying country fallback...`);
-        photo = await searchUnsplash(
-          `${city.country} landscape travel`,
-          accessKey
-        );
-        downloadedInBatch++; // Count the fallback request too
+        photo = await searchUnsplash(`${city.country} landscape travel`, accessKey, 0);
+        downloadedInBatch++;
       }
 
       if (!photo) {
         console.log(`  ${progress} SKIP: No image found for ${city.city}, ${city.country}`);
-        failedCities.push(`${city.city}, ${city.country}`);
-        downloadedInBatch++;
+        failedCities.push(`${city.city}, ${city.country} (image 1)`);
         await delay(REQUEST_DELAY_MS);
+        await checkBatchLimit("(after skip)", i === pendingFirst.length - 1);
         continue;
       }
 
-      // Download image
-      const destPath = getImagePath(cc, slug);
-      await downloadImage(photo.urls.raw, destPath);
+      // Download first image
+      await downloadImage(photo.urls.raw, getImagePath(cc, slug, 1));
 
-      // Add to manifest
+      // Add to manifest (without image 2 yet — filled in phase 2)
       const entry: ManifestEntry = {
         slug,
         city: city.city,
@@ -202,16 +221,33 @@ async function main(): Promise<void> {
       };
       manifest.entries.push(entry);
       existingSlugs.add(slug);
-
+      slugsNeedingImage2.add(slug); // Queue for phase 2
       totalDownloaded++;
+
+      console.log(`  ${progress} [1/2] Downloaded ${cc}/${slug}.webp (by ${photo.user.name})`);
+
+      // --- Second image immediately after the first ---
+      await delay(REQUEST_DELAY_MS);
+      await checkBatchLimit("(between image 1 and 2)", false);
+
+      const photo2 = await searchUnsplash(`${city.city} ${city.country} travel`, accessKey, 1);
       downloadedInBatch++;
 
-      console.log(`  ${progress} Downloaded ${cc}/${slug}.webp (by ${photo.user.name})`);
+      if (photo2 && photo2.id !== photo.id) {
+        await downloadImage(photo2.urls.raw, getImagePath(cc, slug, 2));
+        entry.unsplashId2 = photo2.id;
+        entry.photographer2 = photo2.user.name;
+        entry.photographerUrl2 = photo2.user.links.html;
+        slugsNeedingImage2.delete(slug);
+        totalDownloaded++;
+        console.log(`  ${progress} [2/2] Downloaded ${cc}/${slug}-2.webp (by ${photo2.user.name})`);
+      } else {
+        console.log(`  ${progress} [2/2] No distinct second image for ${city.city} — will retry in pass 2`);
+      }
     } catch (err) {
       if (err instanceof Error && err.message === "RATE_LIMIT_HIT") {
         console.log("\n  Rate limit hit! Saving manifest and waiting...");
         await writeManifest(manifest);
-        // Wait and then retry the same city
         i--;
         downloadedInBatch = 0;
         await waitForNextBatch(batchCount);
@@ -223,16 +259,68 @@ async function main(): Promise<void> {
     }
 
     await delay(REQUEST_DELAY_MS);
+    await checkBatchLimit("", i === pendingFirst.length - 1);
+  }
 
-    // Check if we've hit the batch limit
-    if (downloadedInBatch >= BATCH_SIZE && i < pending.length - 1) {
-      console.log(`\n  Batch ${batchCount + 1} complete (${downloadedInBatch} requests).`);
-      await writeManifest(manifest);
-      console.log(`  Manifest saved (${manifest.entries.length} entries).`);
-      downloadedInBatch = 0;
-      batchCount++;
-      await waitForNextBatch(batchCount);
+  // ── Phase 2: cities that already have image 1 but not image 2 ──
+  if (pendingSecond.length > 0) {
+    console.log(`\n--- Phase 2: fetching second images for ${pendingSecond.length} existing cities ---\n`);
+  }
+
+  for (let i = 0; i < pendingSecond.length; i++) {
+    const city = pendingSecond[i];
+    const slug = slugify(city.city);
+    const cc = city.countryCode.toLowerCase();
+    const entry = manifest.entries.find((e) => e.slug === slug);
+    if (!entry) continue;
+
+    const progress = `[2nd img ${i + 1}/${pendingSecond.length}]`;
+
+    try {
+      const photo2 = await searchUnsplash(`${city.city} ${city.country} travel`, accessKey, 1);
+      downloadedInBatch++;
+
+      if (photo2 && photo2.id !== entry.unsplashId) {
+        await downloadImage(photo2.urls.raw, getImagePath(cc, slug, 2));
+        entry.unsplashId2 = photo2.id;
+        entry.photographer2 = photo2.user.name;
+        entry.photographerUrl2 = photo2.user.links.html;
+        slugsNeedingImage2.delete(slug);
+        totalDownloaded++;
+        console.log(`  ${progress} Downloaded ${cc}/${slug}-2.webp (by ${photo2.user.name})`);
+      } else {
+        // Try a slightly different query as fallback
+        const photo2b = await searchUnsplash(`${city.city} cityscape`, accessKey, 0);
+        downloadedInBatch++;
+        if (photo2b && photo2b.id !== entry.unsplashId) {
+          await downloadImage(photo2b.urls.raw, getImagePath(cc, slug, 2));
+          entry.unsplashId2 = photo2b.id;
+          entry.photographer2 = photo2b.user.name;
+          entry.photographerUrl2 = photo2b.user.links.html;
+          slugsNeedingImage2.delete(slug);
+          totalDownloaded++;
+          console.log(`  ${progress} Downloaded ${cc}/${slug}-2.webp via fallback (by ${photo2b.user.name})`);
+        } else {
+          console.log(`  ${progress} SKIP: Could not find distinct second image for ${city.city}`);
+          failedCities.push(`${city.city}, ${city.country} (image 2)`);
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message === "RATE_LIMIT_HIT") {
+        console.log("\n  Rate limit hit! Saving manifest and waiting...");
+        await writeManifest(manifest);
+        i--;
+        downloadedInBatch = 0;
+        await waitForNextBatch(batchCount);
+        batchCount++;
+        continue;
+      }
+      console.error(`  ${progress} ERROR for ${city.city}: ${err}`);
+      failedCities.push(`${city.city}, ${city.country} (image 2)`);
     }
+
+    await delay(REQUEST_DELAY_MS);
+    await checkBatchLimit("", i === pendingSecond.length - 1);
   }
 
   // Final save
@@ -241,8 +329,12 @@ async function main(): Promise<void> {
   console.log("\n==============================");
   console.log(`Done! Downloaded ${totalDownloaded} images.`);
   console.log(`Manifest: ${manifest.entries.length}/${CITIES.length} cities.`);
+  const stillMissingSecond = manifest.entries.filter((e) => !e.unsplashId2).length;
+  if (stillMissingSecond > 0) {
+    console.log(`  ${stillMissingSecond} cities still missing second image (re-run to retry).`);
+  }
   if (failedCities.length > 0) {
-    console.log(`\nFailed cities (${failedCities.length}):`);
+    console.log(`\nFailed (${failedCities.length}):`);
     failedCities.forEach((c) => console.log(`  - ${c}`));
   }
   console.log("==============================");
