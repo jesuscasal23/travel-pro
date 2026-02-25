@@ -17,6 +17,20 @@ vi.mock("@/stores/useTripStore", () => ({
   },
 }));
 
+vi.mock("@/lib/client/api-error-reporting", () => ({
+  parseApiErrorResponse: vi.fn(async (res: Response, fallback: string) => ({
+    message: `${fallback} (${res.status ?? 0})`,
+    status: res.status ?? 0,
+    requestId: "req-test",
+    responseBody: undefined,
+  })),
+  reportApiError: vi.fn(async () => undefined),
+}));
+
+import { reportApiError } from "@/lib/client/api-error-reporting";
+
+const mockReportApiError = reportApiError as ReturnType<typeof vi.fn>;
+
 function createWrapper(queryClient: QueryClient) {
   return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -60,7 +74,12 @@ describe("useTripMutations", () => {
   });
 
   it("throws when create trip endpoint returns non-ok", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false } as Response);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ error: "Too many requests" }),
+    } as Response);
 
     const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
     const { result } = renderHook(() => useCreateTrip(), {
@@ -75,7 +94,8 @@ describe("useTripMutations", () => {
         dateEnd: "2026-06-10",
         travelers: 2,
       }),
-    ).rejects.toThrow("Failed to create trip");
+    ).rejects.toThrow(/Failed to create trip/);
+    expect(mockReportApiError).toHaveBeenCalled();
   });
 
   it("saves trip edits via PATCH and exposes save-failure meta message", async () => {

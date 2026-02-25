@@ -30,6 +30,8 @@ export default function TripPage({ params }: { params: Params }) {
   const travelStyle = useTripStore((s) => s.travelStyle);
   const interests = useTripStore((s) => s.interests);
   const dateStart = useTripStore((s) => s.dateStart);
+  const currentTripId = useTripStore((s) => s.currentTripId);
+  const setCurrentTripId = useTripStore((s) => s.setCurrentTripId);
   const setItinerary = useTripStore((s) => s.setItinerary);
   const needsRegeneration = useTripStore((s) => s.needsRegeneration);
   const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
@@ -47,15 +49,24 @@ export default function TripPage({ params }: { params: Params }) {
         const dbItinerary = data.trip.itineraries[0].data as Itinerary;
         // Only update if the DB version has data the local store lacks
         const local = useTripStore.getState().itinerary;
+        const localTripId = useTripStore.getState().currentTripId;
         const dbHasActivities = dbItinerary.days?.some((d: { activities?: unknown[] }) => d.activities && d.activities.length > 0);
         const localHasActivities = local?.days?.some((d) => d.activities && d.activities.length > 0);
-        if (dbHasActivities && !localHasActivities) {
+        const shouldSync =
+          localTripId !== id ||
+          !local ||
+          local.route.length === 0 ||
+          (local.days.length === 0 && dbItinerary.route.length > 0) ||
+          (dbHasActivities && !localHasActivities);
+
+        if (shouldSync) {
+          setCurrentTripId(id);
           setItinerary(dbItinerary);
         }
       })
       .catch(() => {/* best-effort sync */});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, currentTripId]);
 
   // ── Detect partial itinerary (no days yet — generation needed) ──────────────
   const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && id !== "guest");
@@ -207,11 +218,7 @@ export default function TripPage({ params }: { params: Params }) {
   const tripTitle = singleCity ? `${route[0].city}, ${route[0].country}` : countries.join(", ");
   const totalDays = days.length || route.reduce((sum, r) => sum + r.days, 0);
 
-  const generationError = generateMutation.error
-    ? (generateMutation.error.message === "Generation failed"
-        ? "Generation failed. Please try again."
-        : "Something went wrong. Please try again.")
-    : null;
+  const generationError = generateMutation.error?.message ?? null;
   const isGenerating = isPartialItinerary && !generationError;
 
   // Regenerate after structural route edit (add/remove city)

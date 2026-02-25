@@ -8,9 +8,21 @@ vi.mock("@/lib/utils/trip-metadata", () => ({
   parseItineraryData: vi.fn((raw) => raw),
 }));
 
+vi.mock("@/lib/client/api-error-reporting", () => ({
+  parseApiErrorResponse: vi.fn(async (res: Response, fallback: string) => ({
+    message: `${fallback} (${res.status ?? 0})`,
+    status: res.status ?? 0,
+    requestId: "req-test",
+    responseBody: undefined,
+  })),
+  reportApiError: vi.fn(async () => undefined),
+}));
+
 import { parseItineraryData } from "@/lib/utils/trip-metadata";
+import { reportApiError } from "@/lib/client/api-error-reporting";
 
 const mockParseItineraryData = parseItineraryData as ReturnType<typeof vi.fn>;
+const mockReportApiError = reportApiError as ReturnType<typeof vi.fn>;
 const originalFetch = global.fetch;
 
 function createWrapper(queryClient: QueryClient) {
@@ -68,6 +80,7 @@ describe("useTripGeneration", () => {
         ]),
       )
       .mockResolvedValueOnce({
+        ok: true,
         json: () =>
           Promise.resolve({
             trip: { itineraries: [{ data: { route: [], days: [] } }] },
@@ -100,7 +113,7 @@ describe("useTripGeneration", () => {
 
   it("throws when SSE emits an error stage", async () => {
     global.fetch = vi.fn().mockResolvedValue(
-      makeSseResponse(['data: {"stage":"error"}\n\n']),
+      makeSseResponse(['data: {"stage":"error","message":"Generation failed"}\n\n']),
     );
 
     const queryClient = new QueryClient({
@@ -115,7 +128,7 @@ describe("useTripGeneration", () => {
     ).rejects.toThrow("Generation failed");
   });
 
-  it("returns null when stream has no done event with trip_id", async () => {
+  it("throws when stream ends without done event", async () => {
     global.fetch = vi.fn().mockResolvedValue(
       makeSseResponse([
         "data: not-json\n\n",
@@ -130,17 +143,20 @@ describe("useTripGeneration", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    let output: unknown;
-    await act(async () => {
-      output = await result.current.mutateAsync(baseParams);
-    });
-
-    expect(output).toBeNull();
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    await expect(result.current.mutateAsync(baseParams)).rejects.toThrow(
+      /stream ended before completion/i,
+    );
+    expect(mockReportApiError).toHaveBeenCalled();
   });
 
   it("throws immediately when generate endpoint response is not ok", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, body: null });
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      body: null,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ error: "Too many requests" }),
+    });
 
     const queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } },
@@ -151,7 +167,41 @@ describe("useTripGeneration", () => {
 
     await expect(
       result.current.mutateAsync(baseParams),
-    ).rejects.toThrow("Generation failed");
+    ).rejects.toThrow(/Generation failed/);
+    expect(mockReportApiError).toHaveBeenCalled();
+  });
+
+  it("parses done events split across stream chunks", async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        makeSseResponse([
+          'data: {"stage":"do',
+          'ne","trip_id":"trip-1"}\n\n',
+        ]),
+      )
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            trip: { itineraries: [{ data: { route: [], days: [] } }] },
+          }),
+      });
+
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const { result } = renderHook(() => useTripGeneration(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    let output: unknown;
+    await act(async () => {
+      output = await result.current.mutateAsync(baseParams);
+    });
+
+    expect(output).toEqual({ route: [], days: [] });
+    expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
   it("invalidates trip detail query on success", async () => {
@@ -161,6 +211,7 @@ describe("useTripGeneration", () => {
         makeSseResponse(['data: {"stage":"done","trip_id":"trip-1"}\n\n']),
       )
       .mockResolvedValueOnce({
+        ok: true,
         json: () =>
           Promise.resolve({
             trip: { itineraries: [{ data: { route: [], days: [] } }] },
@@ -185,4 +236,3 @@ describe("useTripGeneration", () => {
     });
   });
 });
-

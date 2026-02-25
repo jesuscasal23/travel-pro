@@ -55,8 +55,9 @@ export default function PlanPage() {
 
   // Treat as guest unless auth explicitly confirmed — null (loading) defaults to guest
   // so profile steps aren't skipped. Also show profile steps for authenticated users
-  // who haven't completed their profile yet (no nationality set).
-  const isGuest = isAuthenticated !== true || !nationality;
+  // who haven't completed core profile fields required by generation.
+  const hasCoreProfile = Boolean(nationality && homeAirport);
+  const isGuest = isAuthenticated !== true || !hasCoreProfile;
 
   const prefetchRoute = usePrefetchRouteSelection();
   const fetchRoute = useFetchRouteSelection();
@@ -516,7 +517,9 @@ export default function PlanPage() {
         </div>
 
         {createTripMutation.error && (
-          <p className="mt-4 text-sm text-accent text-center">Something went wrong. Please try again.</p>
+          <p className="mt-4 text-sm text-accent text-center">
+            {createTripMutation.error.message || "Something went wrong. Please try again."}
+          </p>
         )}
       </div>
     </div>

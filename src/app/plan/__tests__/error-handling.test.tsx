@@ -50,6 +50,16 @@ vi.mock("@/components/ui", async (importOriginal) => {
   };
 });
 
+vi.mock("@/lib/client/api-error-reporting", () => ({
+  parseApiErrorResponse: vi.fn(async (res: Response, fallback: string) => ({
+    message: fallback,
+    status: res.status ?? 0,
+    requestId: "req-test",
+    responseBody: undefined,
+  })),
+  reportApiError: vi.fn(async () => undefined),
+}));
+
 // ── Import subject after mocks ────────────────────────────────────────────────
 
 import PlanPage from "@/app/plan/page";
@@ -114,7 +124,7 @@ describe("PlanPage — guest mode API failure", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText(/something went wrong/i)
+        screen.getByText(/failed to create trip|something went wrong/i)
       ).toBeInTheDocument()
     );
 
@@ -134,7 +144,7 @@ describe("PlanPage — guest mode API failure", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText(/something went wrong/i)
+        screen.getByText(/failed to create trip|something went wrong/i)
       ).toBeInTheDocument()
     );
 
@@ -157,7 +167,7 @@ describe("PlanPage — guest mode API failure", () => {
 
     // First click → error appears inline
     fireEvent.click(generateBtn);
-    await waitFor(() => screen.getByText(/something went wrong/i));
+    await waitFor(() => screen.getByText(/failed to create trip|something went wrong/i));
 
     // User clicks Generate again → navigates on success
     act(() => { fireEvent.click(generateBtn); });
@@ -179,7 +189,7 @@ describe("PlanPage — guest mode API failure", () => {
 
     fireEvent.click(generateBtn);
 
-    await waitFor(() => screen.getByText(/something went wrong/i));
+    await waitFor(() => screen.getByText(/failed to create trip|something went wrong/i));
 
     // Store itinerary must remain null — partial itinerary only set on success
     expect(useTripStore.getState().itinerary).toBeNull();

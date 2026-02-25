@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
     mutate: vi.fn(),
   },
   setItinerary: vi.fn(),
+  setCurrentTripId: vi.fn(),
   setNeedsRegeneration: vi.fn(),
   mobileProps: null as Record<string, unknown> | null,
   desktopProps: null as Record<string, unknown> | null,
@@ -51,6 +52,8 @@ vi.mock("@/stores/useTripStore", () => {
     interests: string[];
     dateStart: string;
     needsRegeneration: boolean;
+    currentTripId: string;
+    setCurrentTripId: typeof mocks.setCurrentTripId;
     setItinerary: typeof mocks.setItinerary;
     setNeedsRegeneration: typeof mocks.setNeedsRegeneration;
   }) => unknown) => {
@@ -61,6 +64,8 @@ vi.mock("@/stores/useTripStore", () => {
       interests: ["culture", "food"],
       dateStart: "2026-06-01",
       needsRegeneration: true,
+      currentTripId: "",
+      setCurrentTripId: mocks.setCurrentTripId,
       setItinerary: mocks.setItinerary,
       setNeedsRegeneration: mocks.setNeedsRegeneration,
     };
@@ -68,7 +73,7 @@ vi.mock("@/stores/useTripStore", () => {
     return selector(state);
   }) as ((selector?: unknown) => unknown) & { getState: () => { itinerary: Itinerary | null } };
 
-  useTripStore.getState = () => ({ itinerary: mocks.itinerary });
+  useTripStore.getState = () => ({ itinerary: mocks.itinerary, currentTripId: "" });
   return { useTripStore };
 });
 
@@ -197,6 +202,25 @@ describe("TripPage layout and action wiring", () => {
     expect(mocks.tripGeneration.mutate).toHaveBeenCalledTimes(1);
   });
 
+  it("syncs itinerary from DB when store trip context is stale", async () => {
+    const dbItinerary = makeItinerary();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        trip: {
+          itineraries: [{ data: dbItinerary }],
+        },
+      }),
+    } as Response);
+
+    await renderWithSuspense("trip-123");
+
+    await waitFor(() => {
+      expect(mocks.setCurrentTripId).toHaveBeenCalledWith("trip-123");
+      expect(mocks.setItinerary).toHaveBeenCalledWith(dbItinerary);
+    });
+  });
+
   it("starts background generation for partial itineraries and maps generation errors", async () => {
     const generated = makeItinerary();
     mocks.itinerary = makePartialItinerary();
@@ -236,6 +260,6 @@ describe("TripPage layout and action wiring", () => {
       },
     ]);
     expect(mocks.setItinerary).toHaveBeenCalledWith(generated);
-    expect(mocks.mobileProps?.generationError).toBe("Generation failed. Please try again.");
+    expect(mocks.mobileProps?.generationError).toBe("Generation failed");
   });
 });
