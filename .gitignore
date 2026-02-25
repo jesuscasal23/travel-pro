@@ -43,6 +43,7 @@ yarn-error.log*
 
 # City images (downloaded via scripts/download-city-images.ts)
 public/images/cities/**/*.webp
+!public/images/cities/jp/tokyo.webp
 
 # vercel
 .vercel

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-02-25T18:04:08.331Z",
-  "count": 1414,
+  "generatedAt": "2026-02-25T19:06:33.184Z",
+  "count": 1425,
   "entries": [
     {
       "slug": "tokyo",
@@ -13339,6 +13339,132 @@
       "unsplashId2": "ZTwni7JpQYY",
       "photographer2": "Andreeew Hoang",
       "photographerUrl2": "https://unsplash.com/@andeeew"
+    },
+    {
+      "slug": "brig",
+      "city": "Brig",
+      "country": "Switzerland",
+      "countryCode": "ch",
+      "unsplashId": "S3G4tr-KmwQ",
+      "photographer": "Dan Lounsbury",
+      "photographerUrl": "https://unsplash.com/@floridadan",
+      "unsplashId2": "CbSeCpR1i80",
+      "photographer2": "Alison Pang",
+      "photographerUrl2": "https://unsplash.com/@alisonpang"
+    },
+    {
+      "slug": "locarno",
+      "city": "Locarno",
+      "country": "Switzerland",
+      "countryCode": "ch",
+      "unsplashId": "2pGEklCbLA0",
+      "photographer": "Johnson Hung",
+      "photographerUrl": "https://unsplash.com/@ccs935151",
+      "unsplashId2": "ndk7MiQ6UZ0",
+      "photographer2": "Nadine Marfurt",
+      "photographerUrl2": "https://unsplash.com/@nadine3"
+    },
+    {
+      "slug": "ascona",
+      "city": "Ascona",
+      "country": "Switzerland",
+      "countryCode": "ch",
+      "unsplashId": "oUenCR7cTZk",
+      "photographer": "Nadine Marfurt",
+      "photographerUrl": "https://unsplash.com/@nadine3",
+      "unsplashId2": "b0ToHF1fKA4",
+      "photographer2": "Nadine Marfurt",
+      "photographerUrl2": "https://unsplash.com/@nadine3"
+    },
+    {
+      "slug": "appenzell",
+      "city": "Appenzell",
+      "country": "Switzerland",
+      "countryCode": "ch",
+      "unsplashId": "rtmfPyZ9VMk",
+      "photographer": "Sangia",
+      "photographerUrl": "https://unsplash.com/@sangia",
+      "unsplashId2": "SkITehBdcAI",
+      "photographer2": "Andy Arbeit",
+      "photographerUrl2": "https://unsplash.com/@izeberg"
+    },
+    {
+      "slug": "thun",
+      "city": "Thun",
+      "country": "Switzerland",
+      "countryCode": "ch",
+      "unsplashId": "wCIg4ZI2Pao",
+      "photographer": "Daniele La Rosa Messina",
+      "photographerUrl": "https://unsplash.com/@danielelarosa",
+      "unsplashId2": "mSrucaZgCZE",
+      "photographer2": "Anthony Gomez",
+      "photographerUrl2": "https://unsplash.com/@anthonygomez"
+    },
+    {
+      "slug": "sion",
+      "city": "Sion",
+      "country": "Switzerland",
+      "countryCode": "ch",
+      "unsplashId": "CbSeCpR1i80",
+      "photographer": "Alison Pang",
+      "photographerUrl": "https://unsplash.com/@alisonpang",
+      "unsplashId2": "zy_gm22d23I",
+      "photographer2": "Eleonora Patricola",
+      "photographerUrl2": "https://unsplash.com/@ele1010"
+    },
+    {
+      "slug": "obidos",
+      "city": "Obidos",
+      "country": "Portugal",
+      "countryCode": "pt",
+      "unsplashId": "zSPSCaGKlpg",
+      "photographer": "Reiseuhu",
+      "photographerUrl": "https://unsplash.com/@reiseuhu",
+      "unsplashId2": "2DZ68gE1beI",
+      "photographer2": "Rasmus Andersen",
+      "photographerUrl2": "https://unsplash.com/@rasmusandersen"
+    },
+    {
+      "slug": "aveiro",
+      "city": "Aveiro",
+      "country": "Portugal",
+      "countryCode": "pt",
+      "unsplashId": "-rAY_s0LHTA",
+      "photographer": "Bruno Ferreira",
+      "photographerUrl": "https://unsplash.com/@brunovicart",
+      "unsplashId2": "kGt9fa_fiIE",
+      "photographer2": "Dalila Moreira",
+      "photographerUrl2": "https://unsplash.com/@deemoonie"
+    },
+    {
+      "slug": "monsanto",
+      "city": "Monsanto",
+      "country": "Portugal",
+      "countryCode": "pt",
+      "unsplashId": "1d-sMXnyHvI",
+      "photographer": "Maksim Rosliakov",
+      "photographerUrl": "https://unsplash.com/@pragmatiste"
+    },
+    {
+      "slug": "douro-valley",
+      "city": "Douro Valley",
+      "country": "Portugal",
+      "countryCode": "pt",
+      "unsplashId": "Z0_2PPKZek8",
+      "photographer": "Zeynep Sümer",
+      "photographerUrl": "https://unsplash.com/@ispywithmylittleeye",
+      "unsplashId2": "wO-igSizHqY",
+      "photographer2": "Zeynep Sümer",
+      "photographerUrl2": "https://unsplash.com/@ispywithmylittleeye"
+    },
+    {
+      "slug": "peneda-geres",
+      "city": "Peneda-Geres",
+      "country": "Portugal",
+      "countryCode": "pt",
+      "unsplashId": "1d-sMXnyHvI",
+      "photographer": "Maksim Rosliakov",
+      "photographerUrl": "https://unsplash.com/@pragmatiste"
     }
   ]
 }
