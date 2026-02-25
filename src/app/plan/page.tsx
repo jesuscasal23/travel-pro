@@ -66,16 +66,16 @@ export default function PlanPage() {
   const isSingleCity = tripType === "single-city";
   const isSingleCountry = tripType === "single-country";
   const isMultiCountry = tripType === "multi-city";
-  const totalSteps = isGuest ? 4 : 2;
+  const totalSteps = isGuest ? 3 : 2;
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
 
   // Which content to show based on step + auth
   const showDestination = step === 1;
-  const showProfile = isGuest && step === 2;
-  const showStyle = isGuest && step === 3;
-  const showDescription = isGuest ? step === 4 : step === 2;
+  const showStyle = isGuest && step === 2;
+  // Step 3 (guest) / Step 2 (auth): nationality + airport + special requests merged
+  const showProfileAndDescription = isGuest ? step === 3 : step === 2;
 
   // Speculative route selection: prefetch when user reaches destination step.
   useEffect(() => {
@@ -106,9 +106,8 @@ export default function PlanPage() {
   })();
 
   const canAdvance = () => {
-    if (showProfile) return !!nationality;
     if (showStyle) return true; // style has default, interests optional
-    if (showDescription) return true; // always optional
+    if (showProfileAndDescription) return !!nationality; // nationality required, rest optional
     if (showDestination) {
       const hasDestination = isSingleCity
         ? !!destination
@@ -121,7 +120,7 @@ export default function PlanPage() {
   };
 
   const goNext = () => {
-    if (showProfile) {
+    if (showProfileAndDescription) {
       const fieldErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
       if (fieldErrors) { setErrors(fieldErrors); return; }
     }
@@ -280,26 +279,6 @@ export default function PlanPage() {
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
 
-              {/* Guest Step 1 — Where are you from? */}
-              {showProfile && (
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">Where are you from?</h2>
-                  <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
-
-                  <div className="mt-8 space-y-5">
-                    <FormField label="Nationality" error={errors.nationality}>
-                      <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
-                        <option value="">Select nationality</option>
-                        {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
-                      </select>
-                    </FormField>
-                    <FormField label="Home Airport" error={errors.homeAirport}>
-                      <AirportCombobox value={homeAirport} onChange={(v) => { setHomeAirport(v); clearError("homeAirport"); }} />
-                    </FormField>
-                  </div>
-                </div>
-              )}
-
               {/* Guest Step 2 — Travel style */}
               {showStyle && (
                 <div>
@@ -317,23 +296,33 @@ export default function PlanPage() {
                 </div>
               )}
 
-              {/* Step 3 (guest) / Step 1 (auth) — Any special requests? */}
-              {showDescription && (
+              {/* Step 3 (guest) / Step 2 (auth) — About you + any special requests */}
+              {showProfileAndDescription && (
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">Any special requests?</h2>
-                  <p className="mt-2 text-muted-foreground text-sm">
-                    Optional — tell us what kind of trip you want. Pace, priorities, things to avoid.
-                  </p>
+                  <h2 className="text-2xl font-bold text-foreground">A bit about you</h2>
+                  <p className="mt-2 text-muted-foreground text-sm">Help us personalise visa checks, flights, and your itinerary.</p>
+
+                  <div className="mt-8 space-y-5">
+                    <FormField label="Nationality" error={errors.nationality}>
+                      <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
+                        <option value="">Select nationality</option>
+                        {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </FormField>
+                    <FormField label="Home Airport" error={errors.homeAirport}>
+                      <AirportCombobox value={homeAirport} onChange={(v) => { setHomeAirport(v); clearError("homeAirport"); }} />
+                    </FormField>
+                  </div>
 
                   <div className="mt-8">
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Your notes <span className="text-muted-foreground font-normal">(optional)</span>
+                      Any special requests? <span className="text-muted-foreground font-normal">(optional)</span>
                     </label>
                     <textarea
                       value={tripDescription}
                       onChange={(e) => setTripDescription(e.target.value)}
                       placeholder="e.g. We love street food and slow mornings. Prefer off-the-beaten-path spots over tourist traps. One of us has a shellfish allergy."
-                      rows={5}
+                      rows={4}
                       maxLength={2000}
                       className={`${inputClass} resize-none`}
                     />
@@ -342,12 +331,6 @@ export default function PlanPage() {
                         {2000 - tripDescription.length} characters remaining
                       </p>
                     )}
-                  </div>
-
-                  <div className="mt-6 bg-primary/5 rounded-xl p-4">
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">Tip:</span> Mentions of pace, food preferences, must-avoids, or experience types all help Claude personalise your itinerary.
-                    </p>
                   </div>
                 </div>
               )}
