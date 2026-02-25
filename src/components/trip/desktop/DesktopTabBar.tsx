@@ -12,6 +12,9 @@ const TABS: { id: DesktopTab; emoji: string; label: string }[] = [
   { id: "journey", emoji: "✨", label: "Your Journey" },
   { id: "prep", emoji: "🎒", label: "Get Ready" },
   { id: "route", emoji: "🗺️", label: "Route" },
+  { id: "accommodation", emoji: "🏨", label: "Accommodation" },
+  { id: "flights", emoji: "✈️", label: "Flights" },
+  { id: "budget", emoji: "💰", label: "Budget" },
 ];
 
 export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {

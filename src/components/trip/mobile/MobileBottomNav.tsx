@@ -11,6 +11,9 @@ interface MobileBottomNavProps {
 const TABS: { id: MobileTab; emoji: string; label: string }[] = [
   { id: "journey", emoji: "✨", label: "Journey" },
   { id: "prep", emoji: "🎒", label: "Prep" },
+  { id: "accommodation", emoji: "🏨", label: "Stay" },
+  { id: "flights", emoji: "✈️", label: "Flights" },
+  { id: "budget", emoji: "💰", label: "Budget" },
 ];
 
 export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps) {

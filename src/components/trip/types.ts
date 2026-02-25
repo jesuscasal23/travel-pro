@@ -1,7 +1,7 @@
 import type { Itinerary } from "@/types";
 
-export type MobileTab = "journey" | "prep";
-export type DesktopTab = "journey" | "prep" | "route";
+export type MobileTab = "journey" | "prep" | "accommodation" | "flights" | "budget";
+export type DesktopTab = "journey" | "prep" | "route" | "accommodation" | "flights" | "budget";
 
 export interface TripLayoutProps {
   itinerary: Itinerary;

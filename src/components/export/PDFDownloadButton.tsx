@@ -9,7 +9,7 @@
 // it inside useEffect to guarantee server-safe rendering.
 // ============================================================
 
-import { useState, useEffect, type ComponentType } from "react";
+import { useState, useEffect, useMemo, type ComponentType } from "react";
 import { Download } from "lucide-react";
 import type { TripPDFDocumentProps } from "@/lib/export/pdf-generator";
 
@@ -76,22 +76,41 @@ export function PDFDownloadButton({
     );
   }
 
+  // ── Stable document element ───────────────────────────────────
+  // Must be memoized: a new JSX element on every render causes PDFDownloadLink's
+  // internal useEffect (which depends on the document prop) to fire on every render,
+  // triggering an infinite PDF re-generation loop that never resolves.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const docElement = useMemo(() => <TripPDFDocument {...docProps} />, [
+    TripPDFDocument,
+    // Spread docProps keys explicitly so the memo only re-runs when data actually changes
+    docProps.days,
+    docProps.route,
+    docProps.visas,
+    docProps.weather,
+    docProps.tripTitle,
+    docProps.tripSubtitle,
+  ]);
+
   // ── Ready state ──────────────────────────────────────────────
   return (
     <PDFDownloadLink
-      document={<TripPDFDocument {...docProps} />}
+      document={docElement}
       fileName={fileName}
     >
-      {({ loading, error }) => (
-        <button
-          className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
-          disabled={loading}
-          title={error ? `PDF error: ${error.message}` : undefined}
-        >
-          <Download className="w-4 h-4" />
-          {loading ? "Generating PDF…" : error ? "PDF Error" : "Download PDF"}
-        </button>
-      )}
+      {({ loading, error }) => {
+        if (error) console.error("[PDFDownloadButton] render error:", error);
+        return (
+          <button
+            className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
+            disabled={loading}
+            title={error ? `PDF error: ${error.message}` : undefined}
+          >
+            <Download className="w-4 h-4" />
+            {loading ? "Generating PDF…" : error ? "PDF Error" : "Download PDF"}
+          </button>
+        );
+      }}
     </PDFDownloadLink>
   );
 }
