@@ -10,13 +10,16 @@ import { DesktopHero } from "./DesktopHero";
 import { DesktopTabBar } from "./DesktopTabBar";
 import { DesktopJourneyTab } from "./DesktopJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
+import { BudgetTab } from "../plan-view/BudgetTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import { EditModeBanner } from "../edit/EditModeBanner";
 import { EditToolbar } from "../edit/EditToolbar";
 import { EditRouteSheet } from "../edit/EditRouteSheet";
 import { EditModeJourneyContent } from "../edit/EditModeJourneyContent";
+import { ShareModal } from "../ShareModal";
 import { useEditStore } from "@/stores/useEditStore";
 import { useTripStore } from "@/stores/useTripStore";
+import { useShareTrip } from "@/hooks/api";
 import { recalculateTravelDays } from "@/lib/utils/recalculate-travel-days";
 import type { DesktopTab, DesktopLayoutProps } from "../types";
 import type { CityStop } from "@/types";
@@ -34,6 +37,7 @@ const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
 export function DesktopLayout({
   itinerary,
   tripId,
+  tripTitle,
   totalDays,
   countries,
   isAuthenticated,
@@ -55,7 +59,11 @@ export function DesktopLayout({
 }: DesktopLayoutProps) {
   const [activeTab, setActiveTab] = useState<DesktopTab>("journey");
   const [activeDayMap, setActiveDayMap] = useState<Record<number, number>>({});
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const { route } = itinerary;
+
+  const shareMutation = useShareTrip();
 
   const {
     isEditMode,
@@ -87,6 +95,11 @@ export function DesktopLayout({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isEditMode, undo, exitEditMode]);
+
+  function handleCityClick(index: number) {
+    onCityClick(index);
+    setActiveTab("route");
+  }
 
   function handleEnterEdit() {
     enterEditMode(itinerary);
@@ -134,6 +147,26 @@ export function DesktopLayout({
 
   function handleRouteCitiesChange(cities: CityStop[]) {
     updateDraft((d) => ({ ...d, route: cities }));
+  }
+
+  async function handleShareClick() {
+    setShareModalOpen(true);
+
+    if (tripId === "guest" || isAuthenticated === false) {
+      setShareUrl(`${window.location.origin}/trip/${tripId}`);
+      return;
+    }
+
+    if (shareUrl) return;
+
+    try {
+      const data = await shareMutation.mutateAsync(tripId);
+      if (data.shareToken) {
+        setShareUrl(`${window.location.origin}/share/${data.shareToken}`);
+      }
+    } catch {
+      // Keep modal open — user can close and retry
+    }
   }
 
   return (
@@ -214,10 +247,11 @@ export function DesktopLayout({
         tripId={tripId}
         isPartialItinerary={isPartialItinerary}
         activeCityIndex={activeCityIndex}
-        onCityClick={onCityClick}
+        onCityClick={handleCityClick}
         isEditMode={isEditMode}
         onToggleEditMode={isEditMode ? handleDiscard : handleEnterEdit}
         onEditRoute={() => setRouteSheetOpen(true)}
+        onShare={handleShareClick}
       />
 
       {/* Inline route editing panel (desktop) */}
@@ -279,9 +313,20 @@ export function DesktopLayout({
                   <RouteMap
                     cities={route}
                     activeCityIndex={activeCityIndex}
-                    onCityClick={onCityClick}
+                    onCityClick={handleCityClick}
                   />
                 </div>
+              </div>
+            )}
+            {activeTab === "accommodation" && (
+              <div className="max-w-240 mx-auto px-4 py-6" />
+            )}
+            {activeTab === "flights" && (
+              <div className="max-w-240 mx-auto px-4 py-6" />
+            )}
+            {activeTab === "budget" && (
+              <div className="max-w-240 mx-auto px-4 py-6">
+                <BudgetTab itinerary={itinerary} tripId={tripId} />
               </div>
             )}
           </>
@@ -299,6 +344,14 @@ export function DesktopLayout({
           onSave={handleSave}
         />
       )}
+
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        shareUrl={shareUrl}
+        isLoading={shareMutation.isPending}
+        tripTitle={tripTitle}
+      />
     </div>
   );
 }

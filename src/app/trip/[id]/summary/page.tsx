@@ -11,6 +11,7 @@ import { useItinerary } from "@/hooks/useItinerary";
 import { buildFlightLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
 import { getTripTitle, getUniqueCountries } from "@/lib/utils/trip-metadata";
 import { TripNotFound } from "@/components/trip/TripNotFound";
+import { ShareModal } from "@/components/trip/ShareModal";
 import { useTripStore } from "@/stores/useTripStore";
 import { useShareTrip } from "@/hooks/api";
 
@@ -31,7 +32,8 @@ function VisaDisclaimer() {
 
 export default function SummaryPage({ params }: { params: Params }) {
   const { id } = use(params);
-  const [copied, setCopied] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const posthog = usePostHog();
   const itinerary = useItinerary();
   const travelers = useTripStore((s) => s.travelers);
@@ -59,26 +61,28 @@ export default function SummaryPage({ params }: { params: Params }) {
   const firstDate = days[0]?.date ?? "";
   const lastDate = days[days.length - 1]?.date ?? "";
 
-  const handleShareLink = async () => {
+  const handleShareClick = async () => {
+    setShareModalOpen(true);
+
+    // Guest mode: no DB, use the current trip URL directly
+    if (id === "guest") {
+      const url = `${window.location.origin}/trip/guest`;
+      setShareUrl(url);
+      return;
+    }
+
+    // Already resolved from a prior open — skip API call
+    if (shareUrl) return;
+
     try {
-      let shareUrl = `${window.location.origin}/trip/${id}`;
-
-      // Guest mode: no DB, just share the current trip URL
-      if (id !== "guest") {
-        const data = await shareMutation.mutateAsync(id);
-        if (data.shareToken) {
-          shareUrl = `${window.location.origin}/share/${data.shareToken}`;
-          posthog?.capture("share_link_created", { trip_id: id });
-        }
+      const data = await shareMutation.mutateAsync(id);
+      if (data.shareToken) {
+        const url = `${window.location.origin}/share/${data.shareToken}`;
+        setShareUrl(url);
+        posthog?.capture("share_link_created", { trip_id: id });
       }
-
-      await navigator.clipboard.writeText(shareUrl);
-      posthog?.capture("share_link_copied", { trip_id: id, shareUrl });
     } catch {
-      // Fall back gracefully
-    } finally {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
+      // Keep modal open with null URL — user can close and retry
     }
   };
 
@@ -112,12 +116,12 @@ export default function SummaryPage({ params }: { params: Params }) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleShareLink}
+              onClick={handleShareClick}
               loading={shareMutation.isPending}
               className="gap-1.5"
             >
               <Share2 className="w-4 h-4" />
-              {copied ? "Copied!" : "Share Link"}
+              Share
             </Button>
           </div>
         </div>
@@ -433,17 +437,13 @@ export default function SummaryPage({ params }: { params: Params }) {
         </div>
       </div>
 
-      {/* Clipboard toast */}
-      {copied && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 16 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-foreground text-background px-5 py-2.5 rounded-lg text-sm font-medium shadow-lg z-50 whitespace-nowrap"
-        >
-          Link copied!
-        </motion.div>
-      )}
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        shareUrl={shareUrl}
+        isLoading={shareMutation.isPending}
+        tripTitle={tripTitle}
+      />
     </div>
   );
 }

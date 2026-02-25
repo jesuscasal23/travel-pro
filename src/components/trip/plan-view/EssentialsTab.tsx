@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle, ExternalLink, Shield, Thermometer, Backpack, Check, Loader2 } from "lucide-react";
 import { generatePackingList } from "@/lib/utils/generate-packing-list";
@@ -58,7 +58,26 @@ function ErrorCard({ message }: { message: string }) {
 
 export function EssentialsTab({ itinerary, visaLoading, weatherLoading, visaError, weatherError }: EssentialsTabProps) {
   const { route, days, visaData, weatherData } = itinerary;
+
+  // Stable localStorage key derived from the route — so each trip has its own packing state
+  const packingKey = useMemo(
+    () => `tp-packing-${route.map((c) => c.id).join("-")}`,
+    [route],
+  );
+
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+
+  // Hydrate from localStorage once on mount (client only)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(packingKey);
+      if (stored) {
+        setCheckedItems(new Set(JSON.parse(stored) as string[]));
+      }
+    } catch {
+      // Ignore parse errors — start with empty set
+    }
+  }, [packingKey]);
 
   const nationality = useTripStore((s) => s.nationality);
   const passportCode = NATIONALITY_TO_ISO2[nationality] ?? (nationality.length === 2 ? nationality.toUpperCase() : undefined);
@@ -81,6 +100,11 @@ export function EssentialsTab({ itinerary, visaLoading, weatherLoading, visaErro
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      try {
+        localStorage.setItem(packingKey, JSON.stringify([...next]));
+      } catch {
+        // Ignore storage errors (e.g. private browsing quota)
+      }
       return next;
     });
   };

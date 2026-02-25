@@ -78,6 +78,14 @@ vi.mock("../../edit/EditModeJourneyContent", () => ({
   EditModeJourneyContent: () => <div data-testid="edit-journey-content" />,
 }));
 
+vi.mock("../../ShareModal", () => ({
+  ShareModal: () => <div data-testid="share-modal" />,
+}));
+
+vi.mock("@/hooks/api", () => ({
+  useShareTrip: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 import { MobileLayout } from "../MobileLayout";
 
 function makeItinerary(): Itinerary {

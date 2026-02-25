@@ -8,13 +8,16 @@ import { MobileHero } from "./MobileHero";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileJourneyTab } from "./MobileJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
+import { BudgetTab } from "../plan-view/BudgetTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import { EditModeBanner } from "../edit/EditModeBanner";
 import { EditToolbar } from "../edit/EditToolbar";
 import { EditRouteSheet } from "../edit/EditRouteSheet";
 import { EditModeJourneyContent } from "../edit/EditModeJourneyContent";
+import { ShareModal } from "../ShareModal";
 import { useEditStore } from "@/stores/useEditStore";
 import { useTripStore } from "@/stores/useTripStore";
+import { useShareTrip } from "@/hooks/api";
 import { recalculateTravelDays } from "@/lib/utils/recalculate-travel-days";
 import type { MobileTab } from "../types";
 import type { TripLayoutProps } from "../types";
@@ -23,6 +26,7 @@ import type { CityStop } from "@/types";
 export function MobileLayout({
   itinerary,
   tripId,
+  tripTitle,
   totalDays,
   countries,
   isAuthenticated,
@@ -42,7 +46,11 @@ export function MobileLayout({
 }: TripLayoutProps) {
   const [activeTab, setActiveTab] = useState<MobileTab>("journey");
   const [activeDayMap, setActiveDayMap] = useState<Record<number, number>>({});
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const { route } = itinerary;
+
+  const shareMutation = useShareTrip();
 
   const {
     isEditMode,
@@ -108,6 +116,26 @@ export function MobileLayout({
     updateDraft((d) => ({ ...d, route: cities }));
   }
 
+  async function handleShareClick() {
+    setShareModalOpen(true);
+
+    if (tripId === "guest" || isAuthenticated === false) {
+      setShareUrl(`${window.location.origin}/trip/${tripId}`);
+      return;
+    }
+
+    if (shareUrl) return;
+
+    try {
+      const data = await shareMutation.mutateAsync(tripId);
+      if (data.shareToken) {
+        setShareUrl(`${window.location.origin}/share/${data.shareToken}`);
+      }
+    } catch {
+      // Keep modal open — user can close and retry
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Edit mode banner */}
@@ -121,6 +149,7 @@ export function MobileLayout({
         isEditMode={isEditMode}
         onToggleEditMode={isEditMode ? handleDiscard : handleEnterEdit}
         isPartialItinerary={isPartialItinerary}
+        onShare={handleShareClick}
       />
 
       {/* Edit route button */}
@@ -227,6 +256,17 @@ export function MobileLayout({
             />
           </div>
         )}
+        {activeTab === "accommodation" && (
+          <div className="px-4 py-4 pb-20" />
+        )}
+        {activeTab === "flights" && (
+          <div className="px-4 py-4 pb-20" />
+        )}
+        {activeTab === "budget" && (
+          <div className="px-4 py-4 pb-20">
+            <BudgetTab itinerary={itinerary} tripId={tripId} />
+          </div>
+        )}
       </div>
 
       {/* Bottom nav OR edit toolbar */}
@@ -252,6 +292,14 @@ export function MobileLayout({
           onClose={() => setRouteSheetOpen(false)}
         />
       )}
+
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        shareUrl={shareUrl}
+        isLoading={shareMutation.isPending}
+        tripTitle={tripTitle}
+      />
     </div>
   );
 }

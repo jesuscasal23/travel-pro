@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Sparkles } from "lucide-react";
+import { Pencil, Sparkles, Share2 } from "lucide-react";
 import { getCityHeroImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import type { CityStop } from "@/types";
 
@@ -12,6 +12,7 @@ interface MobileHeroProps {
   isEditMode: boolean;
   onToggleEditMode: () => void;
   isPartialItinerary: boolean;
+  onShare: () => void;
 }
 
 export function MobileHero({
@@ -21,6 +22,7 @@ export function MobileHero({
   isEditMode,
   onToggleEditMode,
   isPartialItinerary,
+  onShare,
 }: MobileHeroProps) {
   const heroStop = route[0];
   const heroCity = heroStop?.city ?? "travel";
@@ -65,20 +67,32 @@ export function MobileHero({
         </p>
       </div>
 
-      {/* Edit toggle button */}
+      {/* Top-right action buttons */}
       {!isPartialItinerary && (
-        <button
-          onClick={onToggleEditMode}
-          className={`absolute top-3 right-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors ${
-            isEditMode
-              ? "bg-primary text-white"
-              : "bg-background/80 text-foreground hover:bg-background"
-          }`}
-          aria-label={isEditMode ? "Exit edit mode" : "Enter edit mode"}
-        >
-          <Pencil className="w-3 h-3" />
-          {isEditMode ? "Editing" : "Edit"}
-        </button>
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {!isEditMode && (
+            <button
+              onClick={onShare}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors bg-background/80 text-foreground hover:bg-background"
+              aria-label="Share trip"
+            >
+              <Share2 className="w-3 h-3" />
+              Share
+            </button>
+          )}
+          <button
+            onClick={onToggleEditMode}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors ${
+              isEditMode
+                ? "bg-primary text-white"
+                : "bg-background/80 text-foreground hover:bg-background"
+            }`}
+            aria-label={isEditMode ? "Exit edit mode" : "Enter edit mode"}
+          >
+            <Pencil className="w-3 h-3" />
+            {isEditMode ? "Editing" : "Edit"}
+          </button>
+        </div>
       )}
     </div>
   );

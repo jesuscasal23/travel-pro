@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useState } from "react";
 import Link from "next/link";
-import { Pencil, LayoutList } from "lucide-react";
+import { Pencil, LayoutList, Share2 } from "lucide-react";
 import { CityCard } from "../CityCard";
 import { getCityHeroImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import type { CityStop } from "@/types";
@@ -18,6 +18,7 @@ interface DesktopHeroProps {
   isEditMode: boolean;
   onToggleEditMode: () => void;
   onEditRoute: () => void;
+  onShare: () => void;
 }
 
 export function DesktopHero({
@@ -31,6 +32,7 @@ export function DesktopHero({
   isEditMode,
   onToggleEditMode,
   onEditRoute,
+  onShare,
 }: DesktopHeroProps) {
   const heroStop = route[0];
   const heroCity = heroStop?.city ?? "travel";
@@ -125,12 +127,20 @@ export function DesktopHero({
               {isEditMode ? "Edit Route" : "Edit trip"}
             </button>
             {!isEditMode && (
-              <Link
-                href={`/trip/${tripId}/summary`}
-                className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
-              >
-                <LayoutList className="w-4 h-4" /> Summary & Share
-              </Link>
+              <>
+                <button
+                  onClick={onShare}
+                  className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5"
+                >
+                  <Share2 className="w-4 h-4" /> Share
+                </button>
+                <Link
+                  href={`/trip/${tripId}/summary`}
+                  className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
+                >
+                  <LayoutList className="w-4 h-4" /> Summary
+                </Link>
+              </>
             )}
           </div>
         )}

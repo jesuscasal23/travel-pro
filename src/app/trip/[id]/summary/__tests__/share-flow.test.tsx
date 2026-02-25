@@ -36,6 +36,11 @@ vi.mock("@/components/export/PDFDownloadButton", () => ({
   PDFDownloadButton: () => <button>Export PDF</button>,
 }));
 
+vi.mock("@/components/trip/ShareModal", () => ({
+  ShareModal: ({ open, shareUrl }: { open: boolean; shareUrl: string | null }) =>
+    open ? <div data-testid="share-modal">{shareUrl}</div> : null,
+}));
+
 vi.mock("posthog-js/react", () => ({
   usePostHog: () => ({ capture: mocks.capture }),
 }));
@@ -113,35 +118,30 @@ describe("SummaryPage share flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.itinerary = makeItinerary();
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText: vi.fn().mockResolvedValue(undefined) },
-    });
   });
 
-  it("copies the guest trip URL without calling share mutation", async () => {
+  it("opens share modal with guest trip URL without calling share mutation", async () => {
     mocks.mutateAsync.mockResolvedValue({ shareToken: "unused" });
     await renderWithSuspense("guest");
 
-    fireEvent.click(screen.getByRole("button", { name: /share link/i }));
+    fireEvent.click(screen.getByRole("button", { name: /share/i }));
 
-    await waitFor(() =>
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        `${window.location.origin}/trip/guest`,
-      ),
+    await waitFor(() => expect(screen.getByTestId("share-modal")).toBeInTheDocument());
+    expect(screen.getByTestId("share-modal")).toHaveTextContent(
+      `${window.location.origin}/trip/guest`,
     );
     expect(mocks.mutateAsync).not.toHaveBeenCalled();
   });
 
-  it("creates a share token for saved trips and copies the shared URL", async () => {
+  it("opens share modal and fetches share token for saved trips", async () => {
     mocks.mutateAsync.mockResolvedValue({ shareToken: "token-123" });
     await renderWithSuspense("trip-123");
 
-    fireEvent.click(screen.getByRole("button", { name: /share link/i }));
+    fireEvent.click(screen.getByRole("button", { name: /share/i }));
 
     await waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalledWith("trip-123"));
     await waitFor(() =>
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect(screen.getByTestId("share-modal")).toHaveTextContent(
         `${window.location.origin}/share/token-123`,
       ),
     );
