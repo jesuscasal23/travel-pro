@@ -65,6 +65,14 @@ export function assemblePrompt(
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
+  const paceDescriptions: Record<string, string> = {
+    relaxed: "relaxed (1–2 activities per day, slow mornings, plenty of downtime)",
+    moderate: "balanced (3–4 activities per day, good mix of sightseeing and rest)",
+    active: "active (5+ activities per day, packed schedule, maximum sightseeing)",
+  };
+  const paceDescription = profile.pace ? paceDescriptions[profile.pace] : paceDescriptions.moderate;
+  const paceActivityCount = profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "3–4";
+
   // ── Build flight skeleton block (when Amadeus optimization succeeded) ──
   const skeletonBlock = skeleton && cities
     ? `
@@ -109,6 +117,7 @@ Distribute the trip days across these cities within the min–max ranges above.`
 - Nationality: ${profile.nationality}
 - Home airport: ${profile.homeAirport}
 - Travel style: ${styleDescriptions[profile.travelStyle] ?? profile.travelStyle}
+- Trip pace: ${paceDescription}
 - Interests: ${profile.interests.length > 0 ? profile.interests.join(", ") : "general travel"}
 
 **Trip Parameters:**
@@ -119,7 +128,7 @@ ${skeletonBlock}${descriptionBlock}
 **Requirements:**
 ${cityRequirement}
 2. Allocate days per city proportionally (longer stays in richer destinations)
-3. Plan 3–4 activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable)
+3. Plan ${paceActivityCount} activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable) — match the traveler's stated pace
 4. Include realistic travel days when moving between cities (flight/train/bus with cost and duration)
 5. Tailor activity choices to the traveler's stated interests and travel style
 6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs

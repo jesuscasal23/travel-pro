@@ -1,12 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { parseApiErrorResponse, reportApiError } from "@/lib/client/api-error-reporting";
-import type { TravelStyle } from "@/types";
+import type { TravelStyle, ActivityPace } from "@/types";
 
 interface ProfileData {
   nationality: string;
   homeAirport: string;
   travelStyle: TravelStyle;
   interests: string[];
+  pace?: ActivityPace;
 }
 
 export function useSaveProfile() {

@@ -115,6 +115,9 @@ export interface InterestOption {
 /** Travel style */
 export type TravelStyle = "backpacker" | "comfort" | "luxury";
 
+/** Activity pace — how many activities per day the traveler prefers */
+export type ActivityPace = "relaxed" | "moderate" | "active";
+
 /** Trip type — single-city (one destination) or multi-city (region-based route) */
 export type TripType = "single-city" | "single-country" | "multi-city";
 
@@ -138,6 +141,7 @@ export interface UserProfile {
   homeAirport: string;
   travelStyle: TravelStyle;
   interests: string[];
+  pace?: ActivityPace;
 }
 
 /** Trip planning intent from questionnaire */

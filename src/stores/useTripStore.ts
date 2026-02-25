@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TravelStyle, TripType, Itinerary } from "@/types";
+import type { TravelStyle, TripType, Itinerary, ActivityPace } from "@/types";
 
 interface TripStoreState {
   // Onboarding
@@ -9,6 +9,7 @@ interface TripStoreState {
   homeAirport: string;
   travelStyle: TravelStyle;
   interests: string[];
+  pace: ActivityPace;
 
   // Quick Plan questionnaire
   planStep: number;
@@ -42,6 +43,7 @@ interface TripStoreActions {
   setHomeAirport: (airport: string) => void;
   setTravelStyle: (style: TravelStyle) => void;
   toggleInterest: (interest: string) => void;
+  setPace: (pace: ActivityPace) => void;
 
   // Quick Plan
   setPlanStep: (step: number) => void;
@@ -96,6 +98,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       homeAirport: "",
       travelStyle: "comfort",
       interests: [],
+      pace: "moderate" as ActivityPace,
       // Plan defaults
       ...initialPlanState,
 
@@ -104,6 +107,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setNationality: (nationality) => set({ nationality }),
       setHomeAirport: (airport) => set({ homeAirport: airport }),
       setTravelStyle: (style) => set({ travelStyle: style }),
+      setPace: (pace) => set({ pace }),
       toggleInterest: (interest) =>
         set((state) => ({
           interests: state.interests.includes(interest)
@@ -150,6 +154,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         homeAirport: state.homeAirport,
         travelStyle: state.travelStyle,
         interests: state.interests,
+        pace: state.pace,
         tripType: state.tripType,
         tripDescription: state.tripDescription,
         region: state.region,

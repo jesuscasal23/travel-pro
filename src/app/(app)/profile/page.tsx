@@ -32,6 +32,7 @@ export default function ProfilePage() {
     homeAirport,
     travelStyle,
     interests,
+    pace,
     setNationality,
     setHomeAirport,
     setTravelStyle,
@@ -43,7 +44,7 @@ export default function ProfilePage() {
     if (fieldErrors) { setErrors(fieldErrors); return; }
     setErrors({});
     saveMutation.mutate(
-      { nationality, homeAirport, travelStyle, interests },
+      { nationality, homeAirport, travelStyle, interests, pace },
       {
         onSuccess: () => {
           setSaved(true);

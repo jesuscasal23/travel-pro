@@ -56,12 +56,21 @@ export function assembleSingleCityPrompt(
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
+  const paceDescriptions: Record<string, string> = {
+    relaxed: "relaxed (1–2 activities per day, slow mornings, plenty of downtime)",
+    moderate: "balanced (3–4 activities per day, good mix of sightseeing and rest)",
+    active: "active (5+ activities per day, packed schedule, maximum sightseeing)",
+  };
+  const paceDescription = profile.pace ? paceDescriptions[profile.pace] : paceDescriptions.moderate;
+  const paceActivityCount = profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "4–5";
+
   return `Plan a ${durationDays}-day trip to ${intent.destination}, ${intent.destinationCountry} for ${intent.travelers} traveler(s) with the following details:
 
 **Traveler Profile:**
 - Nationality: ${profile.nationality}
 - Home airport: ${profile.homeAirport}
 - Travel style: ${styleDescriptions[profile.travelStyle] ?? profile.travelStyle}
+- Trip pace: ${paceDescription}
 - Interests: ${profile.interests.length > 0 ? profile.interests.join(", ") : "general travel"}
 
 **Trip Parameters:**
@@ -71,7 +80,7 @@ export function assembleSingleCityPrompt(
 ${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n` : ""}**Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities
 2. Rotate through different neighborhoods/districts each day
-3. Plan 4–5 activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable)
+3. Plan ${paceActivityCount} activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable) — match the traveler's stated pace
 ${durationDays >= 4 ? `4. Include 1–2 day trips to nearby towns or attractions (within 1–2 hours)` : "4. Focus on the city center and most iconic neighborhoods"}
 5. Tailor activity choices to the traveler's stated interests and travel style
 6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs

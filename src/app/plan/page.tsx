@@ -36,6 +36,7 @@ export default function PlanPage() {
     homeAirport, setHomeAirport,
     travelStyle, setTravelStyle,
     interests, toggleInterest,
+    pace, setPace,
     // Plan fields
     tripType, setTripType,
     tripDescription, setTripDescription,
@@ -87,7 +88,7 @@ export default function PlanPage() {
 
     const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
     const params = {
-      profile: { nationality, homeAirport, travelStyle, interests },
+      profile: { nationality, homeAirport, travelStyle, interests, pace },
       tripIntent: {
         id: "speculative",
         tripType, region,
@@ -214,7 +215,7 @@ export default function PlanPage() {
     } else {
       const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
       const params = {
-        profile: { nationality, homeAirport, travelStyle, interests },
+        profile: { nationality, homeAirport, travelStyle, interests, pace },
         tripIntent: {
           id: "speculative",
           tripType, region,
@@ -288,6 +289,28 @@ export default function PlanPage() {
                   <div className="mt-8 space-y-8">
                     <FormField label="Travel Style">
                       <TravelStylePicker value={travelStyle} onChange={setTravelStyle} />
+                    </FormField>
+                    <FormField label="Trip Pace">
+                      <div className="flex gap-0 p-1 bg-secondary rounded-xl">
+                        {([
+                          { value: "relaxed", label: "Relaxed", sub: "1–2 activities/day" },
+                          { value: "moderate", label: "Balanced", sub: "3–4 activities/day" },
+                          { value: "active",   label: "Active",   sub: "5+ activities/day"  },
+                        ] as const).map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setPace(opt.value)}
+                            className={`flex-1 py-2.5 px-3 rounded-lg text-center transition-all ${
+                              pace === opt.value
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <div className="text-sm font-medium">{opt.label}</div>
+                            <div className="text-xs mt-0.5 opacity-70">{opt.sub}</div>
+                          </button>
+                        ))}
+                      </div>
                     </FormField>
                     <FormField label="Interests">
                       <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
