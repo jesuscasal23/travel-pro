@@ -1,21 +1,8 @@
-// ============================================================
-// Integration tests for PlanPage — Route Review Step
-//
-// Covers:
-//   - Multi-city guest flow: Destination step shows "Continue" (not "Generate")
-//   - Advancing from Destination fetches route and shows Route Review step
-//   - Route Review shows AI-suggested cities
-//   - Generate on Route Review creates trip with edited cities
-//   - Single-city flow: Destination step shows "Generate" (no route review)
-// ============================================================
-
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useTripStore } from "@/stores/useTripStore";
 import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
-
-// ── Module mocks ──────────────────────────────────────────────────────────────
 
 const mockRouterPush = vi.fn();
 
@@ -47,38 +34,7 @@ vi.mock("@/components/ui", async (importOriginal) => {
   };
 });
 
-// Mock @dnd-kit for RouteReviewStep
-vi.mock("@dnd-kit/core", () => ({
-  DndContext: ({ children }: { children: React.ReactNode }) => children,
-  closestCenter: vi.fn(),
-  KeyboardSensor: vi.fn(),
-  PointerSensor: vi.fn(),
-  useSensor: vi.fn(),
-  useSensors: () => [],
-}));
-vi.mock("@dnd-kit/sortable", () => ({
-  SortableContext: ({ children }: { children: React.ReactNode }) => children,
-  sortableKeyboardCoordinates: vi.fn(),
-  useSortable: () => ({
-    attributes: {},
-    listeners: {},
-    setNodeRef: vi.fn(),
-    transform: null,
-    transition: null,
-    isDragging: false,
-  }),
-  verticalListSortingStrategy: vi.fn(),
-  arrayMove: vi.fn(),
-}));
-vi.mock("@dnd-kit/utilities", () => ({
-  CSS: { Transform: { toString: () => "" } },
-}));
-
-// ── Import subject after mocks ────────────────────────────────────────────────
-
 import PlanPage from "@/app/plan/page";
-
-// ── Mock route selection data ────────────────────────────────────────────────
 
 const mockCitiesWithDays = [
   { id: "tokyo", city: "Tokyo", country: "Japan", countryCode: "JP", iataCode: "NRT", lat: 35.68, lng: 139.69, minDays: 2, maxDays: 4 },
@@ -86,9 +42,6 @@ const mockCitiesWithDays = [
   { id: "bangkok", city: "Bangkok", country: "Thailand", countryCode: "TH", iataCode: "BKK", lat: 13.76, lng: 100.5, minDays: 1, maxDays: 3 },
 ];
 
-// ── Store helpers ─────────────────────────────────────────────────────────────
-
-/** Guest on the Destination step (step 4, after new Description step) with multi-city selected */
 function setMultiCityDestinationStep() {
   act(() => {
     useTripStore.setState({
@@ -106,7 +59,6 @@ function setMultiCityDestinationStep() {
       destinationLng: 0,
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
-
       travelers: 2,
       isGenerating: false,
       generationStep: 0,
@@ -115,7 +67,6 @@ function setMultiCityDestinationStep() {
   });
 }
 
-/** Guest on the Destination step (step 4) with single-city selected */
 function setSingleCityDestinationStep() {
   act(() => {
     useTripStore.setState({
@@ -133,7 +84,6 @@ function setSingleCityDestinationStep() {
       region: "",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
-
       travelers: 2,
       isGenerating: false,
       generationStep: 0,
@@ -142,164 +92,83 @@ function setSingleCityDestinationStep() {
   });
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
-describe("PlanPage — Route Review Step", () => {
+describe("PlanPage - route review removed", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("shows 'Continue' on the Destination step for multi-city trips", async () => {
+  it("shows generate directly on destination step for multi-city", async () => {
     setMultiCityDestinationStep();
 
-    // Mock speculative prefetch
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ cities: mockCitiesWithDays }),
-    });
+    }) as unknown as typeof fetch;
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
-    // Destination step should be visible
-    await waitFor(() =>
-      expect(screen.getByText("Where & when?")).toBeInTheDocument()
-    );
-
-    // Should show "Continue" (not "Generate My Itinerary")
-    expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Generate My Itinerary/i })).not.toBeInTheDocument();
-  }, 15_000);
-
-  it("shows 'Generate My Itinerary' on the Destination step for single-city trips", async () => {
-    setSingleCityDestinationStep();
-
-    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    await waitFor(() =>
-      expect(screen.getByText("Where & when?")).toBeInTheDocument()
-    );
-
-    // Should show "Generate My Itinerary" (not "Continue")
+    await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 
-  it("advances to Route Review step after clicking Continue on Destination (multi-city)", async () => {
+  it("creates multi-city trip directly from destination step", async () => {
     setMultiCityDestinationStep();
 
-    // Mock route selection response
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ cities: mockCitiesWithDays }),
-    });
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "/api/generate/select-route") {
+        return {
+          ok: true,
+          json: async () => ({ cities: mockCitiesWithDays }),
+        } as Response;
+      }
+      if (url === "/api/v1/trips") {
+        return {
+          ok: true,
+          status: 201,
+          json: async () => ({ trip: { id: "test-trip-123" } }),
+        } as Response;
+      }
+      throw new Error(`Unhandled fetch URL: ${url}`);
+    }) as unknown as typeof fetch;
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
-    await waitFor(() =>
-      expect(screen.getByText("Where & when?")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
+    expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
 
-    // Click Continue
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    });
-
-    // Route Review step should appear with AI-suggested cities
-    await waitFor(() => {
-      expect(screen.getByText("Review your route")).toBeInTheDocument();
-    }, { timeout: 10_000 });
-
-    // Cities from route selection should be displayed
-    await waitFor(() => {
-      expect(screen.getByText("Tokyo")).toBeInTheDocument();
-      expect(screen.getByText("Hanoi")).toBeInTheDocument();
-      expect(screen.getByText("Bangkok")).toBeInTheDocument();
-    });
-
-    // Generate button should be present inside the RouteReviewStep
-    expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
-  }, 15_000);
-
-  it("clicking Generate on Route Review creates a trip with the cities", async () => {
-    setMultiCityDestinationStep();
-
-    // Fetch #1: speculative route selection prefetch (React Query caches the result)
-    // Fetch #2: trip creation (on Generate click) — fetchQuery on Continue uses cached data
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ cities: mockCitiesWithDays }) })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 201,
-        json: async () => ({ trip: { id: "test-trip-123" } }),
-      });
-
-    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    await waitFor(() =>
-      expect(screen.getByText("Where & when?")).toBeInTheDocument()
-    );
-
-    // Advance to route review
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    });
-
-    await waitFor(() =>
-      expect(screen.getByText("Review your route")).toBeInTheDocument(),
-      { timeout: 10_000 }
-    );
-
-    // Wait for cities to load
-    await waitFor(() =>
-      expect(screen.getByText("Tokyo")).toBeInTheDocument()
-    );
-
-    // Click Generate
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /Generate My Itinerary/i }));
     });
 
-    // Should navigate to trip page
     await waitFor(() => {
       expect(mockRouterPush).toHaveBeenCalledWith("/trip/test-trip-123");
     });
 
-    // Itinerary should be set in store with the route
     const storeItinerary = useTripStore.getState().itinerary;
     expect(storeItinerary).not.toBeNull();
-    expect(storeItinerary!.route).toHaveLength(3);
-    expect(storeItinerary!.route.map(c => c.city)).toEqual(["Tokyo", "Hanoi", "Bangkok"]);
-    expect(storeItinerary!.days).toHaveLength(0); // Partial itinerary — no days yet
+    expect(storeItinerary?.route).toHaveLength(3);
+    expect(storeItinerary?.route.map((c) => c.city)).toEqual(["Tokyo", "Hanoi", "Bangkok"]);
+    expect(storeItinerary?.days).toHaveLength(0);
+    expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 
-  it("Back button on Route Review returns to Destination step", async () => {
-    setMultiCityDestinationStep();
+  it("single-city still shows generate directly on destination step", async () => {
+    setSingleCityDestinationStep();
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ cities: mockCitiesWithDays }),
-    });
+      status: 201,
+      json: async () => ({ trip: { id: "trip-1" } }),
+    }) as unknown as typeof fetch;
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
-    await waitFor(() =>
-      expect(screen.getByText("Where & when?")).toBeInTheDocument()
-    );
-
-    // Advance to route review
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    });
-
-    await waitFor(() =>
-      expect(screen.getByText("Review your route")).toBeInTheDocument(),
-      { timeout: 10_000 }
-    );
-
-    // Click Back
-    fireEvent.click(screen.getByRole("button", { name: /Back/i }));
-
-    await waitFor(() =>
-      expect(screen.getByText("Where & when?")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 });

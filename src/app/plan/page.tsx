@@ -22,15 +22,12 @@ import { TravelStylePicker } from "@/components/TravelStylePicker";
 import type { CityStop, Itinerary } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSchema } from "@/lib/api/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
-import { RouteReviewStep } from "@/components/plan/RouteReviewStep";
 
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
   const [direction, setDirection] = useState(1);
-  const [routeCities, setRouteCities] = useState<CityStop[] | null>(null);
-  const [routeLoading, setRouteLoading] = useState(false);
 
   const {
     planStep, setPlanStep,
@@ -69,10 +66,7 @@ export default function PlanPage() {
   const isSingleCity = tripType === "single-city";
   const isSingleCountry = tripType === "single-country";
   const isMultiCountry = tripType === "multi-city";
-  const needsRouteReview = isSingleCountry || isMultiCountry;
-  const totalSteps = isGuest
-    ? (isSingleCity ? 4 : 5)
-    : (isSingleCity ? 2 : 3);
+  const totalSteps = isGuest ? 4 : 2;
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
@@ -82,11 +76,10 @@ export default function PlanPage() {
   const showStyle = isGuest && step === 2;
   const showDescription = isGuest ? step === 3 : step === 1;
   const showDestination = isGuest ? step === 4 : step === 2;
-  const showRouteReview = needsRouteReview && step === totalSteps;
 
-  // ── Speculative route selection: prefetch when user reaches destination step ──
+  // Speculative route selection: prefetch when user reaches destination step.
   useEffect(() => {
-    if (!needsRouteReview || !dateStart || !dateEnd) return;
+    if (isSingleCity || !dateStart || !dateEnd) return;
     if (!showDestination) return;
     // single-country needs destinationCountry; multi-country needs region
     if (isSingleCountry && !destinationCountry) return;
@@ -105,7 +98,7 @@ export default function PlanPage() {
     };
     prefetchRoute(params, cacheKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showDestination, needsRouteReview, isSingleCountry, isMultiCountry, region, destinationCountry, dateStart, dateEnd, travelStyle]);
+  }, [showDestination, isSingleCity, isSingleCountry, isMultiCountry, region, destinationCountry, dateStart, dateEnd, travelStyle]);
 
   const dayCount = (() => {
     if (!dateStart || !dateEnd) return 0;
@@ -127,7 +120,7 @@ export default function PlanPage() {
     return true;
   };
 
-  const goNext = async () => {
+  const goNext = () => {
     if (showProfile) {
       const fieldErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
       if (fieldErrors) { setErrors(fieldErrors); return; }
@@ -141,30 +134,6 @@ export default function PlanPage() {
     setErrors({});
     setDirection(1);
     setPlanStep(step + 1);
-
-    // If advancing to route review, fetch the AI-suggested route
-    if (showDestination && needsRouteReview) {
-      setRouteLoading(true);
-      const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
-      const params = {
-        profile: { nationality, homeAirport, travelStyle, interests },
-        tripIntent: {
-          id: "speculative",
-          tripType, region,
-          destinationCountry, destinationCountryCode,
-          dateStart, dateEnd, travelers,
-        },
-      };
-      try {
-        const cities = await fetchRoute(params, cacheKey);
-        if (cities && cities.length > 0) {
-          setRouteCities(citiesToRoute(cities));
-        }
-      } catch {
-        // Route selection failed — review step will show empty state
-      }
-      setRouteLoading(false);
-    }
   };
 
   const goBack = () => {
@@ -226,12 +195,11 @@ export default function PlanPage() {
     days: [],
   }), []);
 
-  const handleGenerate = useCallback(async (routeFromReview?: CityStop[]) => {
-    // Only validate if not coming from route review (already validated on advance)
-    if (!routeFromReview) {
-      const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, destinationCountry, dateStart, dateEnd });
-      if (fieldErrors) { setErrors(fieldErrors); return; }
-    }
+  const handleGenerate = useCallback(async () => {
+    const fieldErrors = validate(destinationStepSchema, { tripType, region, destination, destinationCountry, dateStart, dateEnd });
+    if (fieldErrors) { setErrors(fieldErrors); return; }
+    const detailErrors = validate(detailsStepSchema, { travelers });
+    if (detailErrors) { setErrors(detailErrors); return; }
     setErrors({});
 
     posthog?.capture("questionnaire_completed", {
@@ -242,13 +210,9 @@ export default function PlanPage() {
     // ── Get cities
     let route: CityStop[] = [];
 
-    if (routeFromReview) {
-      // Multi-city from route review — use the user-edited cities
-      route = routeFromReview;
-    } else if (isSingleCity) {
+    if (isSingleCity) {
       route = singleCityRoute();
     } else {
-      // Fallback for multi-city/single-country without route review
       const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
       const params = {
         profile: { nationality, homeAirport, travelStyle, interests },
@@ -481,16 +445,6 @@ export default function PlanPage() {
                 </div>
               )}
 
-              {/* Route review — single-country & multi-country */}
-              {showRouteReview && (
-                <RouteReviewStep
-                  cities={routeCities ?? []}
-                  tripDuration={dayCount}
-                  onConfirm={handleGenerate}
-                  isLoading={routeLoading}
-                />
-              )}
-
             </motion.div>
           </AnimatePresence>
         </div>
@@ -502,17 +456,15 @@ export default function PlanPage() {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
 
-          {showRouteReview ? null : (
-            step < totalSteps ? (
-              <Button onClick={goNext} disabled={!canAdvance()} size="sm" className="gap-1.5">
-                Continue
-              </Button>
-            ) : (
-              <Button onClick={() => handleGenerate()} disabled={!canAdvance()} loading={isGenerating} className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                {isGenerating ? "Creating trip..." : "Generate My Itinerary"}
-              </Button>
-            )
+          {step < totalSteps ? (
+            <Button onClick={goNext} disabled={!canAdvance()} size="sm" className="gap-1.5">
+              Continue
+            </Button>
+          ) : (
+            <Button onClick={() => handleGenerate()} disabled={!canAdvance()} loading={isGenerating} className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              {isGenerating ? "Creating trip..." : "Generate My Itinerary"}
+            </Button>
           )}
         </div>
 
