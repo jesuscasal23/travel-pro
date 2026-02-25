@@ -72,10 +72,10 @@ export default function PlanPage() {
   const step = Math.min(Math.max(planStep, 1), totalSteps);
 
   // Which content to show based on step + auth
-  const showProfile = isGuest && step === 1;
-  const showStyle = isGuest && step === 2;
-  const showDescription = isGuest ? step === 3 : step === 1;
-  const showDestination = isGuest ? step === 4 : step === 2;
+  const showDestination = step === 1;
+  const showProfile = isGuest && step === 2;
+  const showStyle = isGuest && step === 3;
+  const showDescription = isGuest ? step === 4 : step === 2;
 
   // Speculative route selection: prefetch when user reaches destination step.
   useEffect(() => {

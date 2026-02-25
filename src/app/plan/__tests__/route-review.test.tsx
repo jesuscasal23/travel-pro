@@ -42,10 +42,14 @@ const mockCitiesWithDays = [
   { id: "bangkok", city: "Bangkok", country: "Thailand", countryCode: "TH", iataCode: "BKK", lat: 13.76, lng: 100.5, minDays: 1, maxDays: 3 },
 ];
 
+// Destination is now step 1 (first step). For guests (4-step wizard),
+// "Continue" appears on step 1 and "Generate" appears on step 4 (last step).
+// For auth users (2-step wizard), "Continue" appears on step 1 and "Generate" on step 2.
+
 function setMultiCityDestinationStep() {
   act(() => {
     useTripStore.setState({
-      planStep: 4,
+      planStep: 1,
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "comfort",
@@ -70,7 +74,7 @@ function setMultiCityDestinationStep() {
 function setSingleCityDestinationStep() {
   act(() => {
     useTripStore.setState({
-      planStep: 4,
+      planStep: 1,
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "comfort",
@@ -92,12 +96,37 @@ function setSingleCityDestinationStep() {
   });
 }
 
+function setMultiCityFinalStep() {
+  act(() => {
+    useTripStore.setState({
+      planStep: 4,
+      nationality: "German",
+      homeAirport: "FRA",
+      travelStyle: "comfort",
+      interests: [],
+      tripType: "multi-city",
+      region: "southeast-asia",
+      destination: "",
+      destinationCountry: "",
+      destinationCountryCode: "",
+      destinationLat: 0,
+      destinationLng: 0,
+      dateStart: "2026-04-01",
+      dateEnd: "2026-04-22",
+      travelers: 2,
+      isGenerating: false,
+      generationStep: 0,
+      itinerary: null,
+    });
+  });
+}
+
 describe("PlanPage - route review removed", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("shows generate directly on destination step for multi-city", async () => {
+  it("shows destination step first with Continue button for guests", async () => {
     setMultiCityDestinationStep();
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -108,13 +137,13 @@ describe("PlanPage - route review removed", () => {
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Generate My Itinerary/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 
-  it("creates multi-city trip directly from destination step", async () => {
-    setMultiCityDestinationStep();
+  it("creates multi-city trip from the final step (no route review)", async () => {
+    setMultiCityFinalStep();
 
     global.fetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
@@ -136,7 +165,7 @@ describe("PlanPage - route review removed", () => {
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
-    await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument());
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
 
     await act(async () => {
@@ -155,7 +184,7 @@ describe("PlanPage - route review removed", () => {
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 
-  it("single-city still shows generate directly on destination step", async () => {
+  it("single-city destination step shows Continue (not Generate) for guests", async () => {
     setSingleCityDestinationStep();
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -167,8 +196,8 @@ describe("PlanPage - route review removed", () => {
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Generate My Itinerary/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 });
