@@ -80,6 +80,20 @@ vi.mock("@/lib/db/prisma", () => ({
   }),
 }));
 
+vi.mock("@/lib/core/prisma", () => ({
+  getPrisma: () => ({
+    itinerary: {
+      findFirst: mocks.prismaFindFirst,
+      update: mocks.prismaUpdate,
+      create: mocks.prismaCreate,
+    },
+  }),
+}));
+
+vi.mock("@/lib/core/logger", () => ({
+  createLogger: () => mocks.logger,
+}));
+
 import {
   generateCoreItinerary,
   generateRouteOnly,

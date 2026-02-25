@@ -12,7 +12,7 @@ import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
 import { inputClass } from "@/components/auth/auth-styles";
 import { useSaveProfile, useExportData, useDeleteAccount } from "@/hooks/api";
-import { validate, profileSaveSchema } from "@/lib/validation/schemas";
+import { validate, profileSaveSchema } from "@/lib/api/schemas";
 import { useToastStore } from "@/stores/useToastStore";
 
 export default function ProfilePage() {

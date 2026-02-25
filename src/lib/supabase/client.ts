@@ -1,12 +1,2 @@
-// ============================================================
-// Travel Pro — Supabase Browser Client
-// Use in client components
-// ============================================================
-import { createBrowserClient } from "@supabase/ssr";
-
-export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createBrowserClient(url, key);
-}
+// Re-exported from lib/core/supabase-client — canonical location is src/lib/core/supabase-client.ts
+export { createClient } from "@/lib/core/supabase-client";

@@ -14,7 +14,7 @@ import { TravelStylePicker } from "@/components/TravelStylePicker";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { inputClass } from "@/components/auth/auth-styles";
 import { slideVariants } from "@/lib/animations";
-import { validate, onboardingStep1Schema } from "@/lib/validation/schemas";
+import { validate, onboardingStep1Schema } from "@/lib/api/schemas";
 
 const TOTAL_STEPS = 2;
 

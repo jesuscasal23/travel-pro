@@ -20,7 +20,7 @@ import { CountryCombobox } from "@/components/ui/CountryCombobox";
 import { ChipGroup } from "@/components/ui/Chip";
 import { TravelStylePicker } from "@/components/TravelStylePicker";
 import type { CityStop, Itinerary } from "@/types";
-import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSchema } from "@/lib/validation/schemas";
+import { validate, onboardingStep1Schema, destinationStepSchema, detailsStepSchema } from "@/lib/api/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
 import { RouteReviewStep } from "@/components/plan/RouteReviewStep";
 
