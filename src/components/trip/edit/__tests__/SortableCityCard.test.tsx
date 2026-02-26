@@ -60,27 +60,47 @@ describe("SortableCityCard", () => {
   });
 
   it("renders current day count", () => {
-    render(<SortableCityCard city={makeCity({ days: 5 })} onDaysChange={vi.fn()} onRemove={vi.fn()} />);
+    render(
+      <SortableCityCard city={makeCity({ days: 5 })} onDaysChange={vi.fn()} onRemove={vi.fn()} />
+    );
     expect(screen.getByText("5d")).toBeInTheDocument();
   });
 
   it("calls onDaysChange with +1 when increase button clicked", () => {
     const onDaysChange = vi.fn();
-    render(<SortableCityCard city={makeCity({ days: 3 })} onDaysChange={onDaysChange} onRemove={vi.fn()} />);
+    render(
+      <SortableCityCard
+        city={makeCity({ days: 3 })}
+        onDaysChange={onDaysChange}
+        onRemove={vi.fn()}
+      />
+    );
     fireEvent.click(screen.getByRole("button", { name: /increase days/i }));
     expect(onDaysChange).toHaveBeenCalledWith("city-1", 4);
   });
 
   it("calls onDaysChange with -1 when decrease button clicked", () => {
     const onDaysChange = vi.fn();
-    render(<SortableCityCard city={makeCity({ days: 3 })} onDaysChange={onDaysChange} onRemove={vi.fn()} />);
+    render(
+      <SortableCityCard
+        city={makeCity({ days: 3 })}
+        onDaysChange={onDaysChange}
+        onRemove={vi.fn()}
+      />
+    );
     fireEvent.click(screen.getByRole("button", { name: /decrease days/i }));
     expect(onDaysChange).toHaveBeenCalledWith("city-1", 2);
   });
 
   it("does not go below 1 day when decrease clicked at minimum", () => {
     const onDaysChange = vi.fn();
-    render(<SortableCityCard city={makeCity({ days: 1 })} onDaysChange={onDaysChange} onRemove={vi.fn()} />);
+    render(
+      <SortableCityCard
+        city={makeCity({ days: 1 })}
+        onDaysChange={onDaysChange}
+        onRemove={vi.fn()}
+      />
+    );
     fireEvent.click(screen.getByRole("button", { name: /decrease days/i }));
     // Math.max(1, 1-1) = 1
     expect(onDaysChange).toHaveBeenCalledWith("city-1", 1);

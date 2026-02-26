@@ -3,7 +3,17 @@ import { getCategoryStyle, getCategoryEmoji } from "../category-colors";
 
 describe("getCategoryStyle", () => {
   it("returns style for known categories", () => {
-    const categories = ["culture", "explore", "food", "art", "nightlife", "nature", "transport", "adventure", "wellness"];
+    const categories = [
+      "culture",
+      "explore",
+      "food",
+      "art",
+      "nightlife",
+      "nature",
+      "transport",
+      "adventure",
+      "wellness",
+    ];
 
     for (const cat of categories) {
       const style = getCategoryStyle(cat);

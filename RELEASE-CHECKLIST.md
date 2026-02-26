@@ -25,13 +25,13 @@
 
 ## 🟡 Files to Delete
 
-| File | Why |
-|------|-----|
-| `src/data/generationSteps.ts` | Defined but never imported — `plan/page.tsx` has its own inline copy |
-| `src/lib/ai/prompts/v2.ts` | Never imported (unless switching pipeline to v2 — see above) |
-| `src/lib/ai/model-selector.ts` | Fully implemented, never imported anywhere |
-| `src/lib/ai/validator.ts` | Fully implemented, never imported anywhere |
-| `airports.csv` | One-time source data used to generate `airports-full.ts` — add to `.gitignore` and delete from repo |
+| File                           | Why                                                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `src/data/generationSteps.ts`  | Defined but never imported — `plan/page.tsx` has its own inline copy                                |
+| `src/lib/ai/prompts/v2.ts`     | Never imported (unless switching pipeline to v2 — see above)                                        |
+| `src/lib/ai/model-selector.ts` | Fully implemented, never imported anywhere                                                          |
+| `src/lib/ai/validator.ts`      | Fully implemented, never imported anywhere                                                          |
+| `airports.csv`                 | One-time source data used to generate `airports-full.ts` — add to `.gitignore` and delete from repo |
 
 ---
 
@@ -105,4 +105,4 @@ These are installed but not imported anywhere in the source. Remove with `npm un
 
 ---
 
-*Last audited: 2026-02-18 | Next scheduled review: before each major release*
+_Last audited: 2026-02-18 | Next scheduled review: before each major release_

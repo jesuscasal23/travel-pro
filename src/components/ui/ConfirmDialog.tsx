@@ -34,30 +34,21 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={title}>
-      {description && (
-        <p className="text-sm text-muted-foreground mb-4">{description}</p>
-      )}
+      {description && <p className="text-muted-foreground mb-4 text-sm">{description}</p>}
       {items && items.length > 0 && (
-        <ul className="text-sm text-muted-foreground space-y-1 mb-6 ml-4">
+        <ul className="text-muted-foreground mb-6 ml-4 space-y-1 text-sm">
           {items.map((item) => (
             <li key={item}>&bull; {item}</li>
           ))}
         </ul>
       )}
-      {warning && (
-        <p className="text-sm font-medium text-foreground mb-6">{warning}</p>
-      )}
+      {warning && <p className="text-foreground mb-6 text-sm font-medium">{warning}</p>}
       {children}
       <div className="flex gap-3">
         <Button variant="ghost" className="flex-1" onClick={() => onOpenChange(false)}>
           Cancel
         </Button>
-        <Button
-          variant={confirmVariant}
-          className="flex-1"
-          loading={loading}
-          onClick={onConfirm}
-        >
+        <Button variant={confirmVariant} className="flex-1" loading={loading} onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </div>

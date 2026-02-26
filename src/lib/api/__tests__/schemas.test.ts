@@ -105,8 +105,12 @@ describe("TripIntentInputSchema", () => {
   });
 
   it("rejects travelers outside 1-20 range", () => {
-    expect(TripIntentInputSchema.safeParse({ ...validMultiCity, travelers: 0 }).success).toBe(false);
-    expect(TripIntentInputSchema.safeParse({ ...validMultiCity, travelers: 21 }).success).toBe(false);
+    expect(TripIntentInputSchema.safeParse({ ...validMultiCity, travelers: 0 }).success).toBe(
+      false
+    );
+    expect(TripIntentInputSchema.safeParse({ ...validMultiCity, travelers: 21 }).success).toBe(
+      false
+    );
   });
 
   it("rejects non-integer travelers", () => {

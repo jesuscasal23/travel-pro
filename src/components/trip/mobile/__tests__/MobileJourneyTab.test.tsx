@@ -129,16 +129,9 @@ describe("MobileJourneyTab", () => {
   });
 
   it("shows generation loading state for city being generated", () => {
-    render(
-      <MobileJourneyTab
-        itinerary={itineraryNoActivities()}
-        generatingCityId="rome"
-      />,
-    );
+    render(<MobileJourneyTab itinerary={itineraryNoActivities()} generatingCityId="rome" />);
 
-    expect(
-      screen.getByText(/Generating activities for Rome/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Generating activities for Rome/i)).toBeInTheDocument();
   });
 
   it("shows recommendation CTA and wires callback when city has no activities", () => {
@@ -147,7 +140,7 @@ describe("MobileJourneyTab", () => {
       <MobileJourneyTab
         itinerary={itineraryNoActivities()}
         onGenerateActivities={onGenerateActivities}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Get activity recommendations/i }));

@@ -5,7 +5,7 @@ import { AIRPORTS } from "@/data/airports-full";
 import { inputClass } from "@/components/auth/auth-styles";
 
 interface Props {
-  value: string;       // stored as "FRA – Frankfurt am Main, DE"
+  value: string; // stored as "FRA – Frankfurt am Main, DE"
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
@@ -30,7 +30,12 @@ function filterAirports(query: string) {
   ).slice(0, 8);
 }
 
-export function AirportCombobox({ value, onChange, className = "", placeholder = "Search airport or city…" }: Props) {
+export function AirportCombobox({
+  value,
+  onChange,
+  className = "",
+  placeholder = "Search airport or city…",
+}: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
@@ -42,11 +47,14 @@ export function AirportCombobox({ value, onChange, className = "", placeholder =
   // Derive display label from stored value (show it when input is not focused)
   const displayValue = value ? value.split("(")[0].trim() : "";
 
-  const select = useCallback((iata: string, name: string, city: string, country: string) => {
-    onChange(toLabel(iata, name, city, country));
-    setQuery("");
-    setOpen(false);
-  }, [onChange]);
+  const select = useCallback(
+    (iata: string, name: string, city: string, country: string) => {
+      onChange(toLabel(iata, name, city, country));
+      setQuery("");
+      setOpen(false);
+    },
+    [onChange]
+  );
 
   // Close on click outside
   useEffect(() => {
@@ -62,10 +70,21 @@ export function AirportCombobox({ value, onChange, className = "", placeholder =
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (!open || results.length === 0) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); setHighlighted((h) => Math.min(h + 1, results.length - 1)); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setHighlighted((h) => Math.max(h - 1, 0)); }
-    else if (e.key === "Enter") { e.preventDefault(); const r = results[highlighted]; if (r) select(r.iata, r.name, r.city, r.country); }
-    else if (e.key === "Escape") { setOpen(false); setQuery(""); inputRef.current?.blur(); }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlighted((h) => Math.min(h + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlighted((h) => Math.max(h - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const r = results[highlighted];
+      if (r) select(r.iata, r.name, r.city, r.country);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setQuery("");
+      inputRef.current?.blur();
+    }
   }
 
   return (
@@ -78,36 +97,47 @@ export function AirportCombobox({ value, onChange, className = "", placeholder =
         className={`${inputClass} ${className}`}
         placeholder={!open && value ? "" : placeholder}
         value={open ? query : ""}
-        onFocus={() => { setOpen(true); setHighlighted(0); }}
-        onChange={(e) => { setQuery(e.target.value); setHighlighted(0); }}
+        onFocus={() => {
+          setOpen(true);
+          setHighlighted(0);
+        }}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setHighlighted(0);
+        }}
         onKeyDown={handleKeyDown}
       />
       {/* Show current selection when not focused */}
       {!open && value && (
-        <div className="absolute inset-0 flex items-center px-4 pointer-events-none">
-          <span className="text-foreground text-sm truncate">{displayValue}</span>
+        <div className="pointer-events-none absolute inset-0 flex items-center px-4">
+          <span className="text-foreground truncate text-sm">{displayValue}</span>
         </div>
       )}
 
       {open && results.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden max-h-[min(16rem,50vh)] overflow-y-auto">
+        <ul className="bg-background border-border absolute z-50 mt-1 max-h-[min(16rem,50vh)] w-full overflow-hidden overflow-y-auto rounded-lg border shadow-lg">
           {results.map((a, i) => (
             <li
               key={a.iata}
-              className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm transition-colors ${i === highlighted ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
-              onMouseDown={(e) => { e.preventDefault(); select(a.iata, a.name, a.city, a.country); }}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm transition-colors ${i === highlighted ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                select(a.iata, a.name, a.city, a.country);
+              }}
               onMouseEnter={() => setHighlighted(i)}
             >
-              <span className="font-mono font-semibold text-primary w-9 shrink-0">{a.iata}</span>
-              <span className="truncate text-foreground">{a.name}</span>
-              <span className="ml-auto text-muted-foreground shrink-0">{a.city ? `${a.city}, ${a.country}` : a.country}</span>
+              <span className="text-primary w-9 shrink-0 font-mono font-semibold">{a.iata}</span>
+              <span className="text-foreground truncate">{a.name}</span>
+              <span className="text-muted-foreground ml-auto shrink-0">
+                {a.city ? `${a.city}, ${a.country}` : a.country}
+              </span>
             </li>
           ))}
         </ul>
       )}
 
       {open && query.length >= 2 && results.length === 0 && (
-        <div className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg px-4 py-3 text-sm text-muted-foreground">
+        <div className="bg-background border-border text-muted-foreground absolute z-50 mt-1 w-full rounded-lg border px-4 py-3 text-sm shadow-lg">
           No airports found for &ldquo;{query}&rdquo;
         </div>
       )}

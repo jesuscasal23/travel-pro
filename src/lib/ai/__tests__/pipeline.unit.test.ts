@@ -124,7 +124,15 @@ describe("parseAndValidate", () => {
     const multi = {
       route: [
         ...validRoute,
-        { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 2, countryCode: "JP" },
+        {
+          id: "kyoto",
+          city: "Kyoto",
+          country: "Japan",
+          lat: 35.01,
+          lng: 135.77,
+          days: 2,
+          countryCode: "JP",
+        },
       ],
       days: [validDay, { day: 2, date: "Oct 2", city: "Kyoto", activities: [validActivity] }],
     };
@@ -189,11 +197,28 @@ describe("parseAndValidate", () => {
     const routeOnly = {
       route: [
         ...validRoute,
-        { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 2, countryCode: "JP" },
+        {
+          id: "kyoto",
+          city: "Kyoto",
+          country: "Japan",
+          lat: 35.01,
+          lng: 135.77,
+          days: 2,
+          countryCode: "JP",
+        },
       ],
       days: [
         { day: 1, date: "Oct 1", city: "Tokyo", activities: [] },
-        { day: 2, date: "Oct 2", city: "Kyoto", isTravel: true, travelFrom: "Tokyo", travelTo: "Kyoto", travelDuration: "2h 15min", activities: [] },
+        {
+          day: 2,
+          date: "Oct 2",
+          city: "Kyoto",
+          isTravel: true,
+          travelFrom: "Tokyo",
+          travelTo: "Kyoto",
+          travelDuration: "2h 15min",
+          activities: [],
+        },
       ],
     };
     const result = parseAndValidate(JSON.stringify(routeOnly));

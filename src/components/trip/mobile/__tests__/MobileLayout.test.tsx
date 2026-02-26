@@ -29,7 +29,12 @@ vi.mock("@/stores/useEditStore", () => ({
 }));
 
 vi.mock("@/stores/useTripStore", () => ({
-  useTripStore: (selector?: (s: { setItinerary: typeof mocks.tripStore.setItinerary; setNeedsRegeneration: typeof mocks.tripStore.setNeedsRegeneration }) => unknown) => {
+  useTripStore: (
+    selector?: (s: {
+      setItinerary: typeof mocks.tripStore.setItinerary;
+      setNeedsRegeneration: typeof mocks.tripStore.setNeedsRegeneration;
+    }) => unknown
+  ) => {
     if (!selector) return mocks.tripStore;
     return selector(mocks.tripStore);
   },
@@ -65,9 +70,7 @@ vi.mock("../../edit/EditModeBanner", () => ({
 }));
 
 vi.mock("../../edit/EditToolbar", () => ({
-  EditToolbar: ({ onSave }: { onSave: () => void }) => (
-    <button onClick={onSave}>Save edits</button>
-  ),
+  EditToolbar: ({ onSave }: { onSave: () => void }) => <button onClick={onSave}>Save edits</button>,
 }));
 
 vi.mock("../../edit/EditRouteSheet", () => ({
@@ -188,19 +191,22 @@ describe("MobileLayout", () => {
         weatherError={false}
         generatingCityId={null}
         onGenerateActivities={vi.fn()}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Save edits" }));
 
     expect(mocks.recalculateTravelDays).toHaveBeenCalledWith(edited.days, edited.route);
-    expect(mocks.tripStore.setItinerary).toHaveBeenCalledWith({ ...edited, days: recalculatedDays });
+    expect(mocks.tripStore.setItinerary).toHaveBeenCalledWith({
+      ...edited,
+      days: recalculatedDays,
+    });
     expect(mocks.tripStore.setNeedsRegeneration).toHaveBeenCalledWith(true);
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/v1/trips/trip-123",
       expect.objectContaining({
         method: "PATCH",
-      }),
+      })
     );
   });
 
@@ -231,7 +237,7 @@ describe("MobileLayout", () => {
         weatherError={false}
         generatingCityId={null}
         onGenerateActivities={vi.fn()}
-      />,
+      />
     );
 
     const link = screen.getByRole("link", { name: "Save trip" });

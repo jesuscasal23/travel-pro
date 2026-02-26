@@ -38,7 +38,10 @@ export function EditModeJourneyContent({
 }: EditModeJourneyContentProps) {
   const { updateDraft, expandedActivityId, setExpandedActivityId } = useEditStore();
 
-  const cityGroups = useMemo(() => groupDaysByCity(draft.days, draft.route), [draft.days, draft.route]);
+  const cityGroups = useMemo(
+    () => groupDaysByCity(draft.days, draft.route),
+    [draft.days, draft.route]
+  );
 
   // Memoize weather map
   const weatherMap = useMemo(() => {
@@ -56,7 +59,7 @@ export function EditModeJourneyContent({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    })
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -121,10 +124,8 @@ export function EditModeJourneyContent({
           ? day
           : {
               ...day,
-              activities: day.activities.map((a) =>
-                a._editId === updated._editId ? updated : a,
-              ),
-            },
+              activities: day.activities.map((a) => (a._editId === updated._editId ? updated : a)),
+            }
       ),
     }));
   }
@@ -136,7 +137,7 @@ export function EditModeJourneyContent({
       days: d.days.map((day) =>
         day.day !== dayNum
           ? day
-          : { ...day, activities: day.activities.filter((a) => a._editId !== editId) },
+          : { ...day, activities: day.activities.filter((a) => a._editId !== editId) }
       ),
     }));
   }
@@ -152,9 +153,7 @@ export function EditModeJourneyContent({
     updateDraft((d) => ({
       ...d,
       days: d.days.map((day) =>
-        day.day === dayNum
-          ? { ...day, activities: [...day.activities, newAct] }
-          : day,
+        day.day === dayNum ? { ...day, activities: [...day.activities, newAct] } : day
       ),
     }));
     // Auto-expand the new activity
@@ -162,22 +161,19 @@ export function EditModeJourneyContent({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       {cityGroups.map((group, groupIdx) => {
         const cityStop = draft.route.find((r) => r.city === group.city) ?? draft.route[0];
         const weather = weatherMap.get(group.city);
         const activeDayNum = activeDayMap[groupIdx] ?? group.days[0]?.day;
         // Look up from draft.days so activities are typed as EditableActivity[]
-        const activeDay = draft.days.find((d) => d.day === activeDayNum)
-          ?? draft.days.find((d) => d.day === group.days[0]?.day);
+        const activeDay =
+          draft.days.find((d) => d.day === activeDayNum) ??
+          draft.days.find((d) => d.day === group.days[0]?.day);
         const isGeneratingThis = generatingCityId === cityStop.id;
 
         return (
-          <div key={group.cityId + groupIdx} className="px-4 mb-6">
+          <div key={group.cityId + groupIdx} className="mb-6 px-4">
             <CityHeader city={cityStop} weather={weather} variant="mobile" />
 
             <DayPills
@@ -190,7 +186,7 @@ export function EditModeJourneyContent({
               <>
                 {/* Travel banner */}
                 {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary rounded-lg px-3 py-2 mb-2">
+                  <div className="text-muted-foreground bg-secondary mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
                     <span className="text-primary">✈️</span>
                     <span>
                       {activeDay.travelFrom} → {activeDay.travelTo}
@@ -198,12 +194,9 @@ export function EditModeJourneyContent({
                   </div>
                 )}
 
-                <DayDropZone
-                  dayId={`day-${activeDay.day}`}
-                  activities={activeDay.activities}
-                >
+                <DayDropZone dayId={`day-${activeDay.day}`} activities={activeDay.activities}>
                   {activeDay.activities.length === 0 ? (
-                    <div className="py-4 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
+                    <div className="text-muted-foreground border-border rounded-xl border border-dashed py-4 text-center text-xs">
                       No activities yet — add one below
                     </div>
                   ) : (
@@ -214,7 +207,7 @@ export function EditModeJourneyContent({
                         isExpanded={expandedActivityId === activity._editId}
                         onToggleExpand={() =>
                           setExpandedActivityId(
-                            expandedActivityId === activity._editId ? null : activity._editId,
+                            expandedActivityId === activity._editId ? null : activity._editId
                           )
                         }
                         onChange={(updated) => handleActivityChange(activeDay.day, updated)}

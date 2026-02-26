@@ -22,10 +22,50 @@ test.setTimeout(60_000);
 // ── Mock Data ────────────────────────────────────────────────────────────────
 
 const mockCitiesWithDays = [
-  { id: "tokyo", city: "Tokyo", country: "Japan", countryCode: "JP", iataCode: "NRT", lat: 35.68, lng: 139.69, minDays: 2, maxDays: 4 },
-  { id: "hanoi", city: "Hanoi", country: "Vietnam", countryCode: "VN", iataCode: "HAN", lat: 21.03, lng: 105.85, minDays: 1, maxDays: 3 },
-  { id: "bangkok", city: "Bangkok", country: "Thailand", countryCode: "TH", iataCode: "BKK", lat: 13.76, lng: 100.5, minDays: 1, maxDays: 3 },
-  { id: "chiang-mai", city: "Chiang Mai", country: "Thailand", countryCode: "TH", iataCode: "CNX", lat: 18.79, lng: 98.98, minDays: 1, maxDays: 3 },
+  {
+    id: "tokyo",
+    city: "Tokyo",
+    country: "Japan",
+    countryCode: "JP",
+    iataCode: "NRT",
+    lat: 35.68,
+    lng: 139.69,
+    minDays: 2,
+    maxDays: 4,
+  },
+  {
+    id: "hanoi",
+    city: "Hanoi",
+    country: "Vietnam",
+    countryCode: "VN",
+    iataCode: "HAN",
+    lat: 21.03,
+    lng: 105.85,
+    minDays: 1,
+    maxDays: 3,
+  },
+  {
+    id: "bangkok",
+    city: "Bangkok",
+    country: "Thailand",
+    countryCode: "TH",
+    iataCode: "BKK",
+    lat: 13.76,
+    lng: 100.5,
+    minDays: 1,
+    maxDays: 3,
+  },
+  {
+    id: "chiang-mai",
+    city: "Chiang Mai",
+    country: "Thailand",
+    countryCode: "TH",
+    iataCode: "CNX",
+    lat: 18.79,
+    lng: 98.98,
+    minDays: 1,
+    maxDays: 3,
+  },
 ];
 
 const mockTripId = "e2e-test-trip-" + Date.now();
@@ -43,7 +83,7 @@ async function setupMocks(page: Page) {
       status: 401,
       contentType: "application/json",
       body: JSON.stringify({ code: 401, msg: "not_authenticated" }),
-    }),
+    })
   );
 
   // Route selection
@@ -52,7 +92,7 @@ async function setupMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ cities: mockCitiesWithDays }),
-    }),
+    })
   );
 
   // Trip creation
@@ -74,9 +114,9 @@ async function setupMocks(page: Page) {
         status: 200,
         contentType: "text/event-stream",
         body: [
-          "data: {\"stage\":\"route\",\"message\":\"Route optimised\"}\n\n",
-          "data: {\"stage\":\"activities\",\"message\":\"Activities planned\"}\n\n",
-          "data: {\"stage\":\"done\",\"message\":\"Complete\"}\n\n",
+          'data: {"stage":"route","message":"Route optimised"}\n\n',
+          'data: {"stage":"activities","message":"Activities planned"}\n\n',
+          'data: {"stage":"done","message":"Complete"}\n\n',
         ].join(""),
       });
     }

@@ -40,14 +40,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "Travel Pro",
     title: "Travel Pro — AI-Powered Trip Planning",
-    description:
-      "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
+    description: "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Travel Pro — AI-Powered Trip Planning",
-    description:
-      "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
+    description: "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
   },
   robots: {
     index: true,
@@ -63,16 +61,25 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           try {
             if (localStorage.getItem('theme') === 'dark') {
               document.documentElement.classList.add('dark');
             }
           } catch(e) {}
-        `}} />
+        `,
+          }}
+        />
       </head>
-      <body className={`${inter.variable} ${jakarta.variable} ${grotesk.variable} font-sans antialiased`}>
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
+      <body
+        className={`${inter.variable} ${jakarta.variable} ${grotesk.variable} font-sans antialiased`}
+      >
+        <a
+          href="#main-content"
+          className="focus:bg-primary sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+        >
           Skip to main content
         </a>
         <Providers>

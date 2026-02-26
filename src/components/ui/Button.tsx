@@ -45,7 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       ...props
     },
-    ref,
+    ref
   ) => {
     const base = variantClass[variant];
     const sizeStyles = iconOnly
@@ -55,15 +55,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={`${base} ${sizeStyles} disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
+        className={`${base} ${sizeStyles} focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 ${className}`}
         disabled={disabled || loading}
         {...props}
       >
-        {loading && <Loader2 className="w-4 h-4 animate-spin mr-1.5" />}
+        {loading && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
         {children}
       </button>
     );
-  },
+  }
 );
 
 Button.displayName = "Button";

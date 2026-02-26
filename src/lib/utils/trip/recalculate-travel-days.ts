@@ -10,10 +10,7 @@ import type { TripDay, CityStop } from "@/types";
  *   mark that last day as a travel day.
  * - travelDuration is cleared because it's no longer accurate after a reorder.
  */
-export function recalculateTravelDays(
-  days: TripDay[],
-  newRoute: CityStop[],
-): TripDay[] {
+export function recalculateTravelDays(days: TripDay[], newRoute: CityStop[]): TripDay[] {
   if (newRoute.length === 0 || days.length === 0) return days;
 
   // Build a mapping: day number → city (based on new route + day counts)

@@ -17,14 +17,14 @@ export default function TripError({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={false} />
-      <div className="pt-32 text-center px-4">
-        <div className="text-4xl mb-4">&#x26A0;&#xFE0F;</div>
-        <h1 className="text-xl font-bold text-foreground mb-2">
+      <div className="px-4 pt-32 text-center">
+        <div className="mb-4 text-4xl">&#x26A0;&#xFE0F;</div>
+        <h1 className="text-foreground mb-2 text-xl font-bold">
           Something went wrong loading this trip
         </h1>
-        <p className="text-muted-foreground text-sm mb-8 max-w-md mx-auto">
+        <p className="text-muted-foreground mx-auto mb-8 max-w-md text-sm">
           {process.env.NODE_ENV === "development"
             ? error.message
             : "An unexpected error occurred. Please try again or go back to your dashboard."}

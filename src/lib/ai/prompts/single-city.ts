@@ -31,7 +31,6 @@ Every activity object must match this depth:
 - "duration": Realistic time estimate (e.g. "2h", "45min", "3h")
 - "tip": (optional) Brief practical tip (max 15 words)
 - "food": (optional) Dish + venue name (max 10 words)
-- "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
 ## Route Structure
 
@@ -42,17 +41,15 @@ Every activity object must match this depth:
 // Prompt Assembly
 // ============================================================
 
-export function assembleSingleCityPrompt(
-  profile: UserProfile,
-  intent: TripIntent
-): string {
-  const durationDays = intent.dateStart && intent.dateEnd
-    ? daysBetween(intent.dateStart, intent.dateEnd)
-    : 7;
+export function assembleSingleCityPrompt(profile: UserProfile, intent: TripIntent): string {
+  const durationDays =
+    intent.dateStart && intent.dateEnd ? daysBetween(intent.dateStart, intent.dateEnd) : 7;
 
   const styleDescriptions: Record<string, string> = {
-    backpacker: "backpacker style (hostels, dorms, street food, maximum adventure, budget-conscious)",
-    comfort: "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
+    backpacker:
+      "backpacker style (hostels, dorms, street food, maximum adventure, budget-conscious)",
+    comfort:
+      "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
@@ -62,7 +59,8 @@ export function assembleSingleCityPrompt(
     active: "active (5+ activities per day, packed schedule, maximum sightseeing)",
   };
   const paceDescription = profile.pace ? paceDescriptions[profile.pace] : paceDescriptions.moderate;
-  const paceActivityCount = profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "4–5";
+  const paceActivityCount =
+    profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "4–5";
 
   return `Plan a ${durationDays}-day trip to ${intent.destination}, ${intent.destinationCountry} for ${intent.travelers} traveler(s) with the following details:
 
@@ -80,10 +78,10 @@ export function assembleSingleCityPrompt(
 ${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n` : ""}**Requirements:**
 1. Plan the ENTIRE trip in ${intent.destination} — do NOT add other cities
 2. Rotate through different neighborhoods/districts each day
-3. Plan ${paceActivityCount} activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable) — match the traveler's stated pace
+3. Plan ${paceActivityCount} activities per day with FULL detail (name, category, why, duration, plus tip/food where applicable) — match the traveler's stated pace
 ${durationDays >= 4 ? `4. Include 1–2 day trips to nearby towns or attractions (within 1–2 hours)` : "4. Focus on the city center and most iconic neighborhoods"}
 5. Tailor activity choices to the traveler's stated interests and travel style
-6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
+6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips
 
 Return ONLY this JSON structure (no wrapping, no markdown):
 
@@ -112,8 +110,7 @@ Return ONLY this JSON structure (no wrapping, no markdown):
           "why": "Description of why this is worth doing",
           "duration": "2h",
           "tip": "Arrive early to beat crowds",
-          "food": "Try melon pan at Nakamise-dori",
-          "cost": "€15"
+          "food": "Try melon pan at Nakamise-dori"
         }
       ]
     }

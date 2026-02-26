@@ -19,7 +19,6 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,7 +39,11 @@ function LoginForm() {
     setServerError(null);
 
     const supabase = createClient();
-    if (!supabase) { setServerError("Auth service unavailable."); setIsLoading(false); return; }
+    if (!supabase) {
+      setServerError("Auth service unavailable.");
+      setIsLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
@@ -57,15 +60,13 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={false} />
 
-      <div className="max-w-md mx-auto px-4 pt-24 pb-12">
+      <div className="mx-auto max-w-md px-4 pt-24 pb-12">
         <div className="card-travel p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Welcome back
-          </h1>
-          <p className="text-muted-foreground text-sm mb-8">
+          <h1 className="text-foreground mb-2 text-2xl font-bold">Welcome back</h1>
+          <p className="text-muted-foreground mb-8 text-sm">
             Sign in to continue planning your next adventure.
           </p>
 
@@ -86,7 +87,7 @@ function LoginForm() {
               labelSuffix={
                 <Link
                   href="/forgot-password"
-                  className="float-right font-normal text-primary hover:underline"
+                  className="text-primary float-right font-normal hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -108,7 +109,7 @@ function LoginForm() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-6 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link
               href={`/signup${next !== "/dashboard" ? `?next=${encodeURIComponent(next)}` : ""}`}

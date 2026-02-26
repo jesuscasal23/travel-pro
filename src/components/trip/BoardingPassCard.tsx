@@ -42,39 +42,39 @@ export function BoardingPassCard({ leg, variant }: BoardingPassCardProps) {
       }}
     >
       {/* Top section: IATA codes */}
-      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="text-center">
           <p className={`font-mono font-extrabold ${isMobile ? "text-lg" : "text-xl"}`}>
             {leg.fromIata}
           </p>
-          <p className="text-[10px] text-muted-foreground">{leg.fromCity}</p>
+          <p className="text-muted-foreground text-[10px]">{leg.fromCity}</p>
         </div>
 
         <div className="flex flex-col items-center gap-0.5 px-2">
-          <p className="text-[10px] text-muted-foreground">{leg.duration}</p>
+          <p className="text-muted-foreground text-[10px]">{leg.duration}</p>
           <div className="flex items-center gap-1">
-            <div className="w-6 h-px bg-border" />
-            <Plane className="w-3 h-3 text-primary" />
-            <div className="w-6 h-px bg-border" />
+            <div className="bg-border h-px w-6" />
+            <Plane className="text-primary h-3 w-3" />
+            <div className="bg-border h-px w-6" />
           </div>
-          <p className="text-[10px] text-primary font-medium">{leg.airline}</p>
+          <p className="text-primary text-[10px] font-medium">{leg.airline}</p>
         </div>
 
         <div className="text-center">
           <p className={`font-mono font-extrabold ${isMobile ? "text-lg" : "text-xl"}`}>
             {leg.toIata}
           </p>
-          <p className="text-[10px] text-muted-foreground">{leg.toCity}</p>
+          <p className="text-muted-foreground text-[10px]">{leg.toCity}</p>
         </div>
       </div>
 
       {/* Dashed separator */}
-      <div className="mx-4 border-t border-dashed border-border" />
+      <div className="border-border mx-4 border-t border-dashed" />
 
       {/* Bottom section: date + price */}
-      <div className="px-4 pt-2 pb-3 flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{formatDate(leg.departureDate)}</p>
-        <p className={`font-bold text-primary ${isMobile ? "text-sm" : "text-base"}`}>
+      <div className="flex items-center justify-between px-4 pt-2 pb-3">
+        <p className="text-muted-foreground text-xs">{formatDate(leg.departureDate)}</p>
+        <p className={`text-primary font-bold ${isMobile ? "text-sm" : "text-base"}`}>
           &euro;{leg.price}
         </p>
       </div>

@@ -41,7 +41,9 @@ export async function GET(req: NextRequest, { params }: Params) {
       itinerary: trip.itineraries[0].data,
     });
   } catch (err) {
-    log.error("Failed to load shared trip", { error: err instanceof Error ? err.message : String(err) });
+    log.error("Failed to load shared trip", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json({ error: "Failed to load trip" }, { status: 500 });
   }
 }

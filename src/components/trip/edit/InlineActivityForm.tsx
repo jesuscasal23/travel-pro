@@ -27,10 +27,12 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
     "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40";
 
   return (
-    <div className="px-3 py-3 space-y-2.5 border-t border-border/60 bg-muted/30">
+    <div className="border-border/60 bg-muted/30 space-y-2.5 border-t px-3 py-3">
       {/* Name */}
       <div>
-        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Name *</label>
+        <label className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+          Name *
+        </label>
         <input
           type="text"
           className={fieldClass}
@@ -42,7 +44,9 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
 
       {/* Duration */}
       <div>
-        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Duration *</label>
+        <label className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+          Duration *
+        </label>
         <input
           type="text"
           className={fieldClass}
@@ -54,7 +58,9 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
 
       {/* Cost */}
       <div>
-        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Cost</label>
+        <label className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+          Cost
+        </label>
         <input
           type="text"
           className={fieldClass}
@@ -66,7 +72,9 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
 
       {/* Why */}
       <div>
-        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Why</label>
+        <label className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+          Why
+        </label>
         <textarea
           className={`${fieldClass} resize-none`}
           rows={2}
@@ -78,7 +86,9 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
 
       {/* Food tip */}
       <div>
-        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Food tip</label>
+        <label className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+          Food tip
+        </label>
         <input
           type="text"
           className={fieldClass}
@@ -90,7 +100,9 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
 
       {/* Pro tip */}
       <div>
-        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Pro tip</label>
+        <label className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+          Pro tip
+        </label>
         <input
           type="text"
           className={fieldClass}
@@ -101,10 +113,7 @@ export function InlineActivityForm({ activity, onChange, onDone }: InlineActivit
       </div>
 
       <div className="flex justify-end pt-1">
-        <button
-          onClick={onDone}
-          className="btn-primary text-sm py-1.5 px-4"
-        >
+        <button onClick={onDone} className="btn-primary px-4 py-1.5 text-sm">
           Done
         </button>
       </div>

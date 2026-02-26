@@ -10,22 +10,20 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   return (
-    <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-100 flex flex-col gap-2">
+    <div className="fixed right-4 bottom-6 left-4 z-100 flex flex-col gap-2 sm:right-6 sm:left-auto">
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`toast-animate ${t.exiting ? "toast-exit" : "toast-enter"} rounded-xl shadow-[var(--shadow-card-hover)] px-4 py-3 min-w-[280px] max-w-sm flex items-start gap-3 ${
+          className={`toast-animate ${t.exiting ? "toast-exit" : "toast-enter"} flex max-w-sm min-w-[280px] items-start gap-3 rounded-xl px-4 py-3 shadow-[var(--shadow-card-hover)] ${
             t.variant === "error"
-              ? "bg-red-50 border border-red-200 dark:bg-red-950/40 dark:border-red-900/50"
-              : "bg-card border border-border"
+              ? "border border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/40"
+              : "bg-card border-border border"
           }`}
         >
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground">{t.title}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-foreground text-sm font-semibold">{t.title}</p>
             {t.description && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {t.description}
-              </p>
+              <p className="text-muted-foreground mt-0.5 text-xs">{t.description}</p>
             )}
           </div>
           <button
@@ -33,7 +31,7 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
             aria-label="Dismiss notification"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       ))}

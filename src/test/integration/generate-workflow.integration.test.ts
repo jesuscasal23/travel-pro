@@ -146,9 +146,7 @@ vi.mock("@anthropic-ai/sdk", () => {
           // Use multi-city for the second call (if route selection happened first)
           // or use whatever is appropriate based on the prompt
           const itinerary =
-            callCount === 1
-              ? MOCK_SINGLE_CITY_ITINERARY
-              : MOCK_MULTI_CITY_ITINERARY;
+            callCount === 1 ? MOCK_SINGLE_CITY_ITINERARY : MOCK_MULTI_CITY_ITINERARY;
           return {
             content: [{ type: "text", text: JSON.stringify(itinerary) }],
             stop_reason: "end_turn",
@@ -172,9 +170,7 @@ import { POST as GENERATE } from "@/app/api/v1/trips/[id]/generate/route";
 // ── Helpers ──────────────────────────────────────────────────
 
 /** Read an SSE stream and parse all events. */
-async function readSSEEvents(
-  response: Response,
-): Promise<Array<Record<string, unknown>>> {
+async function readSSEEvents(response: Response): Promise<Array<Record<string, unknown>>> {
   const text = await response.text();
   const events: Array<Record<string, unknown>> = [];
 
@@ -208,22 +204,19 @@ describe("POST /api/v1/trips/[id]/generate — single-city", () => {
     });
 
     // 2. Call the generate endpoint
-    const req = new NextRequest(
-      `http://localhost:3000/api/v1/trips/${trip.id}/generate`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          profile: {
-            nationality: "German",
-            homeAirport: "FRA",
-            travelStyle: "comfort",
-            interests: ["culture", "food"],
-          },
-          promptVersion: "v1",
-        }),
-      },
-    );
+    const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["culture", "food"],
+        },
+        promptVersion: "v1",
+      }),
+    });
 
     const response = await GENERATE(req, {
       params: Promise.resolve({ id: trip.id }),
@@ -278,46 +271,43 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
     });
 
     // 2. Call with pre-selected cities (skips route selection API call)
-    const req = new NextRequest(
-      `http://localhost:3000/api/v1/trips/${trip.id}/generate`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          profile: {
-            nationality: "German",
-            homeAirport: "FRA",
-            travelStyle: "comfort",
-            interests: ["culture", "food"],
+    const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["culture", "food"],
+        },
+        promptVersion: "v1",
+        cities: [
+          {
+            id: "tokyo",
+            city: "Tokyo",
+            country: "Japan",
+            countryCode: "JP",
+            iataCode: "NRT",
+            lat: 35.68,
+            lng: 139.69,
+            minDays: 3,
+            maxDays: 5,
           },
-          promptVersion: "v1",
-          cities: [
-            {
-              id: "tokyo",
-              city: "Tokyo",
-              country: "Japan",
-              countryCode: "JP",
-              iataCode: "NRT",
-              lat: 35.68,
-              lng: 139.69,
-              minDays: 3,
-              maxDays: 5,
-            },
-            {
-              id: "hanoi",
-              city: "Hanoi",
-              country: "Vietnam",
-              countryCode: "VN",
-              iataCode: "HAN",
-              lat: 21.03,
-              lng: 105.85,
-              minDays: 2,
-              maxDays: 4,
-            },
-          ],
-        }),
-      },
-    );
+          {
+            id: "hanoi",
+            city: "Hanoi",
+            country: "Vietnam",
+            countryCode: "VN",
+            iataCode: "HAN",
+            lat: 21.03,
+            lng: 105.85,
+            minDays: 2,
+            maxDays: 4,
+          },
+        ],
+      }),
+    });
 
     const response = await GENERATE(req, {
       params: Promise.resolve({ id: trip.id }),
@@ -362,45 +352,42 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
     });
 
     // Generate a new one
-    const req = new NextRequest(
-      `http://localhost:3000/api/v1/trips/${trip.id}/generate`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          profile: {
-            nationality: "German",
-            homeAirport: "FRA",
-            travelStyle: "comfort",
-            interests: ["culture"],
+    const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["culture"],
+        },
+        cities: [
+          {
+            id: "tokyo",
+            city: "Tokyo",
+            country: "Japan",
+            countryCode: "JP",
+            iataCode: "NRT",
+            lat: 35.68,
+            lng: 139.69,
+            minDays: 3,
+            maxDays: 5,
           },
-          cities: [
-            {
-              id: "tokyo",
-              city: "Tokyo",
-              country: "Japan",
-              countryCode: "JP",
-              iataCode: "NRT",
-              lat: 35.68,
-              lng: 139.69,
-              minDays: 3,
-              maxDays: 5,
-            },
-            {
-              id: "hanoi",
-              city: "Hanoi",
-              country: "Vietnam",
-              countryCode: "VN",
-              iataCode: "HAN",
-              lat: 21.03,
-              lng: 105.85,
-              minDays: 2,
-              maxDays: 4,
-            },
-          ],
-        }),
-      },
-    );
+          {
+            id: "hanoi",
+            city: "Hanoi",
+            country: "Vietnam",
+            countryCode: "VN",
+            iataCode: "HAN",
+            lat: 21.03,
+            lng: 105.85,
+            minDays: 2,
+            maxDays: 4,
+          },
+        ],
+      }),
+    });
 
     const response = await GENERATE(req, {
       params: Promise.resolve({ id: trip.id }),
@@ -425,21 +412,18 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
 
 describe("POST /api/v1/trips/[id]/generate — error handling", () => {
   it("returns 404 for non-existent trip", async () => {
-    const req = new NextRequest(
-      "http://localhost:3000/api/v1/trips/nonexistent/generate",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          profile: {
-            nationality: "German",
-            homeAirport: "FRA",
-            travelStyle: "comfort",
-            interests: ["culture"],
-          },
-        }),
-      },
-    );
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/nonexistent/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["culture"],
+        },
+      }),
+    });
 
     const response = await GENERATE(req, {
       params: Promise.resolve({ id: "nonexistent" }),
@@ -450,16 +434,13 @@ describe("POST /api/v1/trips/[id]/generate — error handling", () => {
   it("returns 400 for invalid profile", async () => {
     const trip = await createTestTrip(prisma);
 
-    const req = new NextRequest(
-      `http://localhost:3000/api/v1/trips/${trip.id}/generate`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          profile: { nationality: "" }, // missing required fields
-        }),
-      },
-    );
+    const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: { nationality: "" }, // missing required fields
+      }),
+    });
 
     const response = await GENERATE(req, {
       params: Promise.resolve({ id: trip.id }),

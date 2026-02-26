@@ -41,7 +41,10 @@ async function loadEnv(): Promise<void> {
       const key = trimmed.slice(0, eqIndex).trim();
       let value = trimmed.slice(eqIndex + 1).trim();
       // Strip surrounding quotes
-      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
         value = value.slice(1, -1);
       }
       if (!process.env[key]) {
@@ -94,10 +97,7 @@ async function searchUnsplash(
   return data.results[resultIndex] ?? null;
 }
 
-async function downloadImage(
-  rawUrl: string,
-  destPath: string
-): Promise<void> {
+async function downloadImage(rawUrl: string, destPath: string): Promise<void> {
   // Use Unsplash dynamic URL params for WebP conversion and resizing
   const imageUrl = `${rawUrl}&w=800&h=600&fit=crop&q=80&fm=webp`;
   const res = await fetch(imageUrl);
@@ -159,7 +159,7 @@ async function main(): Promise<void> {
 
   console.log(
     `${pendingFirst.length} cities need first image, ` +
-    `${pendingSecond.length} cities need second image. Starting download...\n`
+      `${pendingSecond.length} cities need second image. Starting download...\n`
   );
 
   let batchCount = 0;
@@ -242,7 +242,9 @@ async function main(): Promise<void> {
         totalDownloaded++;
         console.log(`  ${progress} [2/2] Downloaded ${cc}/${slug}-2.webp (by ${photo2.user.name})`);
       } else {
-        console.log(`  ${progress} [2/2] No distinct second image for ${city.city} — will retry in pass 2`);
+        console.log(
+          `  ${progress} [2/2] No distinct second image for ${city.city} — will retry in pass 2`
+        );
       }
     } catch (err) {
       if (err instanceof Error && err.message === "RATE_LIMIT_HIT") {
@@ -264,7 +266,9 @@ async function main(): Promise<void> {
 
   // ── Phase 2: cities that already have image 1 but not image 2 ──
   if (pendingSecond.length > 0) {
-    console.log(`\n--- Phase 2: fetching second images for ${pendingSecond.length} existing cities ---\n`);
+    console.log(
+      `\n--- Phase 2: fetching second images for ${pendingSecond.length} existing cities ---\n`
+    );
   }
 
   for (let i = 0; i < pendingSecond.length; i++) {
@@ -299,7 +303,9 @@ async function main(): Promise<void> {
           entry.photographerUrl2 = photo2b.user.links.html;
           slugsNeedingImage2.delete(slug);
           totalDownloaded++;
-          console.log(`  ${progress} Downloaded ${cc}/${slug}-2.webp via fallback (by ${photo2b.user.name})`);
+          console.log(
+            `  ${progress} Downloaded ${cc}/${slug}-2.webp via fallback (by ${photo2b.user.name})`
+          );
         } else {
           console.log(`  ${progress} SKIP: Could not find distinct second image for ${city.city}`);
           failedCities.push(`${city.city}, ${city.country} (image 2)`);

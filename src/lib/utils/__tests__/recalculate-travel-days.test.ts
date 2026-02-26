@@ -22,13 +22,18 @@ function makeCity(id: string, name: string, days: number): CityStop {
 }
 
 function makeDay(day: number, city: string, overrides: Partial<TripDay> = {}): TripDay {
-  return { day, date: `2026-04-${String(day).padStart(2, "0")}`, city, activities: [], ...overrides };
+  return {
+    day,
+    date: `2026-04-${String(day).padStart(2, "0")}`,
+    city,
+    activities: [],
+    ...overrides,
+  };
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("recalculateTravelDays", () => {
-
   // ── Edge cases ─────────────────────────────────────────────────────────────
 
   it("returns days unchanged when route is empty", () => {
@@ -60,7 +65,12 @@ describe("recalculateTravelDays", () => {
 
   it("marks last day of first city as travel day for 2-city route", () => {
     const route = [makeCity("c1", "Tokyo", 2), makeCity("c2", "Osaka", 2)];
-    const days = [makeDay(1, "Tokyo"), makeDay(2, "Tokyo"), makeDay(3, "Osaka"), makeDay(4, "Osaka")];
+    const days = [
+      makeDay(1, "Tokyo"),
+      makeDay(2, "Tokyo"),
+      makeDay(3, "Osaka"),
+      makeDay(4, "Osaka"),
+    ];
     const result = recalculateTravelDays(days, route);
 
     expect(result[0].isTravel).toBe(false);
@@ -91,9 +101,12 @@ describe("recalculateTravelDays", () => {
       makeCity("c3", "Kyoto", 2),
     ];
     const days = [
-      makeDay(1, "Tokyo"), makeDay(2, "Tokyo"),
-      makeDay(3, "Osaka"), makeDay(4, "Osaka"),
-      makeDay(5, "Kyoto"), makeDay(6, "Kyoto"),
+      makeDay(1, "Tokyo"),
+      makeDay(2, "Tokyo"),
+      makeDay(3, "Osaka"),
+      makeDay(4, "Osaka"),
+      makeDay(5, "Kyoto"),
+      makeDay(6, "Kyoto"),
     ];
     const result = recalculateTravelDays(days, route);
 
@@ -117,7 +130,12 @@ describe("recalculateTravelDays", () => {
     // Original: Tokyo(2) → Osaka(2), travel on day 2
     // New route: Osaka(2) → Tokyo(2), travel should still be on day 2 (now Osaka→Tokyo)
     const route = [makeCity("c2", "Osaka", 2), makeCity("c1", "Tokyo", 2)];
-    const days = [makeDay(1, "Tokyo"), makeDay(2, "Tokyo"), makeDay(3, "Osaka"), makeDay(4, "Osaka")];
+    const days = [
+      makeDay(1, "Tokyo"),
+      makeDay(2, "Tokyo"),
+      makeDay(3, "Osaka"),
+      makeDay(4, "Osaka"),
+    ];
     const result = recalculateTravelDays(days, route);
 
     // Days 1-2 reassigned to Osaka, days 3-4 to Tokyo
@@ -138,7 +156,12 @@ describe("recalculateTravelDays", () => {
     const route = [makeCity("c1", "Tokyo", 4)];
     // Days that previously had travel flags
     const days = [
-      makeDay(1, "Tokyo", { isTravel: true, travelFrom: "Seoul", travelTo: "Tokyo", travelDuration: "2h" }),
+      makeDay(1, "Tokyo", {
+        isTravel: true,
+        travelFrom: "Seoul",
+        travelTo: "Tokyo",
+        travelDuration: "2h",
+      }),
       makeDay(2, "Tokyo"),
       makeDay(3, "Tokyo"),
       makeDay(4, "Tokyo"),
@@ -173,8 +196,12 @@ describe("recalculateTravelDays", () => {
     const route = [makeCity("c1", "Tokyo", 2), makeCity("c2", "Osaka", 2)]; // 4 days total
     // 6 days provided
     const days = [
-      makeDay(1, "?"), makeDay(2, "?"), makeDay(3, "?"),
-      makeDay(4, "?"), makeDay(5, "?"), makeDay(6, "?"),
+      makeDay(1, "?"),
+      makeDay(2, "?"),
+      makeDay(3, "?"),
+      makeDay(4, "?"),
+      makeDay(5, "?"),
+      makeDay(6, "?"),
     ];
     const result = recalculateTravelDays(days, route);
 

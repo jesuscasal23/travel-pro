@@ -9,7 +9,11 @@ interface AddActivityButtonProps {
   isGeneratingAI: boolean;
 }
 
-export function AddActivityButton({ onAddManual, onAddAI, isGeneratingAI }: AddActivityButtonProps) {
+export function AddActivityButton({
+  onAddManual,
+  onAddAI,
+  isGeneratingAI,
+}: AddActivityButtonProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -27,23 +31,23 @@ export function AddActivityButton({ onAddManual, onAddAI, isGeneratingAI }: AddA
     <div ref={ref} className="relative mt-1">
       <button
         onClick={() => setMenuOpen((o) => !o)}
-        className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors py-2 px-1"
+        className="text-primary hover:text-primary/80 flex items-center gap-1.5 px-1 py-2 text-sm transition-colors"
         aria-label="Add activity"
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="h-4 w-4" />
         Add activity
       </button>
 
       {menuOpen && (
-        <div className="absolute bottom-full left-0 mb-1 z-20 bg-background border border-border rounded-xl shadow-lg overflow-hidden min-w-[180px]">
+        <div className="bg-background border-border absolute bottom-full left-0 z-20 mb-1 min-w-[180px] overflow-hidden rounded-xl border shadow-lg">
           <button
             onClick={() => {
               setMenuOpen(false);
               onAddManual();
             }}
-            className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors text-left"
+            className="text-foreground hover:bg-muted flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm transition-colors"
           >
-            <PenLine className="w-4 h-4 text-muted-foreground" />
+            <PenLine className="text-muted-foreground h-4 w-4" />
             Add manually
           </button>
           <button
@@ -52,9 +56,9 @@ export function AddActivityButton({ onAddManual, onAddAI, isGeneratingAI }: AddA
               onAddAI();
             }}
             disabled={isGeneratingAI}
-            className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors text-left disabled:opacity-50"
+            className="text-foreground hover:bg-muted flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm transition-colors disabled:opacity-50"
           >
-            <Sparkles className="w-4 h-4 text-primary" />
+            <Sparkles className="text-primary h-4 w-4" />
             {isGeneratingAI ? "Generating…" : "Suggest with AI"}
           </button>
         </div>

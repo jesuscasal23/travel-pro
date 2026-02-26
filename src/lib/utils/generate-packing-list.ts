@@ -1,16 +1,31 @@
 import type { CityWeather, VisaInfo, CityStop, TripDay } from "@/types";
 
-export interface PackingItem {
+interface PackingItem {
   id: string;
   label: string;
   category: "clothing" | "toiletries" | "electronics" | "documents" | "health" | "misc";
 }
 
 const PLUG_TYPES: Record<string, string> = {
-  JP: "A/B", VN: "A/C", TH: "A/B/C", DE: "C/F", FR: "C/E",
-  ES: "C/F", IT: "C/F/L", GB: "G", US: "A/B", KR: "C/F",
-  IN: "C/D/M", AU: "I", CN: "A/C/I", SG: "G", MY: "G",
-  ID: "C/F", PH: "A/B", KH: "A/C/G", MM: "C/D/F/G",
+  JP: "A/B",
+  VN: "A/C",
+  TH: "A/B/C",
+  DE: "C/F",
+  FR: "C/E",
+  ES: "C/F",
+  IT: "C/F/L",
+  GB: "G",
+  US: "A/B",
+  KR: "C/F",
+  IN: "C/D/M",
+  AU: "I",
+  CN: "A/C/I",
+  SG: "G",
+  MY: "G",
+  ID: "C/F",
+  PH: "A/B",
+  KH: "A/C/G",
+  MM: "C/D/F/G",
 };
 
 const SE_ASIA = new Set(["TH", "VN", "KH", "ID", "PH", "MM", "LA", "MY", "SG"]);
@@ -48,7 +63,11 @@ export function generatePackingList(
   const conditions = weatherData.map((w) => w.condition.toLowerCase()).join(" ");
 
   if (temps.some((t) => t < 20)) {
-    add("layers", `Layers for ${weatherData.find((w) => parseTemp(w.temp) < 20)?.city ?? "cooler areas"}`, "clothing");
+    add(
+      "layers",
+      `Layers for ${weatherData.find((w) => parseTemp(w.temp) < 20)?.city ?? "cooler areas"}`,
+      "clothing"
+    );
   }
   if (temps.some((t) => t > 28)) {
     add("sunscreen", "Sunscreen SPF 50", "toiletries");

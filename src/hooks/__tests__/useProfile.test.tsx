@@ -12,9 +12,10 @@ function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  return Wrapper;
 }
 
 describe("useProfile hooks", () => {
@@ -48,7 +49,7 @@ describe("useProfile hooks", () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/v1/profile",
-      expect.objectContaining({ method: "PATCH" }),
+      expect.objectContaining({ method: "PATCH" })
     );
   });
 
@@ -62,7 +63,7 @@ describe("useProfile hooks", () => {
         homeAirport: "FRA",
         travelStyle: "comfort",
         interests: [],
-      }),
+      })
     ).rejects.toThrow("Failed to save profile");
   });
 
@@ -84,14 +85,14 @@ describe("useProfile hooks", () => {
       click: clickSpy,
     } as unknown as HTMLAnchorElement;
     const nativeCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi
-      .spyOn(document, "createElement")
-      .mockImplementation(((tagName: string) => {
-        if (tagName.toLowerCase() === "a") {
-          return anchor;
-        }
-        return nativeCreateElement(tagName);
-      }) as typeof document.createElement);
+    const createElementSpy = vi.spyOn(document, "createElement").mockImplementation(((
+      tagName: string
+    ) => {
+      if (tagName.toLowerCase() === "a") {
+        return anchor;
+      }
+      return nativeCreateElement(tagName);
+    }) as typeof document.createElement);
 
     const { result } = renderHook(() => useExportData(), { wrapper: createWrapper() });
 

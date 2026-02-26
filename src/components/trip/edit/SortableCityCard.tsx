@@ -13,8 +13,9 @@ interface SortableCityCardProps {
 }
 
 export function SortableCityCard({ city, onDaysChange, onRemove }: SortableCityCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: city.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: city.id,
+  });
 
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiped, setIsSwiped] = useState(false);
@@ -52,20 +53,20 @@ export function SortableCityCard({ city, onDaysChange, onRemove }: SortableCityC
   return (
     <div ref={setNodeRef} style={style} className="relative overflow-hidden">
       {/* Delete reveal (behind card) */}
-      <div className="absolute right-0 top-0 bottom-0 w-18 flex items-center justify-center bg-destructive rounded-r-xl">
+      <div className="bg-destructive absolute top-0 right-0 bottom-0 flex w-18 items-center justify-center rounded-r-xl">
         <button
           onClick={() => onRemove(city.id)}
           className="flex flex-col items-center gap-0.5 px-3 text-white"
           aria-label={`Remove ${city.city}`}
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
           <span className="text-[10px]">Remove</span>
         </button>
       </div>
 
       {/* Card */}
       <div
-        className="relative flex items-center gap-3 bg-card border border-border rounded-xl px-3 py-3 transition-transform"
+        className="bg-card border-border relative flex items-center gap-3 rounded-xl border px-3 py-3 transition-transform"
         style={{ transform: `translateX(${swipeX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -73,48 +74,46 @@ export function SortableCityCard({ city, onDaysChange, onRemove }: SortableCityC
       >
         {/* Drag handle */}
         <button
-          className="flex-shrink-0 text-muted-foreground cursor-grab active:cursor-grabbing touch-none"
+          className="text-muted-foreground flex-shrink-0 cursor-grab touch-none active:cursor-grabbing"
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"
         >
-          <GripVertical className="w-5 h-5" />
+          <GripVertical className="h-5 w-5" />
         </button>
 
         {/* City name */}
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-foreground truncate">{city.city}</p>
-          <p className="text-xs text-muted-foreground">{city.country}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-foreground truncate text-sm font-semibold">{city.city}</p>
+          <p className="text-muted-foreground text-xs">{city.country}</p>
         </div>
 
         {/* Day stepper */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => onDaysChange(city.id, Math.max(1, city.days - 1))}
-            className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors"
+            className="border-border text-muted-foreground hover:bg-secondary flex h-7 w-7 items-center justify-center rounded-full border transition-colors"
             aria-label="Decrease days"
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Minus className="h-3.5 w-3.5" />
           </button>
-          <span className="text-sm font-medium w-12 text-center tabular-nums">
-            {city.days}d
-          </span>
+          <span className="w-12 text-center text-sm font-medium tabular-nums">{city.days}d</span>
           <button
             onClick={() => onDaysChange(city.id, city.days + 1)}
-            className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors"
+            className="border-border text-muted-foreground hover:bg-secondary flex h-7 w-7 items-center justify-center rounded-full border transition-colors"
             aria-label="Increase days"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
 
         {/* Desktop delete icon */}
         <button
           onClick={() => onRemove(city.id)}
-          className="hidden sm:flex flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+          className="text-muted-foreground hover:text-destructive hidden flex-shrink-0 transition-colors sm:flex"
           aria-label={`Remove ${city.city}`}
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
     </div>

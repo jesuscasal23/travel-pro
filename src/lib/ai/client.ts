@@ -30,7 +30,7 @@ export function getAnthropic(): Anthropic {
 
 // ── Types ─────────────────────────────────────────────────────
 
-export interface ClaudeResult {
+interface ClaudeResult {
   text: string;
   inputTokens: number;
   outputTokens: number;
@@ -48,7 +48,7 @@ export async function callClaude(
   userPrompt: string,
   systemPrompt: string = SYSTEM_PROMPT_V1,
   maxTokens: number = 10000,
-  retryCount = 0,
+  retryCount = 0
 ): Promise<ClaudeResult> {
   try {
     const message = await getAnthropic().messages.create({
@@ -66,7 +66,10 @@ export async function callClaude(
 
     const stopReason = message.stop_reason ?? "unknown";
     if (stopReason === "max_tokens") {
-      log.warn("Claude output truncated", { maxTokens, outputTokens: message.usage?.output_tokens });
+      log.warn("Claude output truncated", {
+        maxTokens,
+        outputTokens: message.usage?.output_tokens,
+      });
       throw new Error(
         `Claude output was truncated at ${message.usage?.output_tokens} tokens (limit: ${maxTokens}). The itinerary was too long for the current token budget.`
       );

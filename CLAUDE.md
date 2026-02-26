@@ -1,6 +1,7 @@
 # Travel Pro — Claude Code Guide
 
 ## Stack
+
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript 5
 - **Styling**: Tailwind v4 — design tokens in `src/app/globals.css` via `@theme inline` (no `tailwind.config.ts`)
 - **State**: Zustand 5 with `persist` middleware → localStorage (`src/stores/useTripStore.ts`)
@@ -14,6 +15,7 @@
 - **Testing**: Vitest (unit) + Playwright (e2e)
 
 ## Commands
+
 ```bash
 npm run dev            # Start dev server
 npm run build          # prisma generate && prisma migrate deploy && next build
@@ -27,15 +29,19 @@ npm run db:generate    # Prisma generate client
 ```
 
 ## Database Migrations (IMPORTANT)
+
 **When modifying `prisma/schema.prisma`, ALWAYS create a migration immediately after:**
+
 ```bash
 npx prisma migrate dev --name describe_the_change
 ```
+
 This generates a versioned SQL file in `prisma/migrations/` that MUST be committed with the schema change. Production applies migrations automatically via `prisma migrate deploy` in the build script.
 
 **Never use `prisma db push`** — it syncs the schema without creating migration history, causing drift between local and production.
 
 ## Project Structure
+
 ```
 src/
 ├── app/
@@ -83,17 +89,20 @@ src/
 ## Key Patterns
 
 ### Next.js 16 Dynamic Params
+
 ```tsx
-const { id } = use(params)  // params: Promise<{ id: string }>
+const { id } = use(params); // params: Promise<{ id: string }>
 ```
 
 ### MapLibre (SSR-safe)
+
 ```tsx
-const RouteMap = dynamic(() => import('@/components/map/RouteMap'), { ssr: false })
+const RouteMap = dynamic(() => import("@/components/map/RouteMap"), { ssr: false });
 // Import from react-map-gl/maplibre (NOT react-map-gl or react-map-gl/mapbox)
 ```
 
 ### Zustand Store
+
 ```ts
 // Persisted: onboardingStep, nationality, homeAirport, travelStyle, interests, displayName,
 //   tripType, region, destination, destinationCountry, destinationCountryCode,
@@ -103,17 +112,21 @@ const RouteMap = dynamic(() => import('@/components/map/RouteMap'), { ssr: false
 ```
 
 ### Lazy Initialization
+
 Prisma, Redis, Resend, Anthropic — all lazy-init to avoid build-time crashes when env vars missing.
 
 ### Prisma JSON Cast
+
 ```ts
-data as unknown as Itinerary  // Always double-cast .data fields from DB
+data as unknown as Itinerary; // Always double-cast .data fields from DB
 ```
 
 ### Guest vs Auth
+
 `/plan` and `/trip` are public — guests can generate and view. Auth encouraged (not required) via "save your trip" nudge. `/dashboard` and `/profile` are protected.
 
 ## Types (all in `src/types/index.ts`)
+
 ```ts
 CityStop     { id, city, country, lat, lng, days, countryCode, iataCode? }
 TripDay      { day, date, city, activities: DayActivity[], isTravel?, travelFrom?, travelTo? }
@@ -129,6 +142,7 @@ TripType     = "single-city" | "multi-city"
 ```
 
 ## AI Pipeline (`src/lib/ai/`)
+
 1. **Route selection** (multi-city only): Haiku picks cities via `selectRoute()` → `CityWithDays[]`
 2. **Prompt assembly**: `assemblePrompt()` (v1/v2) or `assembleSingleCityPrompt()` with profile + intent + optional flight skeleton
 3. **Claude Haiku call**: maxTokens 10,000 (multi-city) / 4,000 (single-city), temp 0.7, 50s timeout
@@ -139,22 +153,24 @@ TripType     = "single-city" | "multi-city"
 Content filtering retry: backoff, max 2 retries.
 
 ## API Routes
-| Route | Methods | Auth | Notes |
-|-------|---------|------|-------|
-| `/api/generate` | POST | Public (10/min IP) | Phase 0 generation, Zod validation |
-| `/api/generate/select-route` | POST | Public (10/min IP) | Haiku route selection (multi-city) |
-| `/api/health` | GET | None | Env check (anthropic, supabase, db) |
-| `/api/v1/trips` | GET, POST | GET: auth, POST: optional | List/create trips |
-| `/api/v1/trips/[id]` | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version |
-| `/api/v1/trips/[id]/generate` | POST | Public | SSE stream (route→activities→visa→weather→done) |
-| `/api/v1/trips/[id]/optimize` | POST | Owner | Amadeus flight price optimization |
-| `/api/v1/trips/[id]/share` | GET | Owner | Generate/return share token + URL |
-| `/api/v1/trips/shared/[token]` | GET | Public (60/min) | Fetch shared itinerary |
-| `/api/v1/profile` | GET, PATCH, DELETE | Auth | Upsert profile, GDPR account delete |
-| `/api/v1/profile/export` | GET | Auth | GDPR data export (all user data as JSON) |
-| `/api/v1/affiliate/redirect` | GET | Public | Log click + 302 redirect (domain whitelist) |
+
+| Route                          | Methods            | Auth                             | Notes                                           |
+| ------------------------------ | ------------------ | -------------------------------- | ----------------------------------------------- |
+| `/api/generate`                | POST               | Public (10/min IP)               | Phase 0 generation, Zod validation              |
+| `/api/generate/select-route`   | POST               | Public (10/min IP)               | Haiku route selection (multi-city)              |
+| `/api/health`                  | GET                | None                             | Env check (anthropic, supabase, db)             |
+| `/api/v1/trips`                | GET, POST          | GET: auth, POST: optional        | List/create trips                               |
+| `/api/v1/trips/[id]`           | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version             |
+| `/api/v1/trips/[id]/generate`  | POST               | Public                           | SSE stream (route→activities→visa→weather→done) |
+| `/api/v1/trips/[id]/optimize`  | POST               | Owner                            | Amadeus flight price optimization               |
+| `/api/v1/trips/[id]/share`     | GET                | Owner                            | Generate/return share token + URL               |
+| `/api/v1/trips/shared/[token]` | GET                | Public (60/min)                  | Fetch shared itinerary                          |
+| `/api/v1/profile`              | GET, PATCH, DELETE | Auth                             | Upsert profile, GDPR account delete             |
+| `/api/v1/profile/export`       | GET                | Auth                             | GDPR data export (all user data as JSON)        |
+| `/api/v1/affiliate/redirect`   | GET                | Public                           | Log click + 302 redirect (domain whitelist)     |
 
 ## Database (5 models in `prisma/schema.prisma`)
+
 - **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], activityLevel?, languagesSpoken[], onboardingCompleted
 - **Trip**: profileId?, tripType, region, destination?, dateStart, dateEnd, budget, travelers, shareToken?
 - **Itinerary**: tripId, data (Json), version, isActive, promptVersion, generationStatus, generationJobId?
@@ -164,6 +180,7 @@ Content filtering retry: backoff, max 2 retries.
 Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { tripId } }` — tripId is not unique.
 
 ## Proxy (`src/proxy.ts`)
+
 - **Protected routes**: `/dashboard`, `/profile` → redirect to `/login?next=...` if unauthenticated
 - **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`
 - **Rate limiting** (Upstash Redis sliding window):
@@ -173,16 +190,18 @@ Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { t
 - Fail-open: requests pass through if Redis unavailable
 
 ## Styling
-| Token | Value | Tailwind class |
-|-------|-------|---------------|
-| `--primary` | teal `#0D7377` | `bg-primary`, `text-primary` |
-| `--accent` | coral `#E85D4A` | `bg-accent`, `text-accent` |
+
+| Token       | Value           | Tailwind class               |
+| ----------- | --------------- | ---------------------------- |
+| `--primary` | teal `#0D7377`  | `bg-primary`, `text-primary` |
+| `--accent`  | coral `#E85D4A` | `bg-accent`, `text-accent`   |
 
 Component classes: `.card-travel`, `.btn-primary`, `.btn-ghost`, `.chip`, `.chip-selected`, `.badge-success/.warning/.info`
 
 Dark mode: `dark` class on `<html>` via ThemeToggle + inline script in root layout prevents flash.
 
 ## Required Env Vars
+
 ```
 ANTHROPIC_API_KEY              # AI generation
 DATABASE_URL                   # Prisma → Supabase PostgreSQL
@@ -200,20 +219,25 @@ NEXT_PUBLIC_SENTRY_DSN         # Error tracking
 AMADEUS_API_KEY                # Flight optimization (optional)
 AMADEUS_API_SECRET
 ```
+
 See `.env.local.example` for full list.
 
 ## Version Notes
+
 - **Zod v4** (^4.3.6): `z.record()` requires 2 args: `z.record(z.string(), z.unknown())`
 - **Prisma v7** (^7.4.0): datasource `url` in `prisma.config.ts` (not schema.prisma). VS Code may show false errors.
 - **Next.js 16**: `params` is `Promise<{...}>` in client components — use `React.use(params)`
 
 ## CSP / Security Headers
+
 Defined in `next.config.ts` (wrapped with `withSentryConfig`):
+
 - `script-src unsafe-inline` (+ `unsafe-eval` in dev only) + PostHog CDN
 - `worker-src blob:` required by MapLibre GL Web Workers
 - Add new external domains to `connect-src` before using any new APIs
 
 ## Sample Data
+
 `src/data/sampleData.ts` — Thomas & Lena's Asia trip (7 cities, 22 days, €10k, comfort).
 Exports: `sampleFullItinerary`, `sampleTrips`, `sampleRoute`, `sampleBudget`, `interestOptions`, `regions`.
 Separate data files: `airports-full.ts`, `nationalities.ts`, `cities.ts`, `visa-index.ts`, `travelStyles.ts`.

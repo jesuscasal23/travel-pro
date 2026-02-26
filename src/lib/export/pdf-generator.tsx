@@ -14,22 +14,9 @@
 // ============================================================
 
 import React from "react";
-import {
-  Document,
-  Page,
-  View,
-  Text,
-  Image,
-  Link,
-  StyleSheet,
-} from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, Link, StyleSheet } from "@react-pdf/renderer";
 
-import {
-  sampleItinerary,
-  sampleRoute,
-  sampleVisas,
-  sampleWeather,
-} from "@/data/sampleData";
+import { sampleItinerary, sampleRoute, sampleVisas, sampleWeather } from "@/data/sampleData";
 import type { TripDay, CityStop, VisaInfo, CityWeather } from "@/types";
 
 // ============================================================
@@ -54,7 +41,7 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 9,
-    paddingTop: 52,    // room for fixed header
+    paddingTop: 52, // room for fixed header
     paddingBottom: 44, // room for fixed footer
     paddingHorizontal: 40,
     backgroundColor: WHITE,
@@ -347,9 +334,7 @@ function buildMapboxUrl(route: CityStop[]): string | null {
   if (!token) return null;
 
   // Mapbox pin format: pin-s-LABEL+COLOR(LNG,LAT)
-  const pins = route
-    .map((stop, i) => `pin-s-${i + 1}+0D7377(${stop.lng},${stop.lat})`)
-    .join(",");
+  const pins = route.map((stop, i) => `pin-s-${i + 1}+0D7377(${stop.lng},${stop.lat})`).join(",");
 
   return (
     `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/` +
@@ -370,12 +355,12 @@ function RouteOverview({ route }: { route: CityStop[] }) {
             <Text style={styles.routeBadge}>{i + 1}</Text>
             <View>
               <Text style={styles.routeCityName}>{stop.city}</Text>
-              <Text style={styles.routeDays}>{stop.days}d · {stop.country}</Text>
+              <Text style={styles.routeDays}>
+                {stop.days}d · {stop.country}
+              </Text>
             </View>
           </View>
-          {i < route.length - 1 && (
-            <Text style={styles.routeArrow}>›</Text>
-          )}
+          {i < route.length - 1 && <Text style={styles.routeArrow}>›</Text>}
         </React.Fragment>
       ))}
     </View>
@@ -414,7 +399,7 @@ function DaySections({ days }: { days: TripDay[] }) {
               {day.isTravel && day.travelFrom && day.travelTo ? (
                 <View style={styles.dayTravelRow}>
                   <Text style={styles.dayTravelText}>
-                    ✈  {day.travelFrom} → {day.travelTo}
+                    ✈ {day.travelFrom} → {day.travelTo}
                     {day.travelDuration ? `  ·  ${day.travelDuration}` : ""}
                   </Text>
                 </View>
@@ -429,15 +414,9 @@ function DaySections({ days }: { days: TripDay[] }) {
                         {[act.duration, act.cost].filter(Boolean).join("  ·  ")}
                       </Text>
                     </View>
-                    {act.why ? (
-                      <Text style={styles.dayActivityWhy}>{act.why}</Text>
-                    ) : null}
-                    {act.tip ? (
-                      <Text style={styles.dayActivityTip}>💡 {act.tip}</Text>
-                    ) : null}
-                    {act.food ? (
-                      <Text style={styles.dayActivityFood}>🍽️  {act.food}</Text>
-                    ) : null}
+                    {act.why ? <Text style={styles.dayActivityWhy}>{act.why}</Text> : null}
+                    {act.tip ? <Text style={styles.dayActivityTip}>💡 {act.tip}</Text> : null}
+                    {act.food ? <Text style={styles.dayActivityFood}>🍽️ {act.food}</Text> : null}
                   </View>
                 ))
               )}
@@ -459,8 +438,13 @@ function VisaTable({ visas }: { visas: VisaInfo[] }) {
         <Text style={[styles.tableHeadCell, styles.colVNotes]}>Notes</Text>
       </View>
       {visas.map((visa, i) => (
-        <View key={visa.countryCode} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
-          <Text style={[styles.tableCellBold, styles.colVCountry]}>{visa.icon} {visa.country}</Text>
+        <View
+          key={visa.countryCode}
+          style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}
+        >
+          <Text style={[styles.tableCellBold, styles.colVCountry]}>
+            {visa.icon} {visa.country}
+          </Text>
           <Text style={[styles.tableCell, styles.colVReq]}>{formatLabel(visa.requirement)}</Text>
           <Text style={[styles.tableCell, styles.colVStay]}>{visa.maxStayDays} days</Text>
           <Text style={[styles.tableCellMuted, styles.colVNotes]}>{visa.notes}</Text>
@@ -482,7 +466,9 @@ function WeatherTable({ weather }: { weather: CityWeather[] }) {
         <View key={w.city} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
           <Text style={[styles.tableCellBold, styles.colWCity]}>{w.city}</Text>
           <Text style={[styles.tableCell, styles.colWTemp]}>{w.temp}</Text>
-          <Text style={[styles.tableCell, styles.colWCond]}>{w.icon} {w.condition}</Text>
+          <Text style={[styles.tableCell, styles.colWCond]}>
+            {w.icon} {w.condition}
+          </Text>
         </View>
       ))}
     </View>
@@ -584,12 +570,7 @@ export function TripPDFDocument({
         />
 
         {/* ── Map ────────────────────────────────────────────── */}
-        {mapUrl && (
-          <Image
-            src={mapUrl}
-            style={styles.mapImage}
-          />
-        )}
+        {mapUrl && <Image src={mapUrl} style={styles.mapImage} />}
 
         {/* ── Trip title ─────────────────────────────────────── */}
         <Text style={styles.tripTitle}>{tripTitle}</Text>

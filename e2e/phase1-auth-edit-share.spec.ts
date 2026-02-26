@@ -117,7 +117,9 @@ test("E2E-05: unauthenticated app routes render without hard redirect", async ({
 
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByText(/Welcome back\.|No trips yet|Couldn't load your trips/i)).toBeVisible();
+  await expect(
+    page.getByText(/Welcome back\.|No trips yet|Couldn't load your trips/i)
+  ).toBeVisible();
 
   await page.goto("/plan");
   await expect(page).toHaveURL(/\/plan/);

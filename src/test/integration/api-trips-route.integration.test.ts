@@ -112,9 +112,7 @@ describe("GET /api/v1/trips/[id]", () => {
     const trip = await createTestTrip(prisma);
     await createTestItinerary(prisma, trip.id);
 
-    const req = new NextRequest(
-      `http://localhost:3000/api/v1/trips/${trip.id}`,
-    );
+    const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}`);
 
     const response = await GET_TRIP(req, {
       params: Promise.resolve({ id: trip.id }),
@@ -127,9 +125,7 @@ describe("GET /api/v1/trips/[id]", () => {
   });
 
   it("returns 404 for non-existent trip", async () => {
-    const req = new NextRequest(
-      "http://localhost:3000/api/v1/trips/nonexistent-id",
-    );
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/nonexistent-id");
 
     const response = await GET_TRIP(req, {
       params: Promise.resolve({ id: "nonexistent-id" }),

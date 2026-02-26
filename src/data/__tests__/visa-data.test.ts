@@ -99,18 +99,18 @@ describe("VISA_INDEX — known Japanese passport lookups (JP)", () => {
 describe("NATIONALITY_TO_ISO2 — key mappings", () => {
   it("maps country names used in the onboarding dropdown", () => {
     const expected: Record<string, string> = {
-      "Germany": "DE",
-      "France": "FR",
+      Germany: "DE",
+      France: "FR",
       "United Kingdom": "GB",
       "United States": "US",
-      "Japan": "JP",
-      "Australia": "AU",
-      "India": "IN",
-      "Brazil": "BR",
-      "Canada": "CA",
+      Japan: "JP",
+      Australia: "AU",
+      India: "IN",
+      Brazil: "BR",
+      Canada: "CA",
       "South Korea": "KR",
-      "China": "CN",
-      "Singapore": "SG",
+      China: "CN",
+      Singapore: "SG",
     };
     for (const [nationality, iso2] of Object.entries(expected)) {
       expect(NATIONALITY_TO_ISO2[nationality]).toBe(iso2);

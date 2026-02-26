@@ -12,12 +12,9 @@ export function ItinerarySkeletonTab({ route }: { route: CityStop[] }) {
           <CityHeader city={city} variant="desktop" />
 
           {/* Day pills skeleton */}
-          <div className="flex gap-2 mt-4">
+          <div className="mt-4 flex gap-2">
             {Array.from({ length: city.days }, (_, i) => (
-              <div
-                key={i}
-                className="h-8 w-16 rounded-full bg-secondary animate-pulse"
-              />
+              <div key={i} className="bg-secondary h-8 w-16 animate-pulse rounded-full" />
             ))}
           </div>
 
@@ -26,14 +23,14 @@ export function ItinerarySkeletonTab({ route }: { route: CityStop[] }) {
             {Array.from({ length: 3 }, (_, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 p-4 rounded-xl border border-border animate-pulse"
+                className="border-border flex animate-pulse items-start gap-3 rounded-xl border p-4"
               >
-                <div className="w-10 h-10 rounded-lg bg-secondary flex-shrink-0" />
+                <div className="bg-secondary h-10 w-10 flex-shrink-0 rounded-lg" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-40 bg-secondary rounded" />
-                  <div className="h-3 w-64 bg-secondary rounded" />
+                  <div className="bg-secondary h-4 w-40 rounded" />
+                  <div className="bg-secondary h-3 w-64 rounded" />
                 </div>
-                <div className="w-14 h-5 bg-secondary rounded-full flex-shrink-0" />
+                <div className="bg-secondary h-5 w-14 flex-shrink-0 rounded-full" />
               </div>
             ))}
           </div>

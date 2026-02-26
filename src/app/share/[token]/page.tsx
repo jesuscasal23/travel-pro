@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const itinerary = raw ? parseItineraryData(raw) : null;
   const title = itinerary?.route?.length
     ? getTripTitle(itinerary.route)
-    : trip.destination ?? trip.region ?? "Trip";
+    : (trip.destination ?? trip.region ?? "Trip");
   const totalDays = itinerary?.days?.length ?? 0;
   const cityCount = itinerary?.route?.length ?? 0;
 
@@ -39,7 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     cityCount > 1 ? `${cityCount}-city` : null,
     "AI-crafted itinerary",
     `for ${trip.travelers} traveller${trip.travelers !== 1 ? "s" : ""}`,
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const url = `${APP_URL}/share/${token}`;
 
@@ -76,16 +78,16 @@ export default async function SharePage({ params }: Props) {
   const itinerary = parseItineraryData(trip.itineraries[0].data);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Growth CTA Banner */}
-      <div className="bg-primary text-white py-3 px-4">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+      <div className="bg-primary px-4 py-3 text-white">
+        <div className="mx-auto flex max-w-4xl flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-4">
           <p className="text-sm font-medium">
             ✈ Like this itinerary? Plan your own trip in minutes.
           </p>
           <Link
             href="/signup"
-            className="shrink-0 bg-background text-primary text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-background/90 transition-colors"
+            className="bg-background text-primary hover:bg-background/90 shrink-0 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
           >
             Start free →
           </Link>

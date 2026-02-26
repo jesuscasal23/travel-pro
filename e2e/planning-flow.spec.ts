@@ -17,8 +17,28 @@ import { test, expect, type Page } from "@playwright/test";
 
 // Minimal mock for speculative route selection
 const mockCitiesWithDays = [
-  { id: "tokyo", city: "Tokyo", country: "Japan", countryCode: "JP", iataCode: "NRT", lat: 35.68, lng: 139.69, minDays: 2, maxDays: 4 },
-  { id: "hanoi", city: "Hanoi", country: "Vietnam", countryCode: "VN", iataCode: "HAN", lat: 21.03, lng: 105.85, minDays: 1, maxDays: 3 },
+  {
+    id: "tokyo",
+    city: "Tokyo",
+    country: "Japan",
+    countryCode: "JP",
+    iataCode: "NRT",
+    lat: 35.68,
+    lng: 139.69,
+    minDays: 2,
+    maxDays: 4,
+  },
+  {
+    id: "hanoi",
+    city: "Hanoi",
+    country: "Vietnam",
+    countryCode: "VN",
+    iataCode: "HAN",
+    lat: 21.03,
+    lng: 105.85,
+    minDays: 1,
+    maxDays: 3,
+  },
 ];
 
 /** Set up mocks needed for the plan page guest flow. */
@@ -33,7 +53,7 @@ async function setupMocks(page: Page) {
       status: 401,
       contentType: "application/json",
       body: JSON.stringify({ code: 401, msg: "not_authenticated" }),
-    }),
+    })
   );
 
   // Route selection (multi-city)
@@ -42,7 +62,7 @@ async function setupMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ cities: mockCitiesWithDays }),
-    }),
+    })
   );
 }
 
@@ -79,7 +99,9 @@ test("E2E-01b: Continue disabled on Step 1 until nationality is selected", async
 
 // ── E2E-01c: Continue disabled on destination step until region + dates set ───
 
-test("E2E-01c: Continue disabled on destination step until region and dates are set", async ({ page }) => {
+test("E2E-01c: Continue disabled on destination step until region and dates are set", async ({
+  page,
+}) => {
   await setupMocks(page);
 
   // Pre-populate store so we land directly on Step 3 (destination)

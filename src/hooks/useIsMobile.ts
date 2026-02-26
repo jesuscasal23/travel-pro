@@ -13,10 +13,13 @@ export function useIsMobile(breakpoint = 768): boolean | null {
 
   useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
-    setIsMobile(mql.matches);
+    if (mql.matches !== isMobile) {
+      setIsMobile(mql.matches);
+    }
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [breakpoint]);
 
   return isMobile;

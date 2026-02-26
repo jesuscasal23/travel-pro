@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { optimizeFlights } from "@/lib/flights/optimizer";
 import { parseIataCode } from "@/lib/affiliate/link-generator";
 import { lookupIata } from "@/lib/flights/city-iata-map";
-import { apiHandler, ApiError, requireAuth, requireProfile, requireTripOwnership, parseJsonBody } from "@/lib/api/helpers";
+import {
+  apiHandler,
+  ApiError,
+  requireAuth,
+  requireProfile,
+  requireTripOwnership,
+  parseJsonBody,
+} from "@/lib/api/helpers";
 import type { CityStop } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 
@@ -20,7 +27,7 @@ export const POST = apiHandler("POST /api/v1/trips/:id/optimize", async (req, pa
   const profile = await requireProfile(userId);
   await requireTripOwnership(params.id, profile.id);
 
-  const body = await parseJsonBody(req) as {
+  const body = (await parseJsonBody(req)) as {
     homeAirport: string;
     route: CityStop[];
     dateStart: string;
@@ -74,16 +81,13 @@ export const POST = apiHandler("POST /api/v1/trips/:id/optimize", async (req, pa
   }));
 
   try {
-    const skeleton = await optimizeFlights(
-      homeIata,
-      cities,
-      dateStart,
-      totalDays,
-      travelers ?? 1
-    );
+    const skeleton = await optimizeFlights(homeIata, cities, dateStart, totalDays, travelers ?? 1);
 
     return NextResponse.json({ skeleton });
   } catch {
-    throw new ApiError(502, "Flight optimization failed — Amadeus may not be configured or available");
+    throw new ApiError(
+      502,
+      "Flight optimization failed — Amadeus may not be configured or available"
+    );
   }
 });

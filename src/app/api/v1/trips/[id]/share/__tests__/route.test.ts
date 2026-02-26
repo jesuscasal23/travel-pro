@@ -85,4 +85,3 @@ describe("GET /api/v1/trips/:id/share", () => {
     expect(mockEnsureShareToken).not.toHaveBeenCalled();
   });
 });
-

@@ -4,7 +4,7 @@ import type { VisaInfo } from "@/types";
  * ISO-2 country codes for all Schengen Area member states.
  * As of 2025: 29 countries (EU Schengen + EFTA Schengen).
  */
-export const SCHENGEN_COUNTRY_CODES = new Set([
+const SCHENGEN_COUNTRY_CODES = new Set([
   "AT", // Austria
   "BE", // Belgium
   "BG", // Bulgaria
@@ -46,7 +46,7 @@ export const SCHENGEN_COUNTRY_CODES = new Set([
 export function shouldHideVisaSection(
   visaData: VisaInfo[] | undefined,
   passportCountryCode: string | undefined,
-  destinationCountryCodes: string[],
+  destinationCountryCodes: string[]
 ): boolean {
   if (!visaData || visaData.length === 0) return false;
 

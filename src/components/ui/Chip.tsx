@@ -7,7 +7,7 @@ interface ChipProps {
   className?: string;
 }
 
-export function Chip({ label, selected = false, onClick, className = "" }: ChipProps) {
+function Chip({ label, selected = false, onClick, className = "" }: ChipProps) {
   return (
     <button
       type="button"

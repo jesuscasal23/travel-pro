@@ -82,4 +82,3 @@ describe("getUniqueCountries", () => {
     expect(getUniqueCountries([tokyo])).toEqual(["Japan"]);
   });
 });
-

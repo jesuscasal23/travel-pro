@@ -3,10 +3,10 @@ import type { DayActivity, TripDay } from "@/types";
 
 export interface TimedActivity {
   activity: DayActivity;
-  startMinutes: number;  // minutes from midnight (e.g., 540 = 9:00)
+  startMinutes: number; // minutes from midnight (e.g., 540 = 9:00)
   endMinutes: number;
-  startTime: string;     // "09:00"
-  endTime: string;       // "11:00"
+  startTime: string; // "09:00"
+  endTime: string; // "11:00"
   durationMinutes: number;
 }
 
@@ -17,8 +17,8 @@ function minutesToTime(m: number): string {
 }
 
 const GAP_MINUTES = 30;
-const DEFAULT_START = 9 * 60;  // 9:00 AM
-const TRAVEL_START = 7 * 60;   // 7:00 AM
+const DEFAULT_START = 9 * 60; // 9:00 AM
+const TRAVEL_START = 7 * 60; // 7:00 AM
 
 export function distributeActivities(day: TripDay): TimedActivity[] {
   let cursor = day.isTravel ? TRAVEL_START : DEFAULT_START;

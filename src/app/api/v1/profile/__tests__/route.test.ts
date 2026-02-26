@@ -98,7 +98,7 @@ describe("PATCH /api/v1/profile", () => {
     expect(mockPrisma.profile.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1" },
-      }),
+      })
     );
     expect(json.profile.userId).toBe("user-1");
   });
@@ -136,4 +136,3 @@ describe("DELETE /api/v1/profile", () => {
     expect(json).toEqual({ deleted: true });
   });
 });
-

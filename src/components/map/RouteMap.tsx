@@ -65,7 +65,12 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
   }, [activeCityIndex, cities]);
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ height: "100%" }} role="region" aria-label={`Route map showing ${cities.length} ${cities.length === 1 ? "city" : "cities"}: ${cities.map(c => c.city).join(", ")}`}>
+    <div
+      className="overflow-hidden rounded-xl"
+      style={{ height: "100%" }}
+      role="region"
+      aria-label={`Route map showing ${cities.length} ${cities.length === 1 ? "city" : "cities"}: ${cities.map((c) => c.city).join(", ")}`}
+    >
       <Map
         ref={mapRef}
         mapStyle={MAP_STYLE}

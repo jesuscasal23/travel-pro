@@ -32,8 +32,7 @@ export default function RouteMapFallback({
   const lngRange = maxLng - minLng || 1;
   const latRange = maxLat - minLat || 1;
 
-  const toX = (lng: number) =>
-    padding + ((lng - minLng) / lngRange) * (svgWidth - 2 * padding);
+  const toX = (lng: number) => padding + ((lng - minLng) / lngRange) * (svgWidth - 2 * padding);
   const toY = (lat: number) =>
     padding + (1 - (lat - minLat) / latRange) * (svgHeight - 2 * padding);
 
@@ -42,8 +41,11 @@ export default function RouteMapFallback({
   const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <div className="rounded-xl overflow-hidden bg-sky-50 dark:bg-sky-950 border border-border" style={{ height: "360px" }}>
-      <div className="h-full flex flex-col items-center justify-center p-4">
+    <div
+      className="border-border overflow-hidden rounded-xl border bg-sky-50 dark:bg-sky-950"
+      style={{ height: "360px" }}
+    >
+      <div className="flex h-full flex-col items-center justify-center p-4">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="w-full max-w-sm"
@@ -65,11 +67,7 @@ export default function RouteMapFallback({
             const city = cities[i];
             const isActive = activeCityIndex === i;
             return (
-              <g
-                key={city.id}
-                onClick={() => onCityClick(i)}
-                style={{ cursor: "pointer" }}
-              >
+              <g key={city.id} onClick={() => onCityClick(i)} style={{ cursor: "pointer" }}>
                 {/* Active ring */}
                 {isActive && (
                   <circle
@@ -120,7 +118,7 @@ export default function RouteMapFallback({
           })}
         </svg>
 
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 text-xs">
           {cities.length} cities · {cities.reduce((s, c) => s + c.days, 0)} days
         </p>
       </div>

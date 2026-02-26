@@ -13,7 +13,12 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
 import { useTripStore } from "@/stores/useTripStore";
-import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
+import {
+  mockFramerMotion,
+  mockNextLink,
+  mockNavbar,
+  createTestQueryWrapper,
+} from "@/__tests__/mocks";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -46,7 +51,8 @@ vi.mock("@/components/ui", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/components/ui")>();
   return {
     ...actual,
-    Badge: ({ children }: { children?: React.ReactNode }) => React.createElement("span", null, children),
+    Badge: ({ children }: { children?: React.ReactNode }) =>
+      React.createElement("span", null, children),
   };
 });
 
@@ -110,8 +116,7 @@ describe("PlanPage — guest mode API failure", () => {
   it("shows an error message when trip creation returns a non-200 response", async () => {
     // Single-city: no speculative route selection
     // Fetch #1: POST /api/v1/trips (on Generate click) → fails
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+    global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
@@ -122,9 +127,7 @@ describe("PlanPage — guest mode API failure", () => {
     fireEvent.click(generateBtn);
 
     await waitFor(() =>
-      expect(
-        screen.getByText(/failed to create trip|something went wrong/i)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/failed to create trip|something went wrong/i)).toBeInTheDocument()
     );
 
     expect(mockRouterPush).not.toHaveBeenCalled();
@@ -142,9 +145,7 @@ describe("PlanPage — guest mode API failure", () => {
     fireEvent.click(generateBtn);
 
     await waitFor(() =>
-      expect(
-        screen.getByText(/failed to create trip|something went wrong/i)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/failed to create trip|something went wrong/i)).toBeInTheDocument()
     );
 
     expect(mockRouterPush).not.toHaveBeenCalled();
@@ -169,16 +170,15 @@ describe("PlanPage — guest mode API failure", () => {
     await waitFor(() => screen.getByText(/failed to create trip|something went wrong/i));
 
     // User clicks Generate again → navigates on success
-    act(() => { fireEvent.click(generateBtn); });
+    act(() => {
+      fireEvent.click(generateBtn);
+    });
 
-    await waitFor(() =>
-      expect(mockRouterPush).toHaveBeenCalledWith("/trip/trip-123")
-    );
+    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledWith("/trip/trip-123"));
   }, 15_000);
 
   it("does not inject data into the store on failure", async () => {
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+    global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 

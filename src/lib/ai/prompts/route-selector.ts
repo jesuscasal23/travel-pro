@@ -16,9 +16,7 @@ export async function selectRoute(
   anthropic: Anthropic
 ): Promise<CityWithDays[]> {
   const durationDays =
-    intent.dateStart && intent.dateEnd
-      ? daysBetween(intent.dateStart, intent.dateEnd)
-      : 21;
+    intent.dateStart && intent.dateEnd ? daysBetween(intent.dateStart, intent.dateEnd) : 21;
 
   // Sightseeing days available = total days - one travel day per flight
   // For N cities: N+1 flights → N+1 travel days → sightseeing = totalDays - N - 1

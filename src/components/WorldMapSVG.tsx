@@ -6,14 +6,10 @@ export function WorldMapSVG() {
     <svg
       viewBox="0 0 1000 500"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-full h-full"
+      className="h-full w-full"
       aria-hidden="true"
     >
-      <g
-        fill="hsl(var(--primary) / 0.04)"
-        stroke="hsl(var(--primary) / 0.08)"
-        strokeWidth="1"
-      >
+      <g fill="hsl(var(--primary) / 0.04)" stroke="hsl(var(--primary) / 0.08)" strokeWidth="1">
         {/* North America */}
         <path d="M 60 80 L 100 70 L 150 65 L 200 70 L 230 85 L 240 110 L 220 130 L 210 160 L 190 190 L 170 200 L 150 210 L 130 200 L 110 185 L 90 170 L 75 150 L 65 130 L 55 110 Z" />
         {/* Greenland */}

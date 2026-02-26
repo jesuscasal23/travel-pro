@@ -6,9 +6,7 @@
 
 /** Calculate number of days between two ISO date strings (YYYY-MM-DD). */
 export function daysBetween(start: string, end: string): number {
-  return Math.ceil(
-    (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
-  );
+  return Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
 }
 
 /** Add N days to an ISO date string, return YYYY-MM-DD. */

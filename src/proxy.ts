@@ -11,7 +11,17 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_PREFIXES = ["/dashboard", "/profile"];
 
 // Routes that are always public
-const PUBLIC_PREFIXES = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/privacy", "/share", "/api/health", "/auth/callback"];
+const PUBLIC_PREFIXES = [
+  "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/privacy",
+  "/share",
+  "/api/health",
+  "/auth/callback",
+];
 
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -93,18 +103,17 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
 
     if (!res.ok) return null;
 
-    const results = await res.json() as { result: unknown }[];
-    const count = results[2]?.result as number ?? 0;
+    const results = (await res.json()) as { result: unknown }[];
+    const count = (results[2]?.result as number) ?? 0;
 
     if (count > limit) {
       const retryAfter = windowSeconds;
       return new NextResponse(
         JSON.stringify({
           error: "Too many requests",
-          message:
-            limitKey.startsWith("rl:generate:")
-              ? `You've reached the generation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
-              : "Too many requests. Please slow down.",
+          message: limitKey.startsWith("rl:generate:")
+            ? `You've reached the generation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
+            : "Too many requests. Please slow down.",
           retryAfter,
         }),
         {
@@ -163,7 +172,10 @@ export async function proxy(request: NextRequest) {
 
   // For protected routes, check Supabase session
   // Skip auth if Supabase is not configured (local dev without Supabase)
-  if (isProtected(pathname) && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+  if (
+    isProtected(pathname) &&
+    (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  ) {
     return next();
   }
   if (isProtected(pathname)) {
@@ -183,9 +195,7 @@ export async function proxy(request: NextRequest) {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value)
-            );
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
             cookiesToSet.forEach(({ name, value, options }) =>
               response.cookies.set(name, value, options)
             );

@@ -4,10 +4,6 @@ export const metadata: Metadata = {
   title: "Plan Your Trip",
 };
 
-export default function PlanLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PlanLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

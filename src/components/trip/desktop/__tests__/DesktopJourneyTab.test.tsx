@@ -121,16 +121,9 @@ describe("DesktopJourneyTab", () => {
   });
 
   it("shows generation loading state for city being generated", () => {
-    render(
-      <DesktopJourneyTab
-        itinerary={itineraryNoActivities()}
-        generatingCityId="rome"
-      />,
-    );
+    render(<DesktopJourneyTab itinerary={itineraryNoActivities()} generatingCityId="rome" />);
 
-    expect(
-      screen.getByText(/Generating activity recommendations for Rome/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Generating activity recommendations for Rome/i)).toBeInTheDocument();
   });
 
   it("shows recommendation CTA and wires callback when city has no activities", () => {
@@ -139,13 +132,13 @@ describe("DesktopJourneyTab", () => {
       <DesktopJourneyTab
         itinerary={itineraryNoActivities()}
         onGenerateActivities={onGenerateActivities}
-      />,
+      />
     );
 
     fireEvent.click(
       screen.getByRole("button", {
         name: /Get activity recommendations for Rome/i,
-      }),
+      })
     );
     expect(onGenerateActivities).toHaveBeenCalledWith("rome", "Rome");
   });

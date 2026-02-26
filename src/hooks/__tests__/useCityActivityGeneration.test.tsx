@@ -18,13 +18,48 @@ import type { ReactNode } from "react";
 
 const mergedItinerary: Itinerary = {
   route: [
-    { id: "tokyo", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 3, countryCode: "JP" },
-    { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 2, countryCode: "JP" },
+    {
+      id: "tokyo",
+      city: "Tokyo",
+      country: "Japan",
+      lat: 35.68,
+      lng: 139.69,
+      days: 3,
+      countryCode: "JP",
+    },
+    {
+      id: "kyoto",
+      city: "Kyoto",
+      country: "Japan",
+      lat: 35.01,
+      lng: 135.77,
+      days: 2,
+      countryCode: "JP",
+    },
   ],
   days: [
-    { day: 1, date: "Oct 1", city: "Tokyo", activities: [{ name: "Senso-ji", category: "culture", why: "Historic temple", duration: "2h" }] },
-    { day: 2, date: "Oct 2", city: "Tokyo", activities: [{ name: "Shibuya", category: "explore", why: "Iconic crossing", duration: "3h" }] },
-    { day: 3, date: "Oct 3", city: "Tokyo", activities: [{ name: "Tsukiji", category: "food", why: "Fresh sushi", duration: "2h" }] },
+    {
+      day: 1,
+      date: "Oct 1",
+      city: "Tokyo",
+      activities: [
+        { name: "Senso-ji", category: "culture", why: "Historic temple", duration: "2h" },
+      ],
+    },
+    {
+      day: 2,
+      date: "Oct 2",
+      city: "Tokyo",
+      activities: [
+        { name: "Shibuya", category: "explore", why: "Iconic crossing", duration: "3h" },
+      ],
+    },
+    {
+      day: 3,
+      date: "Oct 3",
+      city: "Tokyo",
+      activities: [{ name: "Tsukiji", category: "food", why: "Fresh sushi", duration: "2h" }],
+    },
     { day: 4, date: "Oct 4", city: "Kyoto", activities: [] },
     { day: 5, date: "Oct 5", city: "Kyoto", activities: [] },
   ],
@@ -48,9 +83,10 @@ function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  return Wrapper;
 }
 
 // ── Tests ─────────────────────────────────────────────────────
@@ -112,14 +148,14 @@ describe("useCityActivityGeneration", () => {
           profile: mutationParams.profile,
           cityId: "tokyo",
         }),
-      }),
+      })
     );
   });
 
   it("throws with server error message on non-200 response", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ error: "Activities already generated for \"Tokyo\"" }),
+      json: () => Promise.resolve({ error: 'Activities already generated for "Tokyo"' }),
     });
 
     const { result } = renderHook(() => useCityActivityGeneration(), {
@@ -132,7 +168,7 @@ describe("useCityActivityGeneration", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    expect(result.current.error?.message).toBe("Activities already generated for \"Tokyo\"");
+    expect(result.current.error?.message).toBe('Activities already generated for "Tokyo"');
   });
 
   it("uses fallback error message when response body is not JSON", async () => {

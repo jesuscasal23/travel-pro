@@ -56,9 +56,7 @@ export function useTripGeneration() {
           endpoint,
           method: "POST",
           message:
-            error instanceof Error
-              ? error.message
-              : "Network error while starting trip generation",
+            error instanceof Error ? error.message : "Network error while starting trip generation",
         });
         throw new Error("Generation failed");
       }
@@ -136,10 +134,7 @@ export function useTripGeneration() {
         const tripEndpoint = `/api/v1/trips/${resultTripId}`;
         const tripRes = await fetch(tripEndpoint);
         if (!tripRes.ok) {
-          const parsed = await parseApiErrorResponse(
-            tripRes,
-            "Generated trip could not be loaded",
-          );
+          const parsed = await parseApiErrorResponse(tripRes, "Generated trip could not be loaded");
           await reportApiError({
             source: "useTripGeneration",
             endpoint: tripEndpoint,
@@ -167,7 +162,7 @@ export function useTripGeneration() {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.trips.detail(variables.tripId),
       });
     },

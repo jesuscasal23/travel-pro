@@ -55,7 +55,11 @@ export async function generateCoreItinerary(
   let maxTokens: number;
 
   if (isSingleCityTrip) {
-    log.info("Single-city mode", { destination: tripIntent.destination, country: tripIntent.destinationCountry, elapsed: elapsed() });
+    log.info("Single-city mode", {
+      destination: tripIntent.destination,
+      country: tripIntent.destinationCountry,
+      elapsed: elapsed(),
+    });
     userPrompt = assembleSingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
     maxTokens = 8000;
@@ -67,13 +71,24 @@ export async function generateCoreItinerary(
       try {
         log.info("Stage A: Selecting route with Haiku");
         cities = await selectRoute(profile, tripIntent, getAnthropic());
-        log.info("Stage A complete", { duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`, cities: cities.map(c => c.city), elapsed: elapsed() });
+        log.info("Stage A complete", {
+          duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
+          cities: cities.map((c) => c.city),
+          elapsed: elapsed(),
+        });
       } catch (e) {
-        log.warn("Stage A failed, falling back to Claude-only route", { duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`, error: getErrorMessage(e), elapsed: elapsed() });
+        log.warn("Stage A failed, falling back to Claude-only route", {
+          duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
+          error: getErrorMessage(e),
+          elapsed: elapsed(),
+        });
         cities = undefined;
       }
     } else {
-      log.info("Stage A skipped: using pre-selected cities", { count: cities.length, elapsed: elapsed() });
+      log.info("Stage A skipped: using pre-selected cities", {
+        count: cities.length,
+        elapsed: elapsed(),
+      });
     }
 
     userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
@@ -88,14 +103,28 @@ export async function generateCoreItinerary(
   log.info("Stage 2: Calling Claude Haiku", { tripId: tripIntent.id });
   const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens);
   const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
-  log.info("Stage 2 complete", { duration: `${claudeDuration}s`, model: claudeResult.model, inputTokens: claudeResult.inputTokens, outputTokens: claudeResult.outputTokens, elapsed: elapsed() });
+  log.info("Stage 2 complete", {
+    duration: `${claudeDuration}s`,
+    model: claudeResult.model,
+    inputTokens: claudeResult.inputTokens,
+    outputTokens: claudeResult.outputTokens,
+    elapsed: elapsed(),
+  });
 
   // Stage 3: Parse + validate
   const t3 = Date.now();
   const parsed = parseAndValidate(claudeResult.text);
-  log.info("Stage 3 (parse+validate) done", { duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`, cities: parsed.route.length, days: parsed.days.length, elapsed: elapsed() });
+  log.info("Stage 3 (parse+validate) done", {
+    duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`,
+    cities: parsed.route.length,
+    days: parsed.days.length,
+    elapsed: elapsed(),
+  });
 
-  log.info("Core generation complete (enrichment deferred)", { tripId: tripIntent.id, elapsed: elapsed() });
+  log.info("Core generation complete (enrichment deferred)", {
+    tripId: tripIntent.id,
+    elapsed: elapsed(),
+  });
 
   // Best-effort: discover unknown cities (non-blocking)
   discoverNewCities(parsed.route, tripIntent.id).catch(() => {});
@@ -125,7 +154,10 @@ export async function generateRouteOnly(
   let maxTokens: number;
 
   if (isSingleCityTrip) {
-    log.info("Route-only: single-city mode", { destination: tripIntent.destination, elapsed: elapsed() });
+    log.info("Route-only: single-city mode", {
+      destination: tripIntent.destination,
+      elapsed: elapsed(),
+    });
     userPrompt = assembleRouteOnlySingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY;
     maxTokens = 2000;
@@ -137,9 +169,16 @@ export async function generateRouteOnly(
       try {
         log.info("Route-only Stage A: Selecting route with Haiku");
         cities = await selectRoute(profile, tripIntent, getAnthropic());
-        log.info("Route-only Stage A complete", { duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`, cities: cities.map(c => c.city), elapsed: elapsed() });
+        log.info("Route-only Stage A complete", {
+          duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
+          cities: cities.map((c) => c.city),
+          elapsed: elapsed(),
+        });
       } catch (e) {
-        log.warn("Route-only Stage A failed, falling back", { error: getErrorMessage(e), elapsed: elapsed() });
+        log.warn("Route-only Stage A failed, falling back", {
+          error: getErrorMessage(e),
+          elapsed: elapsed(),
+        });
         cities = undefined;
       }
     }
@@ -162,7 +201,12 @@ export async function generateRouteOnly(
   });
 
   const parsed = parseAndValidate(claudeResult.text);
-  log.info("Route-only generation complete", { tripId: tripIntent.id, cities: parsed.route.length, days: parsed.days.length, elapsed: elapsed() });
+  log.info("Route-only generation complete", {
+    tripId: tripIntent.id,
+    cities: parsed.route.length,
+    days: parsed.days.length,
+    elapsed: elapsed(),
+  });
 
   // Best-effort: discover unknown cities (non-blocking)
   discoverNewCities(parsed.route, tripIntent.id).catch(() => {});
@@ -199,7 +243,13 @@ export async function generateCityActivities(
 
   const maxTokens = 8000;
 
-  log.info("Generating activities for city", { cityId, city: cityStop.city, days: cityDays.length, maxTokens, elapsed: elapsed() });
+  log.info("Generating activities for city", {
+    cityId,
+    city: cityStop.city,
+    days: cityDays.length,
+    maxTokens,
+    elapsed: elapsed(),
+  });
 
   const userPrompt = assembleCityActivitiesPrompt(profile, tripIntent, cityStop, cityDays);
 
@@ -260,7 +310,12 @@ export async function generateItinerary(
     enrichVisa(profile.nationality, core.route),
     enrichWeather(core.route, tripIntent.dateStart),
   ]);
-  log.info("Stage 4 (enrich) done", { duration: `${((Date.now() - t4) / 1000).toFixed(1)}s`, visaEntries: visaData.length, weatherEntries: weatherData.length, elapsed: elapsed() });
+  log.info("Stage 4 (enrich) done", {
+    duration: `${((Date.now() - t4) / 1000).toFixed(1)}s`,
+    visaEntries: visaData.length,
+    weatherEntries: weatherData.length,
+    elapsed: elapsed(),
+  });
 
   const itinerary: Itinerary = {
     ...core,
@@ -285,9 +340,16 @@ export async function generateItinerary(
         data: { tripId: tripIntent.id, data: itinerary as object },
       });
     }
-    log.info("Stage 5 (DB persist) done", { duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`, elapsed: elapsed() });
+    log.info("Stage 5 (DB persist) done", {
+      duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`,
+      elapsed: elapsed(),
+    });
   } catch (e) {
-    log.error("Stage 5 (DB persist) failed", { duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`, error: getErrorMessage(e), elapsed: elapsed() });
+    log.error("Stage 5 (DB persist) failed", {
+      duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`,
+      error: getErrorMessage(e),
+      elapsed: elapsed(),
+    });
   }
 
   log.info("Full generation complete", { tripId: tripIntent.id, elapsed: elapsed() });

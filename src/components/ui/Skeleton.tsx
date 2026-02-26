@@ -6,15 +6,15 @@ interface SkeletonProps {
 
 /** Generic skeleton pulse box — compose with Tailwind sizing. */
 export function Skeleton({ className = "" }: SkeletonProps) {
-  return <div className={`animate-pulse bg-secondary rounded ${className}`} />;
+  return <div className={`bg-secondary animate-pulse rounded ${className}`} />;
 }
 
 /** Card-shaped skeleton with a fixed height. */
 export function SkeletonCard({ className = "" }: SkeletonProps) {
-  return <div className={`h-48 rounded-xl bg-secondary animate-pulse ${className}`} />;
+  return <div className={`bg-secondary h-48 animate-pulse rounded-xl ${className}`} />;
 }
 
 /** One line of skeleton text. */
-export function SkeletonText({ className = "" }: SkeletonProps) {
-  return <div className={`h-3 bg-secondary rounded w-full animate-pulse ${className}`} />;
+function SkeletonText({ className = "" }: SkeletonProps) {
+  return <div className={`bg-secondary h-3 w-full animate-pulse rounded ${className}`} />;
 }

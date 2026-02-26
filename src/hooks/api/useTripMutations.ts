@@ -56,7 +56,7 @@ export function useCreateTrip() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
     },
   });
 }
@@ -134,7 +134,8 @@ export function useShareTrip() {
           source: "useShareTrip",
           endpoint,
           method: "GET",
-          message: error instanceof Error ? error.message : "Network error while generating share link",
+          message:
+            error instanceof Error ? error.message : "Network error while generating share link",
         });
         throw new Error("Failed to generate share link");
       }

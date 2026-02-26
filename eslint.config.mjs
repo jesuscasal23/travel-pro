@@ -1,18 +1,45 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import tseslint from "typescript-eslint";
+import importPlugin from "eslint-plugin-import";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scripts and config files are not part of the app — skip strict rules
+    "scripts/**",
+    "prisma/seed.ts",
   ]),
+  // Stricter rules for catching common agent-introduced mistakes
+  {
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+      import: importPlugin,
+    },
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      // Forbid console.log left in production code — use the logger utility instead
+      "no-console": ["error", { allow: ["warn", "error", "info"] }],
+
+      // Catch unawaited async calls in Next.js API routes and server actions
+      "@typescript-eslint/no-floating-promises": "error",
+
+      // Catch circular imports that agents commonly introduce across module boundaries
+      "import/no-cycle": ["error", { maxDepth: 3, ignoreExternal: true }],
+    },
+  },
 ]);
 
 export default eslintConfig;

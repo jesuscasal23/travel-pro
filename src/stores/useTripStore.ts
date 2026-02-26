@@ -33,7 +33,6 @@ interface TripStoreState {
   // Result
   currentTripId: string;
   itinerary: Itinerary | null;
-
 }
 
 interface TripStoreActions {
@@ -50,7 +49,13 @@ interface TripStoreActions {
   setTripType: (tripType: TripType) => void;
   setTripDescription: (description: string) => void;
   setRegion: (region: string) => void;
-  setDestination: (city: string, country: string, countryCode: string, lat: number, lng: number) => void;
+  setDestination: (
+    city: string,
+    country: string,
+    countryCode: string,
+    lat: number,
+    lng: number
+  ) => void;
   clearDestination: () => void;
   setDateStart: (date: string) => void;
   setDateEnd: (date: string) => void;
@@ -121,9 +126,21 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setTripDescription: (description) => set({ tripDescription: description }),
       setRegion: (region) => set({ region }),
       setDestination: (city, country, countryCode, lat, lng) =>
-        set({ destination: city, destinationCountry: country, destinationCountryCode: countryCode, destinationLat: lat, destinationLng: lng }),
+        set({
+          destination: city,
+          destinationCountry: country,
+          destinationCountryCode: countryCode,
+          destinationLat: lat,
+          destinationLng: lng,
+        }),
       clearDestination: () =>
-        set({ destination: "", destinationCountry: "", destinationCountryCode: "", destinationLat: 0, destinationLng: 0 }),
+        set({
+          destination: "",
+          destinationCountry: "",
+          destinationCountryCode: "",
+          destinationLat: 0,
+          destinationLng: 0,
+        }),
       setDateStart: (date) => set({ dateStart: date }),
       setDateEnd: (date) => set({ dateEnd: date }),
       setTravelers: (count) => set({ travelers: count }),

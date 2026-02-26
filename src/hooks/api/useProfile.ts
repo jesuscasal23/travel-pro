@@ -60,7 +60,8 @@ export function useExportData() {
           source: "useExportData",
           endpoint,
           method: "GET",
-          message: error instanceof Error ? error.message : "Network error while exporting profile data",
+          message:
+            error instanceof Error ? error.message : "Network error while exporting profile data",
         });
         throw new Error("Export failed");
       }

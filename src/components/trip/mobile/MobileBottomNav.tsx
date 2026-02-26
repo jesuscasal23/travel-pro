@@ -32,17 +32,17 @@ export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps
       const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]");
       buttons?.[next]?.focus();
     },
-    [activeTab, onTabChange],
+    [activeTab, onTabChange]
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border">
+    <nav className="bg-background/95 border-border fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur-lg">
       <div
         ref={containerRef}
         role="tablist"
         aria-label="Trip sections"
         onKeyDown={handleKeyDown}
-        className="flex items-center justify-around h-14"
+        className="flex h-14 items-center justify-around"
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;

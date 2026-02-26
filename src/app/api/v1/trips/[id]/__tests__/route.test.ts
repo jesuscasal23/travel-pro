@@ -37,10 +37,7 @@ vi.mock("@/lib/request-context", () => ({
 
 import { prisma } from "@/lib/db/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import {
-  findActiveItinerary,
-  createItineraryVersion,
-} from "@/lib/services/itinerary-service";
+import { findActiveItinerary, createItineraryVersion } from "@/lib/services/itinerary-service";
 import { PATCH, DELETE } from "../route";
 
 const mockPrisma = prisma as unknown as {
@@ -121,7 +118,7 @@ describe("PATCH /api/v1/trips/:id", () => {
         previousVersion: 1,
         promptVersion: "v1",
         data: itineraryData,
-      }),
+      })
     );
     expect(json.itinerary.id).toBe("itin-2");
   });
@@ -183,4 +180,3 @@ describe("DELETE /api/v1/trips/:id", () => {
     expect(mockPrisma.trip.delete).toHaveBeenCalledWith({ where: { id: tripId } });
   });
 });
-

@@ -67,9 +67,7 @@ export async function optimizeFlights(
   if (assignments.length === 0) {
     // Fallback: distribute evenly within constraints
     const perCity = Math.max(Math.round(target / N), 1);
-    assignments.push(
-      cities.map((c) => Math.min(c.maxDays, Math.max(c.minDays, perCity)))
-    );
+    assignments.push(cities.map((c) => Math.min(c.maxDays, Math.max(c.minDays, perCity))));
   }
 
   // ── Pre-fetch all needed flight prices in parallel ──────────
@@ -103,11 +101,7 @@ export async function optimizeFlights(
     const maxOffset = k + 1 + maxCumulative;
 
     for (let offset = minOffset; offset <= maxOffset; offset++) {
-      queueFetch(
-        cities[k].iataCode,
-        cities[k + 1].iataCode,
-        addDays(startDateStr, offset)
-      );
+      queueFetch(cities[k].iataCode, cities[k + 1].iataCode, addDays(startDateStr, offset));
     }
   }
 
@@ -125,22 +119,26 @@ export async function optimizeFlights(
 
     // Outbound (fixed)
     const ob = priceMap.get(`${homeIata}:${cities[0].iataCode}:${startDateStr}`);
-    if (!ob) { ok = false; } else cost += ob.price;
+    if (!ob) {
+      ok = false;
+    } else cost += ob.price;
 
     // Inter-city legs
     let cumulative = 0;
     for (let k = 0; k < N - 1 && ok; k++) {
       cumulative += assignment[k];
       const date = addDays(startDateStr, k + 1 + cumulative);
-      const f = priceMap.get(
-        `${cities[k].iataCode}:${cities[k + 1].iataCode}:${date}`
-      );
-      if (!f) { ok = false; } else cost += f.price;
+      const f = priceMap.get(`${cities[k].iataCode}:${cities[k + 1].iataCode}:${date}`);
+      if (!f) {
+        ok = false;
+      } else cost += f.price;
     }
 
     // Return (fixed date, variable leg)
     const ret = priceMap.get(`${cities[N - 1].iataCode}:${homeIata}:${returnDate}`);
-    if (!ret) { ok = false; } else cost += ret.price;
+    if (!ret) {
+      ok = false;
+    } else cost += ret.price;
 
     if (ok) {
       validCostSum += cost;
@@ -153,9 +151,7 @@ export async function optimizeFlights(
   }
 
   // Average cost across all valid assignments — baseline for savings display
-  const averageCost = validCostCount > 1
-    ? Math.round(validCostSum / validCostCount)
-    : undefined;
+  const averageCost = validCostCount > 1 ? Math.round(validCostSum / validCostCount) : undefined;
 
   // ── Build leg objects ────────────────────────────────────────
   function makeLeg(
@@ -181,9 +177,7 @@ export async function optimizeFlights(
   const legs: OptimizedLeg[] = [];
 
   // Outbound
-  legs.push(
-    makeLeg("Home", cities[0].city, homeIata, cities[0].iataCode, startDateStr)
-  );
+  legs.push(makeLeg("Home", cities[0].city, homeIata, cities[0].iataCode, startDateStr));
 
   // Inter-city
   let cumulative = 0;
@@ -191,26 +185,12 @@ export async function optimizeFlights(
     cumulative += bestAssignment[k];
     const date = addDays(startDateStr, k + 1 + cumulative);
     legs.push(
-      makeLeg(
-        cities[k].city,
-        cities[k + 1].city,
-        cities[k].iataCode,
-        cities[k + 1].iataCode,
-        date
-      )
+      makeLeg(cities[k].city, cities[k + 1].city, cities[k].iataCode, cities[k + 1].iataCode, date)
     );
   }
 
   // Return
-  legs.push(
-    makeLeg(
-      cities[N - 1].city,
-      "Home",
-      cities[N - 1].iataCode,
-      homeIata,
-      returnDate
-    )
-  );
+  legs.push(makeLeg(cities[N - 1].city, "Home", cities[N - 1].iataCode, homeIata, returnDate));
 
   return {
     homeIata,

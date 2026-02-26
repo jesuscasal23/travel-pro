@@ -10,14 +10,14 @@ The affiliate infrastructure (`buildHotelLink`, `buildTrackedLink`, `AffiliateCl
 
 ## Overview of changes
 
-| # | File | What changes |
-|---|------|-------------|
-| 1 | `src/types/index.ts` | Add `AccommodationRecommendation` type; extend `Itinerary` |
-| 2 | `src/lib/ai/prompts/v1.ts` | Add hotel rules to system prompt; add `accommodation` to JSON schema |
-| 3 | `src/lib/ai/pipeline.ts` | Add Zod schema; add city-date derivation helper; attach booking links |
-| 4 | `src/data/sampleData.ts` | Add `accommodation` array to `sampleFullItinerary` |
-| 5 | `src/app/trip/[id]/page.tsx` | Add Hotels tab to left-panel sidebar |
-| 6 | `src/app/trip/[id]/summary/page.tsx` | Add Accommodation tab with per-city booking cards |
+| #   | File                                 | What changes                                                          |
+| --- | ------------------------------------ | --------------------------------------------------------------------- |
+| 1   | `src/types/index.ts`                 | Add `AccommodationRecommendation` type; extend `Itinerary`            |
+| 2   | `src/lib/ai/prompts/v1.ts`           | Add hotel rules to system prompt; add `accommodation` to JSON schema  |
+| 3   | `src/lib/ai/pipeline.ts`             | Add Zod schema; add city-date derivation helper; attach booking links |
+| 4   | `src/data/sampleData.ts`             | Add `accommodation` array to `sampleFullItinerary`                    |
+| 5   | `src/app/trip/[id]/page.tsx`         | Add Hotels tab to left-panel sidebar                                  |
+| 6   | `src/app/trip/[id]/summary/page.tsx` | Add Accommodation tab with per-city booking cards                     |
 
 No new files. No DB migrations. No new API routes.
 
@@ -32,14 +32,14 @@ Add the new interface after the `CityWeather` interface (line 82):
 ```ts
 /** A hotel recommendation for one city stop */
 export interface AccommodationRecommendation {
-  city: string;               // matches CityStop.city exactly
-  name: string;               // e.g. "Shinjuku Granbell Hotel"
+  city: string; // matches CityStop.city exactly
+  name: string; // e.g. "Shinjuku Granbell Hotel"
   type: "hostel" | "guesthouse" | "boutique" | "hotel" | "resort";
-  neighbourhood: string;      // e.g. "Shinjuku, 5 min walk to JR station"
-  pricePerNightEur: number;   // per room per night
-  nights: number;             // == CityStop.days
-  totalEur: number;           // pricePerNightEur × nights
-  why: string;                // 1-sentence pitch
+  neighbourhood: string; // e.g. "Shinjuku, 5 min walk to JR station"
+  pricePerNightEur: number; // per room per night
+  nights: number; // == CityStop.days
+  totalEur: number; // pricePerNightEur × nights
+  why: string; // 1-sentence pitch
   /** Populated post-processing in pipeline — not set by Claude */
   bookingLink?: string;
 }
@@ -163,7 +163,8 @@ function deriveCityDates(
     return route.map((stop, i) => ({
       city: stop.city,
       arrivalDate: flightLegs[i].departureDate,
-      departureDate: flightLegs[i + 1]?.departureDate ?? addDays(flightLegs[i].departureDate, stop.days),
+      departureDate:
+        flightLegs[i + 1]?.departureDate ?? addDays(flightLegs[i].departureDate, stop.days),
     }));
   }
 
@@ -243,15 +244,15 @@ Add an `accommodation` array to `sampleFullItinerary`. These are real hotels tha
 
 The trip runs Oct 1–23, 2026. City dates:
 
-| City | Check-in | Check-out | Nights | €/night | Total |
-|------|----------|-----------|--------|---------|-------|
-| Tokyo | 2026-10-01 | 2026-10-06 | 5 | €150 | €750 |
-| Kyoto | 2026-10-06 | 2026-10-09 | 3 | €170 | €510 |
-| Hanoi | 2026-10-09 | 2026-10-12 | 3 | €90 | €270 |
-| Ha Long Bay | 2026-10-12 | 2026-10-14 | 2 | €180 | €360 |
-| Bangkok | 2026-10-14 | 2026-10-18 | 4 | €120 | €480 |
-| Chiang Mai | 2026-10-18 | 2026-10-21 | 3 | €130 | €390 |
-| Phuket | 2026-10-21 | 2026-10-23 | 2 | €200 | €400 |
+| City        | Check-in   | Check-out  | Nights | €/night | Total |
+| ----------- | ---------- | ---------- | ------ | ------- | ----- |
+| Tokyo       | 2026-10-01 | 2026-10-06 | 5      | €150    | €750  |
+| Kyoto       | 2026-10-06 | 2026-10-09 | 3      | €170    | €510  |
+| Hanoi       | 2026-10-09 | 2026-10-12 | 3      | €90     | €270  |
+| Ha Long Bay | 2026-10-12 | 2026-10-14 | 2      | €180    | €360  |
+| Bangkok     | 2026-10-14 | 2026-10-18 | 4      | €120    | €480  |
+| Chiang Mai  | 2026-10-18 | 2026-10-21 | 3      | €130    | €390  |
+| Phuket      | 2026-10-21 | 2026-10-23 | 2      | €200    | €400  |
 
 Total: €3,160 (matches budget.accommodation: €3,500 within rounding — acceptable)
 
@@ -266,7 +267,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 5,
     totalEur: 750,
     why: "Design-forward rooms with rooftop bar in the heart of Tokyo's most vibrant district — perfect base for Shibuya, Harajuku and Shinjuku itself",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Tokyo&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DTokyo%26checkin%3D2026-10-01%26checkout%3D2026-10-06%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Tokyo&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DTokyo%26checkin%3D2026-10-01%26checkout%3D2026-10-06%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
   {
     city: "Kyoto",
@@ -277,7 +279,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 3,
     totalEur: 510,
     why: "Contemporary Japanese design hotel directly above Kyoto Station — a few steps to all Shinkansen connections and 15 min to Fushimi Inari",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Kyoto&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DKyoto%26checkin%3D2026-10-06%26checkout%3D2026-10-09%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Kyoto&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DKyoto%26checkin%3D2026-10-06%26checkout%3D2026-10-09%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
   {
     city: "Hanoi",
@@ -288,7 +291,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 3,
     totalEur: 270,
     why: "Intimate French-colonial boutique hotel on the most atmospheric street in the Old Quarter — breakfast on the rooftop terrace is a highlight",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Hanoi&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DHanoi%26checkin%3D2026-10-09%26checkout%3D2026-10-12%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Hanoi&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DHanoi%26checkin%3D2026-10-09%26checkout%3D2026-10-12%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
   {
     city: "Ha Long Bay",
@@ -299,7 +303,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 2,
     totalEur: 360,
     why: "Floating boutique hotel aboard a traditional junk — kayaking, cave visits and sunset cocktails on the sundeck are all included",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Ha+Long+Bay&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DHa%2BLong%2BBay%26checkin%3D2026-10-12%26checkout%3D2026-10-14%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Ha+Long+Bay&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DHa%2BLong%2BBay%26checkin%3D2026-10-12%26checkout%3D2026-10-14%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
   {
     city: "Bangkok",
@@ -310,7 +315,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 4,
     totalEur: 480,
     why: "Riverside pool hotel in the historic district — the Wat Pho, Wat Arun and Grand Palace are all within walking distance",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Bangkok&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DBangkok%26checkin%3D2026-10-14%26checkout%3D2026-10-18%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Bangkok&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DBangkok%26checkin%3D2026-10-14%26checkout%3D2026-10-18%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
   {
     city: "Chiang Mai",
@@ -321,7 +327,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 3,
     totalEur: 390,
     why: "Tropical boutique resort hidden behind a tamarind grove in the Old City moat — close to the Sunday Walking Street and the best temples",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Chiang+Mai&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DChiang%2BMai%26checkin%3D2026-10-18%26checkout%3D2026-10-21%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Chiang+Mai&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DChiang%2BMai%26checkin%3D2026-10-18%26checkout%3D2026-10-21%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
   {
     city: "Phuket",
@@ -332,7 +339,8 @@ export const sampleAccommodation: AccommodationRecommendation[] = [
     nights: 2,
     totalEur: 400,
     why: "Adults-focused pool villas right on the beach — the perfect final splurge after weeks of city-hopping",
-    bookingLink: "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Phuket&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DPhuket%26checkin%3D2026-10-21%26checkout%3D2026-10-23%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
+    bookingLink:
+      "/api/v1/affiliate/redirect?provider=booking&type=hotel&city=Phuket&dest=https%3A%2F%2Fwww.booking.com%2Fsearchresults.html%3Fss%3DPhuket%26checkin%3D2026-10-21%26checkout%3D2026-10-23%26group_adults%3D2%26aid%3DTRAVEL_PRO_AID%26no_rooms%3D1%26selected_currency%3DEUR",
   },
 ];
 ```
@@ -390,49 +398,53 @@ const [activeTab, setActiveTab] = useState<"visa" | "weather" | "budget" | "hote
 Add after the Budget tab `)}` closing tag (before the final `</motion.div>`):
 
 ```tsx
-{/* Hotels tab */}
-{activeTab === "hotels" && (
-  <div className="space-y-3">
-    {accommodation && accommodation.length > 0 ? (
-      accommodation.map((rec) => (
-        <div
-          key={rec.city}
-          className="p-3 bg-background rounded-lg space-y-2"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="text-sm font-medium text-foreground">{rec.name}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{rec.city} · {rec.neighbourhood}</div>
+{
+  /* Hotels tab */
+}
+{
+  activeTab === "hotels" && (
+    <div className="space-y-3">
+      {accommodation && accommodation.length > 0 ? (
+        accommodation.map((rec) => (
+          <div key={rec.city} className="bg-background space-y-2 rounded-lg p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="text-foreground text-sm font-medium">{rec.name}</div>
+                <div className="text-muted-foreground mt-0.5 text-xs">
+                  {rec.city} · {rec.neighbourhood}
+                </div>
+              </div>
+              <span className="bg-secondary text-muted-foreground shrink-0 rounded-full px-2 py-0.5 text-xs capitalize">
+                {rec.type}
+              </span>
             </div>
-            <span className="shrink-0 text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full capitalize">
-              {rec.type}
-            </span>
+            <p className="text-muted-foreground text-xs leading-relaxed">{rec.why}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-foreground text-xs font-medium">
+                €{rec.pricePerNightEur}/night · {rec.nights} nights ·{" "}
+                <span className="text-primary">€{rec.totalEur}</span>
+              </span>
+              {rec.bookingLink && (
+                <a
+                  href={rec.bookingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary px-3 py-1 text-xs"
+                >
+                  Book →
+                </a>
+              )}
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">{rec.why}</p>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-foreground font-medium">
-              €{rec.pricePerNightEur}/night · {rec.nights} nights · <span className="text-primary">€{rec.totalEur}</span>
-            </span>
-            {rec.bookingLink && (
-              <a
-                href={rec.bookingLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs btn-primary py-1 px-3"
-              >
-                Book →
-              </a>
-            )}
-          </div>
-        </div>
-      ))
-    ) : (
-      <p className="text-xs text-muted-foreground text-center py-4">
-        No hotel recommendations available for this itinerary.
-      </p>
-    )}
-  </div>
-)}
+        ))
+      ) : (
+        <p className="text-muted-foreground py-4 text-center text-xs">
+          No hotel recommendations available for this itinerary.
+        </p>
+      )}
+    </div>
+  );
+}
 ```
 
 ---
@@ -452,22 +464,25 @@ const { route, days, budget, visaData, weatherData, flightLegs, accommodation } 
 The summary page already has a tab system for Route / Budget / Visa / Weather. Find the tab state and add:
 
 ```ts
-const [activeTab, setActiveTab] = useState<"route" | "budget" | "visa" | "weather" | "accommodation">("route");
+const [activeTab, setActiveTab] = useState<
+  "route" | "budget" | "visa" | "weather" | "accommodation"
+>("route");
 ```
 
 Add "accommodation" to the tab button list:
 
 ```tsx
-{(["route", "budget", "visa", "weather", "accommodation"] as const).map((tab) => (
-  <button
-    key={tab}
-    onClick={() => setActiveTab(tab)}
-    className={`px-4 py-2 text-sm font-medium capitalize rounded-lg transition-colors
-      ${activeTab === tab ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-  >
-    {tab === "accommodation" ? "🏨 Hotels" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-  </button>
-))}
+{
+  (["route", "budget", "visa", "weather", "accommodation"] as const).map((tab) => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${activeTab === tab ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+    >
+      {tab === "accommodation" ? "🏨 Hotels" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+    </button>
+  ));
+}
 ```
 
 ### 6c. Add Accommodation tab panel
@@ -475,63 +490,69 @@ Add "accommodation" to the tab button list:
 Add after the Weather tab panel:
 
 ```tsx
-{/* Accommodation tab */}
-{activeTab === "accommodation" && (
-  <div className="space-y-4">
-    <p className="text-sm text-muted-foreground">
-      Curated hotel picks for each city, matched to your travel style. Booking via these links directly supports Travel Pro.
-    </p>
-    {accommodation && accommodation.length > 0 ? (
-      accommodation.map((rec) => (
-        <div key={rec.city} className="card-travel bg-background space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-semibold text-foreground">{rec.city}</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">{rec.name}</p>
+{
+  /* Accommodation tab */
+}
+{
+  activeTab === "accommodation" && (
+    <div className="space-y-4">
+      <p className="text-muted-foreground text-sm">
+        Curated hotel picks for each city, matched to your travel style. Booking via these links
+        directly supports Travel Pro.
+      </p>
+      {accommodation && accommodation.length > 0 ? (
+        accommodation.map((rec) => (
+          <div key={rec.city} className="card-travel bg-background space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-foreground font-semibold">{rec.city}</h3>
+                <p className="text-muted-foreground mt-0.5 text-sm">{rec.name}</p>
+              </div>
+              <span className="bg-secondary text-muted-foreground shrink-0 rounded-full px-2 py-1 text-xs capitalize">
+                {rec.type}
+              </span>
             </div>
-            <span className="shrink-0 text-xs bg-secondary text-muted-foreground px-2 py-1 rounded-full capitalize">
-              {rec.type}
-            </span>
-          </div>
 
-          <p className="text-sm text-muted-foreground">{rec.neighbourhood}</p>
-          <p className="text-sm text-foreground">{rec.why}</p>
+            <p className="text-muted-foreground text-sm">{rec.neighbourhood}</p>
+            <p className="text-foreground text-sm">{rec.why}</p>
 
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <div className="text-sm">
-              <span className="text-muted-foreground">€{rec.pricePerNightEur}/night</span>
-              <span className="text-muted-foreground mx-2">·</span>
-              <span className="text-muted-foreground">{rec.nights} nights</span>
-              <span className="text-muted-foreground mx-2">·</span>
-              <span className="font-semibold text-foreground">€{rec.totalEur} total</span>
+            <div className="border-border flex items-center justify-between border-t pt-2">
+              <div className="text-sm">
+                <span className="text-muted-foreground">€{rec.pricePerNightEur}/night</span>
+                <span className="text-muted-foreground mx-2">·</span>
+                <span className="text-muted-foreground">{rec.nights} nights</span>
+                <span className="text-muted-foreground mx-2">·</span>
+                <span className="text-foreground font-semibold">€{rec.totalEur} total</span>
+              </div>
+              {rec.bookingLink && (
+                <a
+                  href={rec.bookingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary px-4 py-1.5 text-sm"
+                >
+                  Book on Booking.com →
+                </a>
+              )}
             </div>
-            {rec.bookingLink && (
-              <a
-                href={rec.bookingLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary text-sm py-1.5 px-4"
-              >
-                Book on Booking.com →
-              </a>
-            )}
           </div>
+        ))
+      ) : (
+        <div className="text-muted-foreground py-8 text-center text-sm">
+          Hotel recommendations are not available for this itinerary version. Regenerate your trip
+          to get curated hotel picks.
         </div>
-      ))
-    ) : (
-      <div className="text-center py-8 text-muted-foreground text-sm">
-        Hotel recommendations are not available for this itinerary version.
-        Regenerate your trip to get curated hotel picks.
-      </div>
-    )}
+      )}
 
-    {accommodation && accommodation.length > 0 && (
-      <div className="text-xs text-muted-foreground text-center pt-2">
-        Total estimated accommodation: €{accommodation.reduce((s, r) => s + r.totalEur, 0).toLocaleString()}
-      </div>
-    )}
-  </div>
-)}
+      {accommodation && accommodation.length > 0 && (
+        <div className="text-muted-foreground pt-2 text-center text-xs">
+          Total estimated accommodation: €
+          {accommodation.reduce((s, r) => s + r.totalEur, 0).toLocaleString()}
+        </div>
+      )}
+    </div>
+  );
+}
 ```
 
 ---
@@ -551,13 +572,13 @@ Work in this order to keep the app buildable at each step:
 
 ## Potential gotchas
 
-| Issue | Resolution |
-|-------|-----------|
-| Claude omits `accommodation` from JSON | Schema field is `.optional()` — graceful; UI shows fallback message |
-| `flightLegs` count doesn't match `route` count | `deriveCityDates` falls back to sequential date accumulation |
-| `accommodation` missing for old itineraries in DB | `accommodation` is optional on `Itinerary`; UI shows "regenerate" nudge |
-| Booking.com affiliate ID not in `.env.local` | Falls back to `"TRAVEL_PRO_AID"` placeholder — link still works for demo |
-| `max_tokens: 8000` insufficient with accommodation | Monitor generation; increase to 10000 if truncation occurs |
+| Issue                                              | Resolution                                                               |
+| -------------------------------------------------- | ------------------------------------------------------------------------ |
+| Claude omits `accommodation` from JSON             | Schema field is `.optional()` — graceful; UI shows fallback message      |
+| `flightLegs` count doesn't match `route` count     | `deriveCityDates` falls back to sequential date accumulation             |
+| `accommodation` missing for old itineraries in DB  | `accommodation` is optional on `Itinerary`; UI shows "regenerate" nudge  |
+| Booking.com affiliate ID not in `.env.local`       | Falls back to `"TRAVEL_PRO_AID"` placeholder — link still works for demo |
+| `max_tokens: 8000` insufficient with accommodation | Monitor generation; increase to 10000 if truncation occurs               |
 
 ---
 

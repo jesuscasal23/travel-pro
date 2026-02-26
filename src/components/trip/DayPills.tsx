@@ -28,7 +28,7 @@ export function DayPills({ days, activeDay, onDayClick }: DayPillsProps) {
       const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]");
       buttons?.[next]?.focus();
     },
-    [days, activeDay, onDayClick],
+    [days, activeDay, onDayClick]
   );
 
   return (
@@ -37,7 +37,7 @@ export function DayPills({ days, activeDay, onDayClick }: DayPillsProps) {
       role="tablist"
       aria-label="Day selector"
       onKeyDown={handleKeyDown}
-      className="flex gap-2 overflow-x-auto scrollbar-hide py-3"
+      className="scrollbar-hide flex gap-2 overflow-x-auto py-3"
     >
       {days.map((day, i) => {
         const isActive = activeDay === day.day;
@@ -48,7 +48,7 @@ export function DayPills({ days, activeDay, onDayClick }: DayPillsProps) {
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
             onClick={() => onDayClick(day.day)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
               isActive
                 ? "bg-foreground text-background"
                 : "bg-secondary text-muted-foreground hover:bg-secondary/80"

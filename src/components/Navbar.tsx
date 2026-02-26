@@ -10,22 +10,22 @@ interface NavbarProps {
 
 export function Navbar({ isAuthenticated = false }: NavbarProps) {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+    <nav className="bg-background/95 border-border fixed top-0 right-0 left-0 z-50 h-16 border-b backdrop-blur-sm">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Logo */}
         <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2">
-          <span className="text-xl font-bold text-primary">Travel Pro</span>
+          <span className="text-primary text-xl font-bold">Travel Pro</span>
         </Link>
 
         {/* Right side */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
           {isAuthenticated ? (
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-              <User className="w-4 h-4" />
+            <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
+              <User className="h-4 w-4" />
             </div>
           ) : (
-            <Link href="/plan" className="btn-ghost text-sm py-2 px-4">
+            <Link href="/plan" className="btn-ghost px-4 py-2 text-sm">
               Sign In
             </Link>
           )}

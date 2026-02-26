@@ -18,15 +18,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/data/visa-index", () => ({
   VISA_INDEX: {
     DE: {
-      JP: "90",              // visa-free, 90 days
-      VN: "e-visa",          // e-visa
-      TH: "30",              // visa-free, 30 days
-      DE: "-1",              // own country
-      KP: "no admission",    // no admission
+      JP: "90", // visa-free, 90 days
+      VN: "e-visa", // e-visa
+      TH: "30", // visa-free, 30 days
+      DE: "-1", // own country
+      KP: "no admission", // no admission
       MM: "visa on arrival", // visa on arrival
-      AU: "eta",             // ETA required
-      US: "visa free",       // visa-free, days unspecified
-      GB: "180",             // visa-free, 180 days (Schengen)
+      AU: "eta", // ETA required
+      US: "visa free", // visa-free, days unspecified
+      GB: "180", // visa-free, 180 days (Schengen)
     },
     US: {
       IN: "e-visa",
@@ -64,13 +64,13 @@ vi.mock("@upstash/redis", () => ({
 vi.mock("@/data/nationality-to-iso2", () => ({
   NATIONALITY_TO_ISO2: {
     // Country name format (from nationalities.ts)
-    "Germany": "DE",
+    Germany: "DE",
     "United States": "US",
-    "Nigeria": "NG",
-    "Japan": "JP",
+    Nigeria: "NG",
+    Japan: "JP",
     // Legacy adjective format (backwards-compat with persisted store)
-    "German": "DE",
-    "American": "US",
+    German: "DE",
+    American: "US",
   },
 }));
 
@@ -80,7 +80,15 @@ import type { CityStop } from "@/types";
 // ── Fixture helper ────────────────────────────────────────────────────────────
 
 function stop(countryCode: string, country: string): CityStop {
-  return { id: countryCode.toLowerCase(), city: `Test City`, country, lat: 0, lng: 0, days: 3, countryCode };
+  return {
+    id: countryCode.toLowerCase(),
+    city: `Test City`,
+    country,
+    lat: 0,
+    lng: 0,
+    days: 3,
+    countryCode,
+  };
 }
 
 // ── parseRequirement — all cell value types ───────────────────────────────────
@@ -234,7 +242,12 @@ describe("enrichVisa — deduplication", () => {
   });
 
   it("preserves insertion order across deduplicated stops", async () => {
-    const route = [stop("VN", "Vietnam"), stop("JP", "Japan"), stop("TH", "Thailand"), stop("JP", "Japan")];
+    const route = [
+      stop("VN", "Vietnam"),
+      stop("JP", "Japan"),
+      stop("TH", "Thailand"),
+      stop("JP", "Japan"),
+    ];
     const result = await enrichVisa("Germany", route);
     expect(result).toHaveLength(3);
     expect(result[0].countryCode).toBe("VN");

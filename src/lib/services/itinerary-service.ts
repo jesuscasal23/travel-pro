@@ -34,7 +34,11 @@ export async function createItineraryVersion(input: {
 }) {
   const { tripId, data, promptVersion, previousItineraryId, previousVersion } = input;
 
-  log.info("Creating itinerary version", { tripId, previousVersion, newVersion: previousVersion + 1 });
+  log.info("Creating itinerary version", {
+    tripId,
+    previousVersion,
+    newVersion: previousVersion + 1,
+  });
 
   const [, newItinerary] = await prisma.$transaction([
     // Deactivate previous version
@@ -62,10 +66,7 @@ export async function createItineraryVersion(input: {
  * Create an itinerary record in "generating" state (isActive: false).
  * Called at the start of AI generation before the pipeline runs.
  */
-export async function createGeneratingRecord(input: {
-  tripId: string;
-  promptVersion: string;
-}) {
+export async function createGeneratingRecord(input: { tripId: string; promptVersion: string }) {
   const record = await prisma.itinerary.create({
     data: {
       tripId: input.tripId,
@@ -89,7 +90,7 @@ export async function createGeneratingRecord(input: {
 export async function activateGeneratedItinerary(
   itineraryId: string,
   tripId: string,
-  data: Itinerary,
+  data: Itinerary
 ) {
   log.info("Activating generated itinerary", { itineraryId, tripId });
 
@@ -145,7 +146,10 @@ export async function cleanupStaleGenerations(maxAgeMs: number = 2 * 60 * 1000):
   });
 
   if (result.count > 0) {
-    log.warn("Cleaned up stale generating records", { count: result.count, cutoff: cutoff.toISOString() });
+    log.warn("Cleaned up stale generating records", {
+      count: result.count,
+      cutoff: cutoff.toISOString(),
+    });
   } else {
     log.debug("No stale generating records found");
   }

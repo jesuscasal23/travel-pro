@@ -99,11 +99,7 @@ describe("itinerary-service", () => {
       generationStatus: "generating",
     });
 
-    await activateGeneratedItinerary(
-      generating.id,
-      trip.id,
-      { route: [], days: [] } as never,
-    );
+    await activateGeneratedItinerary(generating.id, trip.id, { route: [], days: [] } as never);
 
     const activated = await prisma.itinerary.findUnique({
       where: { id: generating.id },

@@ -9,26 +9,22 @@ const features = [
   {
     emoji: "🧠",
     title: "AI Itinerary Generation",
-    description:
-      "Get a complete day-by-day plan tailored to your interests and style",
+    description: "Get a complete day-by-day plan tailored to your interests and style",
   },
   {
     emoji: "🗺️",
     title: "Smart Route Optimization",
-    description:
-      "We calculate the most logical, cost-efficient city order for you",
+    description: "We calculate the most logical, cost-efficient city order for you",
   },
   {
     emoji: "🛂",
     title: "Visa & Weather Checks",
-    description:
-      "Know your visa requirements and expected weather before you book",
+    description: "Know your visa requirements and expected weather before you book",
   },
   {
     emoji: "🧳",
     title: "Zero Throwaway Work",
-    description:
-      "Every edit refines your plan and builds on the last version — nothing gets lost",
+    description: "Every edit refines your plan and builds on the last version — nothing gets lost",
   },
 ];
 
@@ -91,24 +87,24 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative overflow-hidden pt-32 pb-20">
         <div className="absolute inset-0">
           <WorldMapSVG />
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+        <div className="relative mx-auto max-w-4xl px-4 text-center">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-tight text-foreground"
+            className="text-foreground text-3xl leading-tight font-bold tracking-tight sm:text-5xl lg:text-7xl"
           >
             Plan your dream trip in minutes, not weeks
           </motion.h1>
@@ -117,29 +113,26 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto"
+            className="text-muted-foreground mx-auto mt-6 max-w-2xl text-lg sm:text-xl"
           >
-            AI-powered multi-country trip planning. From idea to optimized
-            itinerary in under 30 minutes.
+            AI-powered multi-country trip planning. From idea to optimized itinerary in under 30
+            minutes.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
           >
             <Link
               href="/plan"
-              className="btn-primary text-lg px-10 py-4"
+              className="btn-primary px-10 py-4 text-lg"
               style={{ boxShadow: "var(--shadow-hero)" }}
             >
               Start Planning
             </Link>
-            <a
-              href="#how-it-works"
-              className="text-primary font-medium hover:underline"
-            >
+            <a href="#how-it-works" className="text-primary font-medium hover:underline">
               See how it works ↓
             </a>
           </motion.div>
@@ -148,7 +141,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-4 text-sm text-muted-foreground"
+            className="text-muted-foreground mt-4 text-sm"
           >
             Free to use · No credit card required
           </motion.p>
@@ -164,14 +157,14 @@ export default function LandingPage() {
               {[0, 1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="w-8 h-8 rounded-full border-2 border-background"
+                  className="border-background h-8 w-8 rounded-full border-2"
                   style={{
                     background: `hsl(${181 + i * 30} 60% ${45 + i * 8}%)`,
                   }}
                 />
               ))}
             </div>
-            <span className="text-sm text-muted-foreground font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               Trusted by 10,000+ travelers
             </span>
           </motion.div>
@@ -179,9 +172,9 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Cards Section */}
-      <section className="py-20 bg-secondary">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="bg-secondary py-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -193,10 +186,8 @@ export default function LandingPage() {
                 className="card-travel bg-background hover:shadow-card-hover transition-shadow duration-300"
               >
                 <span className="text-3xl">{f.emoji}</span>
-                <h3 className="mt-4 text-lg font-semibold text-foreground">
-                  {f.title}
-                </h3>
-                <p className="mt-2 text-muted-foreground text-sm leading-relaxed">
+                <h3 className="text-foreground mt-4 text-lg font-semibold">{f.title}</h3>
+                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                   {f.description}
                 </p>
               </motion.div>
@@ -206,17 +197,17 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-background">
-        <div className="max-w-6xl mx-auto px-4">
+      <section className="bg-background py-20">
+        <div className="mx-auto max-w-6xl px-4">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12"
+            className="text-foreground mb-12 text-center text-3xl font-bold sm:text-4xl"
           >
             What Travelers Say
           </motion.h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid gap-6 md:grid-cols-3">
             {testimonials.map((t, i) => (
               <motion.div
                 key={t.name}
@@ -228,19 +219,15 @@ export default function LandingPage() {
                 className="card-travel bg-background"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold">
                     {t.avatar}
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">{t.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {t.location}
-                    </div>
+                    <div className="text-foreground font-semibold">{t.name}</div>
+                    <div className="text-muted-foreground text-sm">{t.location}</div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground italic mt-3">
-                  &ldquo;{t.text}&rdquo;
-                </p>
+                <p className="text-muted-foreground mt-3 text-sm italic">&ldquo;{t.text}&rdquo;</p>
               </motion.div>
             ))}
           </div>
@@ -249,17 +236,17 @@ export default function LandingPage() {
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-20">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="mx-auto max-w-5xl px-4">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl font-bold text-center text-foreground"
+            className="text-foreground text-center text-3xl font-bold sm:text-4xl"
           >
             How It Works
           </motion.h2>
 
-          <div className="mt-16 grid md:grid-cols-3 gap-8">
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
             {steps.map((step, i) => (
               <motion.div
                 key={step.label}
@@ -270,18 +257,14 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <step.icon className="w-8 h-8 text-primary" />
+                <div className="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl">
+                  <step.icon className="text-primary h-8 w-8" />
                 </div>
-                <div className="mt-2 text-xs font-semibold text-primary uppercase tracking-wider">
+                <div className="text-primary mt-2 text-xs font-semibold tracking-wider uppercase">
                   Step {i + 1}
                 </div>
-                <h3 className="mt-3 text-xl font-semibold text-foreground">
-                  {step.label}
-                </h3>
-                <p className="mt-2 text-muted-foreground text-sm">
-                  {step.description}
-                </p>
+                <h3 className="text-foreground mt-3 text-xl font-semibold">{step.label}</h3>
+                <p className="text-muted-foreground mt-2 text-sm">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -289,9 +272,9 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-12">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm text-muted-foreground">
+      <footer className="border-border border-t py-12">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row">
+          <span className="text-muted-foreground text-sm">
             © 2026 Travel Pro. AI-powered travel planning.
           </span>
           <div className="flex gap-6">
@@ -303,7 +286,7 @@ export default function LandingPage() {
               <a
                 key={label}
                 href={href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
               >
                 {label}
               </a>

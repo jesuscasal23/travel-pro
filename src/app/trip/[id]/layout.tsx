@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const itinerary = raw ? parseItineraryData(raw) : null;
     const title = itinerary?.route?.length
       ? getTripTitle(itinerary.route)
-      : trip.destination ?? trip.region ?? "Trip";
+      : (trip.destination ?? trip.region ?? "Trip");
     const totalDays = itinerary?.days?.length ?? 0;
     const cityCount = itinerary?.route?.length ?? 0;
 
@@ -43,7 +43,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       cityCount > 1 ? `${cityCount}-city` : null,
       "AI-crafted itinerary",
       `for ${trip.travelers} traveller${trip.travelers !== 1 ? "s" : ""}`,
-    ].filter(Boolean).join(" ");
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     const url = `${APP_URL}/trip/${id}`;
 

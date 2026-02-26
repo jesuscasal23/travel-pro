@@ -1,870 +1,1816 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Travel Pro — Detailed User Flows by Trip Type</title>
-<style>
-  :root {
-    --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #c9d1d9;
-    --text-muted: #8b949e; --primary: #0d7377; --accent: #e85d4a;
-    --green: #3fb950; --yellow: #d29922; --blue: #58a6ff; --purple: #bc8cff;
-    --red: #f85149; --orange: #db6d28;
-    --single: #58a6ff; --country: #d2a8ff; --multi: #3fb950;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    background: var(--bg); color: var(--text); line-height: 1.5; padding: 24px; font-size: 14px; max-width: 1400px; margin: 0 auto; }
-  h1 { font-size: 24px; margin-bottom: 4px; color: #fff; }
-  h2 { font-size: 20px; margin: 40px 0 16px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  h3 { font-size: 16px; margin: 24px 0 10px; color: var(--blue); }
-  h4 { font-size: 12px; margin: 12px 0 4px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; }
-  p { margin: 6px 0; }
-  a { color: var(--blue); }
-  code { background: var(--surface); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--purple); border: 1px solid var(--border); }
-  .subtitle { color: var(--text-muted); margin-bottom: 28px; font-size: 14px; }
-  table { width: 100%; border-collapse: collapse; margin: 10px 0 20px; font-size: 13px; }
-  th { background: var(--surface); color: var(--text-muted); text-align: left; padding: 8px 10px; border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-  td { padding: 7px 10px; border: 1px solid var(--border); vertical-align: top; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Pro — Detailed User Flows by Trip Type</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-muted: #8b949e;
+        --primary: #0d7377;
+        --accent: #e85d4a;
+        --green: #3fb950;
+        --yellow: #d29922;
+        --blue: #58a6ff;
+        --purple: #bc8cff;
+        --red: #f85149;
+        --orange: #db6d28;
+        --single: #58a6ff;
+        --country: #d2a8ff;
+        --multi: #3fb950;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        padding: 24px;
+        font-size: 14px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 4px;
+        color: #fff;
+      }
+      h2 {
+        font-size: 20px;
+        margin: 40px 0 16px;
+        color: #fff;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 24px 0 10px;
+        color: var(--blue);
+      }
+      h4 {
+        font-size: 12px;
+        margin: 12px 0 4px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+      }
+      p {
+        margin: 6px 0;
+      }
+      a {
+        color: var(--blue);
+      }
+      code {
+        background: var(--surface);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: var(--purple);
+        border: 1px solid var(--border);
+      }
+      .subtitle {
+        color: var(--text-muted);
+        margin-bottom: 28px;
+        font-size: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0 20px;
+        font-size: 13px;
+      }
+      th {
+        background: var(--surface);
+        color: var(--text-muted);
+        text-align: left;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      td {
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-  /* Legend */
-  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 24px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+      /* Legend */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 16px 0 24px;
+        padding: 14px 18px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+      }
+      .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
 
-  /* Flow graph */
-  .flow-container { position: relative; padding: 20px 0; }
-  .flow-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 0; position: relative; }
-  .flow-step { position: relative; flex: 1; min-width: 0; }
-  .flow-cell { margin: 0 6px; border-radius: 8px; padding: 14px 16px; min-height: 100px; position: relative; }
-  .flow-cell h5 { font-size: 12px; margin-bottom: 6px; font-weight: 700; }
-  .flow-cell ul { font-size: 11px; padding-left: 16px; margin: 0; color: var(--text-muted); }
-  .flow-cell li { padding: 1px 0; }
-  .flow-cell .field { font-size: 11px; color: var(--purple); font-family: monospace; }
-  .flow-cell .required { color: var(--red); font-weight: 600; }
-  .flow-cell .optional { color: var(--text-muted); }
-  .flow-cell .api-call { display: inline-block; background: rgba(210,153,34,0.15); color: var(--yellow); font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-top: 4px; }
-  .flow-cell .ext-call { display: inline-block; background: rgba(188,140,255,0.12); color: var(--purple); font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-top: 2px; }
-  .flow-cell .db-write { display: inline-block; background: rgba(88,166,255,0.12); color: var(--blue); font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-top: 2px; }
-  .flow-cell .tag-tested { display: inline-block; background: rgba(63,185,80,0.15); color: var(--green); font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-top: 4px; border: 1px solid rgba(63,185,80,0.3); }
-  .flow-cell .tag-untested { display: inline-block; background: rgba(139,148,158,0.1); color: var(--text-muted); font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-top: 4px; border: 1px solid var(--border); }
-  .flow-cell .skipped { opacity: 0.25; }
-  .flow-cell .skip-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+      /* Flow graph */
+      .flow-container {
+        position: relative;
+        padding: 20px 0;
+      }
+      .flow-row {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        margin-bottom: 0;
+        position: relative;
+      }
+      .flow-step {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+      .flow-cell {
+        margin: 0 6px;
+        border-radius: 8px;
+        padding: 14px 16px;
+        min-height: 100px;
+        position: relative;
+      }
+      .flow-cell h5 {
+        font-size: 12px;
+        margin-bottom: 6px;
+        font-weight: 700;
+      }
+      .flow-cell ul {
+        font-size: 11px;
+        padding-left: 16px;
+        margin: 0;
+        color: var(--text-muted);
+      }
+      .flow-cell li {
+        padding: 1px 0;
+      }
+      .flow-cell .field {
+        font-size: 11px;
+        color: var(--purple);
+        font-family: monospace;
+      }
+      .flow-cell .required {
+        color: var(--red);
+        font-weight: 600;
+      }
+      .flow-cell .optional {
+        color: var(--text-muted);
+      }
+      .flow-cell .api-call {
+        display: inline-block;
+        background: rgba(210, 153, 34, 0.15);
+        color: var(--yellow);
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-top: 4px;
+      }
+      .flow-cell .ext-call {
+        display: inline-block;
+        background: rgba(188, 140, 255, 0.12);
+        color: var(--purple);
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-top: 2px;
+      }
+      .flow-cell .db-write {
+        display: inline-block;
+        background: rgba(88, 166, 255, 0.12);
+        color: var(--blue);
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-top: 2px;
+      }
+      .flow-cell .tag-tested {
+        display: inline-block;
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-top: 4px;
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
+      .flow-cell .tag-untested {
+        display: inline-block;
+        background: rgba(139, 148, 158, 0.1);
+        color: var(--text-muted);
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-top: 4px;
+        border: 1px solid var(--border);
+      }
+      .flow-cell .skipped {
+        opacity: 0.25;
+      }
+      .flow-cell .skip-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
 
-  /* Trip type colors */
-  .cell-single { background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2); }
-  .cell-country { background: rgba(210,168,255,0.06); border: 1px solid rgba(210,168,255,0.2); }
-  .cell-multi { background: rgba(63,185,80,0.06); border: 1px solid rgba(63,185,80,0.2); }
-  .cell-shared { background: rgba(210,153,34,0.06); border: 1px solid rgba(210,153,34,0.2); }
-  .cell-shared-all { background: rgba(139,148,158,0.06); border: 1px solid rgba(139,148,158,0.2); }
-  .cell-skip { background: rgba(139,148,158,0.02); border: 1px dashed rgba(139,148,158,0.15); }
+      /* Trip type colors */
+      .cell-single {
+        background: rgba(88, 166, 255, 0.06);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+      }
+      .cell-country {
+        background: rgba(210, 168, 255, 0.06);
+        border: 1px solid rgba(210, 168, 255, 0.2);
+      }
+      .cell-multi {
+        background: rgba(63, 185, 80, 0.06);
+        border: 1px solid rgba(63, 185, 80, 0.2);
+      }
+      .cell-shared {
+        background: rgba(210, 153, 34, 0.06);
+        border: 1px solid rgba(210, 153, 34, 0.2);
+      }
+      .cell-shared-all {
+        background: rgba(139, 148, 158, 0.06);
+        border: 1px solid rgba(139, 148, 158, 0.2);
+      }
+      .cell-skip {
+        background: rgba(139, 148, 158, 0.02);
+        border: 1px dashed rgba(139, 148, 158, 0.15);
+      }
 
-  /* Connector arrows */
-  .arrow-down { text-align: center; padding: 6px 0; color: var(--text-muted); font-size: 18px; line-height: 1; }
-  .arrow-down .label { font-size: 10px; color: var(--text-muted); display: block; }
-  .arrow-right { display: flex; align-items: center; justify-content: center; width: 32px; flex-shrink: 0; color: var(--text-muted); font-size: 16px; }
+      /* Connector arrows */
+      .arrow-down {
+        text-align: center;
+        padding: 6px 0;
+        color: var(--text-muted);
+        font-size: 18px;
+        line-height: 1;
+      }
+      .arrow-down .label {
+        font-size: 10px;
+        color: var(--text-muted);
+        display: block;
+      }
+      .arrow-right {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        flex-shrink: 0;
+        color: var(--text-muted);
+        font-size: 16px;
+      }
 
-  /* Step header */
-  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
-  .step-num-single { background: var(--single); }
-  .step-num-country { background: var(--country); }
-  .step-num-multi { background: var(--multi); }
-  .step-num-shared { background: var(--yellow); }
-  .step-num-gray { background: var(--text-muted); }
-  .step-title { font-size: 14px; font-weight: 600; color: #fff; }
+      /* Step header */
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .step-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .step-num-single {
+        background: var(--single);
+      }
+      .step-num-country {
+        background: var(--country);
+      }
+      .step-num-multi {
+        background: var(--multi);
+      }
+      .step-num-shared {
+        background: var(--yellow);
+      }
+      .step-num-gray {
+        background: var(--text-muted);
+      }
+      .step-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+      }
 
-  /* Section cards */
-  .section-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin: 16px 0; }
+      /* Section cards */
+      .section-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin: 16px 0;
+      }
 
-  /* Comparison grid */
-  .compare-grid { display: grid; grid-template-columns: 200px 1fr 1fr 1fr; gap: 0; margin: 16px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .compare-header { background: var(--surface); padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-  .compare-header-single { color: var(--single); }
-  .compare-header-country { color: var(--country); }
-  .compare-header-multi { color: var(--multi); }
-  .compare-cell { padding: 8px 14px; font-size: 12px; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); }
-  .compare-label { padding: 8px 14px; font-size: 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 600; background: rgba(139,148,158,0.03); }
-  .compare-cell .yes { color: var(--green); }
-  .compare-cell .no { color: var(--red); }
-  .compare-cell .na { color: var(--text-muted); }
-  .compare-cell code { font-size: 11px; }
+      /* Comparison grid */
+      .compare-grid {
+        display: grid;
+        grid-template-columns: 200px 1fr 1fr 1fr;
+        gap: 0;
+        margin: 16px 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .compare-header {
+        background: var(--surface);
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border);
+      }
+      .compare-header-single {
+        color: var(--single);
+      }
+      .compare-header-country {
+        color: var(--country);
+      }
+      .compare-header-multi {
+        color: var(--multi);
+      }
+      .compare-cell {
+        padding: 8px 14px;
+        font-size: 12px;
+        border-bottom: 1px solid var(--border);
+        border-left: 1px solid var(--border);
+      }
+      .compare-label {
+        padding: 8px 14px;
+        font-size: 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+        font-weight: 600;
+        background: rgba(139, 148, 158, 0.03);
+      }
+      .compare-cell .yes {
+        color: var(--green);
+      }
+      .compare-cell .no {
+        color: var(--red);
+      }
+      .compare-cell .na {
+        color: var(--text-muted);
+      }
+      .compare-cell code {
+        font-size: 11px;
+      }
 
-  /* Observation cards */
-  .obs { border-left: 3px solid var(--yellow); background: rgba(210,153,34,0.06); padding: 12px 16px; margin: 10px 0; border-radius: 0 8px 8px 0; }
-  .obs strong { color: var(--yellow); }
-  .obs-red { border-left-color: var(--red); background: rgba(248,81,73,0.06); }
-  .obs-red strong { color: var(--red); }
-  .obs-green { border-left-color: var(--green); background: rgba(63,185,80,0.06); }
-  .obs-green strong { color: var(--green); }
-  .obs-blue { border-left-color: var(--blue); background: rgba(88,166,255,0.06); }
-  .obs-blue strong { color: var(--blue); }
+      /* Observation cards */
+      .obs {
+        border-left: 3px solid var(--yellow);
+        background: rgba(210, 153, 34, 0.06);
+        padding: 12px 16px;
+        margin: 10px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .obs strong {
+        color: var(--yellow);
+      }
+      .obs-red {
+        border-left-color: var(--red);
+        background: rgba(248, 81, 73, 0.06);
+      }
+      .obs-red strong {
+        color: var(--red);
+      }
+      .obs-green {
+        border-left-color: var(--green);
+        background: rgba(63, 185, 80, 0.06);
+      }
+      .obs-green strong {
+        color: var(--green);
+      }
+      .obs-blue {
+        border-left-color: var(--blue);
+        background: rgba(88, 166, 255, 0.06);
+      }
+      .obs-blue strong {
+        color: var(--blue);
+      }
 
-  /* Node graph */
-  .graph { position: relative; }
-  .graph-track { display: flex; flex-direction: column; gap: 0; }
-  .graph-node { display: flex; align-items: stretch; }
-  .graph-node-box { flex: 1; border-radius: 8px; padding: 14px 18px; position: relative; }
-  .graph-connector { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 40px; flex-shrink: 0; }
-  .graph-connector .line { width: 2px; flex: 1; background: var(--border); }
-  .graph-connector .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+      /* Node graph */
+      .graph {
+        position: relative;
+      }
+      .graph-track {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .graph-node {
+        display: flex;
+        align-items: stretch;
+      }
+      .graph-node-box {
+        flex: 1;
+        border-radius: 8px;
+        padding: 14px 18px;
+        position: relative;
+      }
+      .graph-connector {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        flex-shrink: 0;
+      }
+      .graph-connector .line {
+        width: 2px;
+        flex: 1;
+        background: var(--border);
+      }
+      .graph-connector .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        flex-shrink: 0;
+      }
 
-  /* Columns for side-by-side */
-  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  @media (max-width: 1000px) { .cols-3 { grid-template-columns: 1fr; } .compare-grid { grid-template-columns: 1fr; } }
+      /* Columns for side-by-side */
+      .cols-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 1000px) {
+        .cols-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-grid {
+          grid-template-columns: 1fr;
+        }
+      }
 
-  .tag { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .tag-single { background: rgba(88,166,255,0.15); color: var(--single); border: 1px solid rgba(88,166,255,0.3); }
-  .tag-country { background: rgba(210,168,255,0.15); color: var(--country); border: 1px solid rgba(210,168,255,0.3); }
-  .tag-multi { background: rgba(63,185,80,0.15); color: var(--multi); border: 1px solid rgba(63,185,80,0.3); }
+      .tag {
+        display: inline-block;
+        padding: 1px 7px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .tag-single {
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--single);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+      }
+      .tag-country {
+        background: rgba(210, 168, 255, 0.15);
+        color: var(--country);
+        border: 1px solid rgba(210, 168, 255, 0.3);
+      }
+      .tag-multi {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--multi);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
 
-  .inline-field { display: inline-block; font-family: monospace; font-size: 11px; background: rgba(188,140,255,0.1); color: var(--purple); padding: 0 4px; border-radius: 2px; }
+      .inline-field {
+        display: inline-block;
+        font-family: monospace;
+        font-size: 11px;
+        background: rgba(188, 140, 255, 0.1);
+        color: var(--purple);
+        padding: 0 4px;
+        border-radius: 2px;
+      }
 
-  .node-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px; }
+      .node-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
 
-  /* Vertical flow */
-  .vflow { display: flex; flex-direction: column; align-items: center; gap: 0; }
-  .vflow-node { width: 100%; max-width: 800px; border-radius: 10px; padding: 16px 20px; position: relative; }
-  .vflow-arrow { display: flex; flex-direction: column; align-items: center; padding: 4px 0; }
-  .vflow-arrow .pipe { width: 2px; height: 16px; background: var(--border); }
-  .vflow-arrow .head { color: var(--text-muted); font-size: 14px; line-height: 1; }
-  .vflow-arrow .branch-label { font-size: 10px; color: var(--text-muted); padding: 0 8px; }
+      /* Vertical flow */
+      .vflow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+      }
+      .vflow-node {
+        width: 100%;
+        max-width: 800px;
+        border-radius: 10px;
+        padding: 16px 20px;
+        position: relative;
+      }
+      .vflow-arrow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 0;
+      }
+      .vflow-arrow .pipe {
+        width: 2px;
+        height: 16px;
+        background: var(--border);
+      }
+      .vflow-arrow .head {
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1;
+      }
+      .vflow-arrow .branch-label {
+        font-size: 10px;
+        color: var(--text-muted);
+        padding: 0 8px;
+      }
 
-  /* Branch */
-  .branch-split { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; width: 100%; max-width: 800px; }
-  .branch-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
-  .branch-node { width: 100%; border-radius: 8px; padding: 12px 14px; font-size: 12px; }
-  .branch-arrow { display: flex; flex-direction: column; align-items: center; padding: 2px 0; }
-  .branch-arrow .pipe { width: 2px; height: 12px; background: var(--border); }
-  .branch-arrow .head { color: var(--text-muted); font-size: 12px; line-height: 1; }
+      /* Branch */
+      .branch-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        width: 100%;
+        max-width: 800px;
+      }
+      .branch-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+      }
+      .branch-node {
+        width: 100%;
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 12px;
+      }
+      .branch-arrow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2px 0;
+      }
+      .branch-arrow .pipe {
+        width: 2px;
+        height: 12px;
+        background: var(--border);
+      }
+      .branch-arrow .head {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1;
+      }
 
-  /* Merge indicator */
-  .merge-bar { display: flex; align-items: center; width: 100%; max-width: 800px; gap: 0; margin: 0; }
-  .merge-line { flex: 1; height: 2px; background: var(--border); }
-  .merge-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+      /* Merge indicator */
+      .merge-bar {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 800px;
+        gap: 0;
+        margin: 0;
+      }
+      .merge-line {
+        flex: 1;
+        height: 2px;
+        background: var(--border);
+      }
+      .merge-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--border);
+        flex-shrink: 0;
+      }
 
-  .field-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
-  .field-item { font-size: 11px; font-family: monospace; }
-  .field-item .req { color: var(--red); }
-  .field-item .opt { color: var(--text-muted); }
-  .field-item .skip { color: var(--text-muted); text-decoration: line-through; opacity: 0.4; }
-</style>
-</head>
-<body>
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .field-item {
+        font-size: 11px;
+        font-family: monospace;
+      }
+      .field-item .req {
+        color: var(--red);
+      }
+      .field-item .opt {
+        color: var(--text-muted);
+      }
+      .field-item .skip {
+        color: var(--text-muted);
+        text-decoration: line-through;
+        opacity: 0.4;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Travel Pro — Detailed User Flows by Trip Type</h1>
+    <p class="subtitle">
+      Side-by-side comparison of Single-City, Single-Country, and Multi-City user journeys through
+      every step, API call, and data input
+    </p>
 
-<h1>Travel Pro — Detailed User Flows by Trip Type</h1>
-<p class="subtitle">Side-by-side comparison of Single-City, Single-Country, and Multi-City user journeys through every step, API call, and data input</p>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background: var(--single)"></div>
+        Single-City
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: var(--country)"></div>
+        Single-Country
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: var(--multi)"></div>
+        Multi-City
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: var(--yellow)"></div>
+        Shared step (all types)
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: var(--border)"></div>
+        Skipped
+      </div>
+      <div class="legend-item">
+        <span class="api-call" style="font-size: 11px">API</span> API call
+      </div>
+      <div class="legend-item">
+        <span class="ext-call" style="font-size: 11px">EXT</span> External service
+      </div>
+      <div class="legend-item">
+        <span class="db-write" style="font-size: 11px">DB</span> Database write
+      </div>
+      <div class="legend-item">
+        <span style="font-size: 11px; color: var(--red); font-weight: 600">*</span> Required field
+      </div>
+      <div class="legend-item">
+        <span style="font-size: 11px; color: var(--text-muted)">~</span> Optional field
+      </div>
+    </div>
 
-<div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:var(--single)"></div> Single-City</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--country)"></div> Single-Country</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--multi)"></div> Multi-City</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Shared step (all types)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--border)"></div> Skipped</div>
-  <div class="legend-item"><span class="api-call" style="font-size:11px">API</span> API call</div>
-  <div class="legend-item"><span class="ext-call" style="font-size:11px">EXT</span> External service</div>
-  <div class="legend-item"><span class="db-write" style="font-size:11px">DB</span> Database write</div>
-  <div class="legend-item"><span style="font-size:11px;color:var(--red);font-weight:600">*</span> Required field</div>
-  <div class="legend-item"><span style="font-size:11px;color:var(--text-muted)">~</span> Optional field</div>
-</div>
+    <!-- ============================================================ -->
+    <h2>1. Complete Guest Flow — Visual Graph</h2>
+    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px">
+      This shows every step a new, unauthenticated user goes through. The flow branches at the trip
+      type selection and merges again at generation. Guest flow = 4 steps (single-city) or 5 steps
+      (single-country / multi-city).
+    </p>
 
-<!-- ============================================================ -->
-<h2>1. Complete Guest Flow — Visual Graph</h2>
-<p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">This shows every step a new, unauthenticated user goes through. The flow branches at the trip type selection and merges again at generation. Guest flow = 4 steps (single-city) or 5 steps (single-country / multi-city).</p>
+    <div class="vflow">
+      <!-- Landing -->
+      <div class="vflow-node cell-shared-all">
+        <div class="node-label" style="color: var(--text-muted)">Entry Point</div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 4px">
+          Landing Page <code>/</code>
+        </h5>
+        <p style="font-size: 12px; color: var(--text-muted)">
+          No API calls. No store writes. Click "Start Planning" &rarr; <code>/plan</code>
+        </p>
+        <span class="tag-untested">no tests</span>
+      </div>
 
-<div class="vflow">
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
 
-  <!-- Landing -->
-  <div class="vflow-node cell-shared-all">
-    <div class="node-label" style="color:var(--text-muted)">Entry Point</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:4px">Landing Page <code>/</code></h5>
-    <p style="font-size:12px;color:var(--text-muted)">No API calls. No store writes. Click "Start Planning" &rarr; <code>/plan</code></p>
-    <span class="tag-untested">no tests</span>
-  </div>
+      <!-- Guest Step 1 -->
+      <div class="vflow-node cell-shared" style="border-color: rgba(210, 153, 34, 0.3)">
+        <div class="node-label" style="color: var(--yellow)">Guest Step 1 &mdash; Profile</div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 4px">
+          Where are you from? <code>/plan</code> (step 1)
+        </h5>
+        <p style="font-size: 12px; color: var(--text-muted)">
+          Same for all trip types. Skipped entirely for authenticated users (profile already saved).
+        </p>
+        <div style="margin-top: 8px">
+          <h4>Fields collected</h4>
+          <table>
+            <tr>
+              <th>Field</th>
+              <th>Store key</th>
+              <th>Required</th>
+              <th>Validation</th>
+              <th>Component</th>
+            </tr>
+            <tr>
+              <td>Nationality</td>
+              <td><code>nationality</code></td>
+              <td style="color: var(--red)">Yes</td>
+              <td><code>z.string().min(1)</code></td>
+              <td><code>&lt;CountryCombobox&gt;</code></td>
+            </tr>
+            <tr>
+              <td>Home Airport</td>
+              <td><code>homeAirport</code></td>
+              <td style="color: var(--text-muted)">No</td>
+              <td>none</td>
+              <td><code>&lt;AirportCombobox&gt;</code></td>
+            </tr>
+          </table>
+          <span class="tag-untested">no unit tests</span>
+          <span class="tag-tested">E2E: airport-dropdown</span>
+        </div>
+      </div>
 
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
 
-  <!-- Guest Step 1 -->
-  <div class="vflow-node cell-shared" style="border-color:rgba(210,153,34,0.3)">
-    <div class="node-label" style="color:var(--yellow)">Guest Step 1 &mdash; Profile</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:4px">Where are you from? <code>/plan</code> (step 1)</h5>
-    <p style="font-size:12px;color:var(--text-muted)">Same for all trip types. Skipped entirely for authenticated users (profile already saved).</p>
-    <div style="margin-top:8px">
-      <h4>Fields collected</h4>
+      <!-- Guest Step 2 -->
+      <div class="vflow-node cell-shared" style="border-color: rgba(210, 153, 34, 0.3)">
+        <div class="node-label" style="color: var(--yellow)">Guest Step 2 &mdash; Travel Style</div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 4px">
+          How do you like to travel? <code>/plan</code> (step 2)
+        </h5>
+        <p style="font-size: 12px; color: var(--text-muted)">
+          Same for all trip types. Skipped entirely for authenticated users.
+        </p>
+        <div style="margin-top: 8px">
+          <h4>Fields collected</h4>
+          <table>
+            <tr>
+              <th>Field</th>
+              <th>Store key</th>
+              <th>Required</th>
+              <th>Component</th>
+            </tr>
+            <tr>
+              <td>Travel Style</td>
+              <td><code>travelStyle</code></td>
+              <td style="color: var(--text-muted)">No (default: "comfort")</td>
+              <td><code>&lt;TravelStylePicker&gt;</code> (backpacker/comfort/luxury)</td>
+            </tr>
+            <tr>
+              <td>Interests</td>
+              <td><code>interests[]</code></td>
+              <td style="color: var(--text-muted)">No (max 10)</td>
+              <td>Chip grid (toggle on/off)</td>
+            </tr>
+          </table>
+          <span class="tag-untested">no tests</span>
+        </div>
+        <div class="obs" style="margin-top: 10px">
+          <strong>Observation:</strong> Travel style has no validation &mdash; defaults to "comfort"
+          if user skips. Interests have no min requirement. A user can proceed with zero interests
+          selected.
+        </div>
+      </div>
+
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
+
+      <!-- Step 3: Destination — THIS IS WHERE THE BRANCH HAPPENS -->
+      <div class="vflow-node cell-shared" style="border-color: rgba(210, 153, 34, 0.3)">
+        <div class="node-label" style="color: var(--yellow)">
+          Guest Step 3 / Auth Step 1 &mdash; Destination
+        </div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 4px">
+          Where do you want to go? <code>/plan</code>
+        </h5>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px">
+          The user first selects a trip type via toggle buttons. The
+          <strong>destination picker changes</strong> based on this selection.
+        </p>
+
+        <h4>Shared fields (all types)</h4>
+        <table>
+          <tr>
+            <th>Field</th>
+            <th>Store key</th>
+            <th>Required</th>
+            <th>Validation</th>
+          </tr>
+          <tr>
+            <td>Trip Type toggle</td>
+            <td><code>tripType</code></td>
+            <td style="color: var(--red)">Yes</td>
+            <td><code>z.enum(["single-city","single-country","multi-city"])</code></td>
+          </tr>
+          <tr>
+            <td>Start Date</td>
+            <td><code>dateStart</code></td>
+            <td style="color: var(--red)">Yes</td>
+            <td><code>z.string().min(1)</code></td>
+          </tr>
+          <tr>
+            <td>End Date</td>
+            <td><code>dateEnd</code></td>
+            <td style="color: var(--red)">Yes</td>
+            <td><code>dateEnd &gt; dateStart</code></td>
+          </tr>
+          <tr>
+            <td>Flexible Dates</td>
+            <td><code>flexibleDates</code></td>
+            <td style="color: var(--text-muted)">No</td>
+            <td>boolean, default false (&plusmn;3 days)</td>
+          </tr>
+        </table>
+
+        <h4 style="margin-top: 12px">Destination picker &mdash; varies by trip type</h4>
+        <div class="cols-3" style="margin-top: 6px">
+          <div class="branch-node cell-single">
+            <div class="node-label" style="color: var(--single)">Single-City</div>
+            <p style="font-size: 12px"><code>&lt;CityCombobox&gt;</code></p>
+            <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+              <li><span class="required">*</span> <code>destination</code> (city name)</li>
+              <li>Auto-filled: <code>destinationCountry</code></li>
+              <li>Auto-filled: <code>destinationCountryCode</code></li>
+              <li>Auto-filled: <code>destinationLat</code></li>
+              <li>Auto-filled: <code>destinationLng</code></li>
+            </ul>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px">
+              Validation: <code>destination.length &gt; 0</code>
+            </p>
+          </div>
+          <div class="branch-node cell-country">
+            <div class="node-label" style="color: var(--country)">Single-Country</div>
+            <p style="font-size: 12px"><code>&lt;CountryCombobox&gt;</code></p>
+            <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+              <li><span class="required">*</span> <code>destinationCountry</code></li>
+              <li>Auto-filled: <code>destinationCountryCode</code></li>
+              <li>Auto-filled: <code>destinationLat</code> (centroid)</li>
+              <li>Auto-filled: <code>destinationLng</code> (centroid)</li>
+              <li><code>destination</code> = "" (empty)</li>
+            </ul>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px">
+              Validation: <code>destinationCountry.length &gt; 0</code>
+            </p>
+          </div>
+          <div class="branch-node cell-multi">
+            <div class="node-label" style="color: var(--multi)">Multi-City</div>
+            <p style="font-size: 12px"><code>&lt;SelectionCard&gt;</code> region grid</p>
+            <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+              <li><span class="required">*</span> <code>region</code> (e.g. "southeast-asia")</li>
+              <li><code>destination</code> = "" (empty)</li>
+              <li><code>destinationCountry</code> = "" (empty)</li>
+              <li>No lat/lng set</li>
+            </ul>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px">
+              Validation: <code>region.length &gt; 0</code>
+            </p>
+          </div>
+        </div>
+
+        <div class="obs-blue obs" style="margin-top: 12px">
+          <strong>Key insight:</strong> When a user switches trip type,
+          <code>clearDestination()</code> is called, wiping <code>destination</code>,
+          <code>destinationCountry</code>, <code>destinationCountryCode</code>,
+          <code>destinationLat</code>, <code>destinationLng</code>. But <code>region</code> is NOT
+          cleared when switching away from multi-city &mdash; potentially stale data.
+        </div>
+
+        <span class="tag-tested">tested: route-review.test, planning-flow E2E</span>
+      </div>
+
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
+
+      <!-- Step 4: Details -->
+      <div class="vflow-node cell-shared" style="border-color: rgba(210, 153, 34, 0.3)">
+        <div class="node-label" style="color: var(--yellow)">
+          Guest Step 4 / Auth Step 2 &mdash; Trip Details
+        </div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 4px">
+          Budget &amp; Travelers <code>/plan</code>
+        </h5>
+        <p style="font-size: 12px; color: var(--text-muted)">Identical for all trip types.</p>
+        <table>
+          <tr>
+            <th>Field</th>
+            <th>Store key</th>
+            <th>Required</th>
+            <th>Validation</th>
+            <th>Default</th>
+          </tr>
+          <tr>
+            <td>Budget (EUR)</td>
+            <td><code>budget</code></td>
+            <td style="color: var(--red)">Yes</td>
+            <td><code>z.number().min(1000)</code></td>
+            <td>10,000</td>
+          </tr>
+          <tr>
+            <td>Travelers</td>
+            <td><code>travelers</code></td>
+            <td style="color: var(--red)">Yes</td>
+            <td><code>z.number().int().min(1).max(10)</code></td>
+            <td>2</td>
+          </tr>
+        </table>
+
+        <div
+          style="
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: rgba(188, 140, 255, 0.06);
+            border-radius: 6px;
+            font-size: 12px;
+          "
+        >
+          <strong style="color: var(--purple)"
+            >Background prefetch (single-country &amp; multi-city only):</strong
+          ><br />
+          When this step renders, the app fires a speculative
+          <code>POST /api/generate/select-route</code> in the background.<br />
+          Single-city: <em>no prefetch</em> (route review is skipped).
+        </div>
+
+        <span class="tag-untested">no direct tests</span>
+      </div>
+
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+        <div class="branch-label">Branches by trip type</div>
+      </div>
+
+      <!-- BRANCH: Route Review vs Skip -->
+      <div class="branch-split">
+        <!-- Single-city: SKIP route review -->
+        <div class="branch-col">
+          <div class="branch-node cell-skip" style="text-align: center; padding: 20px 14px">
+            <div class="node-label" style="color: var(--single)">Single-City</div>
+            <p style="font-size: 13px; color: var(--text-muted); font-style: italic; margin: 8px 0">
+              Route Review SKIPPED
+            </p>
+            <p style="font-size: 11px; color: var(--text-muted)">
+              "Generate" button on Step 4<br />directly starts trip creation
+            </p>
+          </div>
+          <div class="branch-arrow"><div class="pipe"></div></div>
+          <div class="branch-node cell-single" style="font-size: 12px">
+            <strong>API: select-route</strong><br />
+            <span style="color: var(--green)">Short-circuit</span> &mdash; returns destination as
+            single city, no Haiku call. <br /><code>minDays = maxDays = tripDuration</code>
+          </div>
+        </div>
+
+        <!-- Single-country: Route Review -->
+        <div class="branch-col">
+          <div class="branch-node cell-country">
+            <div class="node-label" style="color: var(--country)">
+              Single-Country &mdash; Step 5 / Auth Step 3
+            </div>
+            <strong style="font-size: 13px; color: #fff">Route Review</strong>
+            <ul
+              style="font-size: 11px; padding-left: 14px; color: var(--text-muted); margin-top: 4px"
+            >
+              <li>Haiku selects <strong>3&ndash;6 cities</strong> within the country</li>
+              <li>User can drag to reorder</li>
+              <li>User can add/remove cities</li>
+              <li>User adjusts days per city</li>
+              <li>Min 2 cities required</li>
+              <li>Over-budget warning shown</li>
+            </ul>
+            <span class="tag-tested">RouteReviewStep.test</span>
+          </div>
+          <div class="branch-arrow"><div class="pipe"></div></div>
+          <div class="branch-node cell-country" style="font-size: 12px">
+            <strong>API: select-route</strong><br />
+            <span class="ext-call">Anthropic Haiku</span><br />
+            Prompt constraint: <em>"ALL cities MUST be within {country}"</em>
+          </div>
+        </div>
+
+        <!-- Multi-city: Route Review -->
+        <div class="branch-col">
+          <div class="branch-node cell-multi">
+            <div class="node-label" style="color: var(--multi)">
+              Multi-City &mdash; Step 5 / Auth Step 3
+            </div>
+            <strong style="font-size: 13px; color: #fff">Route Review</strong>
+            <ul
+              style="font-size: 11px; padding-left: 14px; color: var(--text-muted); margin-top: 4px"
+            >
+              <li>Haiku selects <strong>4&ndash;7 cities</strong> across the region</li>
+              <li>User can drag to reorder</li>
+              <li>User can add/remove cities</li>
+              <li>User adjusts days per city</li>
+              <li>Min 2 cities required</li>
+              <li>Over-budget warning shown</li>
+            </ul>
+            <span class="tag-tested">RouteReviewStep.test, route-review E2E</span>
+          </div>
+          <div class="branch-arrow"><div class="pipe"></div></div>
+          <div class="branch-node cell-multi" style="font-size: 12px">
+            <strong>API: select-route</strong><br />
+            <span class="ext-call">Anthropic Haiku</span><br />
+            Prompt: <em>"Choose 4&ndash;7 cities across {region}"</em>
+          </div>
+        </div>
+      </div>
+
+      <!-- Merge bar -->
+      <div class="merge-bar" style="margin: 8px 0">
+        <div class="merge-line"></div>
+        <div class="merge-dot"></div>
+        <div class="merge-line"></div>
+      </div>
+      <div
+        style="
+          text-align: center;
+          font-size: 10px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 4px;
+        "
+      >
+        All flows merge &mdash; Trip Creation
+      </div>
+
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
+
+      <!-- Trip Creation -->
+      <div class="vflow-node cell-shared-all" style="border-color: rgba(210, 153, 34, 0.4)">
+        <div class="node-label" style="color: var(--yellow)">Trip Creation + Generation</div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 8px">
+          Create Trip &rarr; Generate Itinerary
+        </h5>
+
+        <div class="cols-3" style="gap: 10px">
+          <div style="font-size: 12px">
+            <h4>1. Create Trip</h4>
+            <span class="api-call">POST /api/v1/trips</span>
+            <span class="db-write">DB: Trip.create</span>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px">
+              Creates Trip record. Guest: <code>profileId=null</code>. Auth: linked to profile.
+            </p>
+          </div>
+          <div style="font-size: 12px">
+            <h4>2. Generate (SSE)</h4>
+            <span class="api-call">POST /api/v1/trips/:id/generate</span>
+            <span class="ext-call">Anthropic Haiku</span>
+            <span class="db-write">DB: Itinerary.create</span>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px">
+              SSE stream. Creates Itinerary with route + budget (no activities yet).
+            </p>
+          </div>
+          <div style="font-size: 12px">
+            <h4>3. Navigate</h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px">
+              On SSE "done" stage: <code>router.push(/trip/{id})</code>
+            </p>
+          </div>
+        </div>
+
+        <h4 style="margin-top: 12px">Data sent to generation by trip type</h4>
+        <table>
+          <tr>
+            <th>Field</th>
+            <th style="color: var(--single)">Single-City</th>
+            <th style="color: var(--country)">Single-Country</th>
+            <th style="color: var(--multi)">Multi-City</th>
+          </tr>
+          <tr>
+            <td><code>cities[]</code></td>
+            <td>1 city (auto from destination)</td>
+            <td>3-6 cities (from route review)</td>
+            <td>4-7 cities (from route review)</td>
+          </tr>
+          <tr>
+            <td><code>maxTokens</code></td>
+            <td>4,000</td>
+            <td>10,000</td>
+            <td>10,000</td>
+          </tr>
+          <tr>
+            <td><code>systemPrompt</code></td>
+            <td><code>SYSTEM_PROMPT_SINGLE_CITY</code></td>
+            <td><code>SYSTEM_PROMPT_V1</code></td>
+            <td><code>SYSTEM_PROMPT_V1</code></td>
+          </tr>
+          <tr>
+            <td>Travel days?</td>
+            <td>No (all <code>isTravel: false</code>)</td>
+            <td>Yes (between cities)</td>
+            <td>Yes (between cities)</td>
+          </tr>
+          <tr>
+            <td>Flight calculation</td>
+            <td>Round-trip only (home &harr; city)</td>
+            <td>Multi-leg between all cities</td>
+            <td>Multi-leg between all cities</td>
+          </tr>
+        </table>
+
+        <span class="tag-tested"
+          >tested: error-handling.test, route-review.test, full-workflow E2E</span
+        >
+      </div>
+
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
+
+      <!-- Trip View -->
+      <div class="vflow-node cell-shared-all" style="border-color: rgba(139, 148, 158, 0.3)">
+        <div class="node-label" style="color: var(--text-muted)">
+          Post-Generation &mdash; Trip View
+        </div>
+        <h5 style="color: #fff; font-size: 14px; margin-bottom: 8px">
+          Trip View <code>/trip/[id]</code>
+        </h5>
+
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px">
+          The trip view is largely identical for all trip types. Layout: 40% map / 60% timeline
+          (desktop) or tabbed (mobile).
+        </p>
+
+        <h4>Actions triggered on mount (background)</h4>
+        <table>
+          <tr>
+            <th>Action</th>
+            <th>API</th>
+            <th>External</th>
+            <th>Condition</th>
+          </tr>
+          <tr>
+            <td>Auto-generate if partial</td>
+            <td><code>POST /trips/:id/generate</code></td>
+            <td><span class="ext-call">Anthropic</span></td>
+            <td>Route exists but <code>days[]</code> empty</td>
+          </tr>
+          <tr>
+            <td>Enrich visa</td>
+            <td><code>POST /enrich/visa</code></td>
+            <td>Static dataset</td>
+            <td>Always (if <code>nationality</code> set)</td>
+          </tr>
+          <tr>
+            <td>Enrich weather</td>
+            <td><code>POST /enrich/weather</code></td>
+            <td><span class="ext-call">Open-Meteo</span></td>
+            <td>Always (if <code>dateStart</code> set)</td>
+          </tr>
+        </table>
+
+        <h4 style="margin-top: 10px">Per-city activity generation</h4>
+        <p style="font-size: 12px; color: var(--text-muted)">
+          Each city shows a "Generate Activities" button. Clicking it fires
+          <code>POST /trips/:id/generate-activities</code> with <code>cityId</code>. This is the
+          same for all trip types.
+        </p>
+
+        <div class="cols-3" style="margin-top: 12px; gap: 10px">
+          <div class="branch-node cell-single" style="font-size: 12px">
+            <div class="node-label" style="color: var(--single)">Single-City</div>
+            <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+              <li>1 city on map (point, no route line)</li>
+              <li>1 "Generate Activities" button</li>
+              <li>No travel days shown</li>
+            </ul>
+          </div>
+          <div class="branch-node cell-country" style="font-size: 12px">
+            <div class="node-label" style="color: var(--country)">Single-Country</div>
+            <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+              <li>3-6 cities on map with route line</li>
+              <li>3-6 "Generate Activities" buttons</li>
+              <li>Travel days between cities shown</li>
+            </ul>
+          </div>
+          <div class="branch-node cell-multi" style="font-size: 12px">
+            <div class="node-label" style="color: var(--multi)">Multi-City</div>
+            <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+              <li>4-7 cities on map with route line</li>
+              <li>4-7 "Generate Activities" buttons</li>
+              <li>Travel days between cities shown</li>
+            </ul>
+          </div>
+        </div>
+
+        <span class="tag-tested">null-state.test</span>
+        <span class="tag-untested">no SSE/generation test</span>
+      </div>
+
+      <div class="vflow-arrow">
+        <div class="pipe"></div>
+        <div class="head">&#9660;</div>
+      </div>
+
+      <!-- Edit + Summary -->
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          width: 100%;
+          max-width: 800px;
+        "
+      >
+        <div class="vflow-node cell-shared-all" style="border-color: rgba(139, 148, 158, 0.3)">
+          <div class="node-label" style="color: var(--text-muted)">Edit</div>
+          <h5 style="color: #fff; font-size: 13px; margin-bottom: 6px">
+            Edit Trip <code>/trip/[id]/edit</code>
+          </h5>
+
+          <div class="cols-3" style="gap: 6px; grid-template-columns: 1fr">
+            <div class="branch-node cell-single" style="font-size: 11px; padding: 8px 10px">
+              <strong style="color: var(--single)">Single-City:</strong> Can only adjust days
+              (trivial since 1 city). Add city converts trip to effectively multi-city.
+            </div>
+            <div class="branch-node cell-country" style="font-size: 11px; padding: 8px 10px">
+              <strong style="color: var(--country)">Single-Country:</strong> Add/remove/reorder
+              cities within country. Structural changes set <code>needsRegeneration</code>.
+            </div>
+            <div class="branch-node cell-multi" style="font-size: 11px; padding: 8px 10px">
+              <strong style="color: var(--multi)">Multi-City:</strong> Full edit: add/remove/reorder
+              any city. Structural changes set <code>needsRegeneration</code>.
+            </div>
+          </div>
+
+          <div style="margin-top: 8px; font-size: 11px">
+            <span class="api-call">PATCH /api/v1/trips/:id</span>
+            <span class="db-write">DB: ItineraryEdit + new Itinerary version</span><br />
+            <span style="color: var(--text-muted)">Guest mode: Zustand only, no DB call</span>
+          </div>
+          <span class="tag-tested">add-city.test, route-review-edit-cities E2E</span>
+        </div>
+
+        <div class="vflow-node cell-shared-all" style="border-color: rgba(139, 148, 158, 0.3)">
+          <div class="node-label" style="color: var(--text-muted)">Summary</div>
+          <h5 style="color: #fff; font-size: 13px; margin-bottom: 6px">
+            Trip Summary <code>/trip/[id]/summary</code>
+          </h5>
+          <ul style="font-size: 11px; padding-left: 14px; color: var(--text-muted)">
+            <li>Route overview</li>
+            <li>Day-by-day compact view</li>
+            <li>Budget breakdown</li>
+            <li>Visa requirements</li>
+            <li>Weather overview</li>
+            <li>Flight legs (if optimized)</li>
+            <li>Share link generation <span class="api-call">GET /trips/:id/share</span></li>
+            <li>PDF export</li>
+            <li>Affiliate links <span class="api-call">GET /affiliate/redirect</span></li>
+          </ul>
+          <div style="margin-top: 6px; font-size: 11px; color: var(--text-muted)">
+            <strong style="color: var(--single)">Single-City:</strong>
+            <code>singleCity = route.length === 1</code> &mdash; minor style difference only
+          </div>
+          <span class="tag-untested">no tests</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>2. Authenticated User Flow Differences</h2>
+
+    <div class="section-card">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px">
+        Authenticated users skip Guest Steps 1 &amp; 2 (profile already saved to Zustand from
+        onboarding). The plan page detects auth via <code>useAuthStatus()</code> and adjusts step
+        count.
+      </p>
+
       <table>
-        <tr><th>Field</th><th>Store key</th><th>Required</th><th>Validation</th><th>Component</th></tr>
-        <tr><td>Nationality</td><td><code>nationality</code></td><td style="color:var(--red)">Yes</td><td><code>z.string().min(1)</code></td><td><code>&lt;CountryCombobox&gt;</code></td></tr>
-        <tr><td>Home Airport</td><td><code>homeAirport</code></td><td style="color:var(--text-muted)">No</td><td>none</td><td><code>&lt;AirportCombobox&gt;</code></td></tr>
+        <tr>
+          <th>Aspect</th>
+          <th style="color: var(--single)">Single-City (auth)</th>
+          <th style="color: var(--country)">Single-Country (auth)</th>
+          <th style="color: var(--multi)">Multi-City (auth)</th>
+        </tr>
+        <tr>
+          <td><strong>Total steps</strong></td>
+          <td>2</td>
+          <td>3</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td><strong>Step 1</strong></td>
+          <td>Destination (city picker)</td>
+          <td>Destination (country picker)</td>
+          <td>Destination (region picker)</td>
+        </tr>
+        <tr>
+          <td><strong>Step 2</strong></td>
+          <td>Budget + Travelers &rarr; Generate</td>
+          <td>Budget + Travelers</td>
+          <td>Budget + Travelers</td>
+        </tr>
+        <tr>
+          <td><strong>Step 3</strong></td>
+          <td style="color: var(--text-muted)">N/A (generate on step 2)</td>
+          <td>Route Review &rarr; Generate</td>
+          <td>Route Review &rarr; Generate</td>
+        </tr>
+        <tr>
+          <td><strong>Profile data source</strong></td>
+          <td colspan="3">
+            Zustand store (persisted from onboarding). Sent as <code>profile</code> param in API
+            calls.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Trip saved to DB?</strong></td>
+          <td colspan="3">
+            Yes &mdash; <code>profileId</code> set, visible in <code>/dashboard</code>
+          </td>
+        </tr>
       </table>
-      <span class="tag-untested">no unit tests</span> <span class="tag-tested">E2E: airport-dropdown</span>
-    </div>
-  </div>
 
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
-
-  <!-- Guest Step 2 -->
-  <div class="vflow-node cell-shared" style="border-color:rgba(210,153,34,0.3)">
-    <div class="node-label" style="color:var(--yellow)">Guest Step 2 &mdash; Travel Style</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:4px">How do you like to travel? <code>/plan</code> (step 2)</h5>
-    <p style="font-size:12px;color:var(--text-muted)">Same for all trip types. Skipped entirely for authenticated users.</p>
-    <div style="margin-top:8px">
-      <h4>Fields collected</h4>
-      <table>
-        <tr><th>Field</th><th>Store key</th><th>Required</th><th>Component</th></tr>
-        <tr><td>Travel Style</td><td><code>travelStyle</code></td><td style="color:var(--text-muted)">No (default: "comfort")</td><td><code>&lt;TravelStylePicker&gt;</code> (backpacker/comfort/luxury)</td></tr>
-        <tr><td>Interests</td><td><code>interests[]</code></td><td style="color:var(--text-muted)">No (max 10)</td><td>Chip grid (toggle on/off)</td></tr>
-      </table>
-      <span class="tag-untested">no tests</span>
-    </div>
-    <div class="obs" style="margin-top:10px">
-      <strong>Observation:</strong> Travel style has no validation &mdash; defaults to "comfort" if user skips. Interests have no min requirement. A user can proceed with zero interests selected.
-    </div>
-  </div>
-
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
-
-  <!-- Step 3: Destination — THIS IS WHERE THE BRANCH HAPPENS -->
-  <div class="vflow-node cell-shared" style="border-color:rgba(210,153,34,0.3)">
-    <div class="node-label" style="color:var(--yellow)">Guest Step 3 / Auth Step 1 &mdash; Destination</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:4px">Where do you want to go? <code>/plan</code></h5>
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">The user first selects a trip type via toggle buttons. The <strong>destination picker changes</strong> based on this selection.</p>
-
-    <h4>Shared fields (all types)</h4>
-    <table>
-      <tr><th>Field</th><th>Store key</th><th>Required</th><th>Validation</th></tr>
-      <tr><td>Trip Type toggle</td><td><code>tripType</code></td><td style="color:var(--red)">Yes</td><td><code>z.enum(["single-city","single-country","multi-city"])</code></td></tr>
-      <tr><td>Start Date</td><td><code>dateStart</code></td><td style="color:var(--red)">Yes</td><td><code>z.string().min(1)</code></td></tr>
-      <tr><td>End Date</td><td><code>dateEnd</code></td><td style="color:var(--red)">Yes</td><td><code>dateEnd &gt; dateStart</code></td></tr>
-      <tr><td>Flexible Dates</td><td><code>flexibleDates</code></td><td style="color:var(--text-muted)">No</td><td>boolean, default false (&plusmn;3 days)</td></tr>
-    </table>
-
-    <h4 style="margin-top:12px">Destination picker &mdash; varies by trip type</h4>
-    <div class="cols-3" style="margin-top:6px">
-      <div class="branch-node cell-single">
-        <div class="node-label" style="color:var(--single)">Single-City</div>
-        <p style="font-size:12px"><code>&lt;CityCombobox&gt;</code></p>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-          <li><span class="required">*</span> <code>destination</code> (city name)</li>
-          <li>Auto-filled: <code>destinationCountry</code></li>
-          <li>Auto-filled: <code>destinationCountryCode</code></li>
-          <li>Auto-filled: <code>destinationLat</code></li>
-          <li>Auto-filled: <code>destinationLng</code></li>
-        </ul>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Validation: <code>destination.length &gt; 0</code></p>
-      </div>
-      <div class="branch-node cell-country">
-        <div class="node-label" style="color:var(--country)">Single-Country</div>
-        <p style="font-size:12px"><code>&lt;CountryCombobox&gt;</code></p>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-          <li><span class="required">*</span> <code>destinationCountry</code></li>
-          <li>Auto-filled: <code>destinationCountryCode</code></li>
-          <li>Auto-filled: <code>destinationLat</code> (centroid)</li>
-          <li>Auto-filled: <code>destinationLng</code> (centroid)</li>
-          <li><code>destination</code> = "" (empty)</li>
-        </ul>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Validation: <code>destinationCountry.length &gt; 0</code></p>
-      </div>
-      <div class="branch-node cell-multi">
-        <div class="node-label" style="color:var(--multi)">Multi-City</div>
-        <p style="font-size:12px"><code>&lt;SelectionCard&gt;</code> region grid</p>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-          <li><span class="required">*</span> <code>region</code> (e.g. "southeast-asia")</li>
-          <li><code>destination</code> = "" (empty)</li>
-          <li><code>destinationCountry</code> = "" (empty)</li>
-          <li>No lat/lng set</li>
-        </ul>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Validation: <code>region.length &gt; 0</code></p>
+      <div class="obs" style="margin-top: 12px">
+        <strong>Gap:</strong> If an authenticated user changed their nationality/airport since
+        onboarding, the plan page still reads from Zustand (which may be stale). The
+        <code>/profile</code> page updates Zustand, but there's no sync from the DB Profile to
+        Zustand on plan page load.
       </div>
     </div>
 
-    <div class="obs-blue obs" style="margin-top:12px">
-      <strong>Key insight:</strong> When a user switches trip type, <code>clearDestination()</code> is called, wiping <code>destination</code>, <code>destinationCountry</code>, <code>destinationCountryCode</code>, <code>destinationLat</code>, <code>destinationLng</code>. But <code>region</code> is NOT cleared when switching away from multi-city &mdash; potentially stale data.
+    <!-- ============================================================ -->
+    <h2>3. Full Field Comparison Matrix</h2>
+
+    <div class="compare-grid">
+      <div class="compare-header">Field / Input</div>
+      <div class="compare-header compare-header-single">Single-City</div>
+      <div class="compare-header compare-header-country">Single-Country</div>
+      <div class="compare-header compare-header-multi">Multi-City</div>
+
+      <div class="compare-label">nationality</div>
+      <div class="compare-cell"><span class="yes">Collected</span> (guest step 1)</div>
+      <div class="compare-cell"><span class="yes">Collected</span> (guest step 1)</div>
+      <div class="compare-cell"><span class="yes">Collected</span> (guest step 1)</div>
+
+      <div class="compare-label">homeAirport</div>
+      <div class="compare-cell"><span class="opt">Optional</span></div>
+      <div class="compare-cell"><span class="opt">Optional</span></div>
+      <div class="compare-cell"><span class="opt">Optional</span></div>
+
+      <div class="compare-label">travelStyle</div>
+      <div class="compare-cell"><span class="yes">Collected</span> (default: comfort)</div>
+      <div class="compare-cell"><span class="yes">Collected</span> (default: comfort)</div>
+      <div class="compare-cell"><span class="yes">Collected</span> (default: comfort)</div>
+
+      <div class="compare-label">interests[]</div>
+      <div class="compare-cell"><span class="opt">Optional</span> (max 10)</div>
+      <div class="compare-cell"><span class="opt">Optional</span> (max 10)</div>
+      <div class="compare-cell"><span class="opt">Optional</span> (max 10)</div>
+
+      <div class="compare-label">tripType</div>
+      <div class="compare-cell"><code>"single-city"</code></div>
+      <div class="compare-cell"><code>"single-country"</code></div>
+      <div class="compare-cell"><code>"multi-city"</code></div>
+
+      <div class="compare-label">destination</div>
+      <div class="compare-cell"><span class="yes">Required</span> (city name)</div>
+      <div class="compare-cell"><span class="na">Empty string</span></div>
+      <div class="compare-cell"><span class="na">Empty string</span></div>
+
+      <div class="compare-label">destinationCountry</div>
+      <div class="compare-cell"><span class="yes">Auto-filled</span> from city</div>
+      <div class="compare-cell"><span class="yes">Required</span></div>
+      <div class="compare-cell"><span class="na">Empty string</span></div>
+
+      <div class="compare-label">destinationCountryCode</div>
+      <div class="compare-cell"><span class="yes">Auto-filled</span></div>
+      <div class="compare-cell"><span class="yes">Auto-filled</span></div>
+      <div class="compare-cell"><span class="na">Empty string</span></div>
+
+      <div class="compare-label">destinationLat / Lng</div>
+      <div class="compare-cell"><span class="yes">Auto-filled</span></div>
+      <div class="compare-cell"><span class="yes">Auto-filled</span> (centroid)</div>
+      <div class="compare-cell"><span class="na">0, 0</span></div>
+
+      <div class="compare-label">region</div>
+      <div class="compare-cell"><span class="na">Empty string</span></div>
+      <div class="compare-cell"><span class="na">Empty string</span></div>
+      <div class="compare-cell"><span class="yes">Required</span> (e.g. "southeast-asia")</div>
+
+      <div class="compare-label">dateStart</div>
+      <div class="compare-cell"><span class="yes">Required</span></div>
+      <div class="compare-cell"><span class="yes">Required</span></div>
+      <div class="compare-cell"><span class="yes">Required</span></div>
+
+      <div class="compare-label">dateEnd</div>
+      <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
+      <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
+      <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
+
+      <div class="compare-label">flexibleDates</div>
+      <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
+      <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
+      <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
+
+      <div class="compare-label">budget</div>
+      <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
+      <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
+      <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
+
+      <div class="compare-label">travelers</div>
+      <div class="compare-cell"><span class="yes">Required</span> (1-10)</div>
+      <div class="compare-cell"><span class="yes">Required</span> (1-10)</div>
+      <div class="compare-cell"><span class="yes">Required</span> (1-10)</div>
+
+      <div class="compare-label">Route Review step?</div>
+      <div class="compare-cell"><span class="no">SKIPPED</span></div>
+      <div class="compare-cell"><span class="yes">Yes</span> (3-6 cities)</div>
+      <div class="compare-cell"><span class="yes">Yes</span> (4-7 cities)</div>
+
+      <div class="compare-label">Haiku route selection?</div>
+      <div class="compare-cell"><span class="no">No</span> (short-circuit)</div>
+      <div class="compare-cell"><span class="yes">Yes</span> (country-scoped)</div>
+      <div class="compare-cell"><span class="yes">Yes</span> (region-scoped)</div>
+
+      <div class="compare-label">Cities user can review?</div>
+      <div class="compare-cell"><span class="no">No</span></div>
+      <div class="compare-cell">
+        <span class="yes">Yes</span> (reorder, add, remove, adjust days)
+      </div>
+      <div class="compare-cell">
+        <span class="yes">Yes</span> (reorder, add, remove, adjust days)
+      </div>
+
+      <div class="compare-label">maxTokens (generation)</div>
+      <div class="compare-cell">4,000</div>
+      <div class="compare-cell">10,000</div>
+      <div class="compare-cell">10,000</div>
+
+      <div class="compare-label">Travel days in itinerary?</div>
+      <div class="compare-cell"><span class="no">No</span></div>
+      <div class="compare-cell"><span class="yes">Yes</span></div>
+      <div class="compare-cell"><span class="yes">Yes</span></div>
+
+      <div class="compare-label">Flight calculation</div>
+      <div class="compare-cell">Round-trip (home &harr; city)</div>
+      <div class="compare-cell">Multi-leg between cities</div>
+      <div class="compare-cell">Multi-leg between cities</div>
+
+      <div class="compare-label">Edit: structural edits?</div>
+      <div class="compare-cell"><span class="na">Trivial</span> (only 1 city)</div>
+      <div class="compare-cell"><span class="yes">Add/remove/reorder</span></div>
+      <div class="compare-cell"><span class="yes">Add/remove/reorder</span></div>
+
+      <div class="compare-label">Flight optimization?</div>
+      <div class="compare-cell"><span class="na">Not useful</span> (1 leg)</div>
+      <div class="compare-cell"><span class="yes">Yes</span> (Amadeus)</div>
+      <div class="compare-cell"><span class="yes">Yes</span> (Amadeus)</div>
     </div>
 
-    <span class="tag-tested">tested: route-review.test, planning-flow E2E</span>
-  </div>
+    <!-- ============================================================ -->
+    <h2>4. API Call Sequence by Trip Type</h2>
 
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
-
-  <!-- Step 4: Details -->
-  <div class="vflow-node cell-shared" style="border-color:rgba(210,153,34,0.3)">
-    <div class="node-label" style="color:var(--yellow)">Guest Step 4 / Auth Step 2 &mdash; Trip Details</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:4px">Budget &amp; Travelers <code>/plan</code></h5>
-    <p style="font-size:12px;color:var(--text-muted)">Identical for all trip types.</p>
-    <table>
-      <tr><th>Field</th><th>Store key</th><th>Required</th><th>Validation</th><th>Default</th></tr>
-      <tr><td>Budget (EUR)</td><td><code>budget</code></td><td style="color:var(--red)">Yes</td><td><code>z.number().min(1000)</code></td><td>10,000</td></tr>
-      <tr><td>Travelers</td><td><code>travelers</code></td><td style="color:var(--red)">Yes</td><td><code>z.number().int().min(1).max(10)</code></td><td>2</td></tr>
-    </table>
-
-    <div style="margin-top:10px;padding:10px 14px;background:rgba(188,140,255,0.06);border-radius:6px;font-size:12px">
-      <strong style="color:var(--purple)">Background prefetch (single-country &amp; multi-city only):</strong><br>
-      When this step renders, the app fires a speculative <code>POST /api/generate/select-route</code> in the background.<br>
-      Single-city: <em>no prefetch</em> (route review is skipped).
-    </div>
-
-    <span class="tag-untested">no direct tests</span>
-  </div>
-
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div><div class="branch-label">Branches by trip type</div></div>
-
-  <!-- BRANCH: Route Review vs Skip -->
-  <div class="branch-split">
-
-    <!-- Single-city: SKIP route review -->
-    <div class="branch-col">
-      <div class="branch-node cell-skip" style="text-align:center;padding:20px 14px">
-        <div class="node-label" style="color:var(--single)">Single-City</div>
-        <p style="font-size:13px;color:var(--text-muted);font-style:italic;margin:8px 0">Route Review SKIPPED</p>
-        <p style="font-size:11px;color:var(--text-muted)">"Generate" button on Step 4<br>directly starts trip creation</p>
-      </div>
-      <div class="branch-arrow"><div class="pipe"></div></div>
-      <div class="branch-node cell-single" style="font-size:12px">
-        <strong>API: select-route</strong><br>
-        <span style="color:var(--green)">Short-circuit</span> &mdash; returns destination as single city, no Haiku call.
-        <br><code>minDays = maxDays = tripDuration</code>
-      </div>
-    </div>
-
-    <!-- Single-country: Route Review -->
-    <div class="branch-col">
-      <div class="branch-node cell-country">
-        <div class="node-label" style="color:var(--country)">Single-Country &mdash; Step 5 / Auth Step 3</div>
-        <strong style="font-size:13px;color:#fff">Route Review</strong>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted);margin-top:4px">
-          <li>Haiku selects <strong>3&ndash;6 cities</strong> within the country</li>
-          <li>User can drag to reorder</li>
-          <li>User can add/remove cities</li>
-          <li>User adjusts days per city</li>
-          <li>Min 2 cities required</li>
-          <li>Over-budget warning shown</li>
-        </ul>
-        <span class="tag-tested">RouteReviewStep.test</span>
-      </div>
-      <div class="branch-arrow"><div class="pipe"></div></div>
-      <div class="branch-node cell-country" style="font-size:12px">
-        <strong>API: select-route</strong><br>
-        <span class="ext-call">Anthropic Haiku</span><br>
-        Prompt constraint: <em>"ALL cities MUST be within {country}"</em>
-      </div>
-    </div>
-
-    <!-- Multi-city: Route Review -->
-    <div class="branch-col">
-      <div class="branch-node cell-multi">
-        <div class="node-label" style="color:var(--multi)">Multi-City &mdash; Step 5 / Auth Step 3</div>
-        <strong style="font-size:13px;color:#fff">Route Review</strong>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted);margin-top:4px">
-          <li>Haiku selects <strong>4&ndash;7 cities</strong> across the region</li>
-          <li>User can drag to reorder</li>
-          <li>User can add/remove cities</li>
-          <li>User adjusts days per city</li>
-          <li>Min 2 cities required</li>
-          <li>Over-budget warning shown</li>
-        </ul>
-        <span class="tag-tested">RouteReviewStep.test, route-review E2E</span>
-      </div>
-      <div class="branch-arrow"><div class="pipe"></div></div>
-      <div class="branch-node cell-multi" style="font-size:12px">
-        <strong>API: select-route</strong><br>
-        <span class="ext-call">Anthropic Haiku</span><br>
-        Prompt: <em>"Choose 4&ndash;7 cities across {region}"</em>
-      </div>
-    </div>
-  </div>
-
-  <!-- Merge bar -->
-  <div class="merge-bar" style="margin:8px 0">
-    <div class="merge-line"></div><div class="merge-dot"></div><div class="merge-line"></div>
-  </div>
-  <div style="text-align:center;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">All flows merge &mdash; Trip Creation</div>
-
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
-
-  <!-- Trip Creation -->
-  <div class="vflow-node cell-shared-all" style="border-color: rgba(210,153,34,0.4)">
-    <div class="node-label" style="color:var(--yellow)">Trip Creation + Generation</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:8px">Create Trip &rarr; Generate Itinerary</h5>
-
-    <div class="cols-3" style="gap:10px">
-      <div style="font-size:12px">
-        <h4>1. Create Trip</h4>
-        <span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB: Trip.create</span>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Creates Trip record. Guest: <code>profileId=null</code>. Auth: linked to profile.</p>
-      </div>
-      <div style="font-size:12px">
-        <h4>2. Generate (SSE)</h4>
-        <span class="api-call">POST /api/v1/trips/:id/generate</span> <span class="ext-call">Anthropic Haiku</span> <span class="db-write">DB: Itinerary.create</span>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">SSE stream. Creates Itinerary with route + budget (no activities yet).</p>
-      </div>
-      <div style="font-size:12px">
-        <h4>3. Navigate</h4>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">On SSE "done" stage: <code>router.push(/trip/{id})</code></p>
-      </div>
-    </div>
-
-    <h4 style="margin-top:12px">Data sent to generation by trip type</h4>
-    <table>
-      <tr><th>Field</th>
-        <th style="color:var(--single)">Single-City</th>
-        <th style="color:var(--country)">Single-Country</th>
-        <th style="color:var(--multi)">Multi-City</th></tr>
-      <tr><td><code>cities[]</code></td>
-        <td>1 city (auto from destination)</td>
-        <td>3-6 cities (from route review)</td>
-        <td>4-7 cities (from route review)</td></tr>
-      <tr><td><code>maxTokens</code></td>
-        <td>4,000</td><td>10,000</td><td>10,000</td></tr>
-      <tr><td><code>systemPrompt</code></td>
-        <td><code>SYSTEM_PROMPT_SINGLE_CITY</code></td>
-        <td><code>SYSTEM_PROMPT_V1</code></td>
-        <td><code>SYSTEM_PROMPT_V1</code></td></tr>
-      <tr><td>Travel days?</td>
-        <td>No (all <code>isTravel: false</code>)</td>
-        <td>Yes (between cities)</td>
-        <td>Yes (between cities)</td></tr>
-      <tr><td>Flight calculation</td>
-        <td>Round-trip only (home &harr; city)</td>
-        <td>Multi-leg between all cities</td>
-        <td>Multi-leg between all cities</td></tr>
-    </table>
-
-    <span class="tag-tested">tested: error-handling.test, route-review.test, full-workflow E2E</span>
-  </div>
-
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
-
-  <!-- Trip View -->
-  <div class="vflow-node cell-shared-all" style="border-color: rgba(139,148,158,0.3)">
-    <div class="node-label" style="color:var(--text-muted)">Post-Generation &mdash; Trip View</div>
-    <h5 style="color:#fff;font-size:14px;margin-bottom:8px">Trip View <code>/trip/[id]</code></h5>
-
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">The trip view is largely identical for all trip types. Layout: 40% map / 60% timeline (desktop) or tabbed (mobile).</p>
-
-    <h4>Actions triggered on mount (background)</h4>
-    <table>
-      <tr><th>Action</th><th>API</th><th>External</th><th>Condition</th></tr>
-      <tr><td>Auto-generate if partial</td><td><code>POST /trips/:id/generate</code></td><td><span class="ext-call">Anthropic</span></td><td>Route exists but <code>days[]</code> empty</td></tr>
-      <tr><td>Enrich visa</td><td><code>POST /enrich/visa</code></td><td>Static dataset</td><td>Always (if <code>nationality</code> set)</td></tr>
-      <tr><td>Enrich weather</td><td><code>POST /enrich/weather</code></td><td><span class="ext-call">Open-Meteo</span></td><td>Always (if <code>dateStart</code> set)</td></tr>
-    </table>
-
-    <h4 style="margin-top:10px">Per-city activity generation</h4>
-    <p style="font-size:12px;color:var(--text-muted)">Each city shows a "Generate Activities" button. Clicking it fires <code>POST /trips/:id/generate-activities</code> with <code>cityId</code>. This is the same for all trip types.</p>
-
-    <div class="cols-3" style="margin-top:12px;gap:10px">
-      <div class="branch-node cell-single" style="font-size:12px">
-        <div class="node-label" style="color:var(--single)">Single-City</div>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-          <li>1 city on map (point, no route line)</li>
-          <li>1 "Generate Activities" button</li>
-          <li>No travel days shown</li>
-        </ul>
-      </div>
-      <div class="branch-node cell-country" style="font-size:12px">
-        <div class="node-label" style="color:var(--country)">Single-Country</div>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-          <li>3-6 cities on map with route line</li>
-          <li>3-6 "Generate Activities" buttons</li>
-          <li>Travel days between cities shown</li>
-        </ul>
-      </div>
-      <div class="branch-node cell-multi" style="font-size:12px">
-        <div class="node-label" style="color:var(--multi)">Multi-City</div>
-        <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-          <li>4-7 cities on map with route line</li>
-          <li>4-7 "Generate Activities" buttons</li>
-          <li>Travel days between cities shown</li>
-        </ul>
-      </div>
-    </div>
-
-    <span class="tag-tested">null-state.test</span> <span class="tag-untested">no SSE/generation test</span>
-  </div>
-
-  <div class="vflow-arrow"><div class="pipe"></div><div class="head">&#9660;</div></div>
-
-  <!-- Edit + Summary -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:800px">
-
-    <div class="vflow-node cell-shared-all" style="border-color:rgba(139,148,158,0.3)">
-      <div class="node-label" style="color:var(--text-muted)">Edit</div>
-      <h5 style="color:#fff;font-size:13px;margin-bottom:6px">Edit Trip <code>/trip/[id]/edit</code></h5>
-
-      <div class="cols-3" style="gap:6px;grid-template-columns:1fr">
-        <div class="branch-node cell-single" style="font-size:11px;padding:8px 10px">
-          <strong style="color:var(--single)">Single-City:</strong> Can only adjust days (trivial since 1 city). Add city converts trip to effectively multi-city.
-        </div>
-        <div class="branch-node cell-country" style="font-size:11px;padding:8px 10px">
-          <strong style="color:var(--country)">Single-Country:</strong> Add/remove/reorder cities within country. Structural changes set <code>needsRegeneration</code>.
-        </div>
-        <div class="branch-node cell-multi" style="font-size:11px;padding:8px 10px">
-          <strong style="color:var(--multi)">Multi-City:</strong> Full edit: add/remove/reorder any city. Structural changes set <code>needsRegeneration</code>.
+    <div class="cols-3">
+      <div class="section-card" style="border-top: 3px solid var(--single)">
+        <h3 style="color: var(--single); margin-top: 0">Single-City API Sequence</h3>
+        <ol style="font-size: 12px; padding-left: 20px; color: var(--text-muted)">
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/generate/select-route</span><br />Short-circuit:
+            returns 1 city, <strong>no Haiku call</strong>
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB</span
+            ><br />Create Trip record
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/trips/:id/generate</span>
+            <span class="ext-call">Haiku</span> <span class="db-write">DB</span><br />SSE stream.
+            Route + budget (4k tokens). Single-city prompt.
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/enrich/visa</span><br />Static lookup (no external
+            call)
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/enrich/weather</span>
+            <span class="ext-call">Open-Meteo</span><br />1 city weather
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /trips/:id/generate-activities</span>
+            <span class="ext-call">Haiku</span><br />1 city &times; 1 call
+          </li>
+        </ol>
+        <div
+          style="
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(88, 166, 255, 0.06);
+            border-radius: 4px;
+            font-size: 11px;
+          "
+        >
+          <strong>Total Haiku calls: 2</strong> (1 generation + 1 activity)<br />
+          <strong>Total external API calls: 3</strong> (Haiku &times;2 + Open-Meteo &times;1)
         </div>
       </div>
 
-      <div style="margin-top:8px;font-size:11px">
-        <span class="api-call">PATCH /api/v1/trips/:id</span> <span class="db-write">DB: ItineraryEdit + new Itinerary version</span><br>
-        <span style="color:var(--text-muted)">Guest mode: Zustand only, no DB call</span>
+      <div class="section-card" style="border-top: 3px solid var(--country)">
+        <h3 style="color: var(--country); margin-top: 0">Single-Country API Sequence</h3>
+        <ol style="font-size: 12px; padding-left: 20px; color: var(--text-muted)">
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/generate/select-route</span>
+            <span class="ext-call">Haiku</span><br />Select 3-6 cities within country
+          </li>
+          <li style="padding: 3px 0"><em>User reviews/edits cities in Route Review</em></li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB</span
+            ><br />Create Trip record
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/trips/:id/generate</span>
+            <span class="ext-call">Haiku</span> <span class="db-write">DB</span><br />SSE stream.
+            Route + budget (10k tokens).
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/enrich/visa</span><br />Static lookup (1 country,
+            deduped)
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/enrich/weather</span>
+            <span class="ext-call">Open-Meteo</span><br />N cities weather
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /trips/:id/generate-activities</span>
+            <span class="ext-call">Haiku</span><br />N cities &times; 1 call each (on demand)
+          </li>
+        </ol>
+        <div
+          style="
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(210, 168, 255, 0.06);
+            border-radius: 4px;
+            font-size: 11px;
+          "
+        >
+          <strong>Total Haiku calls: 2 + N</strong> (route + gen + N activities)<br />
+          <strong>Total external API calls: 2 + 2N</strong><br />
+          <em>For 4 cities: 6 Haiku + 4 Open-Meteo = 10 calls</em>
+        </div>
       </div>
-      <span class="tag-tested">add-city.test, route-review-edit-cities E2E</span>
+
+      <div class="section-card" style="border-top: 3px solid var(--multi)">
+        <h3 style="color: var(--multi); margin-top: 0">Multi-City API Sequence</h3>
+        <ol style="font-size: 12px; padding-left: 20px; color: var(--text-muted)">
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/generate/select-route</span>
+            <span class="ext-call">Haiku</span><br />Select 4-7 cities across region
+          </li>
+          <li style="padding: 3px 0"><em>User reviews/edits cities in Route Review</em></li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB</span
+            ><br />Create Trip record
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/trips/:id/generate</span>
+            <span class="ext-call">Haiku</span> <span class="db-write">DB</span><br />SSE stream.
+            Route + budget (10k tokens).
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/enrich/visa</span><br />Static lookup (multiple
+            countries)
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /api/v1/enrich/weather</span>
+            <span class="ext-call">Open-Meteo</span><br />N cities weather
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /trips/:id/generate-activities</span>
+            <span class="ext-call">Haiku</span><br />N cities &times; 1 call each (on demand)
+          </li>
+          <li style="padding: 3px 0">
+            <span class="api-call">POST /trips/:id/optimize</span>
+            <span class="ext-call">Amadeus</span><br />Flight optimization (auth only, optional)
+          </li>
+        </ol>
+        <div
+          style="
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(63, 185, 80, 0.06);
+            border-radius: 4px;
+            font-size: 11px;
+          "
+        >
+          <strong>Total Haiku calls: 2 + N</strong> (route + gen + N activities)<br />
+          <strong>Total external API calls: 2 + 2N + Amadeus</strong><br />
+          <em>For 5 cities: 7 Haiku + 5 Open-Meteo + Amadeus = 13+ calls</em>
+        </div>
+      </div>
     </div>
 
-    <div class="vflow-node cell-shared-all" style="border-color:rgba(139,148,158,0.3)">
-      <div class="node-label" style="color:var(--text-muted)">Summary</div>
-      <h5 style="color:#fff;font-size:13px;margin-bottom:6px">Trip Summary <code>/trip/[id]/summary</code></h5>
-      <ul style="font-size:11px;padding-left:14px;color:var(--text-muted)">
-        <li>Route overview</li>
-        <li>Day-by-day compact view</li>
-        <li>Budget breakdown</li>
-        <li>Visa requirements</li>
-        <li>Weather overview</li>
-        <li>Flight legs (if optimized)</li>
-        <li>Share link generation <span class="api-call">GET /trips/:id/share</span></li>
-        <li>PDF export</li>
-        <li>Affiliate links <span class="api-call">GET /affiliate/redirect</span></li>
+    <!-- ============================================================ -->
+    <h2>5. Observations, Gaps &amp; Simplification Opportunities</h2>
+
+    <h3>Questions asked per trip type &mdash; do we ask too much or too little?</h3>
+
+    <div class="obs-red obs">
+      <strong>Single-City: Route Review is skipped, but should we ask more?</strong><br />
+      For single-city trips, the user picks a city and goes straight to generation. There is no
+      chance to specify <strong>neighborhoods</strong>, <strong>activity preferences</strong> for
+      that specific city, or <strong>accommodation area</strong>. For a 7-day single-city trip in
+      Tokyo, the user has no input between "I want to go to Tokyo" and the full generated plan.
+      Consider adding a lightweight customization step (preferred neighborhoods, must-see
+      attractions, dietary preferences).
+    </div>
+
+    <div class="obs obs">
+      <strong>Single-Country: No country-level context gathered</strong><br />
+      When selecting a single country, we only ask for the country name. We don't ask:
+      <ul style="font-size: 12px; padding-left: 18px; margin-top: 4px">
+        <li>Are there specific cities the user wants to include/exclude?</li>
+        <li>Does the user prefer coastal vs. inland?</li>
+        <li>Is there a specific region within the country they prefer?</li>
       </ul>
-      <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">
-        <strong style="color:var(--single)">Single-City:</strong> <code>singleCity = route.length === 1</code> &mdash; minor style difference only
-      </div>
-      <span class="tag-untested">no tests</span>
+      The Route Review step partially addresses this (user can edit cities), but by then the AI has
+      already made choices. Pre-generation input could improve results.
     </div>
-  </div>
 
-</div>
-
-<!-- ============================================================ -->
-<h2>2. Authenticated User Flow Differences</h2>
-
-<div class="section-card">
-  <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Authenticated users skip Guest Steps 1 &amp; 2 (profile already saved to Zustand from onboarding). The plan page detects auth via <code>useAuthStatus()</code> and adjusts step count.</p>
-
-  <table>
-    <tr><th>Aspect</th>
-      <th style="color:var(--single)">Single-City (auth)</th>
-      <th style="color:var(--country)">Single-Country (auth)</th>
-      <th style="color:var(--multi)">Multi-City (auth)</th></tr>
-    <tr><td><strong>Total steps</strong></td><td>2</td><td>3</td><td>3</td></tr>
-    <tr><td><strong>Step 1</strong></td><td>Destination (city picker)</td><td>Destination (country picker)</td><td>Destination (region picker)</td></tr>
-    <tr><td><strong>Step 2</strong></td><td>Budget + Travelers &rarr; Generate</td><td>Budget + Travelers</td><td>Budget + Travelers</td></tr>
-    <tr><td><strong>Step 3</strong></td><td style="color:var(--text-muted)">N/A (generate on step 2)</td><td>Route Review &rarr; Generate</td><td>Route Review &rarr; Generate</td></tr>
-    <tr><td><strong>Profile data source</strong></td><td colspan="3">Zustand store (persisted from onboarding). Sent as <code>profile</code> param in API calls.</td></tr>
-    <tr><td><strong>Trip saved to DB?</strong></td><td colspan="3">Yes &mdash; <code>profileId</code> set, visible in <code>/dashboard</code></td></tr>
-  </table>
-
-  <div class="obs" style="margin-top:12px">
-    <strong>Gap:</strong> If an authenticated user changed their nationality/airport since onboarding, the plan page still reads from Zustand (which may be stale). The <code>/profile</code> page updates Zustand, but there's no sync from the DB Profile to Zustand on plan page load.
-  </div>
-</div>
-
-<!-- ============================================================ -->
-<h2>3. Full Field Comparison Matrix</h2>
-
-<div class="compare-grid">
-  <div class="compare-header">Field / Input</div>
-  <div class="compare-header compare-header-single">Single-City</div>
-  <div class="compare-header compare-header-country">Single-Country</div>
-  <div class="compare-header compare-header-multi">Multi-City</div>
-
-  <div class="compare-label">nationality</div>
-  <div class="compare-cell"><span class="yes">Collected</span> (guest step 1)</div>
-  <div class="compare-cell"><span class="yes">Collected</span> (guest step 1)</div>
-  <div class="compare-cell"><span class="yes">Collected</span> (guest step 1)</div>
-
-  <div class="compare-label">homeAirport</div>
-  <div class="compare-cell"><span class="opt">Optional</span></div>
-  <div class="compare-cell"><span class="opt">Optional</span></div>
-  <div class="compare-cell"><span class="opt">Optional</span></div>
-
-  <div class="compare-label">travelStyle</div>
-  <div class="compare-cell"><span class="yes">Collected</span> (default: comfort)</div>
-  <div class="compare-cell"><span class="yes">Collected</span> (default: comfort)</div>
-  <div class="compare-cell"><span class="yes">Collected</span> (default: comfort)</div>
-
-  <div class="compare-label">interests[]</div>
-  <div class="compare-cell"><span class="opt">Optional</span> (max 10)</div>
-  <div class="compare-cell"><span class="opt">Optional</span> (max 10)</div>
-  <div class="compare-cell"><span class="opt">Optional</span> (max 10)</div>
-
-  <div class="compare-label">tripType</div>
-  <div class="compare-cell"><code>"single-city"</code></div>
-  <div class="compare-cell"><code>"single-country"</code></div>
-  <div class="compare-cell"><code>"multi-city"</code></div>
-
-  <div class="compare-label">destination</div>
-  <div class="compare-cell"><span class="yes">Required</span> (city name)</div>
-  <div class="compare-cell"><span class="na">Empty string</span></div>
-  <div class="compare-cell"><span class="na">Empty string</span></div>
-
-  <div class="compare-label">destinationCountry</div>
-  <div class="compare-cell"><span class="yes">Auto-filled</span> from city</div>
-  <div class="compare-cell"><span class="yes">Required</span></div>
-  <div class="compare-cell"><span class="na">Empty string</span></div>
-
-  <div class="compare-label">destinationCountryCode</div>
-  <div class="compare-cell"><span class="yes">Auto-filled</span></div>
-  <div class="compare-cell"><span class="yes">Auto-filled</span></div>
-  <div class="compare-cell"><span class="na">Empty string</span></div>
-
-  <div class="compare-label">destinationLat / Lng</div>
-  <div class="compare-cell"><span class="yes">Auto-filled</span></div>
-  <div class="compare-cell"><span class="yes">Auto-filled</span> (centroid)</div>
-  <div class="compare-cell"><span class="na">0, 0</span></div>
-
-  <div class="compare-label">region</div>
-  <div class="compare-cell"><span class="na">Empty string</span></div>
-  <div class="compare-cell"><span class="na">Empty string</span></div>
-  <div class="compare-cell"><span class="yes">Required</span> (e.g. "southeast-asia")</div>
-
-  <div class="compare-label">dateStart</div>
-  <div class="compare-cell"><span class="yes">Required</span></div>
-  <div class="compare-cell"><span class="yes">Required</span></div>
-  <div class="compare-cell"><span class="yes">Required</span></div>
-
-  <div class="compare-label">dateEnd</div>
-  <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
-  <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
-  <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
-
-  <div class="compare-label">flexibleDates</div>
-  <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
-  <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
-  <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
-
-  <div class="compare-label">budget</div>
-  <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
-  <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
-  <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
-
-  <div class="compare-label">travelers</div>
-  <div class="compare-cell"><span class="yes">Required</span> (1-10)</div>
-  <div class="compare-cell"><span class="yes">Required</span> (1-10)</div>
-  <div class="compare-cell"><span class="yes">Required</span> (1-10)</div>
-
-  <div class="compare-label">Route Review step?</div>
-  <div class="compare-cell"><span class="no">SKIPPED</span></div>
-  <div class="compare-cell"><span class="yes">Yes</span> (3-6 cities)</div>
-  <div class="compare-cell"><span class="yes">Yes</span> (4-7 cities)</div>
-
-  <div class="compare-label">Haiku route selection?</div>
-  <div class="compare-cell"><span class="no">No</span> (short-circuit)</div>
-  <div class="compare-cell"><span class="yes">Yes</span> (country-scoped)</div>
-  <div class="compare-cell"><span class="yes">Yes</span> (region-scoped)</div>
-
-  <div class="compare-label">Cities user can review?</div>
-  <div class="compare-cell"><span class="no">No</span></div>
-  <div class="compare-cell"><span class="yes">Yes</span> (reorder, add, remove, adjust days)</div>
-  <div class="compare-cell"><span class="yes">Yes</span> (reorder, add, remove, adjust days)</div>
-
-  <div class="compare-label">maxTokens (generation)</div>
-  <div class="compare-cell">4,000</div>
-  <div class="compare-cell">10,000</div>
-  <div class="compare-cell">10,000</div>
-
-  <div class="compare-label">Travel days in itinerary?</div>
-  <div class="compare-cell"><span class="no">No</span></div>
-  <div class="compare-cell"><span class="yes">Yes</span></div>
-  <div class="compare-cell"><span class="yes">Yes</span></div>
-
-  <div class="compare-label">Flight calculation</div>
-  <div class="compare-cell">Round-trip (home &harr; city)</div>
-  <div class="compare-cell">Multi-leg between cities</div>
-  <div class="compare-cell">Multi-leg between cities</div>
-
-  <div class="compare-label">Edit: structural edits?</div>
-  <div class="compare-cell"><span class="na">Trivial</span> (only 1 city)</div>
-  <div class="compare-cell"><span class="yes">Add/remove/reorder</span></div>
-  <div class="compare-cell"><span class="yes">Add/remove/reorder</span></div>
-
-  <div class="compare-label">Flight optimization?</div>
-  <div class="compare-cell"><span class="na">Not useful</span> (1 leg)</div>
-  <div class="compare-cell"><span class="yes">Yes</span> (Amadeus)</div>
-  <div class="compare-cell"><span class="yes">Yes</span> (Amadeus)</div>
-</div>
-
-<!-- ============================================================ -->
-<h2>4. API Call Sequence by Trip Type</h2>
-
-<div class="cols-3">
-  <div class="section-card" style="border-top:3px solid var(--single)">
-    <h3 style="color:var(--single);margin-top:0">Single-City API Sequence</h3>
-    <ol style="font-size:12px;padding-left:20px;color:var(--text-muted)">
-      <li style="padding:3px 0"><span class="api-call">POST /api/generate/select-route</span><br>Short-circuit: returns 1 city, <strong>no Haiku call</strong></li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB</span><br>Create Trip record</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/trips/:id/generate</span> <span class="ext-call">Haiku</span> <span class="db-write">DB</span><br>SSE stream. Route + budget (4k tokens). Single-city prompt.</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/enrich/visa</span><br>Static lookup (no external call)</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/enrich/weather</span> <span class="ext-call">Open-Meteo</span><br>1 city weather</li>
-      <li style="padding:3px 0"><span class="api-call">POST /trips/:id/generate-activities</span> <span class="ext-call">Haiku</span><br>1 city &times; 1 call</li>
-    </ol>
-    <div style="margin-top:8px;padding:8px;background:rgba(88,166,255,0.06);border-radius:4px;font-size:11px">
-      <strong>Total Haiku calls: 2</strong> (1 generation + 1 activity)<br>
-      <strong>Total external API calls: 3</strong> (Haiku &times;2 + Open-Meteo &times;1)
+    <div class="obs obs">
+      <strong>Multi-City: Region is very coarse</strong><br />
+      "Southeast Asia" or "Western Europe" covers dozens of countries. The user has no way to
+      express preferences like "I want beach + culture" or "avoid countries X and Y" before the AI
+      picks cities. The Route Review allows post-hoc editing, but better pre-selection input would
+      reduce AI wasted tokens.
     </div>
-  </div>
 
-  <div class="section-card" style="border-top:3px solid var(--country)">
-    <h3 style="color:var(--country);margin-top:0">Single-Country API Sequence</h3>
-    <ol style="font-size:12px;padding-left:20px;color:var(--text-muted)">
-      <li style="padding:3px 0"><span class="api-call">POST /api/generate/select-route</span> <span class="ext-call">Haiku</span><br>Select 3-6 cities within country</li>
-      <li style="padding:3px 0"><em>User reviews/edits cities in Route Review</em></li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB</span><br>Create Trip record</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/trips/:id/generate</span> <span class="ext-call">Haiku</span> <span class="db-write">DB</span><br>SSE stream. Route + budget (10k tokens).</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/enrich/visa</span><br>Static lookup (1 country, deduped)</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/enrich/weather</span> <span class="ext-call">Open-Meteo</span><br>N cities weather</li>
-      <li style="padding:3px 0"><span class="api-call">POST /trips/:id/generate-activities</span> <span class="ext-call">Haiku</span><br>N cities &times; 1 call each (on demand)</li>
-    </ol>
-    <div style="margin-top:8px;padding:8px;background:rgba(210,168,255,0.06);border-radius:4px;font-size:11px">
-      <strong>Total Haiku calls: 2 + N</strong> (route + gen + N activities)<br>
-      <strong>Total external API calls: 2 + 2N</strong><br>
-      <em>For 4 cities: 6 Haiku + 4 Open-Meteo = 10 calls</em>
+    <div class="obs-green obs">
+      <strong>What's working well:</strong> The Route Review step for multi-city/single-country is
+      genuinely useful &mdash; users can customize the AI's suggestions. The drag-drop reordering
+      and day adjustment are well-tested.
     </div>
-  </div>
 
-  <div class="section-card" style="border-top:3px solid var(--multi)">
-    <h3 style="color:var(--multi);margin-top:0">Multi-City API Sequence</h3>
-    <ol style="font-size:12px;padding-left:20px;color:var(--text-muted)">
-      <li style="padding:3px 0"><span class="api-call">POST /api/generate/select-route</span> <span class="ext-call">Haiku</span><br>Select 4-7 cities across region</li>
-      <li style="padding:3px 0"><em>User reviews/edits cities in Route Review</em></li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/trips</span> <span class="db-write">DB</span><br>Create Trip record</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/trips/:id/generate</span> <span class="ext-call">Haiku</span> <span class="db-write">DB</span><br>SSE stream. Route + budget (10k tokens).</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/enrich/visa</span><br>Static lookup (multiple countries)</li>
-      <li style="padding:3px 0"><span class="api-call">POST /api/v1/enrich/weather</span> <span class="ext-call">Open-Meteo</span><br>N cities weather</li>
-      <li style="padding:3px 0"><span class="api-call">POST /trips/:id/generate-activities</span> <span class="ext-call">Haiku</span><br>N cities &times; 1 call each (on demand)</li>
-      <li style="padding:3px 0"><span class="api-call">POST /trips/:id/optimize</span> <span class="ext-call">Amadeus</span><br>Flight optimization (auth only, optional)</li>
-    </ol>
-    <div style="margin-top:8px;padding:8px;background:rgba(63,185,80,0.06);border-radius:4px;font-size:11px">
-      <strong>Total Haiku calls: 2 + N</strong> (route + gen + N activities)<br>
-      <strong>Total external API calls: 2 + 2N + Amadeus</strong><br>
-      <em>For 5 cities: 7 Haiku + 5 Open-Meteo + Amadeus = 13+ calls</em>
+    <h3>Missing views / functionality</h3>
+
+    <div class="obs-red obs">
+      <strong>No city preview/details before commitment</strong><br />
+      In the Route Review step, cities are shown as names with day counts. There's no thumbnail
+      image, brief description, or reason why the AI picked that city. Users are making decisions
+      about cities they may not know. A mini-card with 1-line description + image would help.
     </div>
-  </div>
-</div>
 
-<!-- ============================================================ -->
-<h2>5. Observations, Gaps &amp; Simplification Opportunities</h2>
+    <div class="obs-red obs">
+      <strong>No "why this city?" explanation from the AI</strong><br />
+      The route selector prompt asks Haiku to pick cities, but the response only contains city
+      metadata (name, country, lat/lng, minDays, maxDays). There's no <code>reason</code> field
+      explaining why a city was selected. Adding this to the <code>CityWithDays</code> schema would
+      help users evaluate the route.
+    </div>
 
-<h3>Questions asked per trip type &mdash; do we ask too much or too little?</h3>
+    <div class="obs obs">
+      <strong>Single-city edit page is nearly useless</strong><br />
+      The edit page (<code>/trip/[id]/edit</code>) for single-city trips only has 1 city. The only
+      meaningful action is adjusting day count (which doesn't change anything since all days are in
+      that city). The "add city" button effectively converts the trip into a multi-city trip, which
+      changes the tripType semantics silently. Consider either hiding the edit button for
+      single-city or redesigning it to focus on activity customization.
+    </div>
 
-<div class="obs-red obs">
-  <strong>Single-City: Route Review is skipped, but should we ask more?</strong><br>
-  For single-city trips, the user picks a city and goes straight to generation. There is no chance to specify <strong>neighborhoods</strong>, <strong>activity preferences</strong> for that specific city, or <strong>accommodation area</strong>. For a 7-day single-city trip in Tokyo, the user has no input between "I want to go to Tokyo" and the full generated plan. Consider adding a lightweight customization step (preferred neighborhoods, must-see attractions, dietary preferences).
-</div>
+    <div class="obs obs">
+      <strong>Flight optimization only for authenticated users + multi-leg</strong><br />
+      Single-city trips have a single round-trip flight, but there's no flight price lookup for
+      them. Amadeus optimization requires owner auth and is only useful for multi-leg routes. For
+      single-city, a simple "search flights" link to Skyscanner would be more appropriate than the
+      optimization endpoint.
+    </div>
 
-<div class="obs obs">
-  <strong>Single-Country: No country-level context gathered</strong><br>
-  When selecting a single country, we only ask for the country name. We don't ask:
-  <ul style="font-size:12px;padding-left:18px;margin-top:4px">
-    <li>Are there specific cities the user wants to include/exclude?</li>
-    <li>Does the user prefer coastal vs. inland?</li>
-    <li>Is there a specific region within the country they prefer?</li>
-  </ul>
-  The Route Review step partially addresses this (user can edit cities), but by then the AI has already made choices. Pre-generation input could improve results.
-</div>
+    <div class="obs obs">
+      <strong>flexibleDates field is collected but impact is unclear</strong><br />
+      The <code>flexibleDates</code> boolean (&plusmn;3 days) is stored and sent to the API, but
+      it's unclear how the generation prompts use it. The Amadeus flight search doesn't use flexible
+      dates either. Verify this field actually affects output, or remove it.
+    </div>
 
-<div class="obs obs">
-  <strong>Multi-City: Region is very coarse</strong><br>
-  "Southeast Asia" or "Western Europe" covers dozens of countries. The user has no way to express preferences like "I want beach + culture" or "avoid countries X and Y" before the AI picks cities. The Route Review allows post-hoc editing, but better pre-selection input would reduce AI wasted tokens.
-</div>
+    <div class="obs obs">
+      <strong>Guest trip cannot be linked to account after signup</strong><br />
+      A guest creates a trip with <code>profileId: null</code>. If they later sign up, the trip
+      remains orphaned &mdash; it won't appear in their dashboard. The <code>currentTripId</code> is
+      in Zustand, so a post-signup migration could be implemented, but it currently isn't.
+    </div>
 
-<div class="obs-green obs">
-  <strong>What's working well:</strong> The Route Review step for multi-city/single-country is genuinely useful &mdash; users can customize the AI's suggestions. The drag-drop reordering and day adjustment are well-tested.
-</div>
+    <h3>Single-Country vs Multi-City &mdash; are they different enough?</h3>
 
-<h3>Missing views / functionality</h3>
+    <div class="obs-blue obs">
+      <strong>These two flows are nearly identical.</strong><br />
+      The only differences between single-country and multi-city are:
+      <ul style="font-size: 12px; padding-left: 18px; margin-top: 4px">
+        <li><strong>Destination picker:</strong> CountryCombobox vs region SelectionCard</li>
+        <li>
+          <strong>Prompt constraint:</strong> "cities within {country}" vs "cities across {region}"
+        </li>
+        <li><strong>City count:</strong> 3-6 vs 4-7</li>
+      </ul>
+      Everything else (route review, generation, edit, summary, APIs) is identical. Consider whether
+      these warrant separate trip types or could be unified with a "scope" parameter (country vs
+      region).
+    </div>
 
-<div class="obs-red obs">
-  <strong>No city preview/details before commitment</strong><br>
-  In the Route Review step, cities are shown as names with day counts. There's no thumbnail image, brief description, or reason why the AI picked that city. Users are making decisions about cities they may not know. A mini-card with 1-line description + image would help.
-</div>
+    <h3>Test coverage by trip type</h3>
+    <table>
+      <tr>
+        <th>Flow Step</th>
+        <th style="color: var(--single)">Single-City</th>
+        <th style="color: var(--country)">Single-Country</th>
+        <th style="color: var(--multi)">Multi-City</th>
+      </tr>
+      <tr>
+        <td>Guest steps 1-2 (profile)</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--red)">No tests</td>
+      </tr>
+      <tr>
+        <td>Destination picker</td>
+        <td style="color: var(--green)">route-review.test (partial)</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--green)">route-review.test</td>
+      </tr>
+      <tr>
+        <td>Route Review</td>
+        <td style="color: var(--text-muted)">N/A (skipped)</td>
+        <td style="color: var(--green)">RouteReviewStep.test</td>
+        <td style="color: var(--green)">RouteReviewStep.test + E2E</td>
+      </tr>
+      <tr>
+        <td>Trip creation</td>
+        <td style="color: var(--green)">route-review.test</td>
+        <td style="color: var(--green)">route-review.test</td>
+        <td style="color: var(--green)">route-review.test</td>
+      </tr>
+      <tr>
+        <td>Generation (SSE)</td>
+        <td style="color: var(--yellow)">E2E only</td>
+        <td style="color: var(--yellow)">E2E only</td>
+        <td style="color: var(--yellow)">E2E only</td>
+      </tr>
+      <tr>
+        <td>Trip view</td>
+        <td style="color: var(--yellow)">null-state only</td>
+        <td style="color: var(--yellow)">null-state only</td>
+        <td style="color: var(--yellow)">null-state only</td>
+      </tr>
+      <tr>
+        <td>Edit</td>
+        <td style="color: var(--red)">No single-city specific tests</td>
+        <td style="color: var(--green)">add-city.test</td>
+        <td style="color: var(--green)">add-city.test + E2E</td>
+      </tr>
+      <tr>
+        <td>Summary / Share</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--red)">No tests</td>
+      </tr>
+      <tr>
+        <td>Per-city activity gen</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--red)">No tests</td>
+        <td style="color: var(--red)">No tests</td>
+      </tr>
+    </table>
 
-<div class="obs-red obs">
-  <strong>No "why this city?" explanation from the AI</strong><br>
-  The route selector prompt asks Haiku to pick cities, but the response only contains city metadata (name, country, lat/lng, minDays, maxDays). There's no <code>reason</code> field explaining why a city was selected. Adding this to the <code>CityWithDays</code> schema would help users evaluate the route.
-</div>
+    <hr style="margin: 40px 0; border-color: var(--border)" />
 
-<div class="obs obs">
-  <strong>Single-city edit page is nearly useless</strong><br>
-  The edit page (<code>/trip/[id]/edit</code>) for single-city trips only has 1 city. The only meaningful action is adjusting day count (which doesn't change anything since all days are in that city). The "add city" button effectively converts the trip into a multi-city trip, which changes the tripType semantics silently. Consider either hiding the edit button for single-city or redesigning it to focus on activity customization.
-</div>
-
-<div class="obs obs">
-  <strong>Flight optimization only for authenticated users + multi-leg</strong><br>
-  Single-city trips have a single round-trip flight, but there's no flight price lookup for them. Amadeus optimization requires owner auth and is only useful for multi-leg routes. For single-city, a simple "search flights" link to Skyscanner would be more appropriate than the optimization endpoint.
-</div>
-
-<div class="obs obs">
-  <strong>flexibleDates field is collected but impact is unclear</strong><br>
-  The <code>flexibleDates</code> boolean (&plusmn;3 days) is stored and sent to the API, but it's unclear how the generation prompts use it. The Amadeus flight search doesn't use flexible dates either. Verify this field actually affects output, or remove it.
-</div>
-
-<div class="obs obs">
-  <strong>Guest trip cannot be linked to account after signup</strong><br>
-  A guest creates a trip with <code>profileId: null</code>. If they later sign up, the trip remains orphaned &mdash; it won't appear in their dashboard. The <code>currentTripId</code> is in Zustand, so a post-signup migration could be implemented, but it currently isn't.
-</div>
-
-<h3>Single-Country vs Multi-City &mdash; are they different enough?</h3>
-
-<div class="obs-blue obs">
-  <strong>These two flows are nearly identical.</strong><br>
-  The only differences between single-country and multi-city are:
-  <ul style="font-size:12px;padding-left:18px;margin-top:4px">
-    <li><strong>Destination picker:</strong> CountryCombobox vs region SelectionCard</li>
-    <li><strong>Prompt constraint:</strong> "cities within {country}" vs "cities across {region}"</li>
-    <li><strong>City count:</strong> 3-6 vs 4-7</li>
-  </ul>
-  Everything else (route review, generation, edit, summary, APIs) is identical. Consider whether these warrant separate trip types or could be unified with a "scope" parameter (country vs region).
-</div>
-
-<h3>Test coverage by trip type</h3>
-<table>
-  <tr><th>Flow Step</th>
-    <th style="color:var(--single)">Single-City</th>
-    <th style="color:var(--country)">Single-Country</th>
-    <th style="color:var(--multi)">Multi-City</th></tr>
-  <tr><td>Guest steps 1-2 (profile)</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--red)">No tests</td></tr>
-  <tr><td>Destination picker</td>
-    <td style="color:var(--green)">route-review.test (partial)</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--green)">route-review.test</td></tr>
-  <tr><td>Route Review</td>
-    <td style="color:var(--text-muted)">N/A (skipped)</td>
-    <td style="color:var(--green)">RouteReviewStep.test</td>
-    <td style="color:var(--green)">RouteReviewStep.test + E2E</td></tr>
-  <tr><td>Trip creation</td>
-    <td style="color:var(--green)">route-review.test</td>
-    <td style="color:var(--green)">route-review.test</td>
-    <td style="color:var(--green)">route-review.test</td></tr>
-  <tr><td>Generation (SSE)</td>
-    <td style="color:var(--yellow)">E2E only</td>
-    <td style="color:var(--yellow)">E2E only</td>
-    <td style="color:var(--yellow)">E2E only</td></tr>
-  <tr><td>Trip view</td>
-    <td style="color:var(--yellow)">null-state only</td>
-    <td style="color:var(--yellow)">null-state only</td>
-    <td style="color:var(--yellow)">null-state only</td></tr>
-  <tr><td>Edit</td>
-    <td style="color:var(--red)">No single-city specific tests</td>
-    <td style="color:var(--green)">add-city.test</td>
-    <td style="color:var(--green)">add-city.test + E2E</td></tr>
-  <tr><td>Summary / Share</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--red)">No tests</td></tr>
-  <tr><td>Per-city activity gen</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--red)">No tests</td>
-    <td style="color:var(--red)">No tests</td></tr>
-</table>
-
-<hr style="margin:40px 0;border-color:var(--border)">
-
-<p style="color:var(--text-muted);font-size:12px;text-align:center">
-  Generated by Claude Code &middot; Travel Pro User Flow Documentation &middot; 2026-02-21<br>
-  See also: <a href="architecture-overview.html">Architecture Overview</a> for API routes, DB schema, and external services
-</p>
-
-</body>
+    <p style="color: var(--text-muted); font-size: 12px; text-align: center">
+      Generated by Claude Code &middot; Travel Pro User Flow Documentation &middot; 2026-02-21<br />
+      See also: <a href="architecture-overview.html">Architecture Overview</a> for API routes, DB
+      schema, and external services
+    </p>
+  </body>
 </html>

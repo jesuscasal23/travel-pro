@@ -8,22 +8,22 @@ Travel Pro is a mobile-friendly, AI-powered trip planner for multi-destination j
 
 ## Pages & Purpose
 
-| Page | Route | Auth Required | Description |
-|------|-------|---------------|-------------|
-| Landing | `/` | No | Marketing homepage with features overview and "Start Planning" CTA |
-| Privacy Policy | `/privacy` | No | GDPR privacy policy |
-| Sign Up | `/signup` | No | Create account (email + password) |
-| Log In | `/login` | No | Sign in, with "Forgot password" link |
-| Forgot Password | `/forgot-password` | No | Request password reset email |
-| Reset Password | `/reset-password` | No | Complete password reset via email token |
-| Onboarding | `/onboarding` | Yes | 2-step profile setup (nationality, airport, style, interests) |
-| Plan | `/plan` | No | Multi-step questionnaire + AI itinerary generation (guests welcome) |
-| Trip View | `/trip/[id]` | No | Day-by-day itinerary: map + timeline split layout |
-| Trip Edit | `/trip/[id]/edit` | No | Drag-drop city editor (add, remove, reorder cities; adjust days) |
-| Trip Summary | `/trip/[id]/summary` | No | Full summary with visa checklist, weather, affiliate links, PDF export, share |
-| Shared View | `/share/[token]` | No | Read-only public view with OpenGraph metadata + growth CTA |
-| Dashboard | `/dashboard` | Yes | User's trip list with status badges |
-| Profile / Settings | `/profile` | Yes | Edit profile, download data (GDPR), delete account (GDPR) |
+| Page               | Route                | Auth Required | Description                                                                   |
+| ------------------ | -------------------- | ------------- | ----------------------------------------------------------------------------- |
+| Landing            | `/`                  | No            | Marketing homepage with features overview and "Start Planning" CTA            |
+| Privacy Policy     | `/privacy`           | No            | GDPR privacy policy                                                           |
+| Sign Up            | `/signup`            | No            | Create account (email + password)                                             |
+| Log In             | `/login`             | No            | Sign in, with "Forgot password" link                                          |
+| Forgot Password    | `/forgot-password`   | No            | Request password reset email                                                  |
+| Reset Password     | `/reset-password`    | No            | Complete password reset via email token                                       |
+| Onboarding         | `/onboarding`        | Yes           | 2-step profile setup (nationality, airport, style, interests)                 |
+| Plan               | `/plan`              | No            | Multi-step questionnaire + AI itinerary generation (guests welcome)           |
+| Trip View          | `/trip/[id]`         | No            | Day-by-day itinerary: map + timeline split layout                             |
+| Trip Edit          | `/trip/[id]/edit`    | No            | Drag-drop city editor (add, remove, reorder cities; adjust days)              |
+| Trip Summary       | `/trip/[id]/summary` | No            | Full summary with visa checklist, weather, affiliate links, PDF export, share |
+| Shared View        | `/share/[token]`     | No            | Read-only public view with OpenGraph metadata + growth CTA                    |
+| Dashboard          | `/dashboard`         | Yes           | User's trip list with status badges                                           |
+| Profile / Settings | `/profile`           | Yes           | Edit profile, download data (GDPR), delete account (GDPR)                     |
 
 ---
 
@@ -34,7 +34,6 @@ Travel Pro is a mobile-friendly, AI-powered trip planner for multi-destination j
 1. **Landing** → User clicks "Start Planning" → `/plan`
 
 2. **Planning Questionnaire (4 steps)**
-
    - **Step 1 — Where are you from?**
      - Select nationality (199+ countries)
      - Select home airport (autocomplete search)
@@ -142,55 +141,62 @@ Travel Pro is a mobile-friendly, AI-powered trip planner for multi-destination j
 
 ## What the App Can Do
 
-| Feature | Notes |
-|---------|-------|
-| AI itinerary generation | Claude Haiku, day-by-day activities per city |
-| Multi-city route optimization | AI suggests cities + day allocations |
-| Single-city and single-country trips | Supported in planning flow |
-| Drag-drop city editor | Add, remove, reorder; structural changes trigger regeneration |
-| Per-city activity regeneration | Generates activities for a single city without full regen |
-| Visa requirements lookup | Passport Index static dataset, informational only |
-| Weather data | Open-Meteo historical averages, 7-day Redis cache |
-| Flight price optimization | Amadeus API (optional), multi-date search for cheapest option |
-| Affiliate links | Skyscanner, Booking.com, GetYourGuide with click tracking |
-| PDF export | Downloadable branded PDF of the full itinerary |
-| Shareable read-only URLs | Public links with OpenGraph metadata for social sharing |
-| GDPR data export | Full JSON download of all user data |
-| GDPR account deletion | Permanent deletion of account + all associated data |
-| Dark mode | User-toggled, persisted |
-| Guest access | Plan, view, and edit without an account |
-| Rate limiting | Redis-based sliding window on generation and shared-trip endpoints |
+| Feature                              | Notes                                                              |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| AI itinerary generation              | Claude Haiku, day-by-day activities per city                       |
+| Multi-city route optimization        | AI suggests cities + day allocations                               |
+| Single-city and single-country trips | Supported in planning flow                                         |
+| Drag-drop city editor                | Add, remove, reorder; structural changes trigger regeneration      |
+| Per-city activity regeneration       | Generates activities for a single city without full regen          |
+| Visa requirements lookup             | Passport Index static dataset, informational only                  |
+| Weather data                         | Open-Meteo historical averages, 7-day Redis cache                  |
+| Flight price optimization            | Amadeus API (optional), multi-date search for cheapest option      |
+| Affiliate links                      | Skyscanner, Booking.com, GetYourGuide with click tracking          |
+| PDF export                           | Downloadable branded PDF of the full itinerary                     |
+| Shareable read-only URLs             | Public links with OpenGraph metadata for social sharing            |
+| GDPR data export                     | Full JSON download of all user data                                |
+| GDPR account deletion                | Permanent deletion of account + all associated data                |
+| Dark mode                            | User-toggled, persisted                                            |
+| Guest access                         | Plan, view, and edit without an account                            |
+| Rate limiting                        | Redis-based sliding window on generation and shared-trip endpoints |
 
 ---
 
 ## What the App Cannot Do (Limitations)
 
 ### Booking & Commerce
+
 - **No real-time booking** — The app generates itineraries and links to external booking sites (Skyscanner, Booking.com, GetYourGuide) but does not complete any reservations directly
 - **No price guarantees** — Flight and accommodation prices are estimates or affiliate links; actual prices are on partner sites
 - **No insurance** — No travel insurance integration or recommendations
 
 ### Collaboration & Social
+
 - **No multi-user editing** — A trip belongs to one user; there is no co-editing or invite system
 - **No comments or notes** — Users cannot annotate activities or days
 - **No trip approval or voting** — Cannot share a draft for group feedback before finalizing
 
 ### Visa & Legal
+
 - **Visa info is informational only** — The app shows visa requirements from a static dataset but does not facilitate applications or guarantee accuracy
 - **Visa data may be outdated** — The Passport Index dataset is static; real-time policy changes are not reflected
 
 ### Weather
+
 - **Historical averages, not forecasts** — Weather data is based on Open-Meteo historical patterns, not actual forecasts. It is not reliable for trips within the next 7–14 days in the traditional forecast sense
 
 ### Language & Accessibility
+
 - **English only** — No multi-language support
 - **No accessibility audit** — Not verified against WCAG standards
 
 ### Platform
+
 - **Web only** — No native iOS or Android app
 - **No offline mode** — Authenticated users require internet to load their trips (Zustand persists the last loaded itinerary locally, but updates require connectivity)
 
 ### Trip Management
+
 - **No version history UI** — Multiple itinerary versions are stored in the database but there is no UI to browse or restore past versions
 - **No undo/redo** — Edit changes are committed immediately
 - **No recurring trips or templates** — Cannot copy or templatize a previous trip
@@ -200,34 +206,35 @@ Travel Pro is a mobile-friendly, AI-powered trip planner for multi-destination j
 - **No activity-level cost breakdown** — Budget is a high-level estimate per category (flights, accommodation, food, activities, transport); no per-activity pricing
 
 ### Map
+
 - **Read-only map** — The route map is for visualization only; users cannot draw, annotate, or interact with the route
 
 ---
 
 ## Guest vs. Authenticated Comparison
 
-| Feature | Guest | Authenticated |
-|---------|-------|---------------|
-| Plan a trip | Yes | Yes |
-| View a trip | Yes | Yes |
-| Edit a trip | Yes | Yes |
-| Share a trip | Yes (generates URL) | Yes (generates URL + stored in DB) |
-| Dashboard (past trips) | No | Yes |
-| Save profile preferences | Local (Zustand/localStorage) | Yes (database) |
-| Download data (GDPR) | No | Yes |
-| Delete account (GDPR) | No | Yes |
+| Feature                  | Guest                        | Authenticated                      |
+| ------------------------ | ---------------------------- | ---------------------------------- |
+| Plan a trip              | Yes                          | Yes                                |
+| View a trip              | Yes                          | Yes                                |
+| Edit a trip              | Yes                          | Yes                                |
+| Share a trip             | Yes (generates URL)          | Yes (generates URL + stored in DB) |
+| Dashboard (past trips)   | No                           | Yes                                |
+| Save profile preferences | Local (Zustand/localStorage) | Yes (database)                     |
+| Download data (GDPR)     | No                           | Yes                                |
+| Delete account (GDPR)    | No                           | Yes                                |
 
 ---
 
 ## Technical Constraints (Relevant to Users)
 
-| Constraint | Value | Impact |
-|------------|-------|--------|
-| Generation timeout | 50 seconds | Long trips may occasionally time out |
-| Generation rate limit | 5 per hour per IP | Prevents generating many itineraries in quick succession |
-| Shared link rate limit | 60 requests/min | Shared links throttle under heavy traffic |
-| Max travelers input | 10 | Party size capped at 10 in the UI |
-| Minimum trip length | 1 day | Date range must be at least 1 day |
+| Constraint             | Value             | Impact                                                   |
+| ---------------------- | ----------------- | -------------------------------------------------------- |
+| Generation timeout     | 50 seconds        | Long trips may occasionally time out                     |
+| Generation rate limit  | 5 per hour per IP | Prevents generating many itineraries in quick succession |
+| Shared link rate limit | 60 requests/min   | Shared links throttle under heavy traffic                |
+| Max travelers input    | 10                | Party size capped at 10 in the UI                        |
+| Minimum trip length    | 1 day             | Date range must be at least 1 day                        |
 
 ---
 
@@ -249,15 +256,15 @@ This sample appears in the dashboard empty state and can be explored without gen
 
 ## Data Collected
 
-| Category | Data Points |
-|----------|-------------|
-| Account | Email address, hashed password (Supabase) |
-| Profile | Nationality, home airport, travel style, interests, activity level, languages spoken |
-| Trips | Trip type, region/destination, dates, traveler count, status |
-| Itineraries | Full day-by-day plan, activities, visa data, weather data, flight legs |
-| Analytics | Page views, planning completion, generation events, shares, exports (PostHog, EU region, consent-gated) |
-| Affiliate clicks | Provider, city, destination, anonymized IP hash |
+| Category         | Data Points                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Account          | Email address, hashed password (Supabase)                                                               |
+| Profile          | Nationality, home airport, travel style, interests, activity level, languages spoken                    |
+| Trips            | Trip type, region/destination, dates, traveler count, status                                            |
+| Itineraries      | Full day-by-day plan, activities, visa data, weather data, flight legs                                  |
+| Analytics        | Page views, planning completion, generation events, shares, exports (PostHog, EU region, consent-gated) |
+| Affiliate clicks | Provider, city, destination, anonymized IP hash                                                         |
 
 ---
 
-*Generated from codebase on 2026-02-22.*
+_Generated from codebase on 2026-02-22._

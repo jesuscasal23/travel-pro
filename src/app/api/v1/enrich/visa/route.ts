@@ -10,15 +10,18 @@ import { enrichVisa } from "@/lib/ai/enrichment";
 
 const RequestSchema = z.object({
   nationality: z.string().min(1).max(100),
-  route: z.array(
-    z.object({
-      city: z.string(),
-      country: z.string(),
-      countryCode: z.string(),
-      lat: z.number(),
-      lng: z.number(),
-    })
-  ).min(1).max(20),
+  route: z
+    .array(
+      z.object({
+        city: z.string(),
+        country: z.string(),
+        countryCode: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+      })
+    )
+    .min(1)
+    .max(20),
 });
 
 export async function POST(req: NextRequest) {

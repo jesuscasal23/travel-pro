@@ -29,7 +29,6 @@ const signupSchema = z
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
-
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,7 +49,11 @@ function SignupForm() {
     setServerError(null);
 
     const supabase = createClient();
-    if (!supabase) { setServerError("Auth service unavailable."); setIsLoading(false); return; }
+    if (!supabase) {
+      setServerError("Auth service unavailable.");
+      setIsLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -69,15 +72,13 @@ function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={false} />
 
-      <div className="max-w-md mx-auto px-4 pt-24 pb-12">
+      <div className="mx-auto max-w-md px-4 pt-24 pb-12">
         <div className="card-travel p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Create your account
-          </h1>
-          <p className="text-muted-foreground text-sm mb-8">
+          <h1 className="text-foreground mb-2 text-2xl font-bold">Create your account</h1>
+          <p className="text-muted-foreground mb-8 text-sm">
             Start planning smarter trips in minutes.
           </p>
 
@@ -119,7 +120,7 @@ function SignupForm() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-6 text-center text-sm">
             Already have an account?{" "}
             <Link
               href={`/login${next !== "/onboarding" ? `?next=${encodeURIComponent(next)}` : ""}`}

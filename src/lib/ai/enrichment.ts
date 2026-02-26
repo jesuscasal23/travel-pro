@@ -40,43 +40,95 @@ function parseRequirement(raw: string): {
   notes: string;
 } {
   if (raw === "-1") {
-    return { requirement: "visa-free", maxStayDays: 365, label: "Own country", icon: "🏠", notes: "This is your home country." };
+    return {
+      requirement: "visa-free",
+      maxStayDays: 365,
+      label: "Own country",
+      icon: "🏠",
+      notes: "This is your home country.",
+    };
   }
   if (raw === "no admission") {
-    return { requirement: "no-admission", maxStayDays: 0, label: "No admission", icon: "🚫", notes: "Entry not permitted with this passport." };
+    return {
+      requirement: "no-admission",
+      maxStayDays: 0,
+      label: "No admission",
+      icon: "🚫",
+      notes: "Entry not permitted with this passport.",
+    };
   }
   if (raw === "visa required") {
-    return { requirement: "visa-required", maxStayDays: 0, label: "Visa required", icon: "🛂", notes: "A visa must be obtained from the embassy before travel." };
+    return {
+      requirement: "visa-required",
+      maxStayDays: 0,
+      label: "Visa required",
+      icon: "🛂",
+      notes: "A visa must be obtained from the embassy before travel.",
+    };
   }
   if (raw === "visa on arrival") {
-    return { requirement: "visa-on-arrival", maxStayDays: 30, label: "Visa on arrival", icon: "🛬", notes: "Visa available on arrival. Carry proof of onward travel and sufficient funds." };
+    return {
+      requirement: "visa-on-arrival",
+      maxStayDays: 30,
+      label: "Visa on arrival",
+      icon: "🛬",
+      notes: "Visa available on arrival. Carry proof of onward travel and sufficient funds.",
+    };
   }
   if (raw === "e-visa") {
-    return { requirement: "e-visa", maxStayDays: 30, label: "E-visa required", icon: "💻", notes: "Apply online before travel. Processing times vary — apply at least 5–7 days ahead." };
+    return {
+      requirement: "e-visa",
+      maxStayDays: 30,
+      label: "E-visa required",
+      icon: "💻",
+      notes: "Apply online before travel. Processing times vary — apply at least 5–7 days ahead.",
+    };
   }
   if (raw === "eta") {
-    return { requirement: "eta", maxStayDays: 90, label: "ETA required", icon: "📱", notes: "Electronic Travel Authorisation required. Apply online — usually approved within minutes." };
+    return {
+      requirement: "eta",
+      maxStayDays: 90,
+      label: "ETA required",
+      icon: "📱",
+      notes:
+        "Electronic Travel Authorisation required. Apply online — usually approved within minutes.",
+    };
   }
   if (raw === "visa free") {
-    return { requirement: "visa-free", maxStayDays: 0, label: "Visa-free", icon: "✅", notes: "No visa required. Check destination country for exact entry conditions." };
+    return {
+      requirement: "visa-free",
+      maxStayDays: 0,
+      label: "Visa-free",
+      icon: "✅",
+      notes: "No visa required. Check destination country for exact entry conditions.",
+    };
   }
   // Numeric string = visa-free days
   const days = parseInt(raw, 10);
   if (!isNaN(days)) {
-    return { requirement: "visa-free", maxStayDays: days, label: `Visa-free (${days} days)`, icon: "✅", notes: `No visa required for stays up to ${days} days.` };
+    return {
+      requirement: "visa-free",
+      maxStayDays: days,
+      label: `Visa-free (${days} days)`,
+      icon: "✅",
+      notes: `No visa required for stays up to ${days} days.`,
+    };
   }
   // Unknown fallback
-  return { requirement: "visa-required", maxStayDays: 0, label: "Check embassy", icon: "🛂", notes: "Requirements unknown — check the official embassy website." };
+  return {
+    requirement: "visa-required",
+    maxStayDays: 0,
+    label: "Check embassy",
+    icon: "🛂",
+    notes: "Requirements unknown — check the official embassy website.",
+  };
 }
 
 /**
  * Enrich visa data for each unique country in the route.
  * Uses the Passport Index static dataset (199 passports × 227 destinations).
  */
-export async function enrichVisa(
-  passportCountry: string,
-  route: CityStop[]
-): Promise<VisaInfo[]> {
+export async function enrichVisa(passportCountry: string, route: CityStop[]): Promise<VisaInfo[]> {
   // Resolve nationality string → ISO-2 passport code
   const passportISO2 =
     NATIONALITY_TO_ISO2[passportCountry] ??
@@ -168,7 +220,7 @@ interface WeatherSummary {
  * Fetch historical weather for a city (lat/lng) for a given month.
  * Uses last year's data. Cached in Redis for 7 days.
  */
-export async function getHistoricalWeather(
+async function getHistoricalWeather(
   lat: number,
   lng: number,
   month: number
@@ -252,10 +304,7 @@ export async function getHistoricalWeather(
  * Enrich weather for all cities in the route.
  * Runs in parallel for speed.
  */
-export async function enrichWeather(
-  route: CityStop[],
-  dateStart: string
-): Promise<CityWeather[]> {
+export async function enrichWeather(route: CityStop[], dateStart: string): Promise<CityWeather[]> {
   // Parse month from dateStart (ISO format: YYYY-MM-DD)
   let month = 10; // Default to October (demo scenario)
   if (dateStart) {

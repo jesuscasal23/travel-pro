@@ -9,15 +9,18 @@ import { z } from "zod";
 import { enrichWeather } from "@/lib/ai/enrichment";
 
 const RequestSchema = z.object({
-  route: z.array(
-    z.object({
-      city: z.string(),
-      country: z.string(),
-      countryCode: z.string(),
-      lat: z.number(),
-      lng: z.number(),
-    })
-  ).min(1).max(20),
+  route: z
+    .array(
+      z.object({
+        city: z.string(),
+        country: z.string(),
+        countryCode: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+      })
+    )
+    .min(1)
+    .max(20),
   dateStart: z.string().min(1).max(20),
 });
 

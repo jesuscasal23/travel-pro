@@ -16,7 +16,7 @@ export function DayDropZone({ dayId, activities, children }: DayDropZoneProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-xl transition-colors ${isOver ? "ring-2 ring-primary/40 bg-primary/5" : ""}`}
+      className={`rounded-xl transition-colors ${isOver ? "ring-primary/40 bg-primary/5 ring-2" : ""}`}
     >
       <SortableContext
         items={activities.map((a) => a._editId)}

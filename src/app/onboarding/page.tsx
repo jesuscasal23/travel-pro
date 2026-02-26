@@ -24,7 +24,11 @@ export default function OnboardingPage() {
   const [direction, setDirection] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const clearError = (field: string) => setErrors(prev => { const { [field]: _, ...rest } = prev; return rest; });
+  const clearError = (field: string) =>
+    setErrors((prev) => {
+      const { [field]: _, ...rest } = prev;
+      return rest;
+    });
 
   const {
     nationality,
@@ -40,14 +44,17 @@ export default function OnboardingPage() {
   const goNext = () => {
     if (step === 1) {
       const fieldErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
-      if (fieldErrors) { setErrors(fieldErrors); return; }
+      if (fieldErrors) {
+        setErrors(fieldErrors);
+        return;
+      }
     }
     setErrors({});
     if (step < TOTAL_STEPS) {
       setDirection(1);
       setStep((s) => s + 1);
     } else {
-      handleFinish();
+      void handleFinish();
     }
   };
 
@@ -67,32 +74,57 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={false} />
 
-      <div className="max-w-lg mx-auto px-4 pt-24 pb-12">
+      <div className="mx-auto max-w-lg px-4 pt-24 pb-12">
         {/* Progress */}
         <StepProgress step={step} totalSteps={TOTAL_STEPS} />
 
         {/* Step content */}
-        <div className="overflow-x-clip overflow-y-visible relative -mx-1 px-1">
+        <div className="relative -mx-1 overflow-x-clip overflow-y-visible px-1">
           <AnimatePresence mode="wait" custom={direction}>
-
             {/* Step 1 — Where are you from? */}
             {step === 1 && (
-              <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
-                <h1 className="text-2xl font-bold text-foreground">Where are you from?</h1>
-                <p className="mt-2 text-muted-foreground text-sm">This helps us check visa requirements and find the best flights.</p>
+              <motion.div
+                key="step1"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+              >
+                <h1 className="text-foreground text-2xl font-bold">Where are you from?</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  This helps us check visa requirements and find the best flights.
+                </p>
 
                 <div className="mt-8 space-y-5">
                   <FormField label="Nationality" error={errors.nationality}>
-                    <select value={nationality} onChange={(e) => { setNationality(e.target.value); clearError("nationality"); }} className={inputClass}>
+                    <select
+                      value={nationality}
+                      onChange={(e) => {
+                        setNationality(e.target.value);
+                        clearError("nationality");
+                      }}
+                      className={inputClass}
+                    >
                       <option value="">Select nationality</option>
-                      {nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
+                      {nationalities.map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
                     </select>
                   </FormField>
                   <FormField label="Home Airport" error={errors.homeAirport}>
-                    <AirportCombobox value={homeAirport} onChange={(v) => { setHomeAirport(v); clearError("homeAirport"); }} />
+                    <AirportCombobox
+                      value={homeAirport}
+                      onChange={(v) => {
+                        setHomeAirport(v);
+                        clearError("homeAirport");
+                      }}
+                    />
                   </FormField>
                 </div>
               </motion.div>
@@ -100,9 +132,18 @@ export default function OnboardingPage() {
 
             {/* Step 2 — Travel preferences */}
             {step === 2 && (
-              <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
-                <h1 className="text-2xl font-bold text-foreground">Your travel style</h1>
-                <p className="mt-2 text-muted-foreground text-sm">Help us personalise every trip we plan for you.</p>
+              <motion.div
+                key="step2"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+              >
+                <h1 className="text-foreground text-2xl font-bold">Your travel style</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Help us personalise every trip we plan for you.
+                </p>
 
                 <div className="mt-8 space-y-8">
                   <FormField label="Travel Style">
@@ -110,12 +151,15 @@ export default function OnboardingPage() {
                   </FormField>
 
                   <FormField label="Interests">
-                    <ChipGroup options={interestOptions} selected={interests} onToggle={toggleInterest} />
+                    <ChipGroup
+                      options={interestOptions}
+                      selected={interests}
+                      onToggle={toggleInterest}
+                    />
                   </FormField>
                 </div>
               </motion.div>
             )}
-
           </AnimatePresence>
         </div>
 
@@ -125,25 +169,24 @@ export default function OnboardingPage() {
             <button
               type="button"
               onClick={goBack}
-              className={`flex items-center gap-1 text-sm text-muted-foreground transition-opacity ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+              className={`text-muted-foreground flex items-center gap-1 text-sm transition-opacity ${step === 1 ? "pointer-events-none opacity-0" : "opacity-100"}`}
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
               Back
             </button>
 
-            <Button
-              onClick={goNext}
-              loading={isSaving}
-              className="gap-2"
-            >
+            <Button onClick={goNext} loading={isSaving} className="gap-2">
               {step === TOTAL_STEPS ? (
-                <>Start Planning <Check className="w-4 h-4" /></>
+                <>
+                  Start Planning <Check className="h-4 w-4" />
+                </>
               ) : (
-                <>Continue <ArrowRight className="w-4 h-4" /></>
+                <>
+                  Continue <ArrowRight className="h-4 w-4" />
+                </>
               )}
             </Button>
           </div>
-
         </div>
       </div>
     </div>

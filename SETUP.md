@@ -44,21 +44,21 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 The app uses **sample data** for all display pages, so most of the UI works immediately:
 
-| Feature | Works without keys? | Notes |
-|---------|-------------------|-------|
-| Landing page | Yes | Static content |
-| Onboarding flow | Yes | Saves to localStorage via Zustand |
-| Plan questionnaire | Yes | All 6 cards + animations |
-| Generation loading screen | Yes | Timed animation sequence |
-| Itinerary view (timeline) | Yes | Uses `sampleData.ts` |
-| Itinerary view (map) | **SVG fallback** | Needs `NEXT_PUBLIC_MAPBOX_TOKEN` for real Mapbox |
-| Edit mode | Yes | Local state only |
-| Summary page | Yes | Uses sample data |
-| Dashboard | Yes | Uses sample trips |
-| PDF download | Yes | Client-side generation |
-| AI generation (real) | **No** | Needs `ANTHROPIC_API_KEY` |
-| Database storage | **Local Docker** | Already configured in `.env.local` |
-| Weather caching | **Skipped** | Works without Redis — calls Open-Meteo directly |
+| Feature                   | Works without keys? | Notes                                            |
+| ------------------------- | ------------------- | ------------------------------------------------ |
+| Landing page              | Yes                 | Static content                                   |
+| Onboarding flow           | Yes                 | Saves to localStorage via Zustand                |
+| Plan questionnaire        | Yes                 | All 6 cards + animations                         |
+| Generation loading screen | Yes                 | Timed animation sequence                         |
+| Itinerary view (timeline) | Yes                 | Uses `sampleData.ts`                             |
+| Itinerary view (map)      | **SVG fallback**    | Needs `NEXT_PUBLIC_MAPBOX_TOKEN` for real Mapbox |
+| Edit mode                 | Yes                 | Local state only                                 |
+| Summary page              | Yes                 | Uses sample data                                 |
+| Dashboard                 | Yes                 | Uses sample trips                                |
+| PDF download              | Yes                 | Client-side generation                           |
+| AI generation (real)      | **No**              | Needs `ANTHROPIC_API_KEY`                        |
+| Database storage          | **Local Docker**    | Already configured in `.env.local`               |
+| Weather caching           | **Skipped**         | Works without Redis — calls Open-Meteo directly  |
 
 ---
 
@@ -138,14 +138,17 @@ npm run dev
 
 **Port 5432 already in use:**
 Stop any existing PostgreSQL, or change the port in `docker-compose.yml`:
+
 ```yaml
 ports:
   - "5433:5432"
 ```
+
 Then update `DATABASE_URL` in `.env.local` to use port 5433.
 
 **Prisma db push fails:**
 Make sure Docker is running and the container is healthy:
+
 ```bash
 docker compose ps
 docker compose logs postgres

@@ -9,8 +9,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { execSync } from "child_process";
 import net from "net";
 
-const DATABASE_URL =
-  "postgresql://travelpro:travelpro_local@localhost:5432/travelpro";
+const DATABASE_URL = "postgresql://travelpro:travelpro_local@localhost:5432/travelpro";
 
 // Dedicated client for setup/teardown — separate from app's getPrisma()
 let testPrisma: PrismaClient;
@@ -40,7 +39,7 @@ beforeAll(async () => {
   if (!reachable) {
     console.warn(
       "\n⚠  Skipping integration tests: PostgreSQL not reachable on localhost:5432.\n" +
-        "   Run `docker compose up -d` to start the database.\n",
+        "   Run `docker compose up -d` to start the database.\n"
     );
     process.exit(0);
   }

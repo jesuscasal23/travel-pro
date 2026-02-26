@@ -22,9 +22,7 @@ interface RouteSelectionParams {
   };
 }
 
-async function fetchRouteSelection(
-  params: RouteSelectionParams,
-): Promise<CityWithDays[] | null> {
+async function fetchRouteSelection(params: RouteSelectionParams): Promise<CityWithDays[] | null> {
   const res = await fetch("/api/generate/select-route", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -51,13 +49,13 @@ export function usePrefetchRouteSelection() {
 
   return useCallback(
     (params: RouteSelectionParams, cacheKey: string) => {
-      queryClient.prefetchQuery({
+      void queryClient.prefetchQuery({
         queryKey: queryKeys.routeSelection.byParams(cacheKey),
         queryFn: () => fetchRouteSelection(params),
         staleTime: 5 * 60 * 1000,
       });
     },
-    [queryClient],
+    [queryClient]
   );
 }
 
@@ -66,17 +64,14 @@ export function useFetchRouteSelection() {
   const queryClient = useQueryClient();
 
   return useCallback(
-    async (
-      params: RouteSelectionParams,
-      cacheKey: string,
-    ): Promise<CityWithDays[] | null> => {
+    async (params: RouteSelectionParams, cacheKey: string): Promise<CityWithDays[] | null> => {
       return queryClient.fetchQuery({
         queryKey: queryKeys.routeSelection.byParams(cacheKey),
         queryFn: () => fetchRouteSelection(params),
         staleTime: 5 * 60 * 1000,
       });
     },
-    [queryClient],
+    [queryClient]
   );
 }
 

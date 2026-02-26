@@ -15,7 +15,15 @@ import type { Itinerary } from "@/types";
 
 const mockItinerary: Itinerary = {
   route: [
-    { id: "tokyo", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 3, countryCode: "JP" },
+    {
+      id: "tokyo",
+      city: "Tokyo",
+      country: "Japan",
+      lat: 35.68,
+      lng: 139.69,
+      days: 3,
+      countryCode: "JP",
+    },
   ],
   days: [
     {
@@ -23,7 +31,13 @@ const mockItinerary: Itinerary = {
       date: "Oct 1",
       city: "Tokyo",
       activities: [
-        { name: "Senso-ji Temple", category: "culture", icon: "⛩️", why: "Historic.", duration: "2h" },
+        {
+          name: "Senso-ji Temple",
+          category: "culture",
+          icon: "⛩️",
+          why: "Historic.",
+          duration: "2h",
+        },
       ],
     },
   ],

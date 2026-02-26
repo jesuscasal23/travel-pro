@@ -17,7 +17,7 @@ describe("EditToolbar", () => {
         onUndo={onUndo}
         onDiscard={onDiscard}
         onSave={onSave}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: /undo/i }));
@@ -42,7 +42,7 @@ describe("EditToolbar", () => {
         onUndo={onUndo}
         onDiscard={onDiscard}
         onSave={onSave}
-      />,
+      />
     );
 
     const undo = screen.getByRole("button", { name: /undo/i });

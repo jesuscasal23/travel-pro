@@ -17,19 +17,37 @@ export function mockFramerMotion() {
     motion: new Proxy(
       {},
       {
-        get: (_target: object, tag: string) =>
+        get:
+          (_target: object, tag: string) =>
           ({
             children,
             ...rest
           }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) => {
             const {
-              animate, initial, exit, transition, variants, custom,
-              whileInView, viewport, whileHover, whileTap, layout,
+              animate,
+              initial,
+              exit,
+              transition,
+              variants,
+              custom,
+              whileInView,
+              viewport,
+              whileHover,
+              whileTap,
+              layout,
               ...htmlProps
             } = rest as Record<string, unknown>;
-            void animate; void initial; void exit; void transition;
-            void variants; void custom; void whileInView; void viewport;
-            void whileHover; void whileTap; void layout;
+            void animate;
+            void initial;
+            void exit;
+            void transition;
+            void variants;
+            void custom;
+            void whileInView;
+            void viewport;
+            void whileHover;
+            void whileTap;
+            void layout;
             return React.createElement(
               tag,
               htmlProps as React.HTMLAttributes<HTMLElement>,

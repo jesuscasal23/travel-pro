@@ -27,9 +27,9 @@ import type { CityStop } from "@/types";
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[500px] bg-secondary rounded-xl animate-pulse flex flex-col items-center justify-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-primary/10" />
-      <div className="h-3 w-28 rounded bg-primary/10" />
+    <div className="bg-secondary flex h-[500px] w-full animate-pulse flex-col items-center justify-center gap-3 rounded-xl">
+      <div className="bg-primary/10 h-10 w-10 rounded-full" />
+      <div className="bg-primary/10 h-3 w-28 rounded" />
     </div>
   ),
 });
@@ -140,7 +140,9 @@ export function DesktopLayout({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ itinerary: finalItinerary }),
-        }).catch(() => {/* best-effort */});
+        }).catch(() => {
+          /* best-effort */
+        });
       }
     });
   }
@@ -170,7 +172,7 @@ export function DesktopLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={isAuthenticated ?? false} />
 
       {/* Edit mode banner (below navbar) */}
@@ -184,37 +186,42 @@ export function DesktopLayout({
       <div className={isEditMode ? "" : "pt-16"}>
         {/* Generation banner */}
         {!isEditMode && isGenerating && (
-          <div className="bg-primary/5 border-b border-primary/20">
-            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 text-primary animate-spin" />
-              <span className="text-sm text-primary font-medium">Generating your itinerary...</span>
+          <div className="bg-primary/5 border-primary/20 border-b">
+            <div className="mx-auto flex max-w-240 items-center gap-2 px-4 py-2.5">
+              <Loader2 className="text-primary h-4 w-4 animate-spin" />
+              <span className="text-primary text-sm font-medium">Generating your itinerary...</span>
             </div>
           </div>
         )}
 
         {/* Error banner */}
         {!isEditMode && generationError && (
-          <div className="bg-accent/10 border-b border-accent/30">
-            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
-              <p className="text-sm text-foreground">{generationError}</p>
-              <Button size="xs" onClick={onRetry} className="shrink-0">Try again</Button>
+          <div className="bg-accent/10 border-accent/30 border-b">
+            <div className="mx-auto flex max-w-240 items-center justify-between gap-4 px-4 py-2.5">
+              <p className="text-foreground text-sm">{generationError}</p>
+              <Button size="xs" onClick={onRetry} className="shrink-0">
+                Try again
+              </Button>
             </div>
           </div>
         )}
 
         {/* Regeneration banner */}
         {!isEditMode && needsRegeneration && !isPartialItinerary && !generationError && (
-          <div className="bg-primary/10 border-b border-primary/30">
-            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
-              <p className="text-sm text-foreground">
+          <div className="bg-primary/10 border-primary/30 border-b">
+            <div className="mx-auto flex max-w-240 items-center justify-between gap-4 px-4 py-2.5">
+              <p className="text-foreground text-sm">
                 Your route has changed. Regenerate to update activities.
               </p>
-              <div className="flex items-center gap-2 shrink-0">
-                <button onClick={onDismissRegeneration} className="text-xs text-muted-foreground hover:text-foreground">
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={onDismissRegeneration}
+                  className="text-muted-foreground hover:text-foreground text-xs"
+                >
                   Dismiss
                 </button>
                 <Button size="xs" onClick={onRegenerate} className="gap-1.5">
-                  <RefreshCw className="w-3 h-3" /> Regenerate
+                  <RefreshCw className="h-3 w-3" /> Regenerate
                 </Button>
               </div>
             </div>
@@ -222,21 +229,26 @@ export function DesktopLayout({
         )}
 
         {/* Save-trip nudge */}
-        {!isEditMode && isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
-          <div className="bg-background/95 backdrop-blur-sm border-b border-accent/40">
-            <div className="max-w-240 mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
-              <p className="text-sm text-foreground">
-                Want to keep this itinerary? Create a free account to save it and access it from any device.
-              </p>
-              <Link
-                href={`/signup?next=/trip/${tripId}`}
-                className="shrink-0 btn-primary text-xs py-1.5 px-4"
-              >
-                Save trip
-              </Link>
+        {!isEditMode &&
+          isAuthenticated === false &&
+          !isPartialItinerary &&
+          !generationError &&
+          !needsRegeneration && (
+            <div className="bg-background/95 border-accent/40 border-b backdrop-blur-sm">
+              <div className="mx-auto flex max-w-240 items-center justify-between gap-4 px-4 py-2.5">
+                <p className="text-foreground text-sm">
+                  Want to keep this itinerary? Create a free account to save it and access it from
+                  any device.
+                </p>
+                <Link
+                  href={`/signup?next=/trip/${tripId}`}
+                  className="btn-primary shrink-0 px-4 py-1.5 text-xs"
+                >
+                  Save trip
+                </Link>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* Hero */}
@@ -270,7 +282,7 @@ export function DesktopLayout({
       {/* Tab content */}
       <div className="animate-tab-in">
         {isEditMode && draft ? (
-          <div className="max-w-240 mx-auto pb-24">
+          <div className="mx-auto max-w-240 pb-24">
             <EditModeJourneyContent
               draft={draft}
               activeDayMap={activeDayMap}
@@ -283,9 +295,9 @@ export function DesktopLayout({
           </div>
         ) : (
           <>
-            {activeTab === "journey" && (
-              isPartialItinerary ? (
-                <div className="max-w-240 mx-auto px-4 py-6">
+            {activeTab === "journey" &&
+              (isPartialItinerary ? (
+                <div className="mx-auto max-w-240 px-4 py-6">
                   <ItinerarySkeletonTab route={route} />
                 </div>
               ) : (
@@ -294,10 +306,9 @@ export function DesktopLayout({
                   generatingCityId={generatingCityId}
                   onGenerateActivities={onGenerateActivities}
                 />
-              )
-            )}
+              ))}
             {activeTab === "prep" && (
-              <div className="max-w-240 mx-auto px-4 py-6">
+              <div className="mx-auto max-w-240 px-4 py-6">
                 <EssentialsTab
                   itinerary={itinerary}
                   visaLoading={visaLoading}
@@ -308,8 +319,8 @@ export function DesktopLayout({
               </div>
             )}
             {activeTab === "route" && (
-              <div className="max-w-240 mx-auto px-4 py-6">
-                <div className="h-125 rounded-xl overflow-hidden border border-border">
+              <div className="mx-auto max-w-240 px-4 py-6">
+                <div className="border-border h-125 overflow-hidden rounded-xl border">
                   <RouteMap
                     cities={route}
                     activeCityIndex={activeCityIndex}
@@ -318,14 +329,10 @@ export function DesktopLayout({
                 </div>
               </div>
             )}
-            {activeTab === "accommodation" && (
-              <div className="max-w-240 mx-auto px-4 py-6" />
-            )}
-            {activeTab === "flights" && (
-              <div className="max-w-240 mx-auto px-4 py-6" />
-            )}
+            {activeTab === "accommodation" && <div className="mx-auto max-w-240 px-4 py-6" />}
+            {activeTab === "flights" && <div className="mx-auto max-w-240 px-4 py-6" />}
             {activeTab === "budget" && (
-              <div className="max-w-240 mx-auto px-4 py-6">
+              <div className="mx-auto max-w-240 px-4 py-6">
                 <BudgetTab itinerary={itinerary} tripId={tripId} />
               </div>
             )}

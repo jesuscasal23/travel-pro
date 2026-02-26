@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { CITIES } from "@/data/cities";
 import { inputClass } from "@/components/auth/auth-styles";
 
-export interface CountryEntry {
+interface CountryEntry {
   country: string;
   countryCode: string;
   lat: number;
@@ -26,9 +26,7 @@ const COUNTRIES: CountryEntry[] = (() => {
       });
     }
   }
-  return Array.from(seen.values()).sort((a, b) =>
-    a.country.localeCompare(b.country)
-  );
+  return Array.from(seen.values()).sort((a, b) => a.country.localeCompare(b.country));
 })();
 
 interface Props {
@@ -46,9 +44,7 @@ function filterCountries(query: string): CountryEntry[] {
   const q = query.toLowerCase().trim();
   if (!q) return getPopularCountries();
   return COUNTRIES.filter(
-    (c) =>
-      c.country.toLowerCase().includes(q) ||
-      c.countryCode.toLowerCase().startsWith(q)
+    (c) => c.country.toLowerCase().includes(q) || c.countryCode.toLowerCase().startsWith(q)
   ).slice(0, 8);
 }
 
@@ -78,10 +74,7 @@ export function CountryCombobox({
   // Close on click outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
         setQuery("");
       }
@@ -131,25 +124,23 @@ export function CountryCombobox({
       />
       {/* Show current selection when not focused */}
       {!open && value && (
-        <div className="absolute inset-0 flex items-center px-4 pointer-events-none">
-          <span className="text-foreground text-sm truncate">{value}</span>
+        <div className="pointer-events-none absolute inset-0 flex items-center px-4">
+          <span className="text-foreground truncate text-sm">{value}</span>
         </div>
       )}
 
       {open && results.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg overflow-hidden max-h-[min(16rem,50vh)] overflow-y-auto">
+        <ul className="bg-background border-border absolute z-50 mt-1 max-h-[min(16rem,50vh)] w-full overflow-hidden overflow-y-auto rounded-lg border shadow-lg">
           {!query && (
-            <li className="px-4 py-1.5 text-xs text-muted-foreground font-medium border-b border-border">
+            <li className="text-muted-foreground border-border border-b px-4 py-1.5 text-xs font-medium">
               Popular countries
             </li>
           )}
           {results.map((c, i) => (
             <li
               key={c.countryCode}
-              className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm transition-colors ${
-                i === highlighted
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted"
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                i === highlighted ? "bg-primary/10 text-primary" : "hover:bg-muted"
               }`}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -157,10 +148,8 @@ export function CountryCombobox({
               }}
               onMouseEnter={() => setHighlighted(i)}
             >
-              <span className="truncate text-foreground font-medium">
-                {c.country}
-              </span>
-              <span className="ml-auto font-mono text-xs text-muted-foreground/60 w-6 shrink-0">
+              <span className="text-foreground truncate font-medium">{c.country}</span>
+              <span className="text-muted-foreground/60 ml-auto w-6 shrink-0 font-mono text-xs">
                 {c.countryCode}
               </span>
             </li>
@@ -169,7 +158,7 @@ export function CountryCombobox({
       )}
 
       {open && query.length >= 2 && results.length === 0 && (
-        <div className="absolute z-50 mt-1 w-full bg-background border border-border rounded-lg shadow-lg px-4 py-3 text-sm text-muted-foreground">
+        <div className="bg-background border-border text-muted-foreground absolute z-50 mt-1 w-full rounded-lg border px-4 py-3 text-sm shadow-lg">
           No countries found for &ldquo;{query}&rdquo;
         </div>
       )}

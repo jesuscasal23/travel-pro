@@ -83,10 +83,7 @@ type ApiRouteHandler = (
 ) => Promise<NextResponse | Response>;
 
 export function apiHandler(routeName: string, handler: ApiRouteHandler) {
-  return async (
-    req: NextRequest,
-    ctx?: { params?: Promise<Record<string, string>> }
-  ) => {
+  return async (req: NextRequest, ctx?: { params?: Promise<Record<string, string>> }) => {
     const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
 
     return requestContext.run({ requestId }, async () => {
@@ -103,11 +100,11 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
           response.headers.set("x-request-id", requestId);
           return response;
         }
-        log.error("Unhandled route error", { route: routeName, error: err instanceof Error ? err.stack ?? err.message : String(err) });
-        const response = NextResponse.json(
-          { error: "Internal server error" },
-          { status: 500 }
-        );
+        log.error("Unhandled route error", {
+          route: routeName,
+          error: err instanceof Error ? (err.stack ?? err.message) : String(err),
+        });
+        const response = NextResponse.json({ error: "Internal server error" }, { status: 500 });
         response.headers.set("x-request-id", requestId);
         return response;
       }

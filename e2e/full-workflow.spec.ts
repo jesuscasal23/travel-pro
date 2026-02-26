@@ -20,52 +20,194 @@ const MOCK_ITINERARY_ID = "e2e-full-workflow-itin";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 
 const mockRoute = [
-  { id: "tokyo", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 3, countryCode: "JP", iataCode: "NRT" },
-  { id: "hanoi", city: "Hanoi", country: "Vietnam", lat: 21.03, lng: 105.85, days: 2, countryCode: "VN", iataCode: "HAN" },
-  { id: "bangkok", city: "Bangkok", country: "Thailand", lat: 13.76, lng: 100.5, days: 2, countryCode: "TH", iataCode: "BKK" },
+  {
+    id: "tokyo",
+    city: "Tokyo",
+    country: "Japan",
+    lat: 35.68,
+    lng: 139.69,
+    days: 3,
+    countryCode: "JP",
+    iataCode: "NRT",
+  },
+  {
+    id: "hanoi",
+    city: "Hanoi",
+    country: "Vietnam",
+    lat: 21.03,
+    lng: 105.85,
+    days: 2,
+    countryCode: "VN",
+    iataCode: "HAN",
+  },
+  {
+    id: "bangkok",
+    city: "Bangkok",
+    country: "Thailand",
+    lat: 13.76,
+    lng: 100.5,
+    days: 2,
+    countryCode: "TH",
+    iataCode: "BKK",
+  },
 ];
 
 const mockDays = [
   {
-    day: 1, date: "Apr 1", city: "Tokyo", activities: [
-      { name: "Senso-ji Temple", category: "culture", icon: "⛩️", why: "Tokyo's oldest and most significant temple", duration: "2h", cost: "Free" },
-      { name: "Shibuya Crossing", category: "explore", icon: "🚶", why: "The world's busiest pedestrian crossing", duration: "1h" },
+    day: 1,
+    date: "Apr 1",
+    city: "Tokyo",
+    activities: [
+      {
+        name: "Senso-ji Temple",
+        category: "culture",
+        icon: "⛩️",
+        why: "Tokyo's oldest and most significant temple",
+        duration: "2h",
+        cost: "Free",
+      },
+      {
+        name: "Shibuya Crossing",
+        category: "explore",
+        icon: "🚶",
+        why: "The world's busiest pedestrian crossing",
+        duration: "1h",
+      },
     ],
   },
   {
-    day: 2, date: "Apr 2", city: "Tokyo", activities: [
-      { name: "teamLab Borderless", category: "art", icon: "🎨", why: "Immersive digital art museum", duration: "3h", cost: "€25" },
-      { name: "Ramen in Shinjuku", category: "food", icon: "🍜", why: "Famous ramen alley district", duration: "1h" },
+    day: 2,
+    date: "Apr 2",
+    city: "Tokyo",
+    activities: [
+      {
+        name: "teamLab Borderless",
+        category: "art",
+        icon: "🎨",
+        why: "Immersive digital art museum",
+        duration: "3h",
+        cost: "€25",
+      },
+      {
+        name: "Ramen in Shinjuku",
+        category: "food",
+        icon: "🍜",
+        why: "Famous ramen alley district",
+        duration: "1h",
+      },
     ],
   },
   {
-    day: 3, date: "Apr 3", city: "Tokyo", isTravel: true, travelFrom: "Tokyo", travelTo: "Hanoi", activities: [
-      { name: "Tsukiji Outer Market", category: "food", icon: "🐟", why: "Fresh sushi and street food", duration: "2h" },
-      { name: "Flight to Hanoi", category: "travel", icon: "✈️", why: "Inter-city transfer", duration: "5h" },
+    day: 3,
+    date: "Apr 3",
+    city: "Tokyo",
+    isTravel: true,
+    travelFrom: "Tokyo",
+    travelTo: "Hanoi",
+    activities: [
+      {
+        name: "Tsukiji Outer Market",
+        category: "food",
+        icon: "🐟",
+        why: "Fresh sushi and street food",
+        duration: "2h",
+      },
+      {
+        name: "Flight to Hanoi",
+        category: "travel",
+        icon: "✈️",
+        why: "Inter-city transfer",
+        duration: "5h",
+      },
     ],
   },
   {
-    day: 4, date: "Apr 4", city: "Hanoi", activities: [
-      { name: "Old Quarter Walk", category: "explore", icon: "🚶", why: "Historic district with 36 streets", duration: "3h" },
-      { name: "Pho Street Food Tour", category: "food", icon: "🍜", why: "Authentic local pho experience", duration: "1h", cost: "€3" },
+    day: 4,
+    date: "Apr 4",
+    city: "Hanoi",
+    activities: [
+      {
+        name: "Old Quarter Walk",
+        category: "explore",
+        icon: "🚶",
+        why: "Historic district with 36 streets",
+        duration: "3h",
+      },
+      {
+        name: "Pho Street Food Tour",
+        category: "food",
+        icon: "🍜",
+        why: "Authentic local pho experience",
+        duration: "1h",
+        cost: "€3",
+      },
     ],
   },
   {
-    day: 5, date: "Apr 5", city: "Hanoi", isTravel: true, travelFrom: "Hanoi", travelTo: "Bangkok", activities: [
-      { name: "Ho Chi Minh Mausoleum", category: "culture", icon: "🏛️", why: "Historical landmark and memorial", duration: "2h" },
-      { name: "Flight to Bangkok", category: "travel", icon: "✈️", why: "Inter-city transfer", duration: "3h" },
+    day: 5,
+    date: "Apr 5",
+    city: "Hanoi",
+    isTravel: true,
+    travelFrom: "Hanoi",
+    travelTo: "Bangkok",
+    activities: [
+      {
+        name: "Ho Chi Minh Mausoleum",
+        category: "culture",
+        icon: "🏛️",
+        why: "Historical landmark and memorial",
+        duration: "2h",
+      },
+      {
+        name: "Flight to Bangkok",
+        category: "travel",
+        icon: "✈️",
+        why: "Inter-city transfer",
+        duration: "3h",
+      },
     ],
   },
   {
-    day: 6, date: "Apr 6", city: "Bangkok", activities: [
-      { name: "Grand Palace", category: "culture", icon: "🏯", why: "Thailand's most sacred landmark", duration: "3h", cost: "€15" },
-      { name: "Chatuchak Market", category: "shopping", icon: "🛍️", why: "Largest weekend market in the world", duration: "2h" },
+    day: 6,
+    date: "Apr 6",
+    city: "Bangkok",
+    activities: [
+      {
+        name: "Grand Palace",
+        category: "culture",
+        icon: "🏯",
+        why: "Thailand's most sacred landmark",
+        duration: "3h",
+        cost: "€15",
+      },
+      {
+        name: "Chatuchak Market",
+        category: "shopping",
+        icon: "🛍️",
+        why: "Largest weekend market in the world",
+        duration: "2h",
+      },
     ],
   },
   {
-    day: 7, date: "Apr 7", city: "Bangkok", activities: [
-      { name: "Wat Arun", category: "culture", icon: "⛩️", why: "The iconic Temple of Dawn", duration: "2h" },
-      { name: "Khao San Road", category: "nightlife", icon: "🌃", why: "Famous backpacker street", duration: "2h" },
+    day: 7,
+    date: "Apr 7",
+    city: "Bangkok",
+    activities: [
+      {
+        name: "Wat Arun",
+        category: "culture",
+        icon: "⛩️",
+        why: "The iconic Temple of Dawn",
+        duration: "2h",
+      },
+      {
+        name: "Khao San Road",
+        category: "nightlife",
+        icon: "🌃",
+        why: "Famous backpacker street",
+        duration: "2h",
+      },
     ],
   },
 ];
@@ -81,9 +223,39 @@ const mockBudget = {
 };
 
 const mockVisaData = [
-  { country: "Japan", countryCode: "JP", requirement: "visa-free", maxStayDays: 90, notes: "No visa required for stays up to 90 days.", icon: "✅", label: "Visa-free (90 days)", sourceUrl: "https://www.mofa.go.jp", sourceLabel: "Japan MOFA" },
-  { country: "Vietnam", countryCode: "VN", requirement: "e-visa", maxStayDays: 30, notes: "E-visa required. Apply online before travel.", icon: "💻", label: "E-visa required", sourceUrl: "https://evisa.xuatnhapcanh.gov.vn", sourceLabel: "Vietnam E-Visa Portal" },
-  { country: "Thailand", countryCode: "TH", requirement: "visa-free", maxStayDays: 30, notes: "No visa required for stays up to 30 days.", icon: "✅", label: "Visa-free (30 days)", sourceUrl: "https://www.thaievisa.go.th", sourceLabel: "Thailand e-Visa" },
+  {
+    country: "Japan",
+    countryCode: "JP",
+    requirement: "visa-free",
+    maxStayDays: 90,
+    notes: "No visa required for stays up to 90 days.",
+    icon: "✅",
+    label: "Visa-free (90 days)",
+    sourceUrl: "https://www.mofa.go.jp",
+    sourceLabel: "Japan MOFA",
+  },
+  {
+    country: "Vietnam",
+    countryCode: "VN",
+    requirement: "e-visa",
+    maxStayDays: 30,
+    notes: "E-visa required. Apply online before travel.",
+    icon: "💻",
+    label: "E-visa required",
+    sourceUrl: "https://evisa.xuatnhapcanh.gov.vn",
+    sourceLabel: "Vietnam E-Visa Portal",
+  },
+  {
+    country: "Thailand",
+    countryCode: "TH",
+    requirement: "visa-free",
+    maxStayDays: 30,
+    notes: "No visa required for stays up to 30 days.",
+    icon: "✅",
+    label: "Visa-free (30 days)",
+    sourceUrl: "https://www.thaievisa.go.th",
+    sourceLabel: "Thailand e-Visa",
+  },
 ];
 
 const mockWeatherData = [
@@ -101,9 +273,39 @@ const mockFullItinerary = {
 };
 
 const mockCitiesWithDays = [
-  { id: "tokyo", city: "Tokyo", country: "Japan", countryCode: "JP", iataCode: "NRT", lat: 35.68, lng: 139.69, minDays: 2, maxDays: 4 },
-  { id: "hanoi", city: "Hanoi", country: "Vietnam", countryCode: "VN", iataCode: "HAN", lat: 21.03, lng: 105.85, minDays: 1, maxDays: 3 },
-  { id: "bangkok", city: "Bangkok", country: "Thailand", countryCode: "TH", iataCode: "BKK", lat: 13.76, lng: 100.5, minDays: 1, maxDays: 3 },
+  {
+    id: "tokyo",
+    city: "Tokyo",
+    country: "Japan",
+    countryCode: "JP",
+    iataCode: "NRT",
+    lat: 35.68,
+    lng: 139.69,
+    minDays: 2,
+    maxDays: 4,
+  },
+  {
+    id: "hanoi",
+    city: "Hanoi",
+    country: "Vietnam",
+    countryCode: "VN",
+    iataCode: "HAN",
+    lat: 21.03,
+    lng: 105.85,
+    minDays: 1,
+    maxDays: 3,
+  },
+  {
+    id: "bangkok",
+    city: "Bangkok",
+    country: "Thailand",
+    countryCode: "TH",
+    iataCode: "BKK",
+    lat: 13.76,
+    lng: 100.5,
+    minDays: 1,
+    maxDays: 3,
+  },
 ];
 
 // ── API Mock Setup ───────────────────────────────────────────────────────────
@@ -120,7 +322,7 @@ async function setupApiMocks(page: Page) {
       status: 401,
       contentType: "application/json",
       body: JSON.stringify({ code: 401, msg: "not_authenticated" }),
-    }),
+    })
   );
 
   // Speculative route selection
@@ -129,7 +331,7 @@ async function setupApiMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ cities: mockCitiesWithDays }),
-    }),
+    })
   );
 
   // Trip creation (POST only — let other methods through)
@@ -164,16 +366,22 @@ async function setupApiMocks(page: Page) {
     const events = [
       { stage: "route", message: "Optimising your route...", pct: 15 },
       { stage: "activities", message: "Planning daily activities...", pct: 35 },
-      { stage: "done", message: "Your trip is ready!", pct: 100, itinerary_id: MOCK_ITINERARY_ID, trip_id: MOCK_TRIP_ID },
+      {
+        stage: "done",
+        message: "Your trip is ready!",
+        pct: 100,
+        itinerary_id: MOCK_ITINERARY_ID,
+        trip_id: MOCK_TRIP_ID,
+      },
     ];
     const sseBody = events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("");
 
-    route.fulfill({
+    return route.fulfill({
       status: 200,
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
       body: sseBody,
     });
@@ -220,7 +428,7 @@ async function setupApiMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ visaData: mockVisaData }),
-    }),
+    })
   );
 
   await page.route("**/api/v1/enrich/weather", (route) =>
@@ -228,7 +436,7 @@ async function setupApiMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ weatherData: mockWeatherData }),
-    }),
+    })
   );
 
   // Share link
@@ -237,7 +445,7 @@ async function setupApiMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ shareToken: "mock-share-token" }),
-    }),
+    })
   );
 }
 
@@ -265,7 +473,10 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   // Click "Start Planning" CTA → navigates to /plan
-  await page.getByRole("link", { name: /Start Planning/i }).first().click();
+  await page
+    .getByRole("link", { name: /Start Planning/i })
+    .first()
+    .click();
   await page.waitForURL("**/plan");
 
   // ── 2. Plan — Guest Step 1: "Where are you from?" ─────────────────────────
@@ -334,8 +545,11 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
   // causing the mutation to hang. As a workaround, wait for the GET request and then
   // inject the full itinerary into the Zustand store directly.
   await page.waitForResponse(
-    (res) => res.url().includes(`/api/v1/trips/${MOCK_TRIP_ID}`) && res.request().method() === "GET" && res.status() === 200,
-    { timeout: 15_000 },
+    (res) =>
+      res.url().includes(`/api/v1/trips/${MOCK_TRIP_ID}`) &&
+      res.request().method() === "GET" &&
+      res.status() === 200,
+    { timeout: 15_000 }
   );
 
   // Give the mutation a moment to settle — if the store updates naturally, great
@@ -427,16 +641,10 @@ test("Full workflow: Landing → Plan → Generate → Trip → Summary → PDF 
   await expect(pdfBtn).toBeEnabled({ timeout: 15_000 });
 
   // Click the button and capture the browser download
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    pdfBtn.click(),
-  ]);
+  const [download] = await Promise.all([page.waitForEvent("download"), pdfBtn.click()]);
 
   // Verify the downloaded file
   const filename = download.suggestedFilename();
   expect(filename).toContain("TravelPro-");
   expect(filename).toMatch(/\.pdf$/);
 });
-
-
-

@@ -8,7 +8,7 @@
 // Coverage: ~200 major travel destinations worldwide.
 // ============================================================
 
-export const CITY_IATA_MAP: Record<string, string> = {
+const CITY_IATA_MAP: Record<string, string> = {
   // ── Europe ─────────────────────────────────────────────────
   london: "LHR",
   paris: "CDG",
@@ -340,7 +340,7 @@ export const CITY_IATA_MAP: Record<string, string> = {
   nadi: "NAN",
   "port moresby": "POM",
   noumea: "NOU",
-  "papeete": "PPT",
+  papeete: "PPT",
   tahiti: "PPT",
 };
 

@@ -44,69 +44,64 @@ export function PDFDownloadButton({
 
   useEffect(() => {
     // Load both modules on the client only — never on the server
-    Promise.all([
-      import("@react-pdf/renderer"),
-      import("@/lib/export/pdf-generator"),
-    ])
+    Promise.all([import("@react-pdf/renderer"), import("@/lib/export/pdf-generator")])
       .then(([pdfRenderer, pdfGenerator]) => {
         // Use the setter function form to avoid calling the component as a function
         setPDFDownloadLink(
           () => pdfRenderer.PDFDownloadLink as unknown as ComponentType<PDFDownloadLinkProps>
         );
-        setTripPDFDocument(
-          () => pdfGenerator.TripPDFDocument
-        );
+        setTripPDFDocument(() => pdfGenerator.TripPDFDocument);
       })
       .catch((err) => {
         console.error("[PDFDownloadButton] Failed to load PDF modules:", err);
       });
   }, []);
 
+  // ── Stable document element ───────────────────────────────────
+  // Must be memoized: a new JSX element on every render causes PDFDownloadLink's
+  // internal useEffect (which depends on the document prop) to fire on every render,
+  // triggering an infinite PDF re-generation loop that never resolves.
+
+  const docElement = useMemo(
+    () => (TripPDFDocument ? <TripPDFDocument {...docProps} /> : null),
+    [
+      TripPDFDocument,
+      // Spread docProps keys explicitly so the memo only re-runs when data actually changes
+      docProps.days,
+      docProps.route,
+      docProps.visas,
+      docProps.weather,
+      docProps.tripTitle,
+      docProps.tripSubtitle,
+    ]
+  );
+
   // ── Loading / SSR state ──────────────────────────────────────
-  if (!PDFDownloadLink || !TripPDFDocument) {
+  if (!PDFDownloadLink || !TripPDFDocument || !docElement) {
     return (
       <button
         disabled
-        className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5 opacity-60 cursor-not-allowed"
+        className="btn-primary flex cursor-not-allowed items-center gap-1.5 px-4 py-2 text-sm opacity-60"
         title="PDF is loading…"
       >
-        <Download className="w-4 h-4" />
+        <Download className="h-4 w-4" />
         Download PDF
       </button>
     );
   }
 
-  // ── Stable document element ───────────────────────────────────
-  // Must be memoized: a new JSX element on every render causes PDFDownloadLink's
-  // internal useEffect (which depends on the document prop) to fire on every render,
-  // triggering an infinite PDF re-generation loop that never resolves.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const docElement = useMemo(() => <TripPDFDocument {...docProps} />, [
-    TripPDFDocument,
-    // Spread docProps keys explicitly so the memo only re-runs when data actually changes
-    docProps.days,
-    docProps.route,
-    docProps.visas,
-    docProps.weather,
-    docProps.tripTitle,
-    docProps.tripSubtitle,
-  ]);
-
   // ── Ready state ──────────────────────────────────────────────
   return (
-    <PDFDownloadLink
-      document={docElement}
-      fileName={fileName}
-    >
+    <PDFDownloadLink document={docElement} fileName={fileName}>
       {({ loading, error }) => {
         if (error) console.error("[PDFDownloadButton] render error:", error);
         return (
           <button
-            className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
+            className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm"
             disabled={loading}
             title={error ? `PDF error: ${error.message}` : undefined}
           >
-            <Download className="w-4 h-4" />
+            <Download className="h-4 w-4" />
             {loading ? "Generating PDF…" : error ? "PDF Error" : "Download PDF"}
           </button>
         );

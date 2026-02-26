@@ -24,9 +24,7 @@ function removeToast(id: string) {
 
 function startExit(id: string) {
   useToastStore.setState((state) => ({
-    toasts: state.toasts.map((t) =>
-      t.id === id ? { ...t, exiting: true } : t,
-    ),
+    toasts: state.toasts.map((t) => (t.id === id ? { ...t, exiting: true } : t)),
   }));
   setTimeout(() => removeToast(id), EXIT_DURATION);
 }

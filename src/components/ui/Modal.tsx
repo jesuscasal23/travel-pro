@@ -11,28 +11,23 @@ interface ModalProps {
   maxWidth?: string;
 }
 
-export function Modal({
-  open,
-  onOpenChange,
-  title,
-  children,
-  maxWidth = "max-w-md",
-}: ModalProps) {
+export function Modal({ open, onOpenChange, title, children, maxWidth = "max-w-md" }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50 data-[state=open]:animate-overlay-in data-[state=closed]:animate-overlay-out" />
+        <Dialog.Overlay className="data-[state=open]:animate-overlay-in data-[state=closed]:animate-overlay-out fixed inset-0 z-50 bg-black/50" />
         <Dialog.Content
           aria-describedby={undefined}
-          className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full ${maxWidth} max-w-[calc(100vw-2rem)] p-4 sm:p-6 bg-background rounded-2xl shadow-xl border border-border data-[state=open]:animate-modal-in data-[state=closed]:animate-modal-out`}
+          className={`fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 ${maxWidth} bg-background border-border data-[state=open]:animate-modal-in data-[state=closed]:animate-modal-out max-w-[calc(100vw-2rem)] rounded-2xl border p-4 shadow-xl sm:p-6`}
         >
-          <div className="flex items-start justify-between mb-4">
-            <Dialog.Title className="text-lg font-bold text-foreground">
-              {title}
-            </Dialog.Title>
+          <div className="mb-4 flex items-start justify-between">
+            <Dialog.Title className="text-foreground text-lg font-bold">{title}</Dialog.Title>
             <Dialog.Close asChild>
-              <button aria-label="Close" className="w-10 h-10 -mr-2 -mt-2 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                <X className="w-5 h-5" />
+              <button
+                aria-label="Close"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted -mt-2 -mr-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
               </button>
             </Dialog.Close>
           </div>

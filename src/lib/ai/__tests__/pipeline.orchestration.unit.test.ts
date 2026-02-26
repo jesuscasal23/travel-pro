@@ -194,7 +194,7 @@ describe("pipeline orchestration", () => {
       profile,
       multiCityIntent,
       undefined,
-      preSelected,
+      preSelected
     );
     expect(mocks.discoverNewCities).toHaveBeenCalledWith(result.route, "trip-1");
     expect(result.route[0].city).toBe("Paris");
@@ -210,7 +210,7 @@ describe("pipeline orchestration", () => {
       profile,
       multiCityIntent,
       undefined,
-      undefined,
+      undefined
     );
     expect(result.days).toHaveLength(1);
   });
@@ -223,7 +223,7 @@ describe("pipeline orchestration", () => {
       expect.objectContaining({
         system: "system-single",
         max_tokens: 8000,
-      }),
+      })
     );
   });
 
@@ -236,22 +236,19 @@ describe("pipeline orchestration", () => {
 
     const result = await generateRouteOnly(profile, singleCityIntent);
 
-    expect(mocks.assembleRouteOnlySingleCityPrompt).toHaveBeenCalledWith(
-      profile,
-      singleCityIntent,
-    );
+    expect(mocks.assembleRouteOnlySingleCityPrompt).toHaveBeenCalledWith(profile, singleCityIntent);
     expect(mocks.createMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         system: "system-route-only-single",
         max_tokens: 2000,
-      }),
+      })
     );
     expect(result.days[0].activities).toHaveLength(0);
   });
 
   it("validates city activity generation guard rails and success path", async () => {
     await expect(
-      generateCityActivities(profile, multiCityIntent, coreItinerary, "unknown"),
+      generateCityActivities(profile, multiCityIntent, coreItinerary, "unknown")
     ).rejects.toThrow(/not found in itinerary route/i);
 
     const noDaysForCity: Itinerary = {
@@ -270,7 +267,7 @@ describe("pipeline orchestration", () => {
       ],
     };
     await expect(
-      generateCityActivities(profile, multiCityIntent, noDaysForCity, "rome"),
+      generateCityActivities(profile, multiCityIntent, noDaysForCity, "rome")
     ).rejects.toThrow(/No days found for city "Rome"/);
 
     mockClaudeText(
@@ -283,7 +280,7 @@ describe("pipeline orchestration", () => {
             activities: [{ name: "Cafe", category: "Food", why: "Local", duration: "1h" }],
           },
         ],
-      }),
+      })
     );
     const days = await generateCityActivities(profile, multiCityIntent, coreItinerary, "paris");
     expect(days).toHaveLength(1);
@@ -296,7 +293,7 @@ describe("pipeline orchestration", () => {
     expect(mocks.enrichVisa).toHaveBeenCalledWith("German", coreItinerary.route);
     expect(mocks.enrichWeather).toHaveBeenCalledWith(
       coreItinerary.route,
-      multiCityIntent.dateStart,
+      multiCityIntent.dateStart
     );
     expect(mocks.prismaFindFirst).toHaveBeenCalledWith({
       where: { tripId: "trip-1", isActive: true },

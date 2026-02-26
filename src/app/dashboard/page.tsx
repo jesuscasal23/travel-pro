@@ -20,15 +20,13 @@ export default function DashboardPage() {
   const isEmpty = !loading && !error && trips.length === 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated />
 
-      <div className="pt-24 pb-16 max-w-5xl mx-auto px-4">
+      <div className="mx-auto max-w-5xl px-4 pt-24 pb-16">
         {/* Greeting */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-foreground">
-            Welcome back.
-          </h1>
+          <h1 className="text-foreground text-3xl font-bold">Welcome back.</h1>
           <p className="text-muted-foreground mt-1">Ready for your next adventure?</p>
         </motion.div>
 
@@ -41,10 +39,10 @@ export default function DashboardPage() {
         >
           <Link
             href="/plan"
-            className="block w-full max-w-md mx-auto text-center bg-primary text-primary-foreground rounded-2xl py-6 px-8 hover:scale-[1.02] transition-all group"
+            className="bg-primary text-primary-foreground group mx-auto block w-full max-w-md rounded-2xl px-8 py-6 text-center transition-all hover:scale-[1.02]"
             style={{ boxShadow: "var(--shadow-hero)" }}
           >
-            <Compass className="w-10 h-10 mx-auto mb-3 group-hover:rotate-45 transition-transform duration-500" />
+            <Compass className="mx-auto mb-3 h-10 w-10 transition-transform duration-500 group-hover:rotate-45" />
             <span className="text-xl font-semibold">Plan a New Trip</span>
           </Link>
         </motion.div>
@@ -56,10 +54,10 @@ export default function DashboardPage() {
           transition={{ delay: 0.2 }}
           className="mt-14"
         >
-          <h2 className="text-xl font-semibold text-foreground mb-6">Your Trips</h2>
+          <h2 className="text-foreground mb-6 text-xl font-semibold">Your Trips</h2>
 
           {loading && (
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid gap-6 sm:grid-cols-2">
               {[1, 2, 3].map((i) => (
                 <SkeletonCard key={i} />
               ))}
@@ -68,11 +66,11 @@ export default function DashboardPage() {
 
           {error && (
             <div className="flex flex-col items-center gap-3 py-12 text-center">
-              <AlertTriangle className="w-8 h-8 text-accent" />
+              <AlertTriangle className="text-accent h-8 w-8" />
               <p className="text-foreground font-medium">Couldn&apos;t load your trips</p>
-              <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
-              <Button size="sm" variant="ghost" onClick={() => refetch()} className="gap-1.5 mt-1">
-                <RefreshCw className="w-3.5 h-3.5" /> Retry
+              <p className="text-muted-foreground text-sm">Check your connection and try again.</p>
+              <Button size="sm" variant="ghost" onClick={() => refetch()} className="mt-1 gap-1.5">
+                <RefreshCw className="h-3.5 w-3.5" /> Retry
               </Button>
             </div>
           )}
@@ -84,7 +82,7 @@ export default function DashboardPage() {
               description="Plan your first AI-crafted trip in minutes."
               action={
                 <Link href="/plan" className="btn-primary inline-flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
+                  <Plus className="h-4 w-4" />
                   Start planning
                 </Link>
               }
@@ -92,24 +90,20 @@ export default function DashboardPage() {
           )}
 
           {!loading && !isEmpty && (
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid gap-6 sm:grid-cols-2">
               {trips.map((trip, i) => {
                 const itinerary = trip.itineraries?.[0];
                 const status = itinerary?.generationStatus ?? "pending";
                 const tripId = trip.id;
 
                 return (
-                  <Link
-                    key={trip.id}
-                    href={`/trip/${tripId}`}
-                    className="group block"
-                  >
+                  <Link key={trip.id} href={`/trip/${tripId}`} className="group block">
                     <div
-                      className={`relative rounded-xl overflow-hidden bg-gradient-to-br ${gradients[i % gradients.length]} h-48 hover:-translate-y-1 transition-all duration-300`}
+                      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${gradients[i % gradients.length]} h-48 transition-all duration-300 hover:-translate-y-1`}
                       style={{ boxShadow: "var(--shadow-card)" }}
                     >
-                      <div className="absolute inset-0 bg-foreground/10" />
-                      <div className="relative h-full flex flex-col justify-between p-6 text-primary-foreground">
+                      <div className="bg-foreground/10 absolute inset-0" />
+                      <div className="text-primary-foreground relative flex h-full flex-col justify-between p-6">
                         <span className={`${statusBadge(status)} self-start`}>
                           {statusLabel(status)}
                         </span>
@@ -119,13 +113,13 @@ export default function DashboardPage() {
                               ? `${trip.destination}${trip.destinationCountry ? `, ${trip.destinationCountry}` : ""}`
                               : trip.region}
                           </h3>
-                          <div className="flex items-center gap-3 mt-1 text-sm opacity-90">
+                          <div className="mt-1 flex items-center gap-3 text-sm opacity-90">
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5" />
+                              <MapPin className="h-3.5 w-3.5" />
                               {trip.travelers} travellers
                             </span>
                             <span className="flex items-center gap-1">
-                              <Plane className="w-3.5 h-3.5" />
+                              <Plane className="h-3.5 w-3.5" />
                               {trip.dateStart}
                             </span>
                           </div>

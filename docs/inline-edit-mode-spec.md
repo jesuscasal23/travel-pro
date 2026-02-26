@@ -9,6 +9,7 @@
 ## 1. Problem
 
 The trip view currently has a separate edit page (`/trip/[id]/edit`) that:
+
 - Only supports route-level editing (reorder/add/remove cities, adjust days)
 - Has no activity editing at all
 - Navigates the user away from the trip view, losing context (scroll position, mental model)
@@ -26,23 +27,23 @@ Replace the separate edit page with an **inline edit mode** within the trip page
 
 ### 3.1 Route Editing (migrated from current edit page)
 
-| Action | Interaction (mobile) |
-|--------|----------------------|
-| Reorder cities | Drag via handle on city cards |
-| Add a city | Tap "+" → search combobox (defaults to 3 days) |
-| Remove a city | Swipe left to reveal delete, or tap delete icon |
-| Adjust days per city | +/− stepper on each city card |
+| Action               | Interaction (mobile)                            |
+| -------------------- | ----------------------------------------------- |
+| Reorder cities       | Drag via handle on city cards                   |
+| Add a city           | Tap "+" → search combobox (defaults to 3 days)  |
+| Remove a city        | Swipe left to reveal delete, or tap delete icon |
+| Adjust days per city | +/− stepper on each city card                   |
 
 ### 3.2 Activity Editing (new)
 
-| Action | Interaction (mobile) |
-|--------|----------------------|
-| Reorder activities | Drag via handle within a day |
-| Move between days | Drag an activity to a different day's drop zone (same city only — cross-city moves not supported) |
-| Delete an activity | Swipe left to reveal delete, or tap delete icon |
-| Edit fields | Tap activity card → expands inline form (name, duration, cost, why, food tip, pro tip) |
-| Add activity (manual) | Tap "+" at bottom of day → empty inline form |
-| Add activity (AI) | Tap "+" → "Suggest with AI" option → pre-filled form to review |
+| Action                | Interaction (mobile)                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| Reorder activities    | Drag via handle within a day                                                                      |
+| Move between days     | Drag an activity to a different day's drop zone (same city only — cross-city moves not supported) |
+| Delete an activity    | Swipe left to reveal delete, or tap delete icon                                                   |
+| Edit fields           | Tap activity card → expands inline form (name, duration, cost, why, food tip, pro tip)            |
+| Add activity (manual) | Tap "+" at bottom of day → empty inline form                                                      |
+| Add activity (AI)     | Tap "+" → "Suggest with AI" option → pre-filled form to review                                    |
 
 ---
 
@@ -110,24 +111,26 @@ Tapping "Edit Route" in the hero opens a bottom sheet overlay:
 ### 4.4 Exiting Edit Mode
 
 Two paths:
+
 1. **Save** — applies all changes, animates back to view mode
 2. **Discard** — if there are unsaved changes, shows confirmation ("Discard changes?"), then exits with no changes applied
 
 ### 4.5 Touch Interactions
 
-| Gesture | Action |
-|---------|--------|
-| Tap activity card | Expand/collapse inline edit form |
-| Long-press + drag handle | Begin drag to reorder |
-| Swipe left on activity | Reveal delete button |
-| Tap "+" | Add activity (manual or AI) |
-| Tap day pill | Switch visible day |
+| Gesture                  | Action                           |
+| ------------------------ | -------------------------------- |
+| Tap activity card        | Expand/collapse inline edit form |
+| Long-press + drag handle | Begin drag to reorder            |
+| Swipe left on activity   | Reveal delete button             |
+| Tap "+"                  | Add activity (manual or AI)      |
+| Tap day pill             | Switch visible day               |
 
 Touch drag uses a 200ms activation delay and is restricted to the drag handle icon — this prevents conflicts with scrolling.
 
 ### 4.6 Desktop Adaptations
 
 Desktop uses the same component structure with these additions:
+
 - Route editing panel is inline (slides down below hero) rather than a bottom sheet
 - SVG DesktopTimeline swaps to the same card-based list used on mobile during edit mode
 - Floating toolbar anchored to bottom-right (instead of replacing bottom nav)
@@ -179,6 +182,7 @@ Opens an empty inline form (same as the editing form). Required fields: name, du
 Calls the existing per-city activity generation endpoint (`useCityActivityGeneration` hook) for the current city. The generated activities replace any empty slots for that city, and the user can then edit, reorder, or delete them inline. No single-activity variant is needed — the existing full-city generation behaviour is used as-is.
 
 On mobile, tapping "+" shows a small action menu:
+
 ```
 ┌─────────────────┐
 │ Add manually     │
@@ -236,32 +240,35 @@ When the route changes during editing, the travel day connections need to be rec
 
 ### 8.4 What Triggers Travel Day Recalculation
 
-| Edit action | Recalculate travel days? |
-|-------------|--------------------------|
-| Reorder cities | Yes — connections change |
-| Add a city | Yes — new connections needed |
-| Remove a city | Yes — connections change |
-| Adjust days per city | No — same connections, different duration |
-| Reorder activities | No |
-| Edit/add/delete activities | No |
-| Mark rest day | No |
+| Edit action                | Recalculate travel days?                  |
+| -------------------------- | ----------------------------------------- |
+| Reorder cities             | Yes — connections change                  |
+| Add a city                 | Yes — new connections needed              |
+| Remove a city              | Yes — connections change                  |
+| Adjust days per city       | No — same connections, different duration |
+| Reorder activities         | No                                        |
+| Edit/add/delete activities | No                                        |
+| Mark rest day              | No                                        |
 
 ---
 
 ## 9. Technical Notes
 
 ### State Management
+
 - New `useEditStore` (Zustand, no persistence) — holds draft itinerary, undo stack, and UI state
 - Draft is a deep clone of the current itinerary, created when entering edit mode
 - All edits mutate the draft; the original stays untouched until save
 - Edit state is intentionally not persisted — refreshing mid-edit returns to view mode
 
 ### Activity Identity
+
 - `DayActivity` currently has no `id` field — identified by array index
 - On entering edit mode, assign temporary `_editId` (UUID) to every activity for stable drag-drop keys
 - Strip these IDs before saving
 
 ### Drag-Drop
+
 - Library: `@dnd-kit/core` + `@dnd-kit/sortable` (already installed)
 - One `DndContext` wrapping the journey tab content
 - One `SortableContext` per day (vertical list strategy)
@@ -273,45 +280,48 @@ When the route changes during editing, the travel day connections need to be rec
 
 New components (all in `src/components/trip/edit/`):
 
-| Component | Purpose |
-|-----------|---------|
-| `EditModeBanner` | Compact top banner indicating edit mode |
-| `EditToolbar` | Bottom bar (mobile) or floating bar (desktop): Save, Discard, Undo |
-| `EditRouteSheet` | Bottom sheet (mobile) or inline panel (desktop) for route editing |
-| `EditableActivityCard` | Activity card with drag handle, delete, tap-to-expand |
-| `InlineActivityForm` | Expandable form for editing activity fields |
-| `AddActivityButton` | "+" button with manual/AI options |
-| `DayDropZone` | Droppable wrapper per day for activity moves within the same city |
-| `SortableCityCard` | Extracted from current edit page for reuse |
+| Component              | Purpose                                                            |
+| ---------------------- | ------------------------------------------------------------------ |
+| `EditModeBanner`       | Compact top banner indicating edit mode                            |
+| `EditToolbar`          | Bottom bar (mobile) or floating bar (desktop): Save, Discard, Undo |
+| `EditRouteSheet`       | Bottom sheet (mobile) or inline panel (desktop) for route editing  |
+| `EditableActivityCard` | Activity card with drag handle, delete, tap-to-expand              |
+| `InlineActivityForm`   | Expandable form for editing activity fields                        |
+| `AddActivityButton`    | "+" button with manual/AI options                                  |
+| `DayDropZone`          | Droppable wrapper per day for activity moves within the same city  |
+| `SortableCityCard`     | Extracted from current edit page for reuse                         |
 
 Modified components:
 
-| Component | Changes |
-|-----------|---------|
-| `MobileLayout` | Accept `isEditMode`; swap bottom nav for `EditToolbar` |
-| `MobileHero` | Add edit mode toggle button |
-| `MobileJourneyTab` | In edit mode: wrap activities in `SortableContext`, use `EditableActivityCard`, add `AddActivityButton` |
-| `DayPills` | In edit mode: rest-day toggle per pill |
-| `DesktopLayout` | Accept `isEditMode`; show `EditToolbar` floating |
-| `DesktopHero` | Edit mode toggle; show `EditRouteSheet` inline |
-| `DesktopJourneyTab` | In edit mode: swap SVG timeline for card-based list |
-| `trip/[id]/page.tsx` | Wire up edit store, pass `isEditMode` to layouts |
+| Component            | Changes                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------- |
+| `MobileLayout`       | Accept `isEditMode`; swap bottom nav for `EditToolbar`                                                  |
+| `MobileHero`         | Add edit mode toggle button                                                                             |
+| `MobileJourneyTab`   | In edit mode: wrap activities in `SortableContext`, use `EditableActivityCard`, add `AddActivityButton` |
+| `DayPills`           | In edit mode: rest-day toggle per pill                                                                  |
+| `DesktopLayout`      | Accept `isEditMode`; show `EditToolbar` floating                                                        |
+| `DesktopHero`        | Edit mode toggle; show `EditRouteSheet` inline                                                          |
+| `DesktopJourneyTab`  | In edit mode: swap SVG timeline for card-based list                                                     |
+| `trip/[id]/page.tsx` | Wire up edit store, pass `isEditMode` to layouts                                                        |
 
 ### Existing Edit Page
+
 - Extract reusable pieces (SortableCityCard, change detection) into shared modules
 - Redirect `/trip/[id]/edit` → `/trip/[id]?edit=true`
 - Remove old page once stable
 
 ### PDF Export Update
 
-The current PDF (`src/lib/export/pdf-generator.tsx`) only shows activity **names** in a compact day table (joined by ` · `). With inline editing, users can now customize all activity fields, so the PDF should reflect everything they've curated:
+The current PDF (`src/lib/export/pdf-generator.tsx`) only shows activity **names** in a compact day table (joined by `·`). With inline editing, users can now customize all activity fields, so the PDF should reflect everything they've curated:
 
 **Current PDF day table row:**
+
 ```
 Day 1 | Tokyo | Senso-ji Temple · Shibuya Crossing · Ramen Alley
 ```
 
 **Updated PDF — expanded activity details per day:**
+
 ```
 Day 1 — Tokyo
 
@@ -325,6 +335,7 @@ Day 1 — Tokyo
 ```
 
 Changes to `TripPDFDocument`:
+
 - Replace the compact 3-column `DayTable` with a richer per-day section grouped by city
 - Each activity shows: name, duration, cost, why description
 - Optionally show food tip and pro tip (if present)
@@ -337,27 +348,35 @@ Changes to `TripPDFDocument`:
 ## 10. Implementation Phases
 
 ### Phase 1: Foundation
+
 Edit store + edit mode toggle + edit toolbar (mobile bottom bar) + save/discard/undo + banner
 
 ### Phase 2: Route Editing
+
 Extract SortableCityCard + build EditRouteSheet (bottom sheet on mobile, inline on desktop) + wire up route actions
 
 ### Phase 3: Activity Drag-Drop
+
 EditableActivityCard with drag handles + reorder within day + same-city cross-day moves + delete (swipe + icon)
 
 ### Phase 4: Inline Activity Editing
+
 Tap-to-expand InlineActivityForm + field editing + AddActivityButton (manual entry)
 
 ### Phase 5: Travel Day Recalculation
+
 Standalone client-side utility to recalculate `isTravel` / `travelFrom` / `travelTo` on days when route changes + integrate into save flow
 
 ### Phase 6: PDF Export Update
+
 Expand `TripPDFDocument` day table to show full activity details (duration, cost, why, tips)
 
 ### Phase 7: AI + Polish
+
 AI activity suggestion + analytics events + keyboard shortcuts (desktop) + redirect old edit page
 
 ### Phase 8: Tests
+
 Unit tests for edit store + component tests + Playwright E2E for mobile edit flow + cleanup
 
 ---

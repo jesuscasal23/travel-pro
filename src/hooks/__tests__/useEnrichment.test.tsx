@@ -11,9 +11,10 @@ function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  return Wrapper;
 }
 
 const route: CityStop[] = [
@@ -61,7 +62,7 @@ describe("useEnrichment hooks", () => {
       "/api/v1/enrich/visa",
       expect.objectContaining({
         method: "POST",
-      }),
+      })
     );
     expect(result.current.data).toEqual([{ country: "France", label: "Visa-free" }]);
   });
@@ -83,17 +84,16 @@ describe("useEnrichment hooks", () => {
       json: async () => ({ weatherData: [{ city: "Paris", temp: "20C", condition: "Sunny" }] }),
     } as Response);
 
-    const { result } = renderHook(
-      () => useWeatherEnrichment(route, "2026-06-01", true),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useWeatherEnrichment(route, "2026-06-01", true), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/v1/enrich/weather",
       expect.objectContaining({
         method: "POST",
-      }),
+      })
     );
     expect(result.current.data).toEqual([{ city: "Paris", temp: "20C", condition: "Sunny" }]);
   });
@@ -110,10 +110,9 @@ describe("useEnrichment hooks", () => {
   it("surfaces weather enrichment errors for non-ok responses", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false } as Response);
 
-    const { result } = renderHook(
-      () => useWeatherEnrichment(route, "2026-06-01", true),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useWeatherEnrichment(route, "2026-06-01", true), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 4_000 });
     expect(result.current.error?.message).toBe("Failed to load weather data");

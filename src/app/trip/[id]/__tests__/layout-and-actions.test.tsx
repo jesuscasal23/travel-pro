@@ -45,18 +45,20 @@ vi.mock("@/hooks/api", () => ({
 }));
 
 vi.mock("@/stores/useTripStore", () => {
-  const useTripStore = ((selector?: (s: {
-    nationality: string;
-    homeAirport: string;
-    travelStyle: string;
-    interests: string[];
-    dateStart: string;
-    needsRegeneration: boolean;
-    currentTripId: string;
-    setCurrentTripId: typeof mocks.setCurrentTripId;
-    setItinerary: typeof mocks.setItinerary;
-    setNeedsRegeneration: typeof mocks.setNeedsRegeneration;
-  }) => unknown) => {
+  const useTripStore = ((
+    selector?: (s: {
+      nationality: string;
+      homeAirport: string;
+      travelStyle: string;
+      interests: string[];
+      dateStart: string;
+      needsRegeneration: boolean;
+      currentTripId: string;
+      setCurrentTripId: typeof mocks.setCurrentTripId;
+      setItinerary: typeof mocks.setItinerary;
+      setNeedsRegeneration: typeof mocks.setNeedsRegeneration;
+    }) => unknown
+  ) => {
     const state = {
       nationality: "German",
       homeAirport: "FRA",
@@ -146,7 +148,7 @@ async function renderWithSuspense(id: string) {
         <Suspense fallback={<div>loading</div>}>
           <TripPage params={Promise.resolve({ id })} />
         </Suspense>
-      </Wrapper>,
+      </Wrapper>
     );
   });
 }
@@ -225,12 +227,11 @@ describe("TripPage layout and action wiring", () => {
     const generated = makeItinerary();
     mocks.itinerary = makePartialItinerary();
     mocks.tripGeneration.error = new Error("Generation failed");
-    mocks.tripGeneration.mutate.mockImplementation((
-      _payload: unknown,
-      options?: { onSuccess?: (result: Itinerary) => void },
-    ) => {
-      options?.onSuccess?.(generated);
-    });
+    mocks.tripGeneration.mutate.mockImplementation(
+      (_payload: unknown, options?: { onSuccess?: (result: Itinerary) => void }) => {
+        options?.onSuccess?.(generated);
+      }
+    );
 
     await renderWithSuspense("trip-123");
 

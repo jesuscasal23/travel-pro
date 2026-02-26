@@ -19,13 +19,13 @@ export function ActivityCard({ timedActivity, isFirst, isLast }: ActivityCardPro
 
   return (
     <div
-      className={`relative border-x border-t border-border bg-card px-4 py-3 ${
+      className={`border-border bg-card relative border-x border-t px-4 py-3 ${
         isFirst ? "rounded-t-xl" : ""
-      } ${isLast ? "border-b rounded-b-xl" : ""}`}
+      } ${isLast ? "rounded-b-xl border-b" : ""}`}
     >
       {/* Category color left accent */}
       <div
-        className={`absolute left-0 top-0 bottom-0 w-1 ${style.bgClass} ${
+        className={`absolute top-0 bottom-0 left-0 w-1 ${style.bgClass} ${
           isFirst ? "rounded-tl-xl" : ""
         } ${isLast ? "rounded-bl-xl" : ""}`}
       />
@@ -33,44 +33,41 @@ export function ActivityCard({ timedActivity, isFirst, isLast }: ActivityCardPro
       <div className="pl-2">
         {/* Header: name + time badge */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm flex-shrink-0">{activity.icon ?? getCategoryEmoji(activity.category)}</span>
-            <h4 className="font-semibold text-sm text-foreground truncate">{activity.name}</h4>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex-shrink-0 text-sm">
+              {activity.icon ?? getCategoryEmoji(activity.category)}
+            </span>
+            <h4 className="text-foreground truncate text-sm font-semibold">{activity.name}</h4>
           </div>
-          <span className={`flex-shrink-0 ${style.badgeBg} text-white font-mono text-[10px] font-medium px-2 py-0.5 rounded-full`}>
+          <span
+            className={`flex-shrink-0 ${style.badgeBg} rounded-full px-2 py-0.5 font-mono text-[10px] font-medium text-white`}
+          >
             {startTime}–{endTime}
           </span>
         </div>
 
         {/* Why description */}
         {activity.why && (
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{activity.why}</p>
+          <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{activity.why}</p>
         )}
 
         {/* Meta row */}
-        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+        <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
           {activity.duration && (
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" /> {activity.duration}
+              <Clock className="h-3 w-3" /> {activity.duration}
             </span>
-          )}
-          {activity.cost && (
-            <span>· {activity.cost}</span>
           )}
         </div>
 
         {/* Food recommendation — show if duration >= 1.5h */}
         {activity.food && durationHours >= 1.5 && (
-          <p className="text-xs text-amber-700 dark:text-amber-400 mt-1.5">
-            🍽️ {activity.food}
-          </p>
+          <p className="mt-1.5 text-xs text-amber-700 dark:text-amber-400">🍽️ {activity.food}</p>
         )}
 
         {/* Pro tip — show if duration >= 2h */}
         {activity.tip && durationHours >= 2 && (
-          <p className="text-xs text-muted-foreground italic mt-1">
-            💡 {activity.tip}
-          </p>
+          <p className="text-muted-foreground mt-1 text-xs italic">💡 {activity.tip}</p>
         )}
       </div>
     </div>

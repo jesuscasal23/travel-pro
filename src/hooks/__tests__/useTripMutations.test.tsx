@@ -32,9 +32,10 @@ import { reportApiError } from "@/lib/client/api-error-reporting";
 const mockReportApiError = reportApiError as ReturnType<typeof vi.fn>;
 
 function createWrapper(queryClient: QueryClient) {
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  return Wrapper;
 }
 
 describe("useTripMutations", () => {
@@ -68,7 +69,7 @@ describe("useTripMutations", () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/v1/trips",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({ method: "POST" })
     );
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["trips"] });
   });
@@ -93,7 +94,7 @@ describe("useTripMutations", () => {
         dateStart: "2026-06-01",
         dateEnd: "2026-06-10",
         travelers: 2,
-      }),
+      })
     ).rejects.toThrow(/Failed to create trip/);
     expect(mockReportApiError).toHaveBeenCalled();
   });
@@ -122,7 +123,7 @@ describe("useTripMutations", () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/v1/trips/trip-1",
-      expect.objectContaining({ method: "PATCH" }),
+      expect.objectContaining({ method: "PATCH" })
     );
 
     const mutation = queryClient.getMutationCache().getAll()[0];
@@ -146,7 +147,7 @@ describe("useTripMutations", () => {
         editPayload: { changed: true },
         description: "Updated route",
         data: { route: [], days: [] },
-      }),
+      })
     ).rejects.toThrow("Save failed");
   });
 
@@ -155,7 +156,10 @@ describe("useTripMutations", () => {
       .fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ shareToken: "token-1", shareUrl: "https://example.com/share/token-1" }),
+        json: async () => ({
+          shareToken: "token-1",
+          shareUrl: "https://example.com/share/token-1",
+        }),
       } as Response)
       .mockResolvedValueOnce({ ok: false } as Response);
 
@@ -170,7 +174,7 @@ describe("useTripMutations", () => {
     });
 
     await expect(result.current.mutateAsync("trip-1")).rejects.toThrow(
-      "Failed to generate share link",
+      "Failed to generate share link"
     );
   });
 });

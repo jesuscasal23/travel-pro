@@ -21,7 +21,15 @@ import type { Itinerary } from "@/types";
 function makeItinerary(overrides?: Partial<Itinerary>): Itinerary {
   return {
     route: [
-      { id: "city-1", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 3, countryCode: "JP" },
+      {
+        id: "city-1",
+        city: "Tokyo",
+        country: "Japan",
+        lat: 35.68,
+        lng: 139.69,
+        days: 3,
+        countryCode: "JP",
+      },
     ],
     days: [
       {
@@ -133,7 +141,7 @@ describe("useEditStore", () => {
         result.current.updateDraft((d) => ({
           ...d,
           route: [{ ...d.route[0], city: "Osaka" }],
-        })),
+        }))
       );
 
       expect(result.current.draft!.route[0].city).toBe("Osaka");
@@ -154,8 +162,12 @@ describe("useEditStore", () => {
       const { result } = renderHook(() => useEditStore());
       act(() => result.current.enterEditMode(makeItinerary()));
 
-      act(() => result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "A" }] })));
-      act(() => result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "B" }] })));
+      act(() =>
+        result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "A" }] }))
+      );
+      act(() =>
+        result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "B" }] }))
+      );
 
       expect(result.current.undoStack).toHaveLength(2);
       // Most recent pushed first
@@ -209,8 +221,12 @@ describe("useEditStore", () => {
       const { result } = renderHook(() => useEditStore());
       act(() => result.current.enterEditMode(makeItinerary()));
 
-      act(() => result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "A" }] })));
-      act(() => result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "B" }] })));
+      act(() =>
+        result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "A" }] }))
+      );
+      act(() =>
+        result.current.updateDraft((d) => ({ ...d, route: [{ ...d.route[0], city: "B" }] }))
+      );
       expect(result.current.draft!.route[0].city).toBe("B");
 
       act(() => result.current.undo());
@@ -244,7 +260,11 @@ describe("useEditStore", () => {
       act(() => result.current.enterEditMode(makeItinerary()));
 
       let saved: Itinerary | null = null;
-      act(() => result.current.saveAndExit((it) => { saved = it; }));
+      act(() =>
+        result.current.saveAndExit((it) => {
+          saved = it;
+        })
+      );
 
       expect(saved).not.toBeNull();
       saved!.days.forEach((day) => {
@@ -267,7 +287,11 @@ describe("useEditStore", () => {
     it("does not call callback when draft is null", () => {
       const { result } = renderHook(() => useEditStore());
       let called = false;
-      act(() => result.current.saveAndExit(() => { called = true; }));
+      act(() =>
+        result.current.saveAndExit(() => {
+          called = true;
+        })
+      );
       expect(called).toBe(false);
     });
   });

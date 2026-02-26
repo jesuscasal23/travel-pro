@@ -6,7 +6,7 @@ import type { PrismaClient } from "@prisma/client";
 /** Create a minimal valid Trip row. */
 export async function createTestTrip(
   prisma: PrismaClient,
-  overrides: Record<string, unknown> = {},
+  overrides: Record<string, unknown> = {}
 ) {
   return prisma.trip.create({
     data: {
@@ -24,7 +24,7 @@ export async function createTestTrip(
 export async function createTestProfile(
   prisma: PrismaClient,
   userId: string,
-  overrides: Record<string, unknown> = {},
+  overrides: Record<string, unknown> = {}
 ) {
   return prisma.profile.create({
     data: {
@@ -42,7 +42,7 @@ export async function createTestProfile(
 export async function createTestItinerary(
   prisma: PrismaClient,
   tripId: string,
-  overrides: Record<string, unknown> = {},
+  overrides: Record<string, unknown> = {}
 ) {
   return prisma.itinerary.create({
     data: {

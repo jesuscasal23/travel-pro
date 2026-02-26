@@ -5,9 +5,15 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const checks: Record<string, string> = {
     anthropic: process.env.ANTHROPIC_API_KEY ? "ok" : "missing",
-    supabase: process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY ? "ok" : "missing",
+    supabase:
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? "ok"
+        : "missing",
     database: process.env.DATABASE_URL ? "ok" : "missing",
-    redis: process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN ? "ok" : "missing",
+    redis:
+      process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN ? "ok" : "missing",
   };
 
   // Optionally ping Redis to verify connectivity (not just env vars)

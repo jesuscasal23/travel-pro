@@ -64,9 +64,8 @@ export function assembleRouteOnlyPrompt(
   skeleton?: FlightSkeleton,
   cities?: CityWithDays[]
 ): string {
-  const durationDays = intent.dateStart && intent.dateEnd
-    ? daysBetween(intent.dateStart, intent.dateEnd)
-    : 21;
+  const durationDays =
+    intent.dateStart && intent.dateEnd ? daysBetween(intent.dateStart, intent.dateEnd) : 21;
 
   const styleDescriptions: Record<string, string> = {
     backpacker: "backpacker style (hostels, dorms, street food, budget-conscious)",
@@ -74,8 +73,9 @@ export function assembleRouteOnlyPrompt(
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
-  const skeletonBlock = skeleton && cities
-    ? `
+  const skeletonBlock =
+    skeleton && cities
+      ? `
 **FLIGHT SCHEDULE (pre-computed — use these exact dates and costs):**
 ${skeleton.legs
   .map(
@@ -87,17 +87,23 @@ Total flight cost: €${Math.round(skeleton.totalFlightCost).toLocaleString()}
 
 **CITY SCHEDULE (use exactly these cities and day counts):**
 ${cities
-  .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${skeleton.dayAssignment[i]} days, airport: ${c.iataCode}`)
+  .map(
+    (c, i) =>
+      `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${skeleton.dayAssignment[i]} days, airport: ${c.iataCode}`
+  )
   .join("\n")}
 Set iataCode on each route city to the airport codes above.`
-    : !skeleton && cities
-    ? `
+      : !skeleton && cities
+        ? `
 **CITY SCHEDULE (pre-selected — use exactly these cities):**
 ${cities
-  .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${c.minDays}–${c.maxDays} days`)
+  .map(
+    (c, i) =>
+      `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${c.minDays}–${c.maxDays} days`
+  )
   .join("\n")}
 Distribute the trip days across these cities within the min–max ranges above.`
-    : "";
+        : "";
 
   const cityRequirement = cities
     ? "Use EXACTLY the cities listed in the CITY SCHEDULE above — do not add or remove cities."
@@ -167,9 +173,8 @@ export function assembleRouteOnlySingleCityPrompt(
   profile: UserProfile,
   intent: TripIntent
 ): string {
-  const durationDays = intent.dateStart && intent.dateEnd
-    ? daysBetween(intent.dateStart, intent.dateEnd)
-    : 7;
+  const durationDays =
+    intent.dateStart && intent.dateEnd ? daysBetween(intent.dateStart, intent.dateEnd) : 7;
 
   const styleDescriptions: Record<string, string> = {
     backpacker: "backpacker style (hostels, dorms, street food, budget-conscious)",

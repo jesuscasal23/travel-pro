@@ -111,14 +111,12 @@ describe("discoverNewCities", () => {
       },
     ];
 
-    mocks.upsert
-      .mockRejectedValueOnce(new Error("db down"))
-      .mockResolvedValueOnce({});
+    mocks.upsert.mockRejectedValueOnce(new Error("db down")).mockResolvedValueOnce({});
 
     await expect(discoverNewCities(unknownRoute, "trip-err")).resolves.toBeUndefined();
     expect(mocks.warn).toHaveBeenCalledWith(
       "Failed to upsert discovered city",
-      expect.objectContaining({ city: "Atlantis" }),
+      expect.objectContaining({ city: "Atlantis" })
     );
     expect(mocks.upsert).toHaveBeenCalledTimes(2);
   });

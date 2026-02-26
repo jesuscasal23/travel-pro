@@ -59,10 +59,7 @@ async function main() {
     }
 
     const newCities = discovered.filter(
-      (d) =>
-        !existingKeys.has(
-          `${d.city.toLowerCase()}|${d.countryCode.toLowerCase()}`
-        )
+      (d) => !existingKeys.has(`${d.city.toLowerCase()}|${d.countryCode.toLowerCase()}`)
     );
 
     if (newCities.length === 0) {
@@ -72,9 +69,7 @@ async function main() {
 
     console.log(`\nFound ${newCities.length} new cities to add:\n`);
     for (const c of newCities) {
-      console.log(
-        `  ${c.city}, ${c.country} (${c.countryCode}) — proposed ${c.timesProposed}x`
-      );
+      console.log(`  ${c.city}, ${c.country} (${c.countryCode}) — proposed ${c.timesProposed}x`);
     }
 
     if (!shouldWrite) {

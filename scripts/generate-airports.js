@@ -34,11 +34,17 @@ const airports = [];
 for (let i = 1; i < lines.length; i++) {
   if (!lines[i].trim()) continue;
   const row = [];
-  let inQuote = false, cur = "";
+  let inQuote = false,
+    cur = "";
   for (const ch of lines[i]) {
-    if (ch === '"') { inQuote = !inQuote; }
-    else if (ch === "," && !inQuote) { row.push(cur); cur = ""; }
-    else { cur += ch; }
+    if (ch === '"') {
+      inQuote = !inQuote;
+    } else if (ch === "," && !inQuote) {
+      row.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
   }
   row.push(cur);
 

@@ -26,9 +26,10 @@ const mockReportApiError = reportApiError as ReturnType<typeof vi.fn>;
 const originalFetch = global.fetch;
 
 function createWrapper(queryClient: QueryClient) {
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  return Wrapper;
 }
 
 function makeSseResponse(lines: string[]): Response {
@@ -77,7 +78,7 @@ describe("useTripGeneration", () => {
         makeSseResponse([
           'data: {"stage":"route"}\n\n',
           'data: {"stage":"done","trip_id":"trip-1"}\n\n',
-        ]),
+        ])
       )
       .mockResolvedValueOnce({
         ok: true,
@@ -104,7 +105,7 @@ describe("useTripGeneration", () => {
     expect(global.fetch).toHaveBeenNthCalledWith(
       1,
       "/api/v1/trips/trip-1/generate",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({ method: "POST" })
     );
     expect(global.fetch).toHaveBeenNthCalledWith(2, "/api/v1/trips/trip-1");
     expect(mockParseItineraryData).toHaveBeenCalledWith({ route: [], days: [] });
@@ -112,9 +113,11 @@ describe("useTripGeneration", () => {
   });
 
   it("throws when SSE emits an error stage", async () => {
-    global.fetch = vi.fn().mockResolvedValue(
-      makeSseResponse(['data: {"stage":"error","message":"Generation failed"}\n\n']),
-    );
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        makeSseResponse(['data: {"stage":"error","message":"Generation failed"}\n\n'])
+      );
 
     const queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } },
@@ -123,18 +126,13 @@ describe("useTripGeneration", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    await expect(
-      result.current.mutateAsync(baseParams),
-    ).rejects.toThrow("Generation failed");
+    await expect(result.current.mutateAsync(baseParams)).rejects.toThrow("Generation failed");
   });
 
   it("throws when stream ends without done event", async () => {
-    global.fetch = vi.fn().mockResolvedValue(
-      makeSseResponse([
-        "data: not-json\n\n",
-        'data: {"stage":"route"}\n\n',
-      ]),
-    );
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(makeSseResponse(["data: not-json\n\n", 'data: {"stage":"route"}\n\n']));
 
     const queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } },
@@ -144,7 +142,7 @@ describe("useTripGeneration", () => {
     });
 
     await expect(result.current.mutateAsync(baseParams)).rejects.toThrow(
-      /stream ended before completion/i,
+      /stream ended before completion/i
     );
     expect(mockReportApiError).toHaveBeenCalled();
   });
@@ -165,21 +163,14 @@ describe("useTripGeneration", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    await expect(
-      result.current.mutateAsync(baseParams),
-    ).rejects.toThrow(/Generation failed/);
+    await expect(result.current.mutateAsync(baseParams)).rejects.toThrow(/Generation failed/);
     expect(mockReportApiError).toHaveBeenCalled();
   });
 
   it("parses done events split across stream chunks", async () => {
     global.fetch = vi
       .fn()
-      .mockResolvedValueOnce(
-        makeSseResponse([
-          'data: {"stage":"do',
-          'ne","trip_id":"trip-1"}\n\n',
-        ]),
-      )
+      .mockResolvedValueOnce(makeSseResponse(['data: {"stage":"do', 'ne","trip_id":"trip-1"}\n\n']))
       .mockResolvedValueOnce({
         ok: true,
         json: () =>
@@ -207,9 +198,7 @@ describe("useTripGeneration", () => {
   it("invalidates trip detail query on success", async () => {
     global.fetch = vi
       .fn()
-      .mockResolvedValueOnce(
-        makeSseResponse(['data: {"stage":"done","trip_id":"trip-1"}\n\n']),
-      )
+      .mockResolvedValueOnce(makeSseResponse(['data: {"stage":"done","trip_id":"trip-1"}\n\n']))
       .mockResolvedValueOnce({
         ok: true,
         json: () =>

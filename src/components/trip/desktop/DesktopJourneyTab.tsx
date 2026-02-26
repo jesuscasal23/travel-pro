@@ -16,7 +16,11 @@ interface DesktopJourneyTabProps {
   onGenerateActivities?: (cityId: string, cityName: string) => void;
 }
 
-export function DesktopJourneyTab({ itinerary, generatingCityId, onGenerateActivities }: DesktopJourneyTabProps) {
+export function DesktopJourneyTab({
+  itinerary,
+  generatingCityId,
+  onGenerateActivities,
+}: DesktopJourneyTabProps) {
   const { route, days, flightLegs, weatherData } = itinerary;
 
   const cityGroups = useMemo(() => groupDaysByCity(days, route), [days, route]);
@@ -37,12 +41,12 @@ export function DesktopJourneyTab({ itinerary, generatingCityId, onGenerateActiv
   }, [weatherData]);
 
   return (
-    <div className="max-w-[960px] mx-auto px-4 py-6">
+    <div className="mx-auto max-w-[960px] px-4 py-6">
       {/* Boarding passes */}
       {flightLegs && flightLegs.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-base font-semibold text-foreground mb-3">🎫 Your boarding passes</h3>
-          <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+          <h3 className="text-foreground mb-3 text-base font-semibold">🎫 Your boarding passes</h3>
+          <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
             {flightLegs.map((leg, i) => (
               <BoardingPassCard key={i} leg={leg} variant="desktop" />
             ))}
@@ -77,7 +81,7 @@ export function DesktopJourneyTab({ itinerary, generatingCityId, onGenerateActiv
                   <div>
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary rounded-lg px-4 py-2.5 mt-2 mb-2">
+                      <div className="text-muted-foreground bg-secondary mt-2 mb-2 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm">
                         <span className="text-primary">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
@@ -100,12 +104,12 @@ export function DesktopJourneyTab({ itinerary, generatingCityId, onGenerateActiv
               </>
             ) : isGeneratingThis ? (
               <div className="mt-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
                   <span>Generating activity recommendations for {cityStop.city}...</span>
                 </div>
                 {Array.from({ length: 3 }, (_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-secondary animate-pulse" />
+                  <div key={i} className="bg-secondary h-16 animate-pulse rounded-xl" />
                 ))}
               </div>
             ) : (
@@ -117,7 +121,7 @@ export function DesktopJourneyTab({ itinerary, generatingCityId, onGenerateActiv
                   <span>✨</span>
                   Get activity recommendations for {cityStop.city}
                 </button>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-muted-foreground mt-2 text-xs">
                   {cityStop.days} days · Click to get personalized activity suggestions
                 </p>
               </div>

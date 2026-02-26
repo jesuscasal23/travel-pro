@@ -21,13 +21,7 @@ export interface Manifest {
   entries: ManifestEntry[];
 }
 
-const MANIFEST_PATH = join(
-  process.cwd(),
-  "public",
-  "images",
-  "cities",
-  "manifest.json"
-);
+const MANIFEST_PATH = join(process.cwd(), "public", "images", "cities", "manifest.json");
 
 export function slugify(text: string): string {
   return text
@@ -64,14 +58,7 @@ export async function writeManifest(manifest: Manifest): Promise<void> {
 
 export function getImagePath(countryCode: string, slug: string, index = 1): string {
   const filename = index === 1 ? `${slug}.webp` : `${slug}-2.webp`;
-  return join(
-    process.cwd(),
-    "public",
-    "images",
-    "cities",
-    countryCode.toLowerCase(),
-    filename
-  );
+  return join(process.cwd(), "public", "images", "cities", countryCode.toLowerCase(), filename);
 }
 
 export function getImagePublicPath(countryCode: string, slug: string, index = 1): string {

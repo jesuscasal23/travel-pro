@@ -28,7 +28,6 @@ const resetSchema = z
 
 type ResetFormData = z.infer<typeof resetSchema>;
 
-
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -47,7 +46,11 @@ export default function ResetPasswordPage() {
     setServerError(null);
 
     const supabase = createClient();
-    if (!supabase) { setServerError("Auth service unavailable."); setIsLoading(false); return; }
+    if (!supabase) {
+      setServerError("Auth service unavailable.");
+      setIsLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.updateUser({
       password: data.password,
     });
@@ -62,15 +65,13 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={false} />
 
-      <div className="max-w-md mx-auto px-4 pt-24 pb-12">
+      <div className="mx-auto max-w-md px-4 pt-24 pb-12">
         <div className="card-travel p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Set new password
-          </h1>
-          <p className="text-muted-foreground text-sm mb-8">
+          <h1 className="text-foreground mb-2 text-2xl font-bold">Set new password</h1>
+          <p className="text-muted-foreground mb-8 text-sm">
             Choose a strong password for your account.
           </p>
 
@@ -102,7 +103,7 @@ export default function ResetPasswordPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-6 text-center text-sm">
             <Link href="/login" className="text-primary hover:underline">
               Back to sign in
             </Link>

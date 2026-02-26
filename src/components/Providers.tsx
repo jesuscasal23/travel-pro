@@ -48,7 +48,7 @@ export function Providers({ children }: { children: ReactNode }) {
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.posthog.com";
     if (!key) return;
 
-    import("posthog-js").then(({ default: posthog }) => {
+    void import("posthog-js").then(({ default: posthog }) => {
       const consent = document.cookie
         .split("; ")
         .find((row) => row.startsWith("travel_pro_consent="))
@@ -93,10 +93,13 @@ export function Providers({ children }: { children: ReactNode }) {
 
 // Thin wrapper that lazy-loads posthog-js/react
 function LazyPostHogProvider({ client, children }: { client: PostHog; children: ReactNode }) {
-  const [Provider, setProvider] = useState<React.ComponentType<{ client: PostHog; children: ReactNode }> | null>(null);
+  const [Provider, setProvider] = useState<React.ComponentType<{
+    client: PostHog;
+    children: ReactNode;
+  }> | null>(null);
 
   useEffect(() => {
-    import("posthog-js/react").then((mod) => {
+    void import("posthog-js/react").then((mod) => {
       setProvider(() => mod.PostHogProvider);
     });
   }, []);

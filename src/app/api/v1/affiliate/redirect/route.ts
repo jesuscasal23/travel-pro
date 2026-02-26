@@ -23,9 +23,7 @@ const ALLOWED_REDIRECT_DOMAINS = [
 function isAllowedDomain(url: string): boolean {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
-    return ALLOWED_REDIRECT_DOMAINS.some(
-      (d) => hostname === d || hostname.endsWith(`.${d}`)
-    );
+    return ALLOWED_REDIRECT_DOMAINS.some((d) => hostname === d || hostname.endsWith(`.${d}`));
   } catch {
     return false;
   }

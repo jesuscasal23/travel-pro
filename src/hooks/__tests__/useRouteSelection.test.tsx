@@ -43,9 +43,10 @@ const cities = [
 ];
 
 function createWrapper(queryClient: QueryClient) {
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  return Wrapper;
 }
 
 describe("useRouteSelection hooks", () => {
@@ -106,7 +107,7 @@ describe("useRouteSelection hooks", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(params),
-      }),
+      })
     );
   });
 
@@ -152,9 +153,7 @@ describe("useRouteSelection hooks", () => {
     });
 
     await waitFor(() => {
-      expect(
-        queryClient.getQueryData(queryKeys.routeSelection.byParams(cacheKey)),
-      ).toEqual(cities);
+      expect(queryClient.getQueryData(queryKeys.routeSelection.byParams(cacheKey))).toEqual(cities);
     });
 
     await act(async () => {
@@ -165,4 +164,3 @@ describe("useRouteSelection hooks", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });
-

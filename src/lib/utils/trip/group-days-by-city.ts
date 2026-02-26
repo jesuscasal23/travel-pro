@@ -1,6 +1,6 @@
 import type { Itinerary, TripDay } from "@/types";
 
-export interface CityDayGroup {
+interface CityDayGroup {
   cityId: string;
   city: string;
   country: string;

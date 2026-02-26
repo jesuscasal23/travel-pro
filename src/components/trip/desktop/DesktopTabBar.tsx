@@ -33,12 +33,12 @@ export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
       const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]");
       buttons?.[next]?.focus();
     },
-    [activeTab, onTabChange],
+    [activeTab, onTabChange]
   );
 
   return (
-    <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-[960px] mx-auto px-4 py-3">
+    <div className="bg-background/95 border-border sticky top-16 z-30 border-b backdrop-blur-sm">
+      <div className="mx-auto max-w-[960px] px-4 py-3">
         <div
           ref={containerRef}
           role="tablist"
@@ -55,9 +55,9 @@ export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => onTabChange(tab.id)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                    ? "bg-primary text-primary-foreground scale-105 shadow-lg"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >

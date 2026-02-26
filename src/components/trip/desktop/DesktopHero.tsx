@@ -55,7 +55,7 @@ export function DesktopHero({
       const buttons = cityScrollRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]");
       buttons?.[next]?.focus();
     },
-    [activeCityIndex, route.length, onCityClick],
+    [activeCityIndex, route.length, onCityClick]
   );
 
   return (
@@ -67,32 +67,31 @@ export function DesktopHero({
         alt=""
         loading="eager"
         fetchPriority="high"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover"
         onError={() => setHeroImage(getCityPlaceholder(heroCity))}
       />
 
       {/* Overlay with blur */}
-      <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px]" />
+      <div className="bg-background/70 absolute inset-0 backdrop-blur-[2px]" />
 
       {/* Radial gradient accents */}
-      <div className="absolute inset-0 bg-radial-[at_25%_25%] from-primary/5 to-transparent" />
+      <div className="from-primary/5 absolute inset-0 bg-radial-[at_25%_25%] to-transparent" />
 
       {/* Content */}
-      <div className="relative max-w-240 mx-auto px-4 py-10 text-center">
+      <div className="relative mx-auto max-w-240 px-4 py-10 text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-1.5 bg-primary/20 backdrop-blur-sm rounded-full px-3 py-1 mb-3">
-          <span className="text-xs font-medium text-primary">✨ AI-crafted just for you</span>
+        <div className="bg-primary/20 mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 backdrop-blur-sm">
+          <span className="text-primary text-xs font-medium">✨ AI-crafted just for you</span>
         </div>
 
         {/* Title */}
-        <h1 className="text-hero font-display font-extrabold text-foreground">
+        <h1 className="text-hero font-display text-foreground font-extrabold">
           Your dream trip awaits ✈️
         </h1>
 
         {/* Subtitle */}
-        <p className="text-sm text-muted-foreground mt-2">
-          {totalDays} days across <strong>{countries.join(", ")}</strong>
-          {" "}&amp; more
+        <p className="text-muted-foreground mt-2 text-sm">
+          {totalDays} days across <strong>{countries.join(", ")}</strong> &amp; more
         </p>
 
         {/* City cards scroll */}
@@ -101,7 +100,7 @@ export function DesktopHero({
           role="tablist"
           aria-label="City selector"
           onKeyDown={handleCityKeyDown}
-          className="flex gap-4 overflow-x-auto scrollbar-hide justify-center mt-6 pb-2"
+          className="scrollbar-hide mt-6 flex justify-center gap-4 overflow-x-auto pb-2"
         >
           {route.map((city, i) => (
             <CityCard
@@ -116,29 +115,29 @@ export function DesktopHero({
 
         {/* Action buttons */}
         {!isPartialItinerary && (
-          <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="mt-6 flex items-center justify-center gap-3">
             <button
               onClick={isEditMode ? onEditRoute : onToggleEditMode}
-              className={`text-sm py-2 px-4 flex items-center gap-1.5 ${
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm ${
                 isEditMode ? "btn-ghost" : "btn-ghost"
               }`}
             >
-              <Pencil className="w-4 h-4" />
+              <Pencil className="h-4 w-4" />
               {isEditMode ? "Edit Route" : "Edit trip"}
             </button>
             {!isEditMode && (
               <>
                 <button
                   onClick={onShare}
-                  className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5"
+                  className="btn-ghost flex items-center gap-1.5 px-4 py-2 text-sm"
                 >
-                  <Share2 className="w-4 h-4" /> Share
+                  <Share2 className="h-4 w-4" /> Share
                 </button>
                 <Link
                   href={`/trip/${tripId}/summary`}
-                  className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
+                  className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm"
                 >
-                  <LayoutList className="w-4 h-4" /> Summary
+                  <LayoutList className="h-4 w-4" /> Summary
                 </Link>
               </>
             )}

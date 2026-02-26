@@ -21,24 +21,27 @@ const TAB_LABELS: Record<Tab, string> = {
 
 export function PlanViewLayout({ itinerary, homeAirport, isAuthenticated }: PlanViewLayoutProps) {
   const [activeTab, setActiveTab] = useState<Tab>("itinerary");
-  const topOffset = isAuthenticated === false ? "lg:top-[10.25rem] lg:h-[calc(100vh-10.25rem)]" : "lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)]";
+  const topOffset =
+    isAuthenticated === false
+      ? "lg:top-[10.25rem] lg:h-[calc(100vh-10.25rem)]"
+      : "lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)]";
 
   return (
     <div className="flex flex-col lg:flex-row">
       {/* Left sidebar */}
-      <div className={`lg:w-[28%] bg-secondary/50 p-5 lg:sticky ${topOffset} overflow-auto`}>
+      <div className={`bg-secondary/50 p-5 lg:sticky lg:w-[28%] ${topOffset} overflow-auto`}>
         <PlanSidebar itinerary={itinerary} homeAirport={homeAirport} />
       </div>
 
       {/* Main content */}
-      <div className="lg:w-[72%] p-5 lg:p-8">
+      <div className="p-5 lg:w-[72%] lg:p-8">
         {/* Tab bar */}
-        <div className="flex gap-0 border-b border-border mb-6">
+        <div className="border-border mb-6 flex gap-0 border-b">
           {(["itinerary", "essentials"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-3 text-sm font-medium transition-colors relative ${
+              className={`relative px-5 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -46,7 +49,7 @@ export function PlanViewLayout({ itinerary, homeAirport, isAuthenticated }: Plan
             >
               {TAB_LABELS[tab]}
               {activeTab === tab && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t" />
+                <span className="bg-primary absolute right-0 bottom-0 left-0 h-0.5 rounded-t" />
               )}
             </button>
           ))}
@@ -56,9 +59,7 @@ export function PlanViewLayout({ itinerary, homeAirport, isAuthenticated }: Plan
         {activeTab === "itinerary" && (
           <ItineraryTab days={itinerary.days} route={itinerary.route} />
         )}
-        {activeTab === "essentials" && (
-          <EssentialsTab itinerary={itinerary} />
-        )}
+        {activeTab === "essentials" && <EssentialsTab itinerary={itinerary} />}
       </div>
     </div>
   );

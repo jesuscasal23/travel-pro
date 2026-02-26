@@ -23,7 +23,6 @@ Every activity object must match this depth:
 - "duration": Realistic time estimate (e.g. "2h", "45min", "3h")
 - "tip": (optional) Brief practical tip (max 15 words)
 - "food": (optional) Dish + venue name (max 10 words)
-- "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
 ## Travel Day Rules
 
@@ -34,7 +33,10 @@ For days marked as travel days (isTravel: true):
 
 ## Regular Day Rules
 
-- Plan 3–5 activities per day with FULL detail
+- Plan activities per day according to the traveler's stated pace:
+  - relaxed: 2–3 activities (slow mornings, plenty of downtime)
+  - moderate: 3–4 activities (good mix of sightseeing and rest)
+  - active: 5–6 activities (packed schedule, maximum sightseeing)
 - Rotate through different neighborhoods/districts each day
 - Tailor activity choices to the traveler's interests and travel style
 - EVERY activity should feel like a recommendation from a local`;
@@ -50,10 +52,22 @@ export function assembleCityActivitiesPrompt(
   cityDays: TripDay[]
 ): string {
   const styleDescriptions: Record<string, string> = {
-    backpacker: "backpacker style (street food, free attractions, maximum adventure, budget-conscious)",
-    comfort: "comfort style (mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
+    backpacker:
+      "backpacker style (street food, free attractions, maximum adventure, budget-conscious)",
+    comfort:
+      "comfort style (mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
     luxury: "luxury style (fine dining, private tours, premium experiences)",
   };
+
+  const paceDescriptions: Record<string, string> = {
+    relaxed: "relaxed (2–3 activities per day, slow mornings, plenty of downtime)",
+    moderate: "balanced (3–4 activities per day, good mix of sightseeing and rest)",
+    active: "active (5–6 activities per day, packed schedule, maximum sightseeing)",
+  };
+  // Fall back to moderate if pace is not set
+  const paceDescription = profile.pace ? paceDescriptions[profile.pace] : paceDescriptions.moderate;
+  const paceActivityCount =
+    profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "3–4";
 
   const daysDescription = cityDays
     .map((d) => {
@@ -74,6 +88,7 @@ export function assembleCityActivitiesPrompt(
 - Nationality: ${profile.nationality}
 - Home airport: ${profile.homeAirport}
 - Travel style: ${styleDescriptions[profile.travelStyle] ?? profile.travelStyle}
+- Trip pace: ${paceDescription}
 - Interests: ${profile.interests.length > 0 ? profile.interests.join(", ") : "general travel"}
 
 **Trip Context:**
@@ -84,12 +99,12 @@ ${intent.description?.trim() ? `\n**Special Requests from the traveler:**\n${int
 ${daysDescription}
 
 **Requirements:**
-1. Generate 3–5 activities per regular day, 2–3 for travel days
-2. Include FULL detail for every activity (name, category, why, duration, plus tip/food/cost where applicable)
+1. Generate ${paceActivityCount} activities per regular day (match the traveler's stated pace), 2–3 for travel days
+2. Include FULL detail for every activity (name, category, why, duration, plus tip/food where applicable)
 3. Rotate through different neighborhoods/districts
 4. On travel days, include a transport activity first, then 1–2 activities
 5. Tailor choices to the traveler's interests and travel style
-6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
+6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips
 
 Return ONLY this JSON structure — one entry per day listed above:
 
@@ -99,10 +114,14 @@ Return ONLY this JSON structure — one entry per day listed above:
       "day": ${exampleDay?.day ?? 1},
       "date": "${exampleDay?.date ?? "Oct 1"}",
       "city": "${city.city}",
-      "isTravel": ${exampleIsTravel},${exampleIsTravel ? `
+      "isTravel": ${exampleIsTravel},${
+        exampleIsTravel
+          ? `
       "travelFrom": "${exampleDay?.travelFrom ?? ""}",
       "travelTo": "${exampleDay?.travelTo ?? ""}",
-      "travelDuration": "${exampleDay?.travelDuration ?? ""}",` : ""}
+      "travelDuration": "${exampleDay?.travelDuration ?? ""}",`
+          : ""
+      }
       "activities": [
         {
           "name": "Example Activity",
@@ -110,8 +129,7 @@ Return ONLY this JSON structure — one entry per day listed above:
           "why": "Description of why this is worth doing",
           "duration": "2h",
           "tip": "Arrive early to beat crowds",
-          "food": "Try melon pan at Nakamise-dori",
-          "cost": "€15"
+          "food": "Try melon pan at Nakamise-dori"
         }
       ]
     }

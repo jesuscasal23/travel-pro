@@ -20,17 +20,18 @@ A `CityStop` (the data structure for each city in the route) requires:
 
 ```ts
 {
-  id: string          // unique identifier
-  city: string        // "Osaka"
-  country: string     // "Japan"
-  lat: number         // 34.6937
-  lng: number         // 135.5023
-  days: number        // 3
-  countryCode: string // "JP"
+  id: string; // unique identifier
+  city: string; // "Osaka"
+  country: string; // "Japan"
+  lat: number; // 34.6937
+  lng: number; // 135.5023
+  days: number; // 3
+  countryCode: string; // "JP"
 }
 ```
 
 The `lat`, `lng`, and `countryCode` fields are the challenge. Without correct coordinates:
+
 - The **map marker** won't render in the right place (RouteMap uses `lat`/`lng` for markers and route lines)
 - The **visa data** lookup uses `countryCode` to check entry requirements
 - The **weather data** enrichment uses `lat`/`lng` for historical weather queries
@@ -54,6 +55,7 @@ GET https://geocoding-api.open-meteo.com/v1/search?name=Osaka&count=5
 Returns: `{ results: [{ name, country, country_code, latitude, longitude, ... }] }`
 
 **Implementation:**
+
 1. "Add a city" button opens a small inline form with a single search input
 2. As the user types, debounced calls to the Open-Meteo geocoding API return city suggestions (name + country + coordinates)
 3. User picks a suggestion from a dropdown, chooses days (default 2), and confirms
@@ -62,11 +64,13 @@ Returns: `{ results: [{ name, country, country_code, latitude, longitude, ... }]
 6. The save flow already handles sending the full updated route + itinerary data to the API
 
 **Pros:**
+
 - No new API keys or dependencies needed (Open-Meteo is already in `connect-src` CSP and used by enrichment)
 - Accurate coordinates — map, visa, and weather all work correctly
 - Free, no rate limit concerns at our scale
 
 **Cons:**
+
 - Adds an external API call in the browser (but it's the same service we already depend on)
 - Need to handle the case where a city isn't found
 

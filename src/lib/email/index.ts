@@ -3,11 +3,12 @@
 // Lazy-initialized to avoid build-time crashes
 // ============================================================
 
+import { Resend } from "resend";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("email");
 
-let _resend: import("resend").Resend | null = null;
+let _resend: Resend | null = null;
 
 export function getResend() {
   if (_resend) return _resend;
@@ -16,7 +17,6 @@ export function getResend() {
     log.warn("RESEND_API_KEY not set — emails will not be sent");
     return null;
   }
-  const { Resend } = require("resend") as typeof import("resend");
   _resend = new Resend(apiKey);
   return _resend;
 }

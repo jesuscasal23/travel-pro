@@ -50,7 +50,7 @@ const claudeItinerarySchema = z.object({
   days: z.array(tripDaySchema),
 });
 
-export type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
+type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
 
 /** Schema for per-city activity generation output. */
 export const cityActivitiesOutputSchema = z.object({

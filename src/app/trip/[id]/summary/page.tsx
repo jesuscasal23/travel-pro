@@ -19,13 +19,19 @@ type Params = Promise<{ id: string }>;
 
 function VisaDisclaimer() {
   return (
-    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
       <strong>Important:</strong> Visa rules change frequently. This information is sourced from{" "}
-      <a href="https://passportindex.org" target="_blank" rel="noopener noreferrer" className="underline">
+      <a
+        href="https://passportindex.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
         Passport Index
       </a>{" "}
-      and may not reflect the latest requirements. Always verify with the official immigration authority
-      before booking or travelling. Travel Pro accepts no responsibility for the accuracy of this information.
+      and may not reflect the latest requirements. Always verify with the official immigration
+      authority before booking or travelling. Travel Pro accepts no responsibility for the accuracy
+      of this information.
     </div>
   );
 }
@@ -93,13 +99,12 @@ export default function SummaryPage({ params }: { params: Params }) {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated />
 
-      <div className="pt-24 pb-16 max-w-3xl mx-auto px-4">
-
+      <div className="mx-auto max-w-3xl px-4 pt-24 pb-16">
         {/* Top action row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
           <BackLink href={`/trip/${id}`} label="Back to itinerary" />
           <div className="flex gap-3">
             <div onClick={() => posthog?.capture("pdf_export_clicked", { trip_id: id })}>
@@ -120,7 +125,7 @@ export default function SummaryPage({ params }: { params: Params }) {
               loading={shareMutation.isPending}
               className="gap-1.5"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="h-4 w-4" />
               Share
             </Button>
           </div>
@@ -128,7 +133,7 @@ export default function SummaryPage({ params }: { params: Params }) {
 
         {/* Title block */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-foreground">{tripTitle}</h1>
+          <h1 className="text-foreground text-3xl font-bold">{tripTitle}</h1>
           <p className="text-muted-foreground mt-1">
             {firstDate} &ndash; {lastDate} &middot; {totalDays} days
           </p>
@@ -139,30 +144,32 @@ export default function SummaryPage({ params }: { params: Params }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mt-8 card-travel bg-background"
+          className="card-travel bg-background mt-8"
         >
-          <h2 className="font-semibold text-foreground mb-4">{singleCity ? "Destination" : "Route"}</h2>
+          <h2 className="text-foreground mb-4 font-semibold">
+            {singleCity ? "Destination" : "Route"}
+          </h2>
           {singleCity ? (
             <div className="flex items-center gap-2">
               <span className="text-lg">📍</span>
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-foreground text-sm font-medium">
                 {route[0].city}, {route[0].country}
               </span>
-              <span className="text-xs text-muted-foreground">({route[0].days} days)</span>
+              <span className="text-muted-foreground text-xs">({route[0].days} days)</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               {route.map((city, i) => (
                 <div key={city.id} className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    <span className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold">
                       {i + 1}
                     </span>
-                    <span className="text-sm font-medium text-foreground">{city.city}</span>
-                    <span className="text-xs text-muted-foreground">({city.days}d)</span>
+                    <span className="text-foreground text-sm font-medium">{city.city}</span>
+                    <span className="text-muted-foreground text-xs">({city.days}d)</span>
                   </div>
                   {i < route.length - 1 && (
-                    <Plane className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    <Plane className="text-muted-foreground h-3.5 w-3.5 flex-shrink-0" />
                   )}
                 </div>
               ))}
@@ -177,16 +184,16 @@ export default function SummaryPage({ params }: { params: Params }) {
           transition={{ delay: 0.15 }}
           className="mt-8"
         >
-          <h2 className="font-semibold text-foreground mb-4">Day-by-Day Plan</h2>
-          <div className="border border-border rounded-xl overflow-hidden">
+          <h2 className="text-foreground mb-4 font-semibold">Day-by-Day Plan</h2>
+          <div className="border-border overflow-hidden rounded-xl border">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-secondary">
-                  <th className="text-left px-4 py-3 font-medium text-foreground">Day</th>
+                  <th className="text-foreground px-4 py-3 text-left font-medium">Day</th>
                   {!singleCity && (
-                    <th className="text-left px-4 py-3 font-medium text-foreground">City</th>
+                    <th className="text-foreground px-4 py-3 text-left font-medium">City</th>
                   )}
-                  <th className="text-left px-4 py-3 font-medium text-foreground hidden sm:table-cell">
+                  <th className="text-foreground hidden px-4 py-3 text-left font-medium sm:table-cell">
                     Activities
                   </th>
                 </tr>
@@ -194,14 +201,18 @@ export default function SummaryPage({ params }: { params: Params }) {
               <tbody>
                 {days.map((day) => (
                   <Fragment key={day.day}>
-                    <tr className="border-t border-border">
-                      <td className="px-4 py-3 pb-1 sm:pb-3 text-muted-foreground font-mono text-xs">{day.day}</td>
+                    <tr className="border-border border-t">
+                      <td className="text-muted-foreground px-4 py-3 pb-1 font-mono text-xs sm:pb-3">
+                        {day.day}
+                      </td>
                       {!singleCity && (
-                        <td className="px-4 py-3 pb-1 sm:pb-3 font-medium text-foreground whitespace-nowrap">{day.city}</td>
+                        <td className="text-foreground px-4 py-3 pb-1 font-medium whitespace-nowrap sm:pb-3">
+                          {day.city}
+                        </td>
                       )}
-                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
+                      <td className="text-muted-foreground hidden px-4 py-3 sm:table-cell">
                         {day.isTravel && (
-                          <span className="text-primary text-xs mr-2">
+                          <span className="text-primary mr-2 text-xs">
                             ✈ {day.travelFrom} &rarr; {day.travelTo}
                           </span>
                         )}
@@ -212,13 +223,19 @@ export default function SummaryPage({ params }: { params: Params }) {
                     </tr>
                     {/* Mobile-only: activity summary */}
                     <tr className="sm:hidden">
-                      <td colSpan={singleCity ? 1 : 2} className="px-4 pb-3 pt-0 text-xs text-muted-foreground">
+                      <td
+                        colSpan={singleCity ? 1 : 2}
+                        className="text-muted-foreground px-4 pt-0 pb-3 text-xs"
+                      >
                         {day.isTravel && (
                           <span className="text-primary mr-1">
                             ✈ {day.travelFrom} → {day.travelTo} ·{" "}
                           </span>
                         )}
-                        {day.activities.slice(0, 2).map((a) => a.name).join(", ")}
+                        {day.activities
+                          .slice(0, 2)
+                          .map((a) => a.name)
+                          .join(", ")}
                         {day.activities.length > 2 && ` +${day.activities.length - 2} more`}
                       </td>
                     </tr>
@@ -234,25 +251,27 @@ export default function SummaryPage({ params }: { params: Params }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="mt-8 card-travel bg-background"
+          className="card-travel bg-background mt-8"
         >
-          <h2 className="font-semibold text-foreground mb-4">Visa Requirements</h2>
+          <h2 className="text-foreground mb-4 font-semibold">Visa Requirements</h2>
           {visaData && visaData.length > 0 ? (
             <div className="space-y-3">
               {visaData.map((visa) => (
                 <div key={visa.countryCode} className="flex items-start gap-3">
-                  <span className="text-xl flex-shrink-0">{visa.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-sm text-foreground">{visa.country}</span>
-                      <span className="text-xs text-muted-foreground">{visa.label}</span>
+                  <span className="flex-shrink-0 text-xl">{visa.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-foreground text-sm font-medium">{visa.country}</span>
+                      <span className="text-muted-foreground text-xs">{visa.label}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{visa.notes}</p>
+                    <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+                      {visa.notes}
+                    </p>
                     <a
                       href={visa.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline mt-1 inline-block"
+                      className="text-primary mt-1 inline-block text-xs hover:underline"
                     >
                       Verify: {visa.sourceLabel} →
                     </a>
@@ -263,11 +282,11 @@ export default function SummaryPage({ params }: { params: Params }) {
           ) : (
             <div className="space-y-3">
               {route.map((r) => (
-                <div key={r.id} className="flex items-start gap-3 animate-pulse">
-                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                <div key={r.id} className="flex animate-pulse items-start gap-3">
+                  <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
                   <div className="flex-1 space-y-2">
-                    <Skeleton className="w-32 h-4" />
-                    <Skeleton className="w-48 h-3" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
                   </div>
                 </div>
               ))}
@@ -283,25 +302,25 @@ export default function SummaryPage({ params }: { params: Params }) {
           transition={{ delay: 0.3 }}
           className="mt-8"
         >
-          <h2 className="font-semibold text-foreground mb-4">Weather Overview</h2>
+          <h2 className="text-foreground mb-4 font-semibold">Weather Overview</h2>
           {weatherData && weatherData.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {weatherData.map((w) => (
-                <div key={w.city} className="text-center p-3 bg-secondary rounded-lg">
-                  <div className="text-2xl mb-1">{w.icon}</div>
-                  <div className="text-xs font-semibold text-foreground">{w.city}</div>
-                  <div className="text-sm font-bold text-primary mt-0.5">{w.temp}</div>
-                  <div className="text-xs text-muted-foreground">{w.condition}</div>
+                <div key={w.city} className="bg-secondary rounded-lg p-3 text-center">
+                  <div className="mb-1 text-2xl">{w.icon}</div>
+                  <div className="text-foreground text-xs font-semibold">{w.city}</div>
+                  <div className="text-primary mt-0.5 text-sm font-bold">{w.temp}</div>
+                  <div className="text-muted-foreground text-xs">{w.condition}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {route.map((r) => (
-                <div key={r.id} className="text-center p-3 bg-secondary rounded-lg animate-pulse">
-                  <Skeleton className="w-8 h-8 rounded-full mx-auto mb-1" />
-                  <Skeleton className="w-16 h-3 mx-auto" />
-                  <Skeleton className="w-10 h-4 mx-auto mt-1" />
+                <div key={r.id} className="bg-secondary animate-pulse rounded-lg p-3 text-center">
+                  <Skeleton className="mx-auto mb-1 h-8 w-8 rounded-full" />
+                  <Skeleton className="mx-auto h-3 w-16" />
+                  <Skeleton className="mx-auto mt-1 h-4 w-10" />
                 </div>
               ))}
             </div>
@@ -315,28 +334,29 @@ export default function SummaryPage({ params }: { params: Params }) {
           transition={{ delay: 0.35 }}
           className="mt-8"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">Flights</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-foreground font-semibold">Flights</h2>
             <div className="flex items-center gap-2">
               {savedAmount && (
-                <span className="text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
                   Saved ~€{savedAmount.toLocaleString()}
                 </span>
               )}
               {flightLegs ? (
-                <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">
+                <span className="text-primary bg-primary/10 rounded-full px-2 py-0.5 text-xs font-medium">
                   Optimized prices
                 </span>
               ) : (
-                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                <span className="text-muted-foreground bg-secondary rounded-full px-2 py-0.5 text-xs">
                   Estimated
                 </span>
               )}
             </div>
           </div>
           {savedAmount && (
-            <p className="text-xs text-muted-foreground mb-3">
-              Date optimisation found a combination ~€{savedAmount.toLocaleString()} cheaper than the average across all valid date options.
+            <p className="text-muted-foreground mb-3 text-xs">
+              Date optimisation found a combination ~€{savedAmount.toLocaleString()} cheaper than
+              the average across all valid date options.
             </p>
           )}
 
@@ -359,24 +379,24 @@ export default function SummaryPage({ params }: { params: Params }) {
                     href={trackedUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 border border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
+                    className="border-border hover:border-primary hover:bg-primary/5 group flex items-center justify-between rounded-xl border p-3 transition-all duration-200"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-lg shrink-0">✈️</span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="shrink-0 text-lg">✈️</span>
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-foreground truncate">
+                        <div className="text-foreground truncate text-sm font-medium">
                           {leg.fromCity} → {leg.toCity}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-muted-foreground text-xs">
                           {leg.departureDate} · {leg.duration} · {leg.airline}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-foreground">
+                      <div className="text-foreground text-sm font-bold">
                         €{Math.round(leg.price).toLocaleString()}
                       </div>
-                      <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                      <div className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
                         Skyscanner →
                       </div>
                     </div>
@@ -386,14 +406,19 @@ export default function SummaryPage({ params }: { params: Params }) {
             </div>
           ) : (
             <a
-              href={buildTrackedLink({ provider: "skyscanner", type: "flight", itineraryId: id, dest: "https://www.skyscanner.com" })}
+              href={buildTrackedLink({
+                provider: "skyscanner",
+                type: "flight",
+                itineraryId: id,
+                dest: "https://www.skyscanner.com",
+              })}
               target="_blank"
               rel="noopener noreferrer"
-              className="border border-border rounded-xl p-4 hover:border-primary hover:bg-primary/5 transition-all duration-200 group block"
+              className="border-border hover:border-primary hover:bg-primary/5 group block rounded-xl border p-4 transition-all duration-200"
             >
-              <div className="text-2xl mb-2">✈️</div>
-              <div className="font-medium text-sm text-foreground">Search Flights</div>
-              <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+              <div className="mb-2 text-2xl">✈️</div>
+              <div className="text-foreground text-sm font-medium">Search Flights</div>
+              <div className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
                 Skyscanner &rarr;
               </div>
             </a>
@@ -407,22 +432,41 @@ export default function SummaryPage({ params }: { params: Params }) {
           transition={{ delay: 0.4 }}
           className="mt-4"
         >
-          <h2 className="font-semibold text-foreground mb-4">Hotels &amp; Activities</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <h2 className="text-foreground mb-4 font-semibold">Hotels &amp; Activities</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { name: "Hotels", provider: "Booking.com", emoji: "🏨", provider_key: "booking" as const, type: "hotel" as const, dest: "https://www.booking.com" },
-              { name: "Activities", provider: "GetYourGuide", emoji: "🎫", provider_key: "getyourguide" as const, type: "activity" as const, dest: "https://www.getyourguide.com" },
+              {
+                name: "Hotels",
+                provider: "Booking.com",
+                emoji: "🏨",
+                provider_key: "booking" as const,
+                type: "hotel" as const,
+                dest: "https://www.booking.com",
+              },
+              {
+                name: "Activities",
+                provider: "GetYourGuide",
+                emoji: "🎫",
+                provider_key: "getyourguide" as const,
+                type: "activity" as const,
+                dest: "https://www.getyourguide.com",
+              },
             ].map((item) => (
               <a
                 key={item.name}
-                href={buildTrackedLink({ provider: item.provider_key, type: item.type, itineraryId: id, dest: item.dest })}
+                href={buildTrackedLink({
+                  provider: item.provider_key,
+                  type: item.type,
+                  itineraryId: id,
+                  dest: item.dest,
+                })}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-border rounded-xl p-4 hover:border-primary hover:bg-primary/5 transition-all duration-200 group block"
+                className="border-border hover:border-primary hover:bg-primary/5 group block rounded-xl border p-4 transition-all duration-200"
               >
-                <div className="text-2xl mb-2">{item.emoji}</div>
-                <div className="font-medium text-sm text-foreground">{item.name}</div>
-                <div className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                <div className="mb-2 text-2xl">{item.emoji}</div>
+                <div className="text-foreground text-sm font-medium">{item.name}</div>
+                <div className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
                   {item.provider} &rarr;
                 </div>
               </a>
@@ -431,7 +475,7 @@ export default function SummaryPage({ params }: { params: Params }) {
         </motion.div>
 
         {/* Footer */}
-        <div className="mt-12 text-center text-sm text-muted-foreground">
+        <div className="text-muted-foreground mt-12 text-center text-sm">
           <p>Generated by Travel Pro &mdash; travelpro.app</p>
           <p>Generated on {today}</p>
         </div>

@@ -14,7 +14,7 @@ export function parseDurationMinutes(duration: string): number {
 }
 
 /** Format minutes to display string: "2h 15min" */
-export function formatDuration(minutes: number): string {
+function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = Math.round(minutes % 60);
   if (h === 0) return `${m}min`;

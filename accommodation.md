@@ -22,13 +22,13 @@ In short: the plumbing is partially there, but no accommodation value is deliver
 
 The app already solves three of the five steps of travel planning:
 
-| Step | Covered? |
-|------|----------|
-| Where to go | ✅ Route selection (Claude Haiku) |
+| Step                  | Covered?                               |
+| --------------------- | -------------------------------------- |
+| Where to go           | ✅ Route selection (Claude Haiku)      |
 | When to go / how long | ✅ Date optimisation, day distribution |
-| How to get there | ✅ Real flights via Amadeus API |
-| **Where to stay** | ❌ Not covered |
-| What to do | ✅ Day-by-day activities |
+| How to get there      | ✅ Real flights via Amadeus API        |
+| **Where to stay**     | ❌ Not covered                         |
+| What to do            | ✅ Day-by-day activities               |
 
 Accommodation is the **single biggest gap** in the user journey. After a user sees their itinerary, their immediate next question is "where do I actually sleep?" Without an answer the user leaves to search on Booking.com themselves — and Travel Pro loses the conversion.
 
@@ -48,11 +48,11 @@ Adding accommodation recommendations turns the app from an **itinerary generator
 
 **Booking.com** is the most realistic primary partner given `buildHotelLink()` already targets it.
 
-| Channel | Effective commission on booking value |
-|---------|---------------------------------------|
-| Direct Booking.com affiliate program | ~3.75–6% (25–40% of Booking.com's ~15% hotel fee) |
-| Via Travelpayouts | **5% of total booking price** (simplest, recommended) |
-| Via Awin / CJ network | ~4% |
+| Channel                              | Effective commission on booking value                 |
+| ------------------------------------ | ----------------------------------------------------- |
+| Direct Booking.com affiliate program | ~3.75–6% (25–40% of Booking.com's ~15% hotel fee)     |
+| Via Travelpayouts                    | **5% of total booking price** (simplest, recommended) |
+| Via Awin / CJ network                | ~4%                                                   |
 
 Booking.com currently **does not use cross-session cookie tracking** via the direct program — the user must complete the booking in the same session as the click. Via networks (Awin, CJ, Travelpayouts) a **30-day cookie** is available, which significantly improves attribution.
 
@@ -62,46 +62,47 @@ Booking.com currently **does not use cross-session cookie tracking** via the dir
 
 Using the sample trip as a baseline (22 days, 2 travelers, comfort style, 7 cities):
 
-| Variable | Value |
-|----------|-------|
-| Total accommodation budget | €3,500 |
-| Average nightly rate (comfort, 2 pax, 1 room) | ~€120 |
-| Approximate nights | ~20 |
-| Commission rate | 5% |
-| Commission if all nights booked via app | **€175** |
+| Variable                                      | Value    |
+| --------------------------------------------- | -------- |
+| Total accommodation budget                    | €3,500   |
+| Average nightly rate (comfort, 2 pax, 1 room) | ~€120    |
+| Approximate nights                            | ~20      |
+| Commission rate                               | 5%       |
+| Commission if all nights booked via app       | **€175** |
 
 That is the theoretical ceiling. In practice, not every user books every hotel through an affiliate link. Applying realistic funnel metrics:
 
-| Stage | Rate | Notes |
-|-------|------|-------|
-| Users who see hotel recommendations | 100% | Surface in trip view |
-| Click-through to Booking.com | 20–35% | Well-placed, contextual CTA |
-| Complete booking in session (30-day cookie) | 35–50% | Intent is high — they already chose this city |
-| Overall funnel (clicks × bookings) | **7–17%** | Per itinerary |
+| Stage                                       | Rate      | Notes                                         |
+| ------------------------------------------- | --------- | --------------------------------------------- |
+| Users who see hotel recommendations         | 100%      | Surface in trip view                          |
+| Click-through to Booking.com                | 20–35%    | Well-placed, contextual CTA                   |
+| Complete booking in session (30-day cookie) | 35–50%    | Intent is high — they already chose this city |
+| Overall funnel (clicks × bookings)          | **7–17%** | Per itinerary                                 |
 
-| Scenario | Expected value per generated itinerary |
-|----------|----------------------------------------|
-| Conservative (7% conversion, 2 hotels booked, €120/night) | ~€8 |
-| Mid (12% conversion, 3 hotels booked, €120/night) | ~€22 |
-| Optimistic (17% conversion, full trip booked) | ~€30 |
+| Scenario                                                  | Expected value per generated itinerary |
+| --------------------------------------------------------- | -------------------------------------- |
+| Conservative (7% conversion, 2 hotels booked, €120/night) | ~€8                                    |
+| Mid (12% conversion, 3 hotels booked, €120/night)         | ~€22                                   |
+| Optimistic (17% conversion, full trip booked)             | ~€30                                   |
 
 At 1,000 itineraries/month, mid-case = **~€22,000/month** from accommodation alone — comparable to or exceeding flight affiliate revenue from Skyscanner (lower ticket prices, shorter booking sessions).
 
 ### Comparison to other hotel programs
 
-| Program | Commission | Cookie | Notes |
-|---------|------------|--------|-------|
-| Booking.com (Travelpayouts) | 5% | 30 days | Best brand recognition, global inventory |
-| Hotels.com (Expedia Group) | up to 6% | 7 days | Good US/Asia inventory |
-| Expedia | 2–6% | 7 days | Unified with Hotels.com since 2023 |
-| TripAdvisor | 50% of TripAdvisor's cut | Session | Good for comparison widget |
-| Airbnb | ❌ Program closed March 2021 | — | Not available |
+| Program                     | Commission                   | Cookie  | Notes                                    |
+| --------------------------- | ---------------------------- | ------- | ---------------------------------------- |
+| Booking.com (Travelpayouts) | 5%                           | 30 days | Best brand recognition, global inventory |
+| Hotels.com (Expedia Group)  | up to 6%                     | 7 days  | Good US/Asia inventory                   |
+| Expedia                     | 2–6%                         | 7 days  | Unified with Hotels.com since 2023       |
+| TripAdvisor                 | 50% of TripAdvisor's cut     | Session | Good for comparison widget               |
+| Airbnb                      | ❌ Program closed March 2021 | —       | Not available                            |
 
 **Booking.com is the clear winner** for this app's audience (international multi-city trips in Asia/Europe) due to global hotel inventory, brand trust, and competitive commission on mid/luxury hotels which is where comfort/luxury users spend.
 
 ### Activity affiliate context (for comparison)
 
 GetYourGuide already in-place:
+
 - Pays **8% commission** on activities booked
 - Activities budget: €800 for sample trip → ceiling ~€64 per trip
 - Hotels ceiling: €175 per trip — **2.7× higher** than activities
@@ -125,6 +126,7 @@ This makes accommodation the **highest-value affiliate category** in the stack, 
 #### Tier 1 — Minimal viable (1–2 days)
 
 **Wire up existing affiliate link in UI**
+
 - Add a "Find hotels" button per city on the trip view and summary page
 - Call existing `buildHotelLink()` + `buildTrackedLink()`
 - No AI changes, no type changes
@@ -143,15 +145,15 @@ Add `AccommodationRecommendation[]` to the `Itinerary` type:
 
 ```ts
 interface AccommodationRecommendation {
-  city: string;           // matches CityStop.city
+  city: string; // matches CityStop.city
   type: "hostel" | "guesthouse" | "boutique" | "hotel" | "resort";
-  name: string;           // e.g. "Park Hyatt Tokyo"
+  name: string; // e.g. "Park Hyatt Tokyo"
   pricePerNightEur: number;
-  nights: number;         // derived from CityStop.days
+  nights: number; // derived from CityStop.days
   totalEur: number;
-  why: string;            // 1-sentence recommendation reason
-  neighbourhood: string;  // e.g. "Shinjuku, walking distance to metro"
-  bookingLink: string;    // generated via buildHotelLink()
+  why: string; // 1-sentence recommendation reason
+  neighbourhood: string; // e.g. "Shinjuku, walking distance to metro"
+  bookingLink: string; // generated via buildHotelLink()
 }
 ```
 
@@ -177,6 +179,7 @@ Effort: **~3–5 days**
 - Add hotel comparison within each city
 
 This is a significant engineering effort requiring:
+
 - API integration (Booking.com requires a partnership agreement for their API; RapidAPI alternatives are available)
 - Caching layer (Redis) for search results
 - New UI components (hotel cards with images, ratings, price comparison)
@@ -188,11 +191,11 @@ Effort: **~2–4 weeks** — Only worth building if Tier 1 + Tier 2 show strong 
 
 ### Complexity summary table
 
-| Tier | Description | Effort | Revenue impact | Risk |
-|------|-------------|--------|---------------|------|
-| 1 | Wire up existing hotel link buttons | 4–6 hours | Low–Medium | Very low |
-| 2 | AI-curated hotel names + booking CTA | 3–5 days | Medium–High | Low |
-| 3 | Live hotel search API | 2–4 weeks | High (ceiling) | Medium |
+| Tier | Description                          | Effort    | Revenue impact | Risk     |
+| ---- | ------------------------------------ | --------- | -------------- | -------- |
+| 1    | Wire up existing hotel link buttons  | 4–6 hours | Low–Medium     | Very low |
+| 2    | AI-curated hotel names + booking CTA | 3–5 days  | Medium–High    | Low      |
+| 3    | Live hotel search API                | 2–4 weeks | High (ceiling) | Medium   |
 
 ---
 

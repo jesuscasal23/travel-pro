@@ -120,7 +120,7 @@ describe("POST /api/v1/trips/:id/optimize", () => {
       ]),
       "2026-04-01",
       7,
-      2,
+      2
     );
     expect(json.skeleton.totalPrice).toBe(500);
   });
@@ -159,4 +159,3 @@ describe("POST /api/v1/trips/:id/optimize", () => {
     expect(json.error).toContain("Flight optimization failed");
   });
 });
-

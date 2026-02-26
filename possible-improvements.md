@@ -17,10 +17,12 @@ Switch `messages.create()` to the streaming API (`messages.stream()`). With stre
 ### Tradeoffs
 
 **Pros:**
+
 - Eliminates SDK-level timeout as a failure mode
 - Enables future real-time progress (e.g. "generating day 12 of 22") forwarded through the existing SSE route
 
 **Cons:**
+
 - Full JSON still required before parsing — no latency improvement for the user
 - More code complexity (chunk accumulation, stream event handling, adapted content-filter retry)
 - Harder to mock/test in unit tests
@@ -59,6 +61,7 @@ Visa and weather data are now loaded in the background after the core itinerary 
 Currently, route selection (Haiku picks cities) only starts when the user clicks "Generate" on the final step. But by step 3 of the questionnaire (dates/budget), we already have enough data to call route selection.
 
 **How it works:**
+
 1. When the user reaches step 3, fire off route selection in the background
 2. Cache the result in component state or Zustand
 3. When the user clicks "Generate", skip route selection and go straight to itinerary generation with the pre-selected cities
@@ -78,15 +81,16 @@ Currently, route selection (Haiku picks cities) only starts when the user clicks
 
 **What each tab can show with just route data (no days/budget yet):**
 
-| Tab | With route only | What's missing |
-|-----|----------------|----------------|
-| **Map** | Fully functional — all city markers, route lines, popups with city name + days | Nothing |
-| **Itinerary** | Skeleton day cards grouped by city (e.g. "Tokyo — Day 1-5", "Hanoi — Day 6-9") with a "Generating activities..." state | Activity details, tips, costs |
-| **Budget** | Skeleton — "Calculating budget..." | All budget data |
-| **Essentials** | Can start loading visa + weather immediately (already have route) | Packing list (needs weather) |
-| **Top bar** | Trip title (countries), day count | Budget estimate |
+| Tab            | With route only                                                                                                        | What's missing                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **Map**        | Fully functional — all city markers, route lines, popups with city name + days                                         | Nothing                       |
+| **Itinerary**  | Skeleton day cards grouped by city (e.g. "Tokyo — Day 1-5", "Hanoi — Day 6-9") with a "Generating activities..." state | Activity details, tips, costs |
+| **Budget**     | Skeleton — "Calculating budget..."                                                                                     | All budget data               |
+| **Essentials** | Can start loading visa + weather immediately (already have route)                                                      | Packing list (needs weather)  |
+| **Top bar**    | Trip title (countries), day count                                                                                      | Budget estimate               |
 
 **Implementation sketch:**
+
 1. After route selection completes, build a partial `Itinerary` with `route` populated, a placeholder `budget` (all zeros), and empty `days[]`
 2. Store it in Zustand and navigate to `/trip/[id]`
 3. Default the active tab to **Map** (instead of Itinerary), since it's fully rendered
@@ -96,6 +100,7 @@ Currently, route selection (Haiku picks cities) only starts when the user clicks
 7. Animate day cards appearing (staggered fade-in, matching current style)
 
 **UX flow from the user's perspective:**
+
 1. Click "Generate" → brief loading indicator (~3s for route selection, or instant if Strategy A pre-fetched it)
 2. Land on trip page, Map tab active — see their cities on a real map with route lines
 3. Click around the map, explore city markers
@@ -112,6 +117,7 @@ Currently, route selection (Haiku picks cities) only starts when the user clicks
 Use Claude's streaming API (`messages.stream()`) and parse completed JSON day objects as they close in the stream. Push each completed day through SSE to the client.
 
 **How it works:**
+
 1. Switch `messages.create()` to `messages.stream()` in the pipeline
 2. Accumulate streamed text chunks
 3. After each chunk, attempt to extract complete day objects from the accumulated JSON
@@ -119,6 +125,7 @@ Use Claude's streaming API (`messages.stream()`) and parse completed JSON day ob
 5. Client renders days one-by-one with staggered animations
 
 **Challenges:**
+
 - Partial JSON parsing is tricky — need a robust bracket-matching or streaming JSON parser
 - Content filter retries are harder with streaming
 - Error handling mid-stream requires careful UX (what if generation fails after day 5 of 22?)
@@ -136,12 +143,14 @@ Use Claude's streaming API (`messages.stream()`) and parse completed JSON day ob
 Instead of one Claude call for the entire itinerary, fire N parallel calls (one per city). Each call generates 3-5 days for a single city with a focused prompt.
 
 **How it works:**
+
 1. Route selection returns cities + day allocation (existing)
 2. For each city, fire a parallel Claude call with a single-city prompt
 3. Collect results, stitch into one itinerary
 4. Validate the combined result
 
 **Risks:**
+
 - Budget allocation across cities needs pre-calculation (can't let Claude decide holistically)
 - Travel days between cities may have inconsistencies
 - N parallel API calls could hit Anthropic rate limits
@@ -157,12 +166,14 @@ Instead of one Claude call for the entire itinerary, fire N parallel calls (one 
 Use Haiku with a minimal prompt to generate a rough draft (just city names, 1 activity per day, approximate budget), show it immediately, then run a full-quality generation in the background that replaces the draft.
 
 **How it works:**
+
 1. Fire a "sketch" prompt to Haiku with aggressive `max_tokens` limit (~1,000)
 2. Show the sketch immediately (basic itinerary with placeholders)
 3. In background, run the full generation with the complete prompt
 4. When the full result arrives, animate a transition from sketch to full itinerary
 
 **Risks:**
+
 - User might interact with the draft (e.g., click into a day) before the full version replaces it — need careful state management
 - The "flash" of content changing could feel jarring
 - Two Claude calls per generation doubles the API cost
@@ -171,13 +182,13 @@ Use Haiku with a minimal prompt to generate a rough draft (just city names, 1 ac
 
 ### Recommended implementation order
 
-| Order | Strategy | Saving | Effort | Cumulative effect |
-|-------|----------|--------|--------|-------------------|
-| Done | Background enrichment | 2-4s perceived | Low | User sees itinerary immediately |
-| Done | A: Speculative pre-gen | 3-5s | Low | Route selection invisible to user |
-| Done | B: Route + map first | 5-10s perceived | Medium | User sees map in ~1s |
-| 3 | C: Stream + progressive | 5-10s perceived | High | Days appear one-by-one |
-| 4 | D: Parallel per-city | 4-6s actual | High | Claude step halved |
-| 5 | E: Draft + refine | 8-12s perceived | Medium | Instant (low-quality) content |
+| Order | Strategy                | Saving          | Effort | Cumulative effect                 |
+| ----- | ----------------------- | --------------- | ------ | --------------------------------- |
+| Done  | Background enrichment   | 2-4s perceived  | Low    | User sees itinerary immediately   |
+| Done  | A: Speculative pre-gen  | 3-5s            | Low    | Route selection invisible to user |
+| Done  | B: Route + map first    | 5-10s perceived | Medium | User sees map in ~1s              |
+| 3     | C: Stream + progressive | 5-10s perceived | High   | Days appear one-by-one            |
+| 4     | D: Parallel per-city    | 4-6s actual     | High   | Claude step halved                |
+| 5     | E: Draft + refine       | 8-12s perceived | Medium | Instant (low-quality) content     |
 
 Strategies A + B are now implemented. Perceived loading dropped from ~15s to ~1-2s (user sees trip page with map immediately). Strategy C is the gold standard for day-by-day progressive rendering but requires significant engineering investment.

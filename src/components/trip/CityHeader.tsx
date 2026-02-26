@@ -16,9 +16,9 @@ export function CityHeader({ city, weather, variant }: CityHeaderProps) {
   const [src, setSrc] = useState(() => getCityHeroImage(city.city, city.countryCode));
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-2xl ${
-      isMobile ? "h-32" : "h-[180px]"
-    }`}>
+    <div
+      className={`relative w-full overflow-hidden rounded-2xl ${isMobile ? "h-32" : "h-[180px]"}`}
+    >
       <Image
         src={src}
         alt={city.city}
@@ -34,18 +34,16 @@ export function CityHeader({ city, weather, variant }: CityHeaderProps) {
 
       {/* Weather badge */}
       {weather && (
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm rounded-full px-2.5 py-1">
+        <div className="bg-background/80 absolute top-3 right-3 flex items-center gap-1 rounded-full px-2.5 py-1 backdrop-blur-sm">
           <span className="text-sm">{weather.icon}</span>
           <span className="text-xs font-medium">{weather.temp}</span>
         </div>
       )}
 
       {/* City info */}
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <h3 className="text-city-title text-white font-display font-bold">
-          {city.city}
-        </h3>
-        <p className="text-white/80 text-sm">
+      <div className="absolute right-0 bottom-0 left-0 p-4">
+        <h3 className="text-city-title font-display font-bold text-white">{city.city}</h3>
+        <p className="text-sm text-white/80">
           {city.country} · {city.days} days
         </p>
       </div>

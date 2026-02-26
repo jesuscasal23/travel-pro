@@ -9,10 +9,10 @@ interface TripNotFoundProps {
 
 export function TripNotFound({ isAuthenticated = true }: TripNotFoundProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar isAuthenticated={isAuthenticated} />
       <div className="pt-32 text-center">
-        <p className="text-lg text-muted-foreground mb-4">Trip not found.</p>
+        <p className="text-muted-foreground mb-4 text-lg">Trip not found.</p>
         <Link href="/dashboard" className="btn-primary inline-block">
           Back to dashboard
         </Link>

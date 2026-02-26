@@ -70,7 +70,9 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
           trip_id: params.id,
         });
       } catch (err) {
-        log.error("SSE generation error", { error: err instanceof Error ? err.message : String(err) });
+        log.error("SSE generation error", {
+          error: err instanceof Error ? err.message : String(err),
+        });
 
         await markGenerationFailed(itineraryId);
 

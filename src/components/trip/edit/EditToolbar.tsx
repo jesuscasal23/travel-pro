@@ -22,28 +22,22 @@ export function EditToolbar({
 }: EditToolbarProps) {
   if (variant === "mobile") {
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border">
-        <div className="flex items-center justify-between px-4 h-14 gap-3">
+      <nav className="bg-background/95 border-border fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur-lg">
+        <div className="flex h-14 items-center justify-between gap-3 px-4">
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground disabled:opacity-40 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
+            className="text-muted-foreground hover:bg-secondary flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition-colors disabled:opacity-40"
           >
-            <Undo2 className="w-4 h-4" />
+            <Undo2 className="h-4 w-4" />
             Undo
           </button>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={onDiscard}
-              className="btn-ghost text-sm py-2 px-4"
-            >
+            <button onClick={onDiscard} className="btn-ghost px-4 py-2 text-sm">
               Discard
             </button>
-            <button
-              onClick={onSave}
-              className="btn-primary text-sm py-2 px-4"
-            >
+            <button onClick={onSave} className="btn-primary px-4 py-2 text-sm">
               Save
             </button>
           </div>
@@ -54,26 +48,20 @@ export function EditToolbar({
 
   // Desktop: floating bottom-right
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-background border border-border rounded-xl shadow-lg px-4 py-3">
+    <div className="bg-background border-border fixed right-6 bottom-6 z-40 flex items-center gap-2 rounded-xl border px-4 py-3 shadow-lg">
       <button
         onClick={onUndo}
         disabled={!canUndo}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground disabled:opacity-40 px-3 py-1.5 rounded-lg hover:bg-secondary transition-colors"
+        className="text-muted-foreground hover:bg-secondary flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors disabled:opacity-40"
       >
-        <Undo2 className="w-4 h-4" />
+        <Undo2 className="h-4 w-4" />
         Undo
       </button>
-      <div className="w-px h-5 bg-border" />
-      <button
-        onClick={onDiscard}
-        className="btn-ghost text-sm py-1.5 px-3"
-      >
+      <div className="bg-border h-5 w-px" />
+      <button onClick={onDiscard} className="btn-ghost px-3 py-1.5 text-sm">
         Discard
       </button>
-      <button
-        onClick={onSave}
-        className="btn-primary text-sm py-1.5 px-4"
-      >
+      <button onClick={onSave} className="btn-primary px-4 py-1.5 text-sm">
         Save
       </button>
     </div>

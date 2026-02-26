@@ -23,42 +23,22 @@ describe("shouldHideVisaSection", () => {
   });
 
   it("returns true when all destinations are own country", () => {
-    expect(
-      shouldHideVisaSection(
-        [visa("Own country"), visa("Own country")],
-        "DE",
-        ["DE"],
-      ),
-    ).toBe(true);
+    expect(shouldHideVisaSection([visa("Own country"), visa("Own country")], "DE", ["DE"])).toBe(
+      true
+    );
   });
 
   it("returns true for Schengen passports traveling only within Schengen", () => {
     expect(
-      shouldHideVisaSection(
-        [visa("Visa-free"), visa("Visa-free")],
-        "DE",
-        ["FR", "IT", "ES"],
-      ),
+      shouldHideVisaSection([visa("Visa-free"), visa("Visa-free")], "DE", ["FR", "IT", "ES"])
     ).toBe(true);
   });
 
   it("returns false when at least one destination is outside Schengen", () => {
-    expect(
-      shouldHideVisaSection(
-        [visa("Visa-free")],
-        "DE",
-        ["FR", "TH"],
-      ),
-    ).toBe(false);
+    expect(shouldHideVisaSection([visa("Visa-free")], "DE", ["FR", "TH"])).toBe(false);
   });
 
   it("returns false for non-Schengen passports even with Schengen destinations", () => {
-    expect(
-      shouldHideVisaSection(
-        [visa("Visa-free")],
-        "US",
-        ["FR", "IT"],
-      ),
-    ).toBe(false);
+    expect(shouldHideVisaSection([visa("Visa-free")], "US", ["FR", "IT"])).toBe(false);
   });
 });

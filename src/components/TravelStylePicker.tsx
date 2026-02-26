@@ -20,14 +20,12 @@ export function TravelStylePicker({ value, onChange, compact }: TravelStylePicke
             type="button"
             onClick={() => onChange(style.id)}
             aria-pressed={value === style.id}
-            className={`flex-1 py-3 rounded-xl border-2 text-center transition-all ${
-              value === style.id
-                ? "border-primary bg-primary/5"
-                : "border-border bg-background"
+            className={`flex-1 rounded-xl border-2 py-3 text-center transition-all ${
+              value === style.id ? "border-primary bg-primary/5" : "border-border bg-background"
             }`}
           >
-            <div className="text-xl mb-1">{style.emoji}</div>
-            <div className="text-sm font-medium text-foreground">{style.label}</div>
+            <div className="mb-1 text-xl">{style.emoji}</div>
+            <div className="text-foreground text-sm font-medium">{style.label}</div>
           </button>
         ))}
       </div>
@@ -42,7 +40,7 @@ export function TravelStylePicker({ value, onChange, compact }: TravelStylePicke
           type="button"
           onClick={() => onChange(style.id)}
           aria-pressed={value === style.id}
-          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+          className={`w-full rounded-xl border-2 p-4 text-left transition-all duration-200 ${
             value === style.id
               ? "border-primary bg-primary/5"
               : "border-border bg-background hover:border-border/80"
@@ -51,8 +49,8 @@ export function TravelStylePicker({ value, onChange, compact }: TravelStylePicke
           <div className="flex items-center gap-3">
             <span className="text-xl">{style.emoji}</span>
             <div>
-              <div className="font-semibold text-foreground text-sm">{style.label}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{style.description}</div>
+              <div className="text-foreground text-sm font-semibold">{style.label}</div>
+              <div className="text-muted-foreground mt-0.5 text-xs">{style.description}</div>
             </div>
           </div>
         </button>

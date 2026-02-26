@@ -12,7 +12,12 @@ import React, { Suspense } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
-import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
+import {
+  mockFramerMotion,
+  mockNextLink,
+  mockNavbar,
+  createTestQueryWrapper,
+} from "@/__tests__/mocks";
 
 // ── window.matchMedia polyfill for jsdom ──────────────────────────────────────
 Object.defineProperty(window, "matchMedia", {
@@ -100,8 +105,14 @@ async function renderWithSuspense(ui: React.ReactElement) {
   const Wrapper = createTestQueryWrapper();
   await act(async () => {
     render(
-      React.createElement(Wrapper, null,
-        React.createElement(Suspense, { fallback: React.createElement("div", null, "loading…") }, ui)
+      React.createElement(
+        Wrapper,
+        null,
+        React.createElement(
+          Suspense,
+          { fallback: React.createElement("div", null, "loading…") },
+          ui
+        )
       )
     );
   });

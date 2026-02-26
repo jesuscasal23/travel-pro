@@ -152,11 +152,7 @@ describe("activateGeneratedItinerary", () => {
   it("activates the itinerary and deactivates others in a transaction", async () => {
     mockPrisma.$transaction.mockResolvedValue([{}, {}]);
 
-    await activateGeneratedItinerary(
-      "itin-1",
-      "trip-1",
-      { route: [], days: [] } as never,
-    );
+    await activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [] } as never);
 
     expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
     // Verify the activate update was constructed
@@ -179,7 +175,7 @@ describe("activateGeneratedItinerary", () => {
     mockPrisma.$transaction.mockResolvedValue([{}, {}]);
 
     await expect(
-      activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [] } as never),
+      activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [] } as never)
     ).resolves.toBeUndefined();
   });
 });

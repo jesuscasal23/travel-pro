@@ -20,15 +20,9 @@ const knownCityKeys = new Set(
  * Unknown cities are upserted into the discovered_cities table.
  * Best-effort and non-blocking — callers should fire-and-forget.
  */
-export async function discoverNewCities(
-  route: CityStop[],
-  tripId?: string
-): Promise<void> {
+export async function discoverNewCities(route: CityStop[], tripId?: string): Promise<void> {
   const unknowns = route.filter(
-    (stop) =>
-      !knownCityKeys.has(
-        `${stop.city.toLowerCase()}|${stop.countryCode.toLowerCase()}`
-      )
+    (stop) => !knownCityKeys.has(`${stop.city.toLowerCase()}|${stop.countryCode.toLowerCase()}`)
   );
 
   if (unknowns.length === 0) return;

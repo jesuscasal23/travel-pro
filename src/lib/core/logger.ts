@@ -43,7 +43,12 @@ function formatDev(level: LogLevel, module: string, message: string, context?: L
   return `${prefix} ${message}`;
 }
 
-function formatJson(level: LogLevel, module: string, message: string, context?: LogContext): string {
+function formatJson(
+  level: LogLevel,
+  module: string,
+  message: string,
+  context?: LogContext
+): string {
   return JSON.stringify({
     timestamp: new Date().toISOString(),
     level,
@@ -74,11 +79,11 @@ function log(level: LogLevel, module: string, message: string, context?: LogCont
       console.warn(formatted);
       break;
     default:
-      console.log(formatted);
+      console.info(formatted);
   }
 }
 
-export interface Logger {
+interface Logger {
   debug: (message: string, context?: LogContext) => void;
   info: (message: string, context?: LogContext) => void;
   warn: (message: string, context?: LogContext) => void;

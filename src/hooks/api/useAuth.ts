@@ -7,7 +7,9 @@ import { queryKeys } from "./keys";
 async function fetchAuthStatus(): Promise<boolean> {
   const client = createClient();
   if (!client) return false;
-  const { data: { user } } = await client.auth.getUser();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
   return !!user;
 }
 

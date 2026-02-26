@@ -107,7 +107,9 @@ export function MobileLayout({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ itinerary: finalItinerary }),
-        }).catch(() => {/* best-effort */});
+        }).catch(() => {
+          /* best-effort */
+        });
       }
     });
   }
@@ -137,7 +139,7 @@ export function MobileLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Edit mode banner */}
       {isEditMode && <EditModeBanner />}
 
@@ -154,11 +156,8 @@ export function MobileLayout({
 
       {/* Edit route button */}
       {isEditMode && draft && (
-        <div className="px-4 py-2 border-b border-border">
-          <button
-            onClick={() => setRouteSheetOpen(true)}
-            className="btn-ghost text-sm w-full py-2"
-          >
+        <div className="border-border border-b px-4 py-2">
+          <button onClick={() => setRouteSheetOpen(true)} className="btn-ghost w-full py-2 text-sm">
             ✏️ Edit Route
           </button>
         </div>
@@ -166,35 +165,37 @@ export function MobileLayout({
 
       {/* Generation banner */}
       {!isEditMode && isGenerating && (
-        <div className="px-4 py-3 bg-primary/5 border-b border-primary/20">
+        <div className="bg-primary/5 border-primary/20 border-b px-4 py-3">
           <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 text-primary animate-spin" />
-            <span className="text-sm text-primary font-medium">Generating your itinerary...</span>
+            <Loader2 className="text-primary h-4 w-4 animate-spin" />
+            <span className="text-primary text-sm font-medium">Generating your itinerary...</span>
           </div>
         </div>
       )}
 
       {/* Error banner */}
       {!isEditMode && generationError && (
-        <div className="px-4 py-3 bg-accent/10 border-b border-accent/30">
+        <div className="bg-accent/10 border-accent/30 border-b px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-foreground">{generationError}</p>
-            <Button size="xs" onClick={onRetry} className="shrink-0">Try again</Button>
+            <p className="text-foreground text-sm">{generationError}</p>
+            <Button size="xs" onClick={onRetry} className="shrink-0">
+              Try again
+            </Button>
           </div>
         </div>
       )}
 
       {/* Regeneration banner */}
       {!isEditMode && needsRegeneration && !isPartialItinerary && !generationError && (
-        <div className="px-4 py-3 bg-primary/10 border-b border-primary/30">
+        <div className="bg-primary/10 border-primary/30 border-b px-4 py-3">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-foreground">Route changed. Regenerate?</p>
-            <div className="flex items-center gap-2 shrink-0">
-              <button onClick={onDismissRegeneration} className="text-xs text-muted-foreground">
+            <p className="text-foreground text-sm">Route changed. Regenerate?</p>
+            <div className="flex shrink-0 items-center gap-2">
+              <button onClick={onDismissRegeneration} className="text-muted-foreground text-xs">
                 Dismiss
               </button>
               <Button size="xs" onClick={onRegenerate} className="gap-1.5">
-                <RefreshCw className="w-3 h-3" /> Regenerate
+                <RefreshCw className="h-3 w-3" /> Regenerate
               </Button>
             </div>
           </div>
@@ -202,26 +203,30 @@ export function MobileLayout({
       )}
 
       {/* Save-trip nudge */}
-      {!isEditMode && isAuthenticated === false && !isPartialItinerary && !generationError && !needsRegeneration && (
-        <div className="px-4 py-2.5 bg-background/95 border-b border-accent/40">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-foreground line-clamp-2">
-              Create a free account to save this itinerary.
-            </p>
-            <Link
-              href={`/signup?next=/trip/${tripId}`}
-              className="shrink-0 btn-primary text-[10px] py-1 px-3"
-            >
-              Save trip
-            </Link>
+      {!isEditMode &&
+        isAuthenticated === false &&
+        !isPartialItinerary &&
+        !generationError &&
+        !needsRegeneration && (
+          <div className="bg-background/95 border-accent/40 border-b px-4 py-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-foreground line-clamp-2 text-xs">
+                Create a free account to save this itinerary.
+              </p>
+              <Link
+                href={`/signup?next=/trip/${tripId}`}
+                className="btn-primary shrink-0 px-3 py-1 text-[10px]"
+              >
+                Save trip
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Tab content */}
       <div className="animate-tab-in">
-        {activeTab === "journey" && (
-          isPartialItinerary ? (
+        {activeTab === "journey" &&
+          (isPartialItinerary ? (
             <div className="px-4 pt-4">
               <ItinerarySkeletonTab route={route} />
             </div>
@@ -243,8 +248,7 @@ export function MobileLayout({
               generatingCityId={generatingCityId}
               onGenerateActivities={onGenerateActivities}
             />
-          )
-        )}
+          ))}
         {activeTab === "prep" && (
           <div className="px-4 py-4 pb-20">
             <EssentialsTab
@@ -256,12 +260,8 @@ export function MobileLayout({
             />
           </div>
         )}
-        {activeTab === "accommodation" && (
-          <div className="px-4 py-4 pb-20" />
-        )}
-        {activeTab === "flights" && (
-          <div className="px-4 py-4 pb-20" />
-        )}
+        {activeTab === "accommodation" && <div className="px-4 py-4 pb-20" />}
+        {activeTab === "flights" && <div className="px-4 py-4 pb-20" />}
         {activeTab === "budget" && (
           <div className="px-4 py-4 pb-20">
             <BudgetTab itinerary={itinerary} tripId={tripId} />

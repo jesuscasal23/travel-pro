@@ -72,6 +72,7 @@ Pure function `mergeItinerary(existing, newRoute, newCityDays, budgetAddition)`:
 **File:** `src/app/trip/[id]/edit/page.tsx`
 
 ### New state
+
 ```
 isAddingCity: boolean           — toggles CityCombobox visibility
 newCityIds: Set<string>         — tracks which cities are newly added (for AI gen on save)
@@ -81,12 +82,14 @@ isGeneratingActivities: boolean — loading state during AI calls
 ### UI changes
 
 **"Add a city" button** (both single-city and multi-city branches):
+
 - Click → reveals inline CityCombobox with "Search for a city" header + cancel (X) button
 - CityCombobox uses `excludeCities` to prevent duplicates
 - On selection → converts `CityEntry` to `CityStop` (generate id, default 2 days), appends to `cities`, records in `newCityIds`, hides combobox
 - New cities show a "New" badge in the sortable list
 
 **Single-city → multi-city transition:**
+
 - Add an "Add another city" button below the single-city day adjuster
 - When a second city is added, `cities.length > 1` triggers the multi-city UI branch automatically (DndContext with sortable cards)
 
@@ -95,6 +98,7 @@ isGeneratingActivities: boolean — loading state during AI calls
 ### `detectEditType()` update
 
 Add detection for added cities (check first, highest priority — triggers AI generation):
+
 ```
 const added = newIds.filter(id => !origIds.includes(id));
 if (added.length > 0) → editType: "add_city"
@@ -103,6 +107,7 @@ if (added.length > 0) → editType: "add_city"
 ### `handleSave()` update
 
 When `editType === "add_city"`:
+
 1. Set `isGeneratingActivities = true`
 2. For each new city, call `POST /api/v1/trips/{id}/add-city` with city + context
 3. Collect generated days + budget additions + visa/weather data
@@ -129,29 +134,32 @@ Read `travelStyle`, `interests`, `travelers`, `dateStart`, `nationality` from `u
 ## Phase 6: Tests + Build Verification
 
 ### Unit tests
+
 - `src/lib/ai/__tests__/add-city.test.ts` — test `assembleAddCityPrompt`, response schema validation
 - `src/lib/itinerary/__tests__/merge.test.ts` — test day renumbering, budget calculation, travel day handling, edge cases (add to end, add to beginning, add multiple)
 
 ### Existing tests
+
 - Run full suite to check for regressions (especially `route.integration.test.ts`)
 
 ### Build
+
 - `npm run build` — verify no TypeScript errors
 
 ---
 
 ## Files Summary
 
-| Action | File |
-|--------|------|
-| Edit | `src/components/ui/CityCombobox.tsx` |
-| **Create** | `src/lib/ai/prompts/add-city.ts` |
-| Edit | `src/lib/ai/pipeline.ts` |
+| Action     | File                                          |
+| ---------- | --------------------------------------------- |
+| Edit       | `src/components/ui/CityCombobox.tsx`          |
+| **Create** | `src/lib/ai/prompts/add-city.ts`              |
+| Edit       | `src/lib/ai/pipeline.ts`                      |
 | **Create** | `src/app/api/v1/trips/[id]/add-city/route.ts` |
-| **Create** | `src/lib/itinerary/merge.ts` |
-| Edit | `src/app/trip/[id]/edit/page.tsx` |
-| **Create** | `src/lib/ai/__tests__/add-city.test.ts` |
-| **Create** | `src/lib/itinerary/__tests__/merge.test.ts` |
+| **Create** | `src/lib/itinerary/merge.ts`                  |
+| Edit       | `src/app/trip/[id]/edit/page.tsx`             |
+| **Create** | `src/lib/ai/__tests__/add-city.test.ts`       |
+| **Create** | `src/lib/itinerary/__tests__/merge.test.ts`   |
 
 3 edits, 5 new files.
 

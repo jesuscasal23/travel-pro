@@ -11,7 +11,7 @@ const AFFILIATE_IDS = {
   getyourguide: process.env.GYG_PARTNER_ID ?? "TRAVEL_PRO_ID",
 } as const;
 
-export interface FlightLeg {
+interface FlightLeg {
   fromIata: string;
   toIata: string;
   departureDate: string; // YYYY-MM-DD
@@ -25,7 +25,7 @@ export function buildFlightLink(leg: FlightLeg, travelers: number): string {
 }
 
 /** Build a Booking.com hotel search link for a city stay. */
-export function buildHotelLink(
+function buildHotelLink(
   city: CityStop & { arrivalDate: string; departureDate: string },
   travelers: number
 ): string {
@@ -42,7 +42,7 @@ export function buildHotelLink(
 }
 
 /** Build a GetYourGuide activity search link. */
-export function buildActivityLink(city: string, activity: string): string {
+function buildActivityLink(city: string, activity: string): string {
   const params = new URLSearchParams({
     q: `${city} ${activity}`,
     partner_id: AFFILIATE_IDS.getyourguide,

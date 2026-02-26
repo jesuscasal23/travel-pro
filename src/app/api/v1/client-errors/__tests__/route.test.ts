@@ -56,7 +56,7 @@ describe("POST /api/v1/client-errors", () => {
         endpoint: "/api/v1/trips/trip-1/generate",
         status: 429,
         requestId: "req-123",
-      }),
+      })
     );
   });
 

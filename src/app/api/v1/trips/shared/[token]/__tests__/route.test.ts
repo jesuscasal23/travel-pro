@@ -78,4 +78,3 @@ describe("GET /api/v1/trips/shared/:token", () => {
     expect(json.error).toBe("Failed to load trip");
   });
 });
-

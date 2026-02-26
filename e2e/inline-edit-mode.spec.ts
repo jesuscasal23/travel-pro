@@ -93,7 +93,7 @@ async function setupGuestTrip(page: Page): Promise<string> {
       status: 401,
       contentType: "application/json",
       body: JSON.stringify({ code: 401, msg: "not_authenticated" }),
-    }),
+    })
   );
 
   await page.goto("/");
@@ -123,17 +123,22 @@ async function setupGuestTrip(page: Page): Promise<string> {
       };
       localStorage.setItem("travel-pro-store", JSON.stringify(parsed));
     },
-    { tripId: MOCK_TRIP_ID, itinerary: mockItinerary },
+    { tripId: MOCK_TRIP_ID, itinerary: mockItinerary }
   );
 
   await page.goto(`/trip/${MOCK_TRIP_ID}`);
-  await expect(page.getByRole("button", { name: /Edit trip/i }).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /Edit trip/i }).first()).toBeVisible({
+    timeout: 15_000,
+  });
 
   return page.url();
 }
 
 async function enterEditMode(page: Page) {
-  await page.getByRole("button", { name: /Edit trip/i }).first().click();
+  await page
+    .getByRole("button", { name: /Edit trip/i })
+    .first()
+    .click();
   await expect(page.getByText(/Editing/i)).toBeVisible({ timeout: 5_000 });
 }
 
@@ -150,7 +155,10 @@ test("E2E-IE-02: guest - enter edit mode -> discard -> returns to view mode", as
   await setupGuestTrip(page);
   await enterEditMode(page);
 
-  await page.getByRole("button", { name: /Discard/i }).first().click();
+  await page
+    .getByRole("button", { name: /Discard/i })
+    .first()
+    .click();
 
   await expect(page.getByText(/Editing/i)).not.toBeVisible({ timeout: 5_000 });
   await expect(page.getByRole("button", { name: /Edit trip/i }).first()).toBeVisible();
@@ -160,7 +168,10 @@ test("E2E-IE-03: guest - enter edit mode -> add manual activity -> save", async 
   await setupGuestTrip(page);
   await enterEditMode(page);
 
-  await page.getByRole("button", { name: /Add activity/i }).first().click();
+  await page
+    .getByRole("button", { name: /Add activity/i })
+    .first()
+    .click();
   await page.getByText("Add manually").click();
 
   await expect(page.getByText("Unnamed activity")).toBeVisible({ timeout: 5_000 });
@@ -184,7 +195,10 @@ test("E2E-IE-04: guest - add activity -> undo -> activity removed", async ({ pag
   await setupGuestTrip(page);
   await enterEditMode(page);
 
-  await page.getByRole("button", { name: /Add activity/i }).first().click();
+  await page
+    .getByRole("button", { name: /Add activity/i })
+    .first()
+    .click();
   await page.getByText("Add manually").click();
 
   const nameInput = page.getByPlaceholder("Activity name").first();
@@ -206,11 +220,18 @@ test("E2E-IE-05: /trip/:id/edit redirects to /trip/:id", async ({ page }) => {
   expect(page.url()).not.toMatch(/\/edit/);
 });
 
-test("E2E-IE-06: guest - enter edit mode -> open route sheet -> city list visible", async ({ page }) => {
+test("E2E-IE-06: guest - enter edit mode -> open route sheet -> city list visible", async ({
+  page,
+}) => {
   await setupGuestTrip(page);
   await enterEditMode(page);
 
-  await page.getByRole("button", { name: /Edit Route/i }).first().click();
+  await page
+    .getByRole("button", { name: /Edit Route/i })
+    .first()
+    .click();
   await expect(page.getByRole("heading", { name: "Edit Route" })).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByRole("button", { name: /Increase days/i }).first()).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByRole("button", { name: /Increase days/i }).first()).toBeVisible({
+    timeout: 5_000,
+  });
 });

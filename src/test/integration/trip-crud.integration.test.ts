@@ -3,10 +3,7 @@
 // ============================================================
 import { describe, it, expect } from "vitest";
 import { prisma } from "@/lib/db/prisma";
-import {
-  createTestTrip,
-  createTestItinerary,
-} from "./helpers";
+import { createTestTrip, createTestItinerary } from "./helpers";
 
 describe("Trip CRUD", () => {
   it("deleting a trip cascades to itineraries", async () => {
@@ -24,9 +21,7 @@ describe("Trip CRUD", () => {
   it("enforces shareToken uniqueness constraint", async () => {
     await createTestTrip(prisma, { shareToken: "unique-token-1" });
 
-    await expect(
-      createTestTrip(prisma, { shareToken: "unique-token-1" }),
-    ).rejects.toThrow();
+    await expect(createTestTrip(prisma, { shareToken: "unique-token-1" })).rejects.toThrow();
   });
 
   it("allows multiple trips without shareToken (null is not unique)", async () => {

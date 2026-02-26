@@ -37,10 +37,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid request body — expected JSON" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid request body — expected JSON" }, { status: 400 });
   }
 
   const parsed = RequestSchema.safeParse(body);
@@ -52,34 +49,51 @@ export async function POST(req: NextRequest) {
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "Service is not configured" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Service is not configured" }, { status: 500 });
   }
 
   const { profile, tripIntent } = parsed.data;
-  log.info("Validated", { tripType: tripIntent.tripType, region: tripIntent.region, elapsed: elapsed() });
+  log.info("Validated", {
+    tripType: tripIntent.tripType,
+    region: tripIntent.region,
+    elapsed: elapsed(),
+  });
 
   // ── Single-city short-circuit: return destination directly, skip Haiku ───
   if (tripIntent.tripType === "single-city" && tripIntent.destination) {
-    const durationDays = tripIntent.dateStart && tripIntent.dateEnd
-      ? Math.max(1, Math.round((new Date(tripIntent.dateEnd).getTime() - new Date(tripIntent.dateStart).getTime()) / 86400000))
-      : 7;
-    log.info("Single-city shortcut", { destination: tripIntent.destination, days: durationDays, elapsed: elapsed() });
-    return NextResponse.json({
-      cities: [{
-        id: tripIntent.destination.toLowerCase().replace(/\s+/g, "-"),
-        city: tripIntent.destination,
-        country: tripIntent.destinationCountry ?? "",
-        countryCode: tripIntent.destinationCountryCode ?? "",
-        iataCode: "",
-        lat: tripIntent.destinationLat ?? 0,
-        lng: tripIntent.destinationLng ?? 0,
-        minDays: durationDays,
-        maxDays: durationDays,
-      }],
-    }, { status: 200 });
+    const durationDays =
+      tripIntent.dateStart && tripIntent.dateEnd
+        ? Math.max(
+            1,
+            Math.round(
+              (new Date(tripIntent.dateEnd).getTime() - new Date(tripIntent.dateStart).getTime()) /
+                86400000
+            )
+          )
+        : 7;
+    log.info("Single-city shortcut", {
+      destination: tripIntent.destination,
+      days: durationDays,
+      elapsed: elapsed(),
+    });
+    return NextResponse.json(
+      {
+        cities: [
+          {
+            id: tripIntent.destination.toLowerCase().replace(/\s+/g, "-"),
+            city: tripIntent.destination,
+            country: tripIntent.destinationCountry ?? "",
+            countryCode: tripIntent.destinationCountryCode ?? "",
+            iataCode: "",
+            lat: tripIntent.destinationLat ?? 0,
+            lng: tripIntent.destinationLng ?? 0,
+            minDays: durationDays,
+            maxDays: durationDays,
+          },
+        ],
+      },
+      { status: 200 }
+    );
   }
 
   // ── Haiku route selection ─────────────────────────────────────────────────
@@ -89,7 +103,10 @@ export async function POST(req: NextRequest) {
     log.info("Success", { cities: cities.length, elapsed: elapsed() });
     return NextResponse.json({ cities }, { status: 200 });
   } catch (err) {
-    log.warn("Route selection failed", { elapsed: elapsed(), error: err instanceof Error ? err.message : String(err) });
+    log.warn("Route selection failed", {
+      elapsed: elapsed(),
+      error: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json({ cities: null }, { status: 200 });
   }
 }

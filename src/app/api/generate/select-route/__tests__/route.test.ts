@@ -147,4 +147,3 @@ describe("POST /api/generate/select-route", () => {
     expect(json).toEqual({ cities: null });
   });
 });
-

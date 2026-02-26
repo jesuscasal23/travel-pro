@@ -78,8 +78,24 @@ const mockGenerateActivities = generateCityActivities as ReturnType<typeof vi.fn
 
 const routeOnlyItinerary: Itinerary = {
   route: [
-    { id: "tokyo", city: "Tokyo", country: "Japan", lat: 35.68, lng: 139.69, days: 3, countryCode: "JP" },
-    { id: "kyoto", city: "Kyoto", country: "Japan", lat: 35.01, lng: 135.77, days: 2, countryCode: "JP" },
+    {
+      id: "tokyo",
+      city: "Tokyo",
+      country: "Japan",
+      lat: 35.68,
+      lng: 139.69,
+      days: 3,
+      countryCode: "JP",
+    },
+    {
+      id: "kyoto",
+      city: "Kyoto",
+      country: "Japan",
+      lat: 35.01,
+      lng: 135.77,
+      days: 2,
+      countryCode: "JP",
+    },
   ],
   days: [
     { day: 1, date: "Oct 1", city: "Tokyo", activities: [] },
@@ -91,9 +107,24 @@ const routeOnlyItinerary: Itinerary = {
 };
 
 const generatedTokyoDays: TripDay[] = [
-  { day: 1, date: "Oct 1", city: "Tokyo", activities: [{ name: "Senso-ji", category: "culture", why: "Historic temple", duration: "2h" }] },
-  { day: 2, date: "Oct 2", city: "Tokyo", activities: [{ name: "Shibuya", category: "explore", why: "Iconic crossing", duration: "3h" }] },
-  { day: 3, date: "Oct 3", city: "Tokyo", activities: [{ name: "Tsukiji", category: "food", why: "Fresh sushi", duration: "2h" }] },
+  {
+    day: 1,
+    date: "Oct 1",
+    city: "Tokyo",
+    activities: [{ name: "Senso-ji", category: "culture", why: "Historic temple", duration: "2h" }],
+  },
+  {
+    day: 2,
+    date: "Oct 2",
+    city: "Tokyo",
+    activities: [{ name: "Shibuya", category: "explore", why: "Iconic crossing", duration: "3h" }],
+  },
+  {
+    day: 3,
+    date: "Oct 3",
+    city: "Tokyo",
+    activities: [{ name: "Tsukiji", category: "food", why: "Fresh sushi", duration: "2h" }],
+  },
 ];
 
 const mockTrip = {
@@ -176,8 +207,13 @@ describe("POST /api/v1/trips/:id/generate-activities", () => {
       ...routeOnlyItinerary,
       days: routeOnlyItinerary.days.map((d) =>
         d.city === "Tokyo" && d.day === 1
-          ? { ...d, activities: [{ name: "Existing", category: "culture", why: "Already there", duration: "1h" }] }
-          : d,
+          ? {
+              ...d,
+              activities: [
+                { name: "Existing", category: "culture", why: "Already there", duration: "1h" },
+              ],
+            }
+          : d
       ),
     };
     mockFindActive.mockResolvedValue({ id: "itin-1", data: itineraryWithActivities });
@@ -187,7 +223,9 @@ describe("POST /api/v1/trips/:id/generate-activities", () => {
 
     expect(res.status).toBe(200);
     expect(json.itinerary).toBeDefined();
-    expect(json.itinerary.days.find((d: TripDay) => d.city === "Tokyo" && d.day === 1).activities[0].name).toBe("Existing");
+    expect(
+      json.itinerary.days.find((d: TripDay) => d.city === "Tokyo" && d.day === 1).activities[0].name
+    ).toBe("Existing");
     expect(mockGenerateActivities).not.toHaveBeenCalled();
   });
 
@@ -236,8 +274,18 @@ describe("POST /api/v1/trips/:id/generate-activities", () => {
   it("only merges activities for matching day numbers", async () => {
     // AI returns only days 1 and 3, skipping day 2
     mockGenerateActivities.mockResolvedValue([
-      { day: 1, date: "Oct 1", city: "Tokyo", activities: [{ name: "A", category: "explore", why: "Good", duration: "1h" }] },
-      { day: 3, date: "Oct 3", city: "Tokyo", activities: [{ name: "B", category: "food", why: "Tasty", duration: "2h" }] },
+      {
+        day: 1,
+        date: "Oct 1",
+        city: "Tokyo",
+        activities: [{ name: "A", category: "explore", why: "Good", duration: "1h" }],
+      },
+      {
+        day: 3,
+        date: "Oct 3",
+        city: "Tokyo",
+        activities: [{ name: "B", category: "food", why: "Tasty", duration: "2h" }],
+      },
     ]);
 
     const res = await callPOST({ profile: validProfile, cityId: "tokyo" });

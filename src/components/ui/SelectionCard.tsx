@@ -14,10 +14,8 @@ export function SelectionCard({ selected, onClick, children, className = "" }: S
     <button
       type="button"
       onClick={onClick}
-      className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-        selected
-          ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/40"
+      className={`w-full rounded-xl border-2 p-4 text-left transition-all duration-200 ${
+        selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
       } ${className}`}
     >
       {children}

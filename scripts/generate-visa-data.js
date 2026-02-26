@@ -58,7 +58,7 @@ async function main() {
   const ts = `// Auto-generated from https://github.com/imorte/passport-index-data (MIT license)
 // DO NOT EDIT MANUALLY — run scripts/generate-visa-data.js to regenerate
 // Last generated: ${new Date().toISOString().split("T")[0]}
-// Coverage: ${passports} passports × ${rows / passports | 0} destinations (~${rows} pairs)
+// Coverage: ${passports} passports × ${(rows / passports) | 0} destinations (~${rows} pairs)
 
 export const VISA_INDEX: Record<string, Record<string, string>> = ${JSON.stringify(index, null, 2)};
 `;
@@ -67,4 +67,7 @@ export const VISA_INDEX: Record<string, Record<string, string>> = ${JSON.stringi
   console.log(`Written ${passports} passports (${rows} pairs) to src/data/visa-index.ts`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

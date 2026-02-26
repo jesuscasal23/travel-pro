@@ -21,8 +21,8 @@ export interface ItineraryFlightLeg {
   fromIata: string;
   toIata: string;
   departureDate: string; // YYYY-MM-DD
-  price: number;         // EUR, total for all travelers
-  duration: string;      // e.g. "12h 30m"
+  price: number; // EUR, total for all travelers
+  duration: string; // e.g. "12h 30m"
   airline: string;
 }
 
@@ -35,7 +35,7 @@ export interface DayActivity {
   duration: string;
   tip?: string;
   food?: string;
-  cost?: string;
+  cost?: string; // estimated cost range, e.g. "€10-15"
 }
 
 /** A single day in the itinerary */
@@ -50,19 +50,24 @@ export interface TripDay {
   travelDuration?: string;
 }
 
-
 /** Visa info for a country */
 export interface VisaInfo {
   country: string;
   countryCode: string;
-  requirement: "visa-free" | "visa-on-arrival" | "e-visa" | "eta" | "visa-required" | "no-admission";
+  requirement:
+    | "visa-free"
+    | "visa-on-arrival"
+    | "e-visa"
+    | "eta"
+    | "visa-required"
+    | "no-admission";
   maxStayDays: number;
   processingDays?: number;
   notes: string;
   icon: string; // emoji
   label: string;
-  sourceUrl: string;    // official government immigration URL
-  sourceLabel: string;  // human-readable label for the source link
+  sourceUrl: string; // official government immigration URL
+  sourceLabel: string; // human-readable label for the source link
 }
 
 /** Weather data for a city */
@@ -95,7 +100,6 @@ export interface TripSummary {
   createdAt: string;
   itineraries: { id: string; generationStatus: string }[];
 }
-
 
 /** Region option for questionnaire */
 export interface Region {

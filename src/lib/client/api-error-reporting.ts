@@ -27,12 +27,10 @@ function defaultMessageFromStatus(status: number): string {
  */
 export async function parseApiErrorResponse(
   res: Response,
-  fallbackMessage: string,
+  fallbackMessage: string
 ): Promise<ParsedApiError> {
   const headers =
-    res.headers && typeof res.headers.get === "function"
-      ? res.headers
-      : new Headers();
+    res.headers && typeof res.headers.get === "function" ? res.headers : new Headers();
   const status = typeof res.status === "number" ? res.status : 0;
   const requestId = headers.get("x-request-id");
   let responseBody: unknown;

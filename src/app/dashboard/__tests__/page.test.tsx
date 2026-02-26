@@ -11,7 +11,12 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
+import {
+  mockFramerMotion,
+  mockNextLink,
+  mockNavbar,
+  createTestQueryWrapper,
+} from "@/__tests__/mocks";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 

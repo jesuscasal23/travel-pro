@@ -109,7 +109,7 @@ async function renderWithSuspense(id: string) {
     render(
       <Suspense fallback={<div>loading</div>}>
         <SummaryPage params={Promise.resolve({ id })} />
-      </Suspense>,
+      </Suspense>
     );
   });
 }
@@ -128,7 +128,7 @@ describe("SummaryPage share flow", () => {
 
     await waitFor(() => expect(screen.getByTestId("share-modal")).toBeInTheDocument());
     expect(screen.getByTestId("share-modal")).toHaveTextContent(
-      `${window.location.origin}/trip/guest`,
+      `${window.location.origin}/trip/guest`
     );
     expect(mocks.mutateAsync).not.toHaveBeenCalled();
   });
@@ -142,8 +142,8 @@ describe("SummaryPage share flow", () => {
     await waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalledWith("trip-123"));
     await waitFor(() =>
       expect(screen.getByTestId("share-modal")).toHaveTextContent(
-        `${window.location.origin}/share/token-123`,
-      ),
+        `${window.location.origin}/share/token-123`
+      )
     );
   });
 });

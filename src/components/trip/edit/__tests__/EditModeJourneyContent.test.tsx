@@ -96,7 +96,7 @@ describe("EditModeJourneyContent", () => {
         onDayChange={vi.fn()}
         generatingCityId={null}
         onGenerateActivities={vi.fn()}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Add manual activity" }));

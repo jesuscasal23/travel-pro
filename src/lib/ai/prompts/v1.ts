@@ -2,7 +2,7 @@
 // Travel Pro — Prompt Template v1
 // Quality bar: match sampleItinerary depth (src/data/sampleData.ts)
 // Every activity must include: name, category, why, duration
-// Optional: tip, food, cost
+// Optional: tip, food
 // ============================================================
 
 import type { UserProfile, TripIntent } from "@/types";
@@ -26,7 +26,6 @@ Every activity object must match this depth:
 - "duration": Realistic time estimate (e.g. "2h", "45min", "3h")
 - "tip": (optional) Brief practical tip (max 15 words)
 - "food": (optional) Dish + venue name (max 10 words)
-- "cost": (optional) Estimated cost per person in euros (e.g. "Free", "€15", "€25–40")
 
 ## Travel Day Rules
 
@@ -55,13 +54,14 @@ export function assemblePrompt(
   skeleton?: FlightSkeleton,
   cities?: CityWithDays[]
 ): string {
-  const durationDays = intent.dateStart && intent.dateEnd
-    ? daysBetween(intent.dateStart, intent.dateEnd)
-    : 21;
+  const durationDays =
+    intent.dateStart && intent.dateEnd ? daysBetween(intent.dateStart, intent.dateEnd) : 21;
 
   const styleDescriptions: Record<string, string> = {
-    backpacker: "backpacker style (hostels, dorms, street food, maximum adventure, budget-conscious)",
-    comfort: "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
+    backpacker:
+      "backpacker style (hostels, dorms, street food, maximum adventure, budget-conscious)",
+    comfort:
+      "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
@@ -71,11 +71,13 @@ export function assemblePrompt(
     active: "active (5+ activities per day, packed schedule, maximum sightseeing)",
   };
   const paceDescription = profile.pace ? paceDescriptions[profile.pace] : paceDescriptions.moderate;
-  const paceActivityCount = profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "3–4";
+  const paceActivityCount =
+    profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "3–4";
 
   // ── Build flight skeleton block (when Amadeus optimization succeeded) ──
-  const skeletonBlock = skeleton && cities
-    ? `
+  const skeletonBlock =
+    skeleton && cities
+      ? `
 **FLIGHT SCHEDULE (pre-computed — use these exact dates and costs):**
 ${skeleton.legs
   .map(
@@ -87,17 +89,23 @@ Total flight cost: €${Math.round(skeleton.totalFlightCost).toLocaleString()}
 
 **CITY SCHEDULE (use exactly these cities and day counts):**
 ${cities
-  .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${skeleton.dayAssignment[i]} days, airport: ${c.iataCode}`)
+  .map(
+    (c, i) =>
+      `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${skeleton.dayAssignment[i]} days, airport: ${c.iataCode}`
+  )
   .join("\n")}
 Set iataCode on each route city to the airport codes above.`
-    : !skeleton && cities
-    ? `
+      : !skeleton && cities
+        ? `
 **CITY SCHEDULE (pre-selected — use exactly these cities):**
 ${cities
-  .map((c, i) => `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${c.minDays}–${c.maxDays} days`)
+  .map(
+    (c, i) =>
+      `${i + 1}. ${c.city}, ${c.country} (${c.countryCode}) — ${c.minDays}–${c.maxDays} days`
+  )
   .join("\n")}
 Distribute the trip days across these cities within the min–max ranges above.`
-    : "";
+        : "";
 
   const descriptionBlock = intent.description?.trim()
     ? `\n**Special Requests from the traveler:**\n${intent.description.trim()}\n`
@@ -108,8 +116,8 @@ Distribute the trip days across these cities within the min–max ranges above.`
   const cityRequirement = cities
     ? "Use EXACTLY the cities listed in the CITY SCHEDULE above — do not add or remove cities."
     : isCountryTrip
-    ? `1. Choose 3–6 cities within ${intent.destinationCountry} that make geographic sense and are popular for this type of trip`
-    : "1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip";
+      ? `1. Choose 3–6 cities within ${intent.destinationCountry} that make geographic sense and are popular for this type of trip`
+      : "1. Choose 4–7 cities across the region that make geographic sense and are popular for this type of trip";
 
   return `Plan a ${durationDays}-day trip for ${intent.travelers} traveler(s) with the following details:
 
@@ -128,10 +136,10 @@ ${skeletonBlock}${descriptionBlock}
 **Requirements:**
 ${cityRequirement}
 2. Allocate days per city proportionally (longer stays in richer destinations)
-3. Plan ${paceActivityCount} activities per day with FULL detail (name, category, why, duration, plus tip/food/cost where applicable) — match the traveler's stated pace
+3. Plan ${paceActivityCount} activities per day with FULL detail (name, category, why, duration, plus tip/food where applicable) — match the traveler's stated pace
 4. Include realistic travel days when moving between cities (flight/train/bus with cost and duration)
 5. Tailor activity choices to the traveler's stated interests and travel style
-6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips, honest costs
+6. EVERY activity should feel like a recommendation from a local — specific venues, practical tips
 
 Return ONLY this JSON structure (no wrapping, no markdown):
 
@@ -161,8 +169,7 @@ Return ONLY this JSON structure (no wrapping, no markdown):
           "why": "Tokyo's oldest temple — stunning Kaminarimon gate and Nakamise shopping street lined with traditional crafts",
           "duration": "2h",
           "tip": "Visit before 9am to beat the crowds",
-          "food": "Melon pan at Nakamise-dori stall",
-          "cost": "Free"
+          "food": "Melon pan at Nakamise-dori stall"
         }
       ]
     },
@@ -180,16 +187,14 @@ Return ONLY this JSON structure (no wrapping, no markdown):
           "category": "transport",
           "why": "The bullet train experience is a highlight in itself — 300km/h through Japanese countryside with views of Mt. Fuji",
           "duration": "2h 15min",
-          "tip": "Right-side window seat for Mt. Fuji views",
-          "cost": "€120"
+          "tip": "Right-side window seat for Mt. Fuji views"
         },
         {
           "name": "Fushimi Inari Shrine",
           "category": "culture",
           "why": "10,000 vermillion torii gates winding up a sacred mountainside — Kyoto's most iconic sight",
           "duration": "2.5h",
-          "tip": "Hike past the midpoint for a quieter experience",
-          "cost": "Free"
+          "tip": "Hike past the midpoint for a quieter experience"
         }
       ]
     }

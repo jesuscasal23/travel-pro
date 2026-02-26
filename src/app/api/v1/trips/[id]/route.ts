@@ -21,7 +21,13 @@ import type { Itinerary } from "@/types";
 export const dynamic = "force-dynamic";
 
 const EditItinerarySchema = z.object({
-  editType: z.enum(["adjust_days", "remove_city", "reorder_cities", "add_city", "regenerate_activities"]),
+  editType: z.enum([
+    "adjust_days",
+    "remove_city",
+    "reorder_cities",
+    "add_city",
+    "regenerate_activities",
+  ]),
   editPayload: z.record(z.string(), z.unknown()),
   description: z.string().optional(),
   data: z.unknown().optional(), // Updated itinerary data

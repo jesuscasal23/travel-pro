@@ -11,20 +11,27 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
 }
 
-export function CollapsibleSection({ title, icon, defaultOpen = false, children }: CollapsibleSectionProps) {
+export function CollapsibleSection({
+  title,
+  icon,
+  defaultOpen = false,
+  children,
+}: CollapsibleSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-t border-border pt-3">
+    <div className="border-border border-t pt-3">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between text-sm font-semibold text-foreground mb-2"
+        className="text-foreground mb-2 flex w-full items-center justify-between text-sm font-semibold"
       >
         <div className="flex items-center gap-2">
           {icon}
           {title}
         </div>
-        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       <AnimatePresence initial={false}>
         {open && (

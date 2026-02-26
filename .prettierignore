@@ -1,0 +1,15 @@
+# Build output
+.next/
+out/
+build/
+
+# Generated files
+next-env.d.ts
+prisma/migrations/
+
+# Package manager
+node_modules/
+package-lock.json
+
+# Static assets
+public/

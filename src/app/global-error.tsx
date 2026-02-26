@@ -23,17 +23,14 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily:
-            "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           backgroundColor: "#fafafa",
           color: "#1a1a1a",
         }}
       >
         <div style={{ maxWidth: 420, textAlign: "center", padding: "0 16px" }}>
           <div style={{ fontSize: 48, marginBottom: 24 }}>&#x26A0;&#xFE0F;</div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
-            Something went wrong
-          </h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Something went wrong</h1>
           <p
             style={{
               fontSize: 14,

@@ -4,7 +4,13 @@ import { use, useState, useEffect, useRef } from "react";
 import { usePostHog } from "posthog-js/react";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useAuthStatus, useTripGeneration, useCityActivityGeneration, useVisaEnrichment, useWeatherEnrichment } from "@/hooks/api";
+import {
+  useAuthStatus,
+  useTripGeneration,
+  useCityActivityGeneration,
+  useVisaEnrichment,
+  useWeatherEnrichment,
+} from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { MobileLayout } from "@/components/trip/mobile/MobileLayout";
@@ -37,6 +43,14 @@ export default function TripPage({ params }: { params: Params }) {
   const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
 
   // ── Sync Zustand store with DB on mount (non-guest trips) ───────────────────
+  // dbSyncDone gates generation: we wait for the DB check to resolve before
+  // firing generation so that a complete DB itinerary can overwrite a stale
+  // partial store value before we decide whether to generate.  Without this
+  // gate the generation effect fires on the first render where isPartialItinerary
+  // is true (from persisted localStorage) even though the DB already holds a
+  // complete result, causing a redundant generation request and overwriting the
+  // DB-synced itinerary.  Guest trips skip the sync entirely, so we start done.
+  const [dbSyncDone, setDbSyncDone] = useState(id === "guest");
   const syncFiredRef = useRef(false);
   useEffect(() => {
     if (id === "guest" || syncFiredRef.current) return;
@@ -50,8 +64,12 @@ export default function TripPage({ params }: { params: Params }) {
         // Only update if the DB version has data the local store lacks
         const local = useTripStore.getState().itinerary;
         const localTripId = useTripStore.getState().currentTripId;
-        const dbHasActivities = dbItinerary.days?.some((d: { activities?: unknown[] }) => d.activities && d.activities.length > 0);
-        const localHasActivities = local?.days?.some((d) => d.activities && d.activities.length > 0);
+        const dbHasActivities = dbItinerary.days?.some(
+          (d: { activities?: unknown[] }) => d.activities && d.activities.length > 0
+        );
+        const localHasActivities = local?.days?.some(
+          (d) => d.activities && d.activities.length > 0
+        );
         const shouldSync =
           localTripId !== id ||
           !local ||
@@ -64,8 +82,11 @@ export default function TripPage({ params }: { params: Params }) {
           setItinerary(dbItinerary);
         }
       })
-      .catch(() => {/* best-effort sync */});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(() => {
+        /* best-effort sync */
+      })
+      .finally(() => setDbSyncDone(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, currentTripId]);
 
   // ── Detect partial itinerary (no days yet — generation needed) ──────────────
@@ -73,25 +94,28 @@ export default function TripPage({ params }: { params: Params }) {
   const generateMutation = useTripGeneration();
   const genFiredRef = useRef(false);
 
-  // Fire background generation via SSE when we have a partial itinerary
+  // Fire background generation via SSE when we have a partial itinerary.
+  // Gated on dbSyncDone so the DB sync above gets a chance to overwrite a
+  // stale partial store value with a complete itinerary before we generate.
   useEffect(() => {
-    if (!isPartialItinerary || genFiredRef.current) return;
+    if (!isPartialItinerary || !dbSyncDone || genFiredRef.current) return;
     genFiredRef.current = true;
 
     const profile = { nationality, homeAirport, travelStyle, interests };
-    const cities = itinerary!.route.length > 0
-      ? itinerary!.route.map((r) => ({
-          id: r.id,
-          city: r.city,
-          country: r.country,
-          countryCode: r.countryCode,
-          iataCode: r.iataCode ?? "",
-          lat: r.lat,
-          lng: r.lng,
-          minDays: r.days,
-          maxDays: r.days,
-        }))
-      : undefined;
+    const cities =
+      itinerary!.route.length > 0
+        ? itinerary!.route.map((r) => ({
+            id: r.id,
+            city: r.city,
+            country: r.country,
+            countryCode: r.countryCode,
+            iataCode: r.iataCode ?? "",
+            lat: r.lat,
+            lng: r.lng,
+            minDays: r.days,
+            maxDays: r.days,
+          }))
+        : undefined;
 
     generateMutation.mutate(
       { tripId: id, profile, promptVersion: "v1", cities },
@@ -102,10 +126,10 @@ export default function TripPage({ params }: { params: Params }) {
         onError: () => {
           genFiredRef.current = false; // allow retry
         },
-      },
+      }
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPartialItinerary]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPartialItinerary, dbSyncDone]);
 
   // ── Per-city activity generation ─────────────────────────────────────────────
   const cityActivityMutation = useCityActivityGeneration();
@@ -121,7 +145,7 @@ export default function TripPage({ params }: { params: Params }) {
           setItinerary(mergedItinerary);
         },
         onSettled: () => setGeneratingCityId(null),
-      },
+      }
     );
   };
 
@@ -133,8 +157,16 @@ export default function TripPage({ params }: { params: Params }) {
     !(itinerary.visaData?.length && itinerary.weatherData?.length)
   );
 
-  const { data: visaData, isLoading: visaLoading, error: visaError } = useVisaEnrichment(nationality, itinerary?.route ?? [], shouldEnrich);
-  const { data: weatherData, isLoading: weatherLoading, error: weatherError } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
+  const {
+    data: visaData,
+    isLoading: visaLoading,
+    error: visaError,
+  } = useVisaEnrichment(nationality, itinerary?.route ?? [], shouldEnrich);
+  const {
+    data: weatherData,
+    isLoading: weatherLoading,
+    error: weatherError,
+  } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
 
   // Sync enrichment results back to Zustand store
   useEffect(() => {
@@ -149,12 +181,12 @@ export default function TripPage({ params }: { params: Params }) {
       ...(needsVisa ? { visaData } : {}),
       ...(needsWeather ? { weatherData } : {}),
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visaData, weatherData]);
 
   useEffect(() => {
     posthog?.capture("itinerary_viewed", { trip_id: id, city_count: route.length });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Early return for null itinerary — all hooks must be called above this line
@@ -168,9 +200,9 @@ export default function TripPage({ params }: { params: Params }) {
     const heroImage = heroStop ? getCityHeroImage(heroStop.city, heroStop.countryCode) : null;
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className="bg-background min-h-screen">
         {/* Hero skeleton with real image if available */}
-        <div className="relative w-full h-56 overflow-hidden">
+        <div className="relative h-56 w-full overflow-hidden">
           {heroImage ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -179,34 +211,37 @@ export default function TripPage({ params }: { params: Params }) {
                 alt=""
                 loading="eager"
                 fetchPriority="high"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+              <div className="from-background via-background/30 absolute inset-0 bg-gradient-to-t to-transparent" />
             </>
           ) : (
-            <div className="w-full h-full bg-secondary animate-pulse" />
+            <div className="bg-secondary h-full w-full animate-pulse" />
           )}
         </div>
 
         {/* Content skeleton */}
-        <div className="max-w-[960px] mx-auto px-4 py-6 space-y-6">
+        <div className="mx-auto max-w-[960px] space-y-6 px-4 py-6">
           {/* City cards row */}
-          <div className="flex gap-3 overflow-hidden justify-center">
+          <div className="flex justify-center gap-3 overflow-hidden">
             {(route.length > 0 ? route : Array.from({ length: 4 })).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-24 h-32 rounded-2xl bg-secondary animate-pulse" />
+              <div
+                key={i}
+                className="bg-secondary h-32 w-24 flex-shrink-0 animate-pulse rounded-2xl"
+              />
             ))}
           </div>
 
           {/* Day pills row */}
           <div className="flex gap-2">
             {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="w-20 h-7 rounded-full bg-secondary animate-pulse" />
+              <div key={i} className="bg-secondary h-7 w-20 animate-pulse rounded-full" />
             ))}
           </div>
 
           {/* Activity card skeletons */}
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="h-20 rounded-xl bg-secondary animate-pulse" />
+            <div key={i} className="bg-secondary h-20 animate-pulse rounded-xl" />
           ))}
         </div>
       </div>
@@ -235,19 +270,20 @@ export default function TripPage({ params }: { params: Params }) {
     generateMutation.reset();
 
     const profile = { nationality, homeAirport, travelStyle, interests };
-    const cities = itinerary.route.length > 0
-      ? itinerary.route.map((r) => ({
-          id: r.id,
-          city: r.city,
-          country: r.country,
-          countryCode: r.countryCode,
-          iataCode: r.iataCode ?? "",
-          lat: r.lat,
-          lng: r.lng,
-          minDays: r.days,
-          maxDays: r.days,
-        }))
-      : undefined;
+    const cities =
+      itinerary.route.length > 0
+        ? itinerary.route.map((r) => ({
+            id: r.id,
+            city: r.city,
+            country: r.country,
+            countryCode: r.countryCode,
+            iataCode: r.iataCode ?? "",
+            lat: r.lat,
+            lng: r.lng,
+            minDays: r.days,
+            maxDays: r.days,
+          }))
+        : undefined;
 
     generateMutation.mutate(
       { tripId: id, profile, promptVersion: "v1", cities },
@@ -258,7 +294,7 @@ export default function TripPage({ params }: { params: Params }) {
         onError: () => {
           genFiredRef.current = false;
         },
-      },
+      }
     );
   };
 

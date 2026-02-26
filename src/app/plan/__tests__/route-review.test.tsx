@@ -2,7 +2,12 @@ import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useTripStore } from "@/stores/useTripStore";
-import { mockFramerMotion, mockNextLink, mockNavbar, createTestQueryWrapper } from "@/__tests__/mocks";
+import {
+  mockFramerMotion,
+  mockNextLink,
+  mockNavbar,
+  createTestQueryWrapper,
+} from "@/__tests__/mocks";
 
 const mockRouterPush = vi.fn();
 
@@ -30,16 +35,47 @@ vi.mock("@/components/ui", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/components/ui")>();
   return {
     ...actual,
-    Badge: ({ children }: { children?: React.ReactNode }) => React.createElement("span", null, children),
+    Badge: ({ children }: { children?: React.ReactNode }) =>
+      React.createElement("span", null, children),
   };
 });
 
 import PlanPage from "@/app/plan/page";
 
 const mockCitiesWithDays = [
-  { id: "tokyo", city: "Tokyo", country: "Japan", countryCode: "JP", iataCode: "NRT", lat: 35.68, lng: 139.69, minDays: 2, maxDays: 4 },
-  { id: "hanoi", city: "Hanoi", country: "Vietnam", countryCode: "VN", iataCode: "HAN", lat: 21.03, lng: 105.85, minDays: 1, maxDays: 3 },
-  { id: "bangkok", city: "Bangkok", country: "Thailand", countryCode: "TH", iataCode: "BKK", lat: 13.76, lng: 100.5, minDays: 1, maxDays: 3 },
+  {
+    id: "tokyo",
+    city: "Tokyo",
+    country: "Japan",
+    countryCode: "JP",
+    iataCode: "NRT",
+    lat: 35.68,
+    lng: 139.69,
+    minDays: 2,
+    maxDays: 4,
+  },
+  {
+    id: "hanoi",
+    city: "Hanoi",
+    country: "Vietnam",
+    countryCode: "VN",
+    iataCode: "HAN",
+    lat: 21.03,
+    lng: 105.85,
+    minDays: 1,
+    maxDays: 3,
+  },
+  {
+    id: "bangkok",
+    city: "Bangkok",
+    country: "Thailand",
+    countryCode: "TH",
+    iataCode: "BKK",
+    lat: 13.76,
+    lng: 100.5,
+    minDays: 1,
+    maxDays: 3,
+  },
 ];
 
 // Destination is now step 1 (first step). For guests (4-step wizard),
@@ -138,7 +174,9 @@ describe("PlanPage - route review removed", () => {
 
     await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Generate My Itinerary/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Generate My Itinerary/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 
@@ -165,7 +203,9 @@ describe("PlanPage - route review removed", () => {
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Generate My Itinerary/i })).toBeInTheDocument()
+    );
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
 
     await act(async () => {
@@ -197,7 +237,9 @@ describe("PlanPage - route review removed", () => {
 
     await waitFor(() => expect(screen.getByText("Where & when?")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Generate My Itinerary/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Generate My Itinerary/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Review your route")).not.toBeInTheDocument();
   }, 15_000);
 });

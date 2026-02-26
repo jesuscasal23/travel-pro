@@ -7,12 +7,12 @@
 
 :root {
   /* Core palette */
-  --primary: 181 80% 25%;           /* deep teal #0D7377 */
+  --primary: 181 80% 25%; /* deep teal #0D7377 */
   --primary-foreground: 0 0% 100%;
-  --accent: 7 78% 60%;              /* warm coral #E85D4A */
+  --accent: 7 78% 60%; /* warm coral #E85D4A */
   --accent-foreground: 0 0% 100%;
   --background: 0 0% 100%;
-  --foreground: 0 0% 10%;           /* near-black */
+  --foreground: 0 0% 10%; /* near-black */
   --muted: 0 0% 96%;
   --muted-foreground: 0 0% 40%;
   --secondary: 0 0% 96%;
@@ -102,7 +102,7 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground rounded-lg px-6 py-3 font-medium transition-all duration-200 inline-flex items-center justify-center;
+    @apply bg-primary text-primary-foreground inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium transition-all duration-200;
   }
   .btn-primary:hover {
     opacity: 0.9;
@@ -112,7 +112,7 @@
   }
 
   .btn-ghost {
-    @apply bg-transparent text-foreground rounded-lg px-6 py-3 font-medium border border-border transition-all duration-200 inline-flex items-center justify-center;
+    @apply text-foreground border-border inline-flex items-center justify-center rounded-lg border bg-transparent px-6 py-3 font-medium transition-all duration-200;
   }
   .btn-ghost:hover {
     @apply bg-muted;
@@ -122,15 +122,15 @@
   }
 
   .btn-primary:focus-visible {
-    @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
+    @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
   }
 
   .btn-ghost:focus-visible {
-    @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
+    @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
   }
 
   .chip {
-    @apply px-4 py-2 rounded-full border border-border text-sm font-medium cursor-pointer transition-all duration-200 select-none active:scale-95;
+    @apply border-border cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 select-none active:scale-95;
   }
 
   .chip-selected {
@@ -138,15 +138,15 @@
   }
 
   .badge-success {
-    @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 px-3 py-1 rounded-full text-xs font-medium;
+    @apply rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300;
   }
 
   .badge-warning {
-    @apply bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-3 py-1 rounded-full text-xs font-medium;
+    @apply rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300;
   }
 
   .badge-info {
-    @apply bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300 px-3 py-1 rounded-full text-xs font-medium;
+    @apply rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700 dark:bg-sky-900/30 dark:text-sky-300;
   }
 }
 
@@ -155,33 +155,65 @@
    ============================================================ */
 
 @keyframes overlay-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes overlay-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes modal-in {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 @keyframes modal-out {
-  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  to   { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
 }
 
 @keyframes tab-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================================
@@ -189,13 +221,25 @@
    ============================================================ */
 
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(20px) scale(0.95); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes toast-out {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(10px) scale(0.95); }
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
 }
 
 .toast-enter {
@@ -243,7 +287,9 @@ html {
   html {
     scroll-behavior: auto;
   }
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

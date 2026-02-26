@@ -5,12 +5,7 @@ import { AirportCombobox } from "../AirportCombobox";
 
 describe("AirportCombobox", () => {
   it("shows display label from stored value when closed", () => {
-    render(
-      <AirportCombobox
-        value="FRA - Frankfurt Airport (Frankfurt, DE)"
-        onChange={vi.fn()}
-      />,
-    );
+    render(<AirportCombobox value="FRA - Frankfurt Airport (Frankfurt, DE)" onChange={vi.fn()} />);
     expect(screen.getByText(/FRA - Frankfurt Airport/i)).toBeInTheDocument();
   });
 

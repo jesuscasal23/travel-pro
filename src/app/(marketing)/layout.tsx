@@ -5,11 +5,7 @@ export const metadata: Metadata = {
   title: "Plan Your Dream Trip in Minutes",
 };
 
-export default function MarketingLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navbar isAuthenticated={false} />

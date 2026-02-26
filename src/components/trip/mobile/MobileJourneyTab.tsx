@@ -17,7 +17,11 @@ interface MobileJourneyTabProps {
   onGenerateActivities?: (cityId: string, cityName: string) => void;
 }
 
-export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivities }: MobileJourneyTabProps) {
+export function MobileJourneyTab({
+  itinerary,
+  generatingCityId,
+  onGenerateActivities,
+}: MobileJourneyTabProps) {
   const { route, days, flightLegs, weatherData } = itinerary;
   const [activeCityIdx, setActiveCityIdx] = useState(0);
   const cityScrollRef = useRef<HTMLDivElement>(null);
@@ -53,19 +57,19 @@ export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivi
       const buttons = cityScrollRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]");
       buttons?.[next]?.focus();
     },
-    [activeCityIdx, route.length],
+    [activeCityIdx, route.length]
   );
 
   return (
     <div className="pb-20">
       {/* City horizontal scroll */}
-      <div className="px-4 mb-4">
+      <div className="mb-4 px-4">
         <div
           ref={cityScrollRef}
           role="tablist"
           aria-label="City selector"
           onKeyDown={handleCityKeyDown}
-          className="flex gap-3 overflow-x-auto scrollbar-hide py-2"
+          className="scrollbar-hide flex gap-3 overflow-x-auto py-2"
         >
           {route.map((city, i) => (
             <CityCard
@@ -81,9 +85,9 @@ export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivi
 
       {/* Boarding passes */}
       {flightLegs && flightLegs.length > 0 && (
-        <div className="px-4 mb-6">
-          <h3 className="text-sm font-semibold text-foreground mb-2">🎫 Boarding passes</h3>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+        <div className="mb-6 px-4">
+          <h3 className="text-foreground mb-2 text-sm font-semibold">🎫 Boarding passes</h3>
+          <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-2">
             {flightLegs.map((leg, i) => (
               <BoardingPassCard key={i} leg={leg} variant="mobile" />
             ))}
@@ -102,7 +106,7 @@ export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivi
         const timedActivities = activeDay && hasActivities ? distributeActivities(activeDay) : [];
 
         return (
-          <div key={group.cityId + groupIdx} className="px-4 mb-6">
+          <div key={group.cityId + groupIdx} className="mb-6 px-4">
             <CityHeader city={cityStop} weather={weather} variant="mobile" />
 
             {hasActivities ? (
@@ -120,7 +124,7 @@ export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivi
                   <div>
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary rounded-lg px-3 py-2 mb-2">
+                      <div className="text-muted-foreground bg-secondary mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
                         <span className="text-primary">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
@@ -142,24 +146,24 @@ export function MobileJourneyTab({ itinerary, generatingCityId, onGenerateActivi
               </>
             ) : isGeneratingThis ? (
               <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                  <div className="border-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
                   <span>Generating activities for {cityStop.city}...</span>
                 </div>
                 {Array.from({ length: 3 }, (_, i) => (
-                  <div key={i} className="h-14 rounded-xl bg-secondary animate-pulse" />
+                  <div key={i} className="bg-secondary h-14 animate-pulse rounded-xl" />
                 ))}
               </div>
             ) : (
               <div className="mt-3">
                 <button
                   onClick={() => onGenerateActivities?.(cityStop.id, cityStop.city)}
-                  className="btn-primary flex items-center gap-2 text-sm w-full justify-center"
+                  className="btn-primary flex w-full items-center justify-center gap-2 text-sm"
                 >
                   <span>✨</span>
                   Get activity recommendations
                 </button>
-                <p className="text-xs text-muted-foreground mt-1.5 text-center">
+                <p className="text-muted-foreground mt-1.5 text-center text-xs">
                   {cityStop.days} days · Tap for personalized suggestions
                 </p>
               </div>

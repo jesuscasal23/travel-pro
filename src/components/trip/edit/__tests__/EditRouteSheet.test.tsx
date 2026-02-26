@@ -58,7 +58,17 @@ vi.mock("../SortableCityCard", () => ({
 }));
 
 vi.mock("@/components/ui/CityCombobox", () => ({
-  CityCombobox: ({ onChange }: { onChange: (entry: { city: string; country: string; countryCode: string; lat: number; lng: number }) => void }) => (
+  CityCombobox: ({
+    onChange,
+  }: {
+    onChange: (entry: {
+      city: string;
+      country: string;
+      countryCode: string;
+      lat: number;
+      lng: number;
+    }) => void;
+  }) => (
     <button
       onClick={() =>
         onChange({
@@ -113,7 +123,7 @@ describe("EditRouteSheet", () => {
         cities={makeCities()}
         onCitiesChange={onCitiesChange}
         onClose={onClose}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "simulate drag" }));
@@ -134,7 +144,7 @@ describe("EditRouteSheet", () => {
         cities={makeCities()}
         onCitiesChange={onCitiesChange}
         onClose={vi.fn()}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "increase Paris" }));
@@ -155,7 +165,7 @@ describe("EditRouteSheet", () => {
         cities={makeCities()}
         onCitiesChange={onCitiesChange}
         onClose={vi.fn()}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "add city" }));

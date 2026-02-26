@@ -13,9 +13,5 @@ const variantClass = {
 } as const;
 
 export function Badge({ variant, children, className = "" }: BadgeProps) {
-  return (
-    <span className={`${variantClass[variant]} ${className}`}>
-      {children}
-    </span>
-  );
+  return <span className={`${variantClass[variant]} ${className}`}>{children}</span>;
 }

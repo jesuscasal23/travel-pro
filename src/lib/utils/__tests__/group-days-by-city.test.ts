@@ -39,11 +39,7 @@ describe("groupDaysByCity", () => {
 
   it("handles city revisits as separate groups", () => {
     const route = makeRoute(["Tokyo", "Japan"], ["Kyoto", "Japan"]);
-    const days = [
-      makeDay(1, "Tokyo"),
-      makeDay(2, "Kyoto"),
-      makeDay(3, "Tokyo"),
-    ];
+    const days = [makeDay(1, "Tokyo"), makeDay(2, "Kyoto"), makeDay(3, "Tokyo")];
 
     const result = groupDaysByCity(days, route);
 

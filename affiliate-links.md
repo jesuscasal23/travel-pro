@@ -10,11 +10,11 @@
 
 Travel Pro monetises through three affiliate partnerships:
 
-| Partner | Category | Commission model |
-|---|---|---|
-| Skyscanner | Flights | Revenue share (% of Skyscanner's margin) |
-| Booking.com | Hotels | % of completed stay value |
-| GetYourGuide | Activities | % of activity booking value |
+| Partner      | Category   | Commission model                         |
+| ------------ | ---------- | ---------------------------------------- |
+| Skyscanner   | Flights    | Revenue share (% of Skyscanner's margin) |
+| Booking.com  | Hotels     | % of completed stay value                |
+| GetYourGuide | Activities | % of activity booking value              |
 
 None of these programs require you to handle payments, issue tickets, or
 support customers. Your only job is to send qualified traffic via a tracked
@@ -33,17 +33,18 @@ that referral fee, not a percentage of the flight price.
 
 This means the per-click payouts are small in absolute terms:
 
-| Product | Typical payout per click-out |
-|---|---|
-| Flights | £0.07 – £0.30 |
-| Car hire | £0.30 – £0.40 |
-| Hotels | ~£1.00 |
+| Product  | Typical payout per click-out |
+| -------- | ---------------------------- |
+| Flights  | £0.07 – £0.30                |
+| Car hire | £0.30 – £0.40                |
+| Hotels   | ~£1.00                       |
 
 The headline "up to 20% commission" refers to 20% of Skyscanner's revenue on
 a referral, not 20% of the ticket price. A €500 flight might earn Skyscanner
 €5 in referral fees; your 20% cut is €1.
 
 ### Cookie duration
+
 30 days (industry standard). If the user clicks your link and books within 30
 days, you earn the commission.
 
@@ -57,6 +58,7 @@ days, you earn the commission.
 ### Verification / requirements
 
 Skyscanner has a **manual review process**. Requirements:
+
 - Minimum **5,000 unique visitors/month** on your website
 - Travel-relevant content (not just any niche)
 - HTTPS enabled
@@ -74,6 +76,7 @@ accounts without a website.
 - No publicly stated minimum payout threshold (Impact handles this; typically ~$10)
 
 ### Affiliate portal
+
 [partners.skyscanner.net](https://www.partners.skyscanner.net/product/affiliates)
 
 ---
@@ -88,11 +91,11 @@ the standard model for hotel affiliates.
 
 Commission rates:
 
-| Product | Commission |
-|---|---|
-| Accommodation (completed stays) | **4%** of booking value |
-| Car rentals | **6%** of booking value |
-| Flights | **€2 / £2 flat fee** per completed booking |
+| Product                         | Commission                                 |
+| ------------------------------- | ------------------------------------------ |
+| Accommodation (completed stays) | **4%** of booking value                    |
+| Car rentals                     | **6%** of booking value                    |
+| Flights                         | **€2 / £2 flat fee** per completed booking |
 
 For context: a €200/night hotel stay for 5 nights = €1,000 booking value →
 **€40 commission**. A €600 return flight → **€2 flat fee**.
@@ -111,6 +114,7 @@ about it, and books the next day from a fresh tab, you may not be credited.
 ### How to join
 
 Two routes:
+
 1. **Direct**: [booking.com/affiliate-program](https://www.booking.com/affiliate-program/v2/index.html) — self-service signup
 2. **Via Awin**: Booking.com also runs its program through the Awin network, which gives access to better reporting tools
 
@@ -133,6 +137,7 @@ accounts are not accepted** — you need a website.
 - Payment methods: bank transfer, PayPal (varies by region)
 
 ### Affiliate portal
+
 [affiliate.booking.com](https://www.booking.com/affiliate-program/v2/index.html)
 
 ---
@@ -147,9 +152,9 @@ made through your link.
 
 Commission rates:
 
-| Tier | Rate |
-|---|---|
-| Base (all new partners) | **8%** of booking value |
+| Tier                      | Rate                                       |
+| ------------------------- | ------------------------------------------ |
+| Base (all new partners)   | **8%** of booking value                    |
 | Advanced / top performers | Custom rate (negotiated, typically 10–12%) |
 
 For context: a €100 day-trip booking → **€8 commission** at base rate.
@@ -181,6 +186,7 @@ entire order.
 - Payments issued on a monthly cycle
 
 ### Affiliate portal
+
 [partner.getyourguide.com](https://partner.getyourguide.com)
 
 ---
@@ -189,12 +195,12 @@ entire order.
 
 ### Industry benchmarks
 
-| Metric | Typical range |
-|---|---|
-| Average affiliate earnings per 1,000 visitors | ~$150 across all niches |
-| Travel affiliate conversion rate (click → booking) | 1–3% |
-| Top-performing travel affiliates (monthly) | $3,000–$5,000+ |
-| Early-stage site / app (monthly) | $50–$300 |
+| Metric                                             | Typical range           |
+| -------------------------------------------------- | ----------------------- |
+| Average affiliate earnings per 1,000 visitors      | ~$150 across all niches |
+| Travel affiliate conversion rate (click → booking) | 1–3%                    |
+| Top-performing travel affiliates (monthly)         | $3,000–$5,000+          |
+| Early-stage site / app (monthly)                   | $50–$300                |
 
 ### Travel Pro's advantage
 
@@ -212,11 +218,11 @@ Assumptions: 2 travelers per trip, 1 hotel booking per 5 cities, 2 activities
 per city, average hotel stay €150/night × 3 nights per city.
 
 | Monthly active users generating itineraries | Estimated affiliate revenue |
-|---|---|
-| 100 users | €40–€150/month |
-| 500 users | €200–€750/month |
-| 2,000 users | €800–€3,000/month |
-| 10,000 users | €4,000–€15,000/month |
+| ------------------------------------------- | --------------------------- |
+| 100 users                                   | €40–€150/month              |
+| 500 users                                   | €200–€750/month             |
+| 2,000 users                                 | €800–€3,000/month           |
+| 10,000 users                                | €4,000–€15,000/month        |
 
 The wide range reflects uncertainty in conversion rates and booking values.
 Hotels (Booking.com at 4%) will be the largest revenue driver by value since
@@ -257,11 +263,11 @@ you have traffic data to show).
 
 The affiliate infrastructure is already built in the codebase:
 
-| File | What it does |
-|---|---|
-| `src/lib/affiliate/link-generator.ts` | Builds tracked deep links for all three partners |
+| File                                         | What it does                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------- |
+| `src/lib/affiliate/link-generator.ts`        | Builds tracked deep links for all three partners                    |
 | `src/app/api/v1/affiliate/redirect/route.ts` | Internal redirect endpoint that logs clicks to DB before forwarding |
-| `src/app/trip/[id]/summary/page.tsx` | Shows per-leg flight links + hotel/activity booking cards |
+| `src/app/trip/[id]/summary/page.tsx`         | Shows per-leg flight links + hotel/activity booking cards           |
 
 The affiliate IDs currently in the code are **placeholders**
 (`TRAVEL_PRO_AID`, `TRAVEL_PRO_ID`). Replace these with real IDs from each

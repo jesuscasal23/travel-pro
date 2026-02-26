@@ -74,11 +74,7 @@ async function getToken(): Promise<string> {
 
   const data = (await res.json()) as AmadeusTokenResponse;
   if (redis) {
-    await redis.setex(
-      "amadeus:token",
-      Math.max(data.expires_in - 60, 60),
-      data.access_token
-    );
+    await redis.setex("amadeus:token", Math.max(data.expires_in - 60, 60), data.access_token);
   }
   return data.access_token;
 }

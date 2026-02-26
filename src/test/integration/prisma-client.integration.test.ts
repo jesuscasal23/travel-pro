@@ -9,14 +9,12 @@ import { getPrisma, prisma } from "@/lib/db/prisma";
 describe("PrismaClient initialization", () => {
   it("getPrisma() returns a client that can query the database", async () => {
     const client = getPrisma();
-    const result: Array<{ n: number }> =
-      await client.$queryRaw`SELECT 1 as n`;
+    const result: Array<{ n: number }> = await client.$queryRaw`SELECT 1 as n`;
     expect(result).toEqual([{ n: 1 }]);
   });
 
   it("prisma proxy export can execute a query", async () => {
-    const result: Array<{ n: number }> =
-      await prisma.$queryRaw`SELECT 1 as n`;
+    const result: Array<{ n: number }> = await prisma.$queryRaw`SELECT 1 as n`;
     expect(result).toEqual([{ n: 1 }]);
   });
 
