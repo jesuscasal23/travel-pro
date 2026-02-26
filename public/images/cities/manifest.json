@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-02-26T17:10:26.051Z",
-  "count": 1555,
+  "generatedAt": "2026-02-26T19:15:16.665Z",
+  "count": 1577,
   "entries": [
     {
       "slug": "tokyo",
@@ -14940,7 +14940,256 @@
       "countryCode": "dz",
       "unsplashId": "sZcGzjl9moU",
       "photographer": "Ali AOUF",
-      "photographerUrl": "https://unsplash.com/@40uf411"
+      "photographerUrl": "https://unsplash.com/@40uf411",
+      "unsplashId2": "X5BZugJDmYw",
+      "photographer2": "Azzedine Rouichi",
+      "photographerUrl2": "https://unsplash.com/@rouichi"
+    },
+    {
+      "slug": "constantine",
+      "city": "Constantine",
+      "country": "Algeria",
+      "countryCode": "dz",
+      "unsplashId": "byReQDHph88",
+      "photographer": "zenad nabil",
+      "photographerUrl": "https://unsplash.com/@zedlord",
+      "unsplashId2": "MFVjcYThYSs",
+      "photographer2": "zenad nabil",
+      "photographerUrl2": "https://unsplash.com/@zedlord"
+    },
+    {
+      "slug": "tlemcen",
+      "city": "Tlemcen",
+      "country": "Algeria",
+      "countryCode": "dz",
+      "unsplashId": "FlRrOkGxAck",
+      "photographer": "Tom Parkes",
+      "photographerUrl": "https://unsplash.com/@tomparkes"
+    },
+    {
+      "slug": "watamu",
+      "city": "Watamu",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "BwePRAUrP6I",
+      "photographer": "Timothy K",
+      "photographerUrl": "https://unsplash.com/@t_kiman",
+      "unsplashId2": "eK00bbGzp0g",
+      "photographer2": "Brian Kungu",
+      "photographerUrl2": "https://unsplash.com/@oldceltic"
+    },
+    {
+      "slug": "malindi",
+      "city": "Malindi",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "iwxEy9ZJ_KM",
+      "photographer": "Hammilton Ojijo",
+      "photographerUrl": "https://unsplash.com/@ojijohammilton",
+      "unsplashId2": "1CiE1x4dHIY",
+      "photographer2": "Timothy K",
+      "photographerUrl2": "https://unsplash.com/@t_kiman"
+    },
+    {
+      "slug": "tsavo",
+      "city": "Tsavo",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "9aIS6zFni5w",
+      "photographer": "Evans Dims",
+      "photographerUrl": "https://unsplash.com/@evans_dimsphoto",
+      "unsplashId2": "2KB7G8WD7CE",
+      "photographer2": "Giusi Borrasi",
+      "photographerUrl2": "https://unsplash.com/@giusiborrasi"
+    },
+    {
+      "slug": "samburu",
+      "city": "Samburu",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "icZkvTek6Dg",
+      "photographer": "Terry Granger",
+      "photographerUrl": "https://unsplash.com/@ukterryg",
+      "unsplashId2": "EbUpr5Qkln8",
+      "photographer2": "Polina Koroleva",
+      "photographerUrl2": "https://unsplash.com/@polinakoroleva"
+    },
+    {
+      "slug": "lake-nakuru",
+      "city": "Lake Nakuru",
+      "country": "Kenya",
+      "countryCode": "ke",
+      "unsplashId": "bNodeZTxd_w",
+      "photographer": "C Rayban",
+      "photographerUrl": "https://unsplash.com/@crayban",
+      "unsplashId2": "54x44AZRtHg",
+      "photographer2": "Carlos Torres",
+      "photographerUrl2": "https://unsplash.com/@elcarito"
+    },
+    {
+      "slug": "moshi",
+      "city": "Moshi",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "QkftoMBGJNU",
+      "photographer": "Twende Africa Tours",
+      "photographerUrl": "https://unsplash.com/@twendeafricatours",
+      "unsplashId2": "oLrY_JjulI0",
+      "photographer2": "Twende Africa Tours",
+      "photographerUrl2": "https://unsplash.com/@twendeafricatours"
+    },
+    {
+      "slug": "mafia-island",
+      "city": "Mafia Island",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "oQq2KYU_SAs",
+      "photographer": "Evans Dims",
+      "photographerUrl": "https://unsplash.com/@evans_dimsphoto"
+    },
+    {
+      "slug": "lake-manyara",
+      "city": "Lake Manyara",
+      "country": "Tanzania",
+      "countryCode": "tz",
+      "unsplashId": "oQq2KYU_SAs",
+      "photographer": "Evans Dims",
+      "photographerUrl": "https://unsplash.com/@evans_dimsphoto"
+    },
+    {
+      "slug": "musanze",
+      "city": "Musanze",
+      "country": "Rwanda",
+      "countryCode": "rw",
+      "unsplashId": "TIgOwsmKgo0",
+      "photographer": "Emmy Shingiro",
+      "photographerUrl": "https://unsplash.com/@eshingiro",
+      "unsplashId2": "UIrpPvLQ0A8",
+      "photographer2": "Dieuvain Musaghi",
+      "photographerUrl2": "https://unsplash.com/@ujuzi_brain243"
+    },
+    {
+      "slug": "nyungwe-forest",
+      "city": "Nyungwe Forest",
+      "country": "Rwanda",
+      "countryCode": "rw",
+      "unsplashId": "mLkzI_hYPpA",
+      "photographer": "Tobias Doering",
+      "photographerUrl": "https://unsplash.com/@doeringphotograpy",
+      "unsplashId2": "1ihYfuwRZds",
+      "photographer2": "Tobias Doering",
+      "photographerUrl2": "https://unsplash.com/@doeringphotograpy"
+    },
+    {
+      "slug": "queen-elizabeth-np",
+      "city": "Queen Elizabeth NP",
+      "country": "Uganda",
+      "countryCode": "ug",
+      "unsplashId": "ewBGsxuMv3Y",
+      "photographer": "Simone Dinoia",
+      "photographerUrl": "https://unsplash.com/@simonedna",
+      "unsplashId2": "Vd3UN7BFV08",
+      "photographer2": "Simone Dinoia",
+      "photographerUrl2": "https://unsplash.com/@simonedna"
+    },
+    {
+      "slug": "bahir-dar",
+      "city": "Bahir Dar",
+      "country": "Ethiopia",
+      "countryCode": "et",
+      "unsplashId": "Ra-R3rpRhVg",
+      "photographer": "E D",
+      "photographerUrl": "https://unsplash.com/@dbekele",
+      "unsplashId2": "gCF2M50Sa6w",
+      "photographer2": "Tewodros Getnet",
+      "photographerUrl2": "https://unsplash.com/@teddy_get"
+    },
+    {
+      "slug": "simien-mountains",
+      "city": "Simien Mountains",
+      "country": "Ethiopia",
+      "countryCode": "et",
+      "unsplashId": "F92lFDtC8fg",
+      "photographer": "Liz Martin",
+      "photographerUrl": "https://unsplash.com/@lmmartin09",
+      "unsplashId2": "NcWXR7Pgrrc",
+      "photographer2": "Daniele Levis Pelusi",
+      "photographerUrl2": "https://unsplash.com/@yogidan2012"
+    },
+    {
+      "slug": "pilanesburg",
+      "city": "Pilanesburg",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "T6oVsafaQfQ",
+      "photographer": "Kym Ellis",
+      "photographerUrl": "https://unsplash.com/@kymellis"
+    },
+    {
+      "slug": "drakensberg",
+      "city": "Drakensberg",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "IK4HeQqFQLA",
+      "photographer": "Dannii Coughlan",
+      "photographerUrl": "https://unsplash.com/@flightsofancee",
+      "unsplashId2": "gI3Ov1iWEHU",
+      "photographer2": "Dannii Coughlan",
+      "photographerUrl2": "https://unsplash.com/@flightsofancee"
+    },
+    {
+      "slug": "hluhluwe",
+      "city": "Hluhluwe",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "wkHsJN_AWXc",
+      "photographer": "Marina Zvada",
+      "photographerUrl": "https://unsplash.com/@zvada_photo",
+      "unsplashId2": "7mt_8UdSp5Q",
+      "photographer2": "Lilishia Gounder",
+      "photographerUrl2": "https://unsplash.com/@lilishia"
+    },
+    {
+      "slug": "addo-elephant-park",
+      "city": "Addo Elephant Park",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "b1yYkLG0obk",
+      "photographer": "Falco Negenman",
+      "photographerUrl": "https://unsplash.com/@f9lco",
+      "unsplashId2": "FPJASxNEte4",
+      "photographer2": "Chelsea Rutgers",
+      "photographerUrl2": "https://unsplash.com/@aeslehc"
+    },
+    {
+      "slug": "plettenberg-bay",
+      "city": "Plettenberg Bay",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "0uo2sYBpQyc",
+      "photographer": "Alexandra Nelson",
+      "photographerUrl": "https://unsplash.com/@alexandraellis",
+      "unsplashId2": "XaFcZv-W55M",
+      "photographer2": "Ranate Boni",
+      "photographerUrl2": "https://unsplash.com/@ranateboni007_"
+    },
+    {
+      "slug": "simon-s-town",
+      "city": "Simon's Town",
+      "country": "South Africa",
+      "countryCode": "za",
+      "unsplashId": "T6oVsafaQfQ",
+      "photographer": "Kym Ellis",
+      "photographerUrl": "https://unsplash.com/@kymellis"
+    },
+    {
+      "slug": "skeleton-coast",
+      "city": "Skeleton Coast",
+      "country": "Namibia",
+      "countryCode": "na",
+      "unsplashId": "N1VxHAZNIrI",
+      "photographer": "JP Desvigne",
+      "photographerUrl": "https://unsplash.com/@jpdvg"
     }
   ]
 }
