@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Sparkles } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
 import { regions, interestOptions } from "@/data/sampleData";
@@ -89,6 +89,53 @@ export default function PlanPage() {
   const prefetchRoute = usePrefetchRouteSelection();
   const fetchRoute = useFetchRouteSelection();
   const createTripMutation = useCreateTrip();
+
+  const [isListening, setIsListening] = useState(false);
+
+  const toggleVoice = useCallback(() => {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    type SpeechRecognitionCtor = new () => {
+      continuous: boolean;
+      interimResults: boolean;
+      lang: string;
+      onstart: (() => void) | null;
+      onend: (() => void) | null;
+      onerror: (() => void) | null;
+      onresult:
+        | ((event: { results: { [k: number]: { [k: number]: { transcript: string } } } }) => void)
+        | null;
+      start: () => void;
+    };
+    const SpeechRecognition: SpeechRecognitionCtor | undefined =
+      ((window as Record<string, unknown>)["SpeechRecognition"] as
+        | SpeechRecognitionCtor
+        | undefined) ||
+      ((window as Record<string, unknown>)["webkitSpeechRecognition"] as
+        | SpeechRecognitionCtor
+        | undefined);
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setTripDescription(
+        tripDescription.trim() ? `${tripDescription.trim()} ${transcript}` : transcript
+      );
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.start();
+  }, [isListening, tripDescription, setTripDescription]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clearError = (field: string) =>
@@ -502,14 +549,28 @@ export default function PlanPage() {
                       Any special requests?{" "}
                       <span className="text-muted-foreground font-normal">(optional)</span>
                     </label>
-                    <textarea
-                      value={tripDescription}
-                      onChange={(e) => setTripDescription(e.target.value)}
-                      placeholder="e.g. We love street food and slow mornings. Prefer off-the-beaten-path spots over tourist traps. One of us has a shellfish allergy."
-                      rows={4}
-                      maxLength={2000}
-                      className={`${inputClass} resize-none`}
-                    />
+                    <div className="relative">
+                      <textarea
+                        value={tripDescription}
+                        onChange={(e) => setTripDescription(e.target.value)}
+                        placeholder="e.g. We love street food and slow mornings. Prefer off-the-beaten-path spots over tourist traps. One of us has a shellfish allergy."
+                        rows={4}
+                        maxLength={2000}
+                        className={`${inputClass} resize-none pr-10`}
+                      />
+                      <button
+                        type="button"
+                        onClick={toggleVoice}
+                        className={`absolute right-2.5 bottom-2.5 rounded-full p-1.5 transition-all ${
+                          isListening
+                            ? "bg-accent animate-pulse text-white"
+                            : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        }`}
+                        title={isListening ? "Stop listening" : "Speak your request"}
+                      >
+                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </button>
+                    </div>
                     {tripDescription.length > 1800 && (
                       <p className="text-muted-foreground mt-1 text-right text-xs">
                         {2000 - tripDescription.length} characters remaining
