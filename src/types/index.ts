@@ -70,6 +70,31 @@ export interface VisaInfo {
   sourceLabel: string; // human-readable label for the source link
 }
 
+/** A hotel recommendation for a city */
+export interface CityHotel {
+  hotelId: string;
+  name: string;
+  city: string;
+  rating?: number; // star rating (1-5)
+  pricePerNight?: number;
+  totalPrice?: number;
+  currency: string;
+  address?: string;
+  distance?: string; // distance from city center
+  bookingUrl: string;
+  why: string; // AI-generated reason
+}
+
+/** Accommodation data for a city stop */
+export interface CityAccommodation {
+  city: string;
+  countryCode: string;
+  checkIn: string; // YYYY-MM-DD
+  checkOut: string; // YYYY-MM-DD
+  hotels: CityHotel[];
+  fallbackSearchUrl: string;
+}
+
 /** Weather data for a city */
 export interface CityWeather {
   city: string;
@@ -133,10 +158,14 @@ export interface Itinerary {
   visaData?: VisaInfo[];
   /** Populated by background enrichment after core itinerary is ready */
   weatherData?: CityWeather[];
+  /** Hotel accommodation data populated by background enrichment */
+  accommodationData?: CityAccommodation[];
   /** Real flight legs populated when Amadeus optimization succeeds */
   flightLegs?: ItineraryFlightLeg[];
   /** Average cost across all evaluated date combinations — used to show savings vs optimized cost */
   flightBaselineCost?: number;
+  /** Pre-fetched multi-result flight options per leg (up to 5 results each) */
+  flightOptions?: import("@/lib/flights/types").FlightLegResults[];
 }
 
 /** Profile data collected during onboarding */

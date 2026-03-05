@@ -21,6 +21,8 @@ export interface TripLayoutProps {
   weatherLoading: boolean;
   visaError: boolean;
   weatherError: boolean;
+  accommodationLoading: boolean;
+  accommodationError: boolean;
   generatingCityId: string | null;
   onGenerateActivities: (cityId: string, cityName: string) => void;
 }

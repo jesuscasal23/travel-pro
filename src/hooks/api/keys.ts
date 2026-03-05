@@ -12,6 +12,8 @@ export const queryKeys = {
       ["enrichment", "visa", nationality, routeKey] as const,
     weather: (routeKey: string, dateStart: string) =>
       ["enrichment", "weather", routeKey, dateStart] as const,
+    accommodation: (routeKey: string, dateStart: string, travelStyle: string) =>
+      ["enrichment", "accommodation", routeKey, dateStart, travelStyle] as const,
   },
   profile: {
     all: ["profile"] as const,

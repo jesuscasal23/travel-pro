@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "./keys";
 import { parseApiErrorResponse, reportApiError } from "@/lib/client/api-error-reporting";
-import type { VisaInfo, CityWeather, CityStop } from "@/types";
+import type { VisaInfo, CityWeather, CityStop, CityAccommodation, TravelStyle } from "@/types";
 
 interface RoutePayload {
   city: string;
@@ -113,6 +113,80 @@ export function useWeatherEnrichment(route: CityStop[], dateStart: string, enabl
     queryFn: () => fetchWeather(route, dateStart),
     enabled: enabled && route.length > 0 && !!dateStart,
     staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+}
+
+// ── Accommodation enrichment ────────────────────────────────
+async function fetchAccommodation(
+  route: CityStop[],
+  dateStart: string,
+  travelers: number,
+  travelStyle: TravelStyle
+): Promise<CityAccommodation[]> {
+  const endpoint = "/api/v1/enrich/accommodation";
+  const payload = {
+    route: route.map((r) => ({
+      id: r.id,
+      city: r.city,
+      country: r.country,
+      countryCode: r.countryCode,
+      lat: r.lat,
+      lng: r.lng,
+      days: r.days,
+      iataCode: r.iataCode,
+    })),
+    dateStart,
+    travelers,
+    travelStyle,
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    await reportApiError({
+      source: "useAccommodationEnrichment",
+      endpoint,
+      method: "POST",
+      message:
+        error instanceof Error ? error.message : "Network error while loading accommodation data",
+    });
+    throw new Error("Failed to load accommodation data");
+  }
+  if (!res.ok) {
+    const parsed = await parseApiErrorResponse(res, "Failed to load accommodation data");
+    await reportApiError({
+      source: "useAccommodationEnrichment",
+      endpoint,
+      method: "POST",
+      message: parsed.message,
+      status: parsed.status,
+      requestId: parsed.requestId,
+      responseBody: parsed.responseBody,
+    });
+    throw new Error(parsed.message);
+  }
+  const { accommodationData } = await res.json();
+  return accommodationData ?? [];
+}
+
+export function useAccommodationEnrichment(
+  route: CityStop[],
+  dateStart: string,
+  travelers: number,
+  travelStyle: TravelStyle,
+  enabled: boolean
+) {
+  return useQuery({
+    queryKey: queryKeys.enrichment.accommodation(routeKey(route), dateStart, travelStyle),
+    queryFn: () => fetchAccommodation(route, dateStart, travelers, travelStyle),
+    enabled: enabled && route.length > 0 && !!dateStart && travelers > 0,
+    staleTime: 30 * 60 * 1000, // 30 minutes
     retry: 1,
   });
 }

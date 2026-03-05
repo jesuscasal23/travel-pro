@@ -4,7 +4,8 @@
 // ============================================================
 
 import { Redis } from "@upstash/redis";
-import type { FlightOption } from "./types";
+import type { FlightOption, FlightSearchResult, FlightLegResults } from "./types";
+import { buildFlightLink } from "@/lib/affiliate/link-generator";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
 
@@ -24,7 +25,7 @@ function getRedis(): Redis | null {
   return _redis;
 }
 
-const AMADEUS_BASE =
+export const AMADEUS_BASE =
   process.env.AMADEUS_ENVIRONMENT === "production"
     ? "https://api.amadeus.com"
     : "https://test.api.amadeus.com";
@@ -34,10 +35,21 @@ type AmadeusTokenResponse = {
   expires_in: number;
 };
 
+type AmadeusSegment = {
+  departure: { iataCode: string; at: string };
+  arrival: { iataCode: string; at: string };
+};
+
 type AmadeusFlightOffer = {
-  price: { total: string };
-  itineraries: Array<{ duration: string }>;
+  price: { total: string; base?: string };
+  itineraries: Array<{
+    duration: string;
+    segments: AmadeusSegment[];
+  }>;
   validatingAirlineCodes: string[];
+  travelerPricings?: Array<{
+    fareDetailsBySegment?: Array<{ cabin?: string }>;
+  }>;
 };
 
 /** Parse ISO 8601 duration (PT12H30M) → human-readable ("12h 30m"). */
@@ -51,7 +63,7 @@ function parseDuration(iso: string): string {
 }
 
 /** Get a cached Amadeus OAuth2 bearer token. */
-async function getToken(): Promise<string> {
+export async function getToken(): Promise<string> {
   const redis = getRedis();
   if (redis) {
     const cached = await redis.get<string>("amadeus:token");
@@ -145,4 +157,113 @@ export async function searchFlights(
 
   if (redis) await redis.setex(cacheKey, 7200, option);
   return option;
+}
+
+/**
+ * Search for up to 5 flight options between two IATA codes on a given date.
+ * Returns [] when Amadeus is not configured, unavailable, or no flights found.
+ * Results are cached in Redis for 2 hours.
+ */
+export async function searchFlightsMulti(
+  origin: string,
+  destination: string,
+  date: string,
+  adults: number
+): Promise<FlightSearchResult[]> {
+  if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+    return [];
+  }
+
+  const redis = getRedis();
+  const cacheKey = `flights:multi:${origin}:${destination}:${date}:${adults}`;
+  if (redis) {
+    const cached = await redis.get<FlightSearchResult[]>(cacheKey);
+    if (cached) return cached;
+  }
+
+  let token: string;
+  try {
+    token = await getToken();
+  } catch (e) {
+    log.warn("Token fetch failed", { error: getErrorMessage(e) });
+    return [];
+  }
+
+  const params = new URLSearchParams({
+    originLocationCode: origin,
+    destinationLocationCode: destination,
+    departureDate: date,
+    adults: String(adults),
+    max: "5",
+    currencyCode: "EUR",
+  });
+
+  let res: Response;
+  try {
+    res = await fetch(`${AMADEUS_BASE}/v2/shopping/flight-offers?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (e) {
+    log.warn("Network error", { error: getErrorMessage(e) });
+    return [];
+  }
+
+  if (!res.ok) {
+    log.warn("Flight search failed", { origin, destination, date, status: res.status });
+    return [];
+  }
+
+  const body = (await res.json()) as { data?: AmadeusFlightOffer[] };
+  if (!body.data?.length) return [];
+
+  const results: FlightSearchResult[] = body.data.map((offer) => {
+    const itin = offer.itineraries[0];
+    const segments = itin?.segments ?? [];
+    const firstSeg = segments[0];
+    const lastSeg = segments[segments.length - 1];
+    const cabin = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin ?? "ECONOMY";
+
+    const bookingUrl = buildFlightLink(
+      { fromIata: origin, toIata: destination, departureDate: date },
+      adults
+    );
+
+    return {
+      price: parseFloat(offer.price.total),
+      duration: parseDuration(itin?.duration ?? ""),
+      airline: offer.validatingAirlineCodes[0] ?? "?",
+      stops: Math.max(0, segments.length - 1),
+      departureTime: firstSeg?.departure?.at ?? "",
+      arrivalTime: lastSeg?.arrival?.at ?? "",
+      cabin,
+      bookingUrl,
+    };
+  });
+
+  // Sort by price ascending
+  results.sort((a, b) => a.price - b.price);
+
+  if (redis) await redis.setex(cacheKey, 7200, results);
+  return results;
+}
+
+/**
+ * Pre-fetch flight options for all legs in parallel.
+ * Failed legs get empty results — never throws.
+ */
+export async function prefetchFlightOptions(
+  legs: Array<{ fromIata: string; toIata: string; departureDate: string }>,
+  travelers: number
+): Promise<FlightLegResults[]> {
+  const settled = await Promise.allSettled(
+    legs.map((leg) => searchFlightsMulti(leg.fromIata, leg.toIata, leg.departureDate, travelers))
+  );
+
+  return legs.map((leg, i) => ({
+    fromIata: leg.fromIata,
+    toIata: leg.toIata,
+    departureDate: leg.departureDate,
+    results: settled[i].status === "fulfilled" ? settled[i].value : [],
+    fetchedAt: Date.now(),
+  }));
 }

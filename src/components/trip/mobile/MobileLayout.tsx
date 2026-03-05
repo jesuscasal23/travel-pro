@@ -9,6 +9,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileJourneyTab } from "./MobileJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
 import { BudgetTab } from "../plan-view/BudgetTab";
+import { AccommodationTab } from "../plan-view/AccommodationTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import { EditModeBanner } from "../edit/EditModeBanner";
 import { EditToolbar } from "../edit/EditToolbar";
@@ -41,6 +42,8 @@ export function MobileLayout({
   weatherLoading,
   visaError,
   weatherError,
+  accommodationLoading,
+  accommodationError,
   generatingCityId,
   onGenerateActivities,
 }: TripLayoutProps) {
@@ -260,7 +263,16 @@ export function MobileLayout({
             />
           </div>
         )}
-        {activeTab === "accommodation" && <div className="px-4 py-4 pb-20" />}
+        {activeTab === "accommodation" && (
+          <div className="px-4 py-4 pb-20">
+            <AccommodationTab
+              itinerary={itinerary}
+              tripId={tripId}
+              accommodationLoading={accommodationLoading}
+              accommodationError={accommodationError}
+            />
+          </div>
+        )}
         {activeTab === "flights" && <div className="px-4 py-4 pb-20" />}
         {activeTab === "budget" && (
           <div className="px-4 py-4 pb-20">

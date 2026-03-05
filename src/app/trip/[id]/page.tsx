@@ -10,6 +10,7 @@ import {
   useCityActivityGeneration,
   useVisaEnrichment,
   useWeatherEnrichment,
+  useAccommodationEnrichment,
 } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
@@ -150,11 +151,20 @@ export default function TripPage({ params }: { params: Params }) {
   };
 
   // ── Background enrichment via React Query ──────────────────────────────────
+  const travelers = useTripStore((s) => s.travelers);
+
   const shouldEnrich = !!(
     itinerary &&
     itinerary.days.length > 0 &&
     itinerary.route.length > 0 &&
     !(itinerary.visaData?.length && itinerary.weatherData?.length)
+  );
+
+  const shouldEnrichAccommodation = !!(
+    itinerary &&
+    itinerary.days.length > 0 &&
+    itinerary.route.length > 0 &&
+    !itinerary.accommodationData?.length
   );
 
   const {
@@ -168,21 +178,35 @@ export default function TripPage({ params }: { params: Params }) {
     error: weatherError,
   } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
 
+  const {
+    data: accommodationData,
+    isLoading: accommodationLoading,
+    error: accommodationError,
+  } = useAccommodationEnrichment(
+    itinerary?.route ?? [],
+    dateStart,
+    travelers || 1,
+    travelStyle || "comfort",
+    shouldEnrichAccommodation
+  );
+
   // Sync enrichment results back to Zustand store
   useEffect(() => {
-    if (!visaData && !weatherData) return;
+    if (!visaData && !weatherData && !accommodationData) return;
     const current = useTripStore.getState().itinerary;
     if (!current || current.days.length === 0) return;
     const needsVisa = visaData && !current.visaData?.length;
     const needsWeather = weatherData && !current.weatherData?.length;
-    if (!needsVisa && !needsWeather) return;
+    const needsAccommodation = accommodationData && !current.accommodationData?.length;
+    if (!needsVisa && !needsWeather && !needsAccommodation) return;
     setItinerary({
       ...current,
       ...(needsVisa ? { visaData } : {}),
       ...(needsWeather ? { weatherData } : {}),
+      ...(needsAccommodation ? { accommodationData } : {}),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visaData, weatherData]);
+  }, [visaData, weatherData, accommodationData]);
 
   useEffect(() => {
     posthog?.capture("itinerary_viewed", { trip_id: id, city_count: route.length });
@@ -316,6 +340,8 @@ export default function TripPage({ params }: { params: Params }) {
     weatherLoading: weatherLoading && shouldEnrich,
     visaError: !!visaError,
     weatherError: !!weatherError,
+    accommodationLoading: accommodationLoading && shouldEnrichAccommodation,
+    accommodationError: !!accommodationError,
     generatingCityId,
     onGenerateActivities: handleGenerateActivities,
   };

@@ -13,7 +13,11 @@ export {
 } from "./useRouteSelection";
 
 // Enrichment
-export { useVisaEnrichment, useWeatherEnrichment } from "./useEnrichment";
+export {
+  useVisaEnrichment,
+  useWeatherEnrichment,
+  useAccommodationEnrichment,
+} from "./useEnrichment";
 
 // Profile
 export { useSaveProfile, useExportData, useDeleteAccount } from "./useProfile";

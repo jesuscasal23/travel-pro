@@ -189,6 +189,8 @@ describe("MobileLayout", () => {
         weatherLoading={false}
         visaError={false}
         weatherError={false}
+        accommodationLoading={false}
+        accommodationError={false}
         generatingCityId={null}
         onGenerateActivities={vi.fn()}
       />
@@ -235,6 +237,8 @@ describe("MobileLayout", () => {
         weatherLoading={false}
         visaError={false}
         weatherError={false}
+        accommodationLoading={false}
+        accommodationError={false}
         generatingCityId={null}
         onGenerateActivities={vi.fn()}
       />

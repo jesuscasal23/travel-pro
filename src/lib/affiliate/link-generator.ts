@@ -25,7 +25,7 @@ export function buildFlightLink(leg: FlightLeg, travelers: number): string {
 }
 
 /** Build a Booking.com hotel search link for a city stay. */
-function buildHotelLink(
+export function buildHotelLink(
   city: CityStop & { arrivalDate: string; departureDate: string },
   travelers: number
 ): string {

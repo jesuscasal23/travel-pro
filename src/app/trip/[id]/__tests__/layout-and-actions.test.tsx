@@ -42,6 +42,7 @@ vi.mock("@/hooks/api", () => ({
   useCityActivityGeneration: () => mocks.cityActivityGeneration,
   useVisaEnrichment: () => ({ data: undefined, isLoading: false, error: null }),
   useWeatherEnrichment: () => ({ data: undefined, isLoading: false, error: null }),
+  useAccommodationEnrichment: () => ({ data: undefined, isLoading: false, error: null }),
 }));
 
 vi.mock("@/stores/useTripStore", () => {

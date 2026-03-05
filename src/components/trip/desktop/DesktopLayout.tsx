@@ -11,6 +11,7 @@ import { DesktopTabBar } from "./DesktopTabBar";
 import { DesktopJourneyTab } from "./DesktopJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
 import { BudgetTab } from "../plan-view/BudgetTab";
+import { AccommodationTab } from "../plan-view/AccommodationTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import { EditModeBanner } from "../edit/EditModeBanner";
 import { EditToolbar } from "../edit/EditToolbar";
@@ -52,6 +53,8 @@ export function DesktopLayout({
   weatherLoading,
   visaError,
   weatherError,
+  accommodationLoading,
+  accommodationError,
   activeCityIndex,
   onCityClick,
   generatingCityId,
@@ -329,7 +332,16 @@ export function DesktopLayout({
                 </div>
               </div>
             )}
-            {activeTab === "accommodation" && <div className="mx-auto max-w-240 px-4 py-6" />}
+            {activeTab === "accommodation" && (
+              <div className="mx-auto max-w-240 px-4 py-6">
+                <AccommodationTab
+                  itinerary={itinerary}
+                  tripId={tripId}
+                  accommodationLoading={accommodationLoading}
+                  accommodationError={accommodationError}
+                />
+              </div>
+            )}
             {activeTab === "flights" && <div className="mx-auto max-w-240 px-4 py-6" />}
             {activeTab === "budget" && (
               <div className="mx-auto max-w-240 px-4 py-6">
