@@ -224,7 +224,7 @@ export async function searchFlightsMulti(
     destinationLocationCode: destination,
     departureDate: date,
     adults: String(adults),
-    max: "5",
+    max: "10",
     currencyCode: "EUR",
   });
 

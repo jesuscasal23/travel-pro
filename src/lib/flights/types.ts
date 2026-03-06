@@ -51,7 +51,7 @@ export interface FlightLegResults {
   fromIata: string;
   toIata: string;
   departureDate: string;
-  results: FlightSearchResult[]; // up to 5, price-sorted
+  results: FlightSearchResult[]; // up to 10, price-sorted
   fetchedAt: number; // epoch ms
 }
 

@@ -48,6 +48,9 @@ const baseLeg: FlightLegResults = {
     makeResult({ price: 450, airline: "LH", stops: 0, duration: "12h 30m" }),
     makeResult({ price: 500, airline: "BA", stops: 1, duration: "15h" }),
     makeResult({ price: 550, airline: "EK", stops: 1, duration: "18h" }),
+    makeResult({ price: 600, airline: "QR", stops: 1, duration: "17h" }),
+    makeResult({ price: 650, airline: "SQ", stops: 0, duration: "13h" }),
+    makeResult({ price: 700, airline: "JL", stops: 0, duration: "11h 45m" }),
   ],
   fetchedAt: Date.now(),
 };
@@ -70,32 +73,31 @@ describe("FlightOptionsPanel", () => {
     expect(screen.getByText(/2026-06-01/)).toBeInTheDocument();
   });
 
-  it("shows first 3 results by default", () => {
+  it("shows first 5 results by default", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
-
-    // Should see 3 airline codes
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(3);
-  });
-
-  it("expands to show all results when clicking 'Show more'", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
-
-    const showMore = screen.getByText(/Show 2 more/);
-    fireEvent.click(showMore);
 
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(5);
   });
 
+  it("expands to show all results when clicking 'Show more'", () => {
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+
+    const showMore = screen.getByText(/Show 3 more/);
+    fireEvent.click(showMore);
+
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(8);
+  });
+
   it("collapses back when clicking 'Show less'", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    fireEvent.click(screen.getByText(/Show 2 more/));
+    fireEvent.click(screen.getByText(/Show 3 more/));
     fireEvent.click(screen.getByText(/Show less/));
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(5);
   });
 
   it("toggles sort between price and duration", () => {
@@ -109,9 +111,9 @@ describe("FlightOptionsPanel", () => {
     // Click duration sort
     fireEvent.click(screen.getByText("Duration"));
 
-    // LH (12h 30m) should now be first (shortest duration)
+    // JL (11h 45m) should now be first (shortest duration)
     const firstAfterSort = screen.getAllByRole("link")[0];
-    expect(firstAfterSort).toHaveTextContent("LH");
+    expect(firstAfterSort).toHaveTextContent("JL");
   });
 
   it("shows Skyscanner fallback when no results", () => {
@@ -186,10 +188,10 @@ describe("FlightOptionsPanel", () => {
     expect(screen.getByText("2 stops")).toBeInTheDocument();
   });
 
-  it("does not show 'Show more' when 3 or fewer results", () => {
+  it("does not show 'Show more' when 5 or fewer results", () => {
     const shortLeg: FlightLegResults = {
       ...baseLeg,
-      results: baseLeg.results.slice(0, 2),
+      results: baseLeg.results.slice(0, 4),
     };
 
     render(<FlightOptionsPanel leg={shortLeg} tripId="trip-1" travelers={2} />);
@@ -210,5 +212,64 @@ describe("FlightOptionsPanel", () => {
     const link = screen.getByRole("link");
     expect(link.getAttribute("href")).toContain("/api/v1/affiliate/redirect");
     expect(link.getAttribute("target")).toBe("_blank");
+  });
+
+  it("filters by nonstop when stops filter is selected", () => {
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+
+    // Open filters
+    fireEvent.click(screen.getByText("Filters"));
+
+    // Click Nonstop filter button (inside the filter panel, not the flight labels)
+    const filterButtons = screen.getAllByRole("button");
+    const nonstopBtn = filterButtons.find(
+      (btn) => btn.textContent === "Nonstop" && btn.className.includes("rounded-full")
+    )!;
+    fireEvent.click(nonstopBtn);
+
+    // Only nonstop flights should be visible (LH, SQ, JL)
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(3);
+  });
+
+  it("shows 'no matches' message when all results are filtered out", () => {
+    const stopsOnlyLeg: FlightLegResults = {
+      ...baseLeg,
+      results: [makeResult({ stops: 2 }), makeResult({ stops: 3, price: 800 })],
+    };
+
+    render(<FlightOptionsPanel leg={stopsOnlyLeg} tripId="trip-1" travelers={2} />);
+
+    fireEvent.click(screen.getByText("Filters"));
+
+    const filterButtons = screen.getAllByRole("button");
+    const nonstopBtn = filterButtons.find(
+      (btn) => btn.textContent === "Nonstop" && btn.className.includes("rounded-full")
+    )!;
+    fireEvent.click(nonstopBtn);
+
+    expect(screen.getByText("No flights match your filters")).toBeInTheDocument();
+    expect(screen.getByText("Clear all filters")).toBeInTheDocument();
+  });
+
+  it("clears filters when 'Clear filters' is clicked", () => {
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+
+    fireEvent.click(screen.getByText("Filters"));
+
+    const filterButtons = screen.getAllByRole("button");
+    const nonstopBtn = filterButtons.find(
+      (btn) => btn.textContent === "Nonstop" && btn.className.includes("rounded-full")
+    )!;
+    fireEvent.click(nonstopBtn);
+
+    // Only 3 nonstop results
+    expect(screen.getAllByRole("link")).toHaveLength(3);
+
+    // Clear
+    fireEvent.click(screen.getByText("Clear filters"));
+
+    // Back to 5 (default visible)
+    expect(screen.getAllByRole("link")).toHaveLength(5);
   });
 });
