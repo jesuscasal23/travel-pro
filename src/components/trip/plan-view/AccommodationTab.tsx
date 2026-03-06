@@ -350,6 +350,7 @@ export function AccommodationTab({
           </motion.div>
         ))}
       </div>
+      <ManualFetchButton itinerary={itinerary} />
     </div>
   );
 }
