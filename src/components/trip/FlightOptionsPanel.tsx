@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ChevronDown, ChevronUp, Search, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, ExternalLink, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useFlightSearch } from "@/hooks/useFlightSearch";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
@@ -124,8 +124,9 @@ export function FlightOptionsPanel({
     void search(leg.fromIata, leg.toIata, leg.departureDate, travelers);
   };
 
-  // No results at all — show Skyscanner CTA
+  // No results at all — show appropriate message + Skyscanner CTA
   if (displayResults.length === 0 && !loading) {
+    const liveSearchDone = liveFetchedAt !== null;
     const fallbackUrl = buildTrackedLink({
       provider: "skyscanner",
       type: "flight",
@@ -138,6 +139,16 @@ export function FlightOptionsPanel({
         <div className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
           {leg.fromIata} → {leg.toIata} · {leg.departureDate}
         </div>
+        {liveSearchDone && (
+          <div className="border-border bg-background mb-3 rounded-lg border p-3">
+            <p className="text-foreground text-sm font-medium">No flights found for this route</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              The flight search service didn&apos;t return any results for this leg. This can happen
+              when the route isn&apos;t covered or the API is not configured. Try searching on
+              Skyscanner instead.
+            </p>
+          </div>
+        )}
         <a
           href={fallbackUrl}
           target="_blank"
@@ -150,12 +161,14 @@ export function FlightOptionsPanel({
             Skyscanner →
           </div>
         </a>
-        <div className="mt-2 flex justify-center">
-          <Button variant="ghost" size="sm" onClick={handleLiveSearch} loading={loading}>
-            <Search className="mr-1.5 h-3.5 w-3.5" />
-            Search live options
-          </Button>
-        </div>
+        {!liveSearchDone && (
+          <div className="mt-2 flex justify-center">
+            <Button variant="ghost" size="sm" onClick={handleLiveSearch} loading={loading}>
+              <Search className="mr-1.5 h-3.5 w-3.5" />
+              Search live options
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -205,7 +218,15 @@ export function FlightOptionsPanel({
         </div>
       )}
 
-      {error && <p className="text-destructive mt-2 text-xs">{error}</p>}
+      {error && (
+        <div className="border-border bg-background mt-3 flex items-start gap-2.5 rounded-lg border p-3">
+          <AlertTriangle className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
+          <div>
+            <p className="text-foreground text-sm font-medium">Flight search failed</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Footer controls */}
       <div className="mt-3 flex items-center justify-between">
