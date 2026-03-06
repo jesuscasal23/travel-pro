@@ -9,6 +9,7 @@ import { BackLink, Button, Skeleton } from "@/components/ui";
 import { PDFDownloadButton } from "@/components/export/PDFDownloadButton";
 import { useItinerary } from "@/hooks/useItinerary";
 import { buildFlightLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
+import { FlightOptionsPanel } from "@/components/trip/FlightOptionsPanel";
 import { getTripTitle, getUniqueCountries } from "@/lib/utils/trip-metadata";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { ShareModal } from "@/components/trip/ShareModal";
@@ -50,7 +51,8 @@ export default function SummaryPage({ params }: { params: Params }) {
     return <TripNotFound />;
   }
 
-  const { route, days, visaData, weatherData, flightLegs, flightBaselineCost } = itinerary;
+  const { route, days, visaData, weatherData, flightLegs, flightBaselineCost, flightOptions } =
+    itinerary;
 
   // Savings from date optimisation
   const flightTotal = flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
@@ -327,7 +329,7 @@ export default function SummaryPage({ params }: { params: Params }) {
           )}
         </motion.div>
 
-        {/* Flight Legs — real prices when optimization ran, generic link otherwise */}
+        {/* Flight Legs — multi-result panels, optimized legs, or generic link */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -342,7 +344,11 @@ export default function SummaryPage({ params }: { params: Params }) {
                   Saved ~€{savedAmount.toLocaleString()}
                 </span>
               )}
-              {flightLegs ? (
+              {flightOptions ? (
+                <span className="text-primary bg-primary/10 rounded-full px-2 py-0.5 text-xs font-medium">
+                  Compare options
+                </span>
+              ) : flightLegs ? (
                 <span className="text-primary bg-primary/10 rounded-full px-2 py-0.5 text-xs font-medium">
                   Optimized prices
                 </span>
@@ -360,7 +366,19 @@ export default function SummaryPage({ params }: { params: Params }) {
             </p>
           )}
 
-          {flightLegs ? (
+          {flightOptions ? (
+            <div className="space-y-4">
+              {flightOptions.map((leg, i) => (
+                <FlightOptionsPanel
+                  key={`${leg.fromIata}-${leg.toIata}-${i}`}
+                  leg={leg}
+                  tripId={id}
+                  travelers={travelers ?? 1}
+                  itineraryId={id}
+                />
+              ))}
+            </div>
+          ) : flightLegs ? (
             <div className="space-y-2">
               {flightLegs.map((leg, i) => {
                 const skyscannerUrl = buildFlightLink(

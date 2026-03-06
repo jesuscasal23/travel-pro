@@ -88,7 +88,7 @@ const modeIcons = {
 };
 
 export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
-  const { route, days, visaData, weatherData, flightLegs } = itinerary;
+  const { route, days, visaData, weatherData, flightLegs, flightOptions } = itinerary;
 
   const countries = [...new Set(route.map((r) => r.country))];
   const totalDays = days.length;
@@ -150,6 +150,11 @@ export function PlanSidebar({ itinerary, homeAirport }: PlanSidebarProps) {
                   <span className="text-muted-foreground ml-auto">{leg.duration}</span>
                 )}
                 {leg.cost && <span className="ml-1 font-semibold">{leg.cost}</span>}
+                {!leg.cost && flightOptions?.[i]?.results?.[0] && (
+                  <span className="text-primary ml-auto text-[10px] font-semibold">
+                    From €{Math.round(flightOptions[i].results[0].price).toLocaleString()}
+                  </span>
+                )}
               </div>
             );
           })}

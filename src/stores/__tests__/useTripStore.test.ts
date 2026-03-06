@@ -167,7 +167,7 @@ describe("useTripStore", () => {
     });
 
     const state = useTripStore.getState();
-    expect(state.tripType).toBe("multi-city");
+    expect(state.tripType).toBe("single-city");
     expect(state.tripDescription).toBe("");
     expect(state.region).toBe("");
     expect(state.destination).toBe("");

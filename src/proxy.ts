@@ -65,6 +65,11 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     limitKey = `rl:route-select:${ip}`;
     limit = 10;
     windowSeconds = 60;
+  } else if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/flights$/)) {
+    // On-demand flight search: 20 per minute per IP
+    limitKey = `rl:flights:${ip}`;
+    limit = 20;
+    windowSeconds = 60;
   } else if (pathname.startsWith("/api/v1/trips/shared/")) {
     // Public share views: 60 per minute
     limitKey = `rl:shared:${ip}`;

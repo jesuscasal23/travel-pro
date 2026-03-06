@@ -69,9 +69,20 @@ export function AccommodationTab({
         <div className="flex items-center gap-2">
           <Hotel className="text-primary h-5 w-5" />
           <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
-          <span className="text-accent inline-flex items-center gap-1.5 text-xs">
-            <AlertTriangle className="h-3 w-3" /> Unavailable
-          </span>
+        </div>
+        <div className="card-travel space-y-3 p-5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="text-accent mt-0.5 h-5 w-5 flex-shrink-0" />
+            <div className="space-y-1">
+              <p className="text-foreground text-sm font-medium">
+                Could not load hotel recommendations
+              </p>
+              <p className="text-muted-foreground text-xs leading-relaxed">
+                The hotel search service returned an error. This can happen when the Amadeus API is
+                unavailable or not configured. You can still browse options using the links below.
+              </p>
+            </div>
+          </div>
         </div>
         <FallbackCards route={route} accommodationData={accommodationData} />
       </div>
@@ -79,12 +90,45 @@ export function AccommodationTab({
   }
 
   if (!accommodationData || accommodationData.length === 0) {
+    const hasNoHotels = accommodationData && accommodationData.every((a) => a.hotels.length === 0);
+
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Hotel className="text-primary h-5 w-5" />
           <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
         </div>
+
+        {hasNoHotels ? (
+          <div className="card-travel space-y-3 p-5">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="text-accent mt-0.5 h-5 w-5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-foreground text-sm font-medium">
+                  Hotel search is currently unavailable
+                </p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Live hotel prices and recommendations require the Amadeus API. You can still
+                  browse options using the links below.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="card-travel space-y-3 p-5">
+            <div className="flex items-start gap-3">
+              <Search className="text-muted-foreground mt-0.5 h-5 w-5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-foreground text-sm font-medium">No hotel data yet</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Accommodation suggestions will appear once your itinerary is fully generated. In
+                  the meantime, you can search manually below.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <FallbackCards route={route} accommodationData={accommodationData} />
       </div>
     );

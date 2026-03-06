@@ -13,8 +13,11 @@ import {
   activateGeneratedItinerary,
   markGenerationFailed,
 } from "@/lib/services/itinerary-service";
-import type { UserProfile } from "@/types";
+import type { UserProfile, Itinerary, CityStop } from "@/types";
 import { createLogger } from "@/lib/logger";
+import { prefetchFlightOptions } from "@/lib/flights/amadeus";
+import { parseIataCode } from "@/lib/affiliate/link-generator";
+import { lookupIata } from "@/lib/flights/city-iata-map";
 
 const log = createLogger("api/v1/trips/generate");
 
@@ -35,7 +38,6 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
   const trip = await prisma.trip.findUnique({ where: { id: params.id } });
   if (!trip) throw new ApiError(404, "Trip not found");
 
-  const isSingleCity = trip.tripType === "single-city";
   const intent = tripToIntent(trip);
 
   // Create itinerary record in "generating" state
@@ -57,7 +59,34 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
         send({ stage: "route", message: "Planning your route...", pct: 20 });
 
         // Run route-only generation (no activities, no enrichment)
-        const itinerary = await generateRouteOnly(profile as UserProfile, intent, cities);
+        const itinerary: Itinerary = await generateRouteOnly(
+          profile as UserProfile,
+          intent,
+          cities
+        );
+
+        // Best-effort flight pre-fetch (8s timeout, never blocks itinerary delivery)
+        try {
+          const homeIata = parseIataCode(profile.homeAirport);
+          const legs = buildLegsFromRoute(itinerary.route, trip.dateStart, trip.dateEnd, homeIata);
+
+          if (legs.length > 0) {
+            send({ stage: "flights", message: "Searching flights...", pct: 70 });
+
+            const flightOptions = await Promise.race([
+              prefetchFlightOptions(legs, trip.travelers),
+              sleep(8000).then(() => null),
+            ]);
+
+            if (flightOptions && flightOptions.some((l) => l.results.length > 0)) {
+              itinerary.flightOptions = flightOptions;
+            }
+          }
+        } catch (e) {
+          log.warn("Flight pre-fetch failed (non-blocking)", {
+            error: e instanceof Error ? e.message : String(e),
+          });
+        }
 
         // Save + activate in one atomic transaction
         await activateGeneratedItinerary(itineraryId, params.id, itinerary);
@@ -94,4 +123,50 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Build flight legs from route + trip dates for pre-fetching. */
+function buildLegsFromRoute(
+  route: CityStop[],
+  dateStart: string,
+  dateEnd: string,
+  homeIata: string
+): Array<{ fromIata: string; toIata: string; departureDate: string }> {
+  const legs: Array<{ fromIata: string; toIata: string; departureDate: string }> = [];
+
+  const resolveIata = (stop: CityStop): string | undefined =>
+    stop.iataCode ?? lookupIata(stop.city);
+
+  if (route.length === 0) return legs;
+
+  // Home → first city
+  const firstIata = resolveIata(route[0]);
+  if (homeIata && firstIata) {
+    legs.push({ fromIata: homeIata, toIata: firstIata, departureDate: dateStart });
+  }
+
+  // Inter-city legs: accumulate days to compute departure dates
+  let dayOffset = 0;
+  for (let i = 0; i < route.length - 1; i++) {
+    dayOffset += route[i].days;
+    const fromIata = resolveIata(route[i]);
+    const toIata = resolveIata(route[i + 1]);
+    if (fromIata && toIata) {
+      const d = new Date(dateStart);
+      d.setDate(d.getDate() + dayOffset);
+      legs.push({
+        fromIata,
+        toIata,
+        departureDate: d.toISOString().slice(0, 10),
+      });
+    }
+  }
+
+  // Last city → home
+  const lastIata = resolveIata(route[route.length - 1]);
+  if (homeIata && lastIata) {
+    legs.push({ fromIata: lastIata, toIata: homeIata, departureDate: dateEnd });
+  }
+
+  return legs;
 }

@@ -10,6 +10,7 @@ import { MobileJourneyTab } from "./MobileJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
 import { BudgetTab } from "../plan-view/BudgetTab";
 import { AccommodationTab } from "../plan-view/AccommodationTab";
+import { FlightsTab } from "../plan-view/FlightsTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import { EditModeBanner } from "../edit/EditModeBanner";
 import { EditToolbar } from "../edit/EditToolbar";
@@ -273,7 +274,11 @@ export function MobileLayout({
             />
           </div>
         )}
-        {activeTab === "flights" && <div className="px-4 py-4 pb-20" />}
+        {activeTab === "flights" && (
+          <div className="px-4 py-4 pb-20">
+            <FlightsTab itinerary={itinerary} tripId={tripId} />
+          </div>
+        )}
         {activeTab === "budget" && (
           <div className="px-4 py-4 pb-20">
             <BudgetTab itinerary={itinerary} tripId={tripId} />

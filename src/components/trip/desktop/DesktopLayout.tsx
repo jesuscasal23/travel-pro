@@ -12,6 +12,7 @@ import { DesktopJourneyTab } from "./DesktopJourneyTab";
 import { EssentialsTab } from "../plan-view/EssentialsTab";
 import { BudgetTab } from "../plan-view/BudgetTab";
 import { AccommodationTab } from "../plan-view/AccommodationTab";
+import { FlightsTab } from "../plan-view/FlightsTab";
 import { ItinerarySkeletonTab } from "../SkeletonTabs";
 import { EditModeBanner } from "../edit/EditModeBanner";
 import { EditToolbar } from "../edit/EditToolbar";
@@ -342,7 +343,11 @@ export function DesktopLayout({
                 />
               </div>
             )}
-            {activeTab === "flights" && <div className="mx-auto max-w-240 px-4 py-6" />}
+            {activeTab === "flights" && (
+              <div className="mx-auto max-w-240 px-4 py-6">
+                <FlightsTab itinerary={itinerary} tripId={tripId} />
+              </div>
+            )}
             {activeTab === "budget" && (
               <div className="mx-auto max-w-240 px-4 py-6">
                 <BudgetTab itinerary={itinerary} tripId={tripId} />

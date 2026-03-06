@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { ProfileInputSchema, TripIntentInputSchema, CityWithDaysInputSchema } from "../schemas";
+import {
+  ProfileInputSchema,
+  TripIntentInputSchema,
+  CityWithDaysInputSchema,
+  FlightSearchInputSchema,
+} from "../schemas";
 
 // ── ProfileInputSchema ───────────────────────────────────────
 
@@ -83,7 +88,7 @@ describe("TripIntentInputSchema", () => {
   });
 
   it("defaults tripType to multi-city", () => {
-    const { tripType: _tripType, ...rest } = validMultiCity;
+    const { tripType: _unused, ...rest } = validMultiCity;
     const result = TripIntentInputSchema.safeParse(rest);
     expect(result.success).toBe(true);
     if (result.success) {
@@ -140,7 +145,7 @@ describe("CityWithDaysInputSchema", () => {
   });
 
   it("rejects missing required fields", () => {
-    const { city, ...rest } = valid;
+    const { city: _unused, ...rest } = valid;
     const result = CityWithDaysInputSchema.safeParse(rest);
     expect(result.success).toBe(false);
   });
@@ -148,5 +153,66 @@ describe("CityWithDaysInputSchema", () => {
   it("rejects string where number expected", () => {
     const result = CityWithDaysInputSchema.safeParse({ ...valid, lat: "35.68" });
     expect(result.success).toBe(false);
+  });
+});
+
+// ── FlightSearchInputSchema ────────────────────────────────
+
+describe("FlightSearchInputSchema", () => {
+  const valid = {
+    fromIata: "CDG",
+    toIata: "NRT",
+    departureDate: "2026-06-01",
+    travelers: 2,
+  };
+
+  it("accepts valid flight search input", () => {
+    const result = FlightSearchInputSchema.safeParse(valid);
+    expect(result.success).toBe(true);
+  });
+
+  it("uppercases IATA codes", () => {
+    const result = FlightSearchInputSchema.safeParse({ ...valid, fromIata: "cdg", toIata: "nrt" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.fromIata).toBe("CDG");
+      expect(result.data.toIata).toBe("NRT");
+    }
+  });
+
+  it("rejects IATA codes that are not exactly 3 characters", () => {
+    expect(FlightSearchInputSchema.safeParse({ ...valid, fromIata: "AB" }).success).toBe(false);
+    expect(FlightSearchInputSchema.safeParse({ ...valid, fromIata: "ABCD" }).success).toBe(false);
+  });
+
+  it("rejects invalid date format", () => {
+    expect(
+      FlightSearchInputSchema.safeParse({ ...valid, departureDate: "01-06-2026" }).success
+    ).toBe(false);
+    expect(
+      FlightSearchInputSchema.safeParse({ ...valid, departureDate: "2026/06/01" }).success
+    ).toBe(false);
+    expect(FlightSearchInputSchema.safeParse({ ...valid, departureDate: "20260601" }).success).toBe(
+      false
+    );
+  });
+
+  it("accepts valid YYYY-MM-DD date", () => {
+    const result = FlightSearchInputSchema.safeParse({ ...valid, departureDate: "2026-12-31" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects travelers outside 1-20 range", () => {
+    expect(FlightSearchInputSchema.safeParse({ ...valid, travelers: 0 }).success).toBe(false);
+    expect(FlightSearchInputSchema.safeParse({ ...valid, travelers: 21 }).success).toBe(false);
+  });
+
+  it("rejects non-integer travelers", () => {
+    expect(FlightSearchInputSchema.safeParse({ ...valid, travelers: 1.5 }).success).toBe(false);
+  });
+
+  it("rejects missing fields", () => {
+    expect(FlightSearchInputSchema.safeParse({ fromIata: "CDG" }).success).toBe(false);
+    expect(FlightSearchInputSchema.safeParse({}).success).toBe(false);
   });
 });

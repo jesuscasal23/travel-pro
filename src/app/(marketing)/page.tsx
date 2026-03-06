@@ -131,12 +131,7 @@ export default function LandingPage() {
             className="text-foreground text-4xl leading-tight font-bold tracking-tight sm:text-6xl lg:text-7xl"
           >
             Plan your{" "}
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: "linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)",
-              }}
-            >
+            <span className="to-accent bg-gradient-to-br from-[hsl(181_80%_35%)] bg-clip-text text-transparent dark:from-[hsl(181_80%_50%)] dark:to-[hsl(7_78%_65%)]">
               dream trip
             </span>{" "}
             in minutes, not weeks

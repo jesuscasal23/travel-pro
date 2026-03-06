@@ -140,7 +140,7 @@ export default function PlanPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clearError = (field: string) =>
     setErrors((prev) => {
-      const { [field]: _, ...rest } = prev;
+      const { [field]: _removed, ...rest } = prev;
       return rest;
     });
 
@@ -433,6 +433,7 @@ export default function PlanPage() {
     setIsGenerating,
     setCurrentTripId,
     setItinerary,
+    pace,
     citiesToRoute,
     singleCityRoute,
     buildPartialItinerary,
@@ -673,7 +674,7 @@ export default function PlanPage() {
                       />
                     </FormField>
                   ) : (
-                    <div className="mb-6 space-y-3">
+                    <div className="mb-6 grid grid-cols-2 gap-2">
                       {regions.map((r) => (
                         <SelectionCard
                           key={r.id}
@@ -682,15 +683,18 @@ export default function PlanPage() {
                             setRegion(r.id);
                             clearError("region");
                           }}
+                          className="!p-3"
                         >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-foreground font-semibold">{r.name}</div>
-                              <div className="text-muted-foreground mt-0.5 text-sm">
-                                {r.countries}
-                              </div>
-                            </div>
-                            {r.popular && <Badge variant="info">Popular</Badge>}
+                          <div className="flex items-start justify-between gap-1">
+                            <div className="text-foreground text-sm font-semibold">{r.name}</div>
+                            {r.popular && (
+                              <Badge variant="info" className="shrink-0 text-[10px]">
+                                Popular
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-muted-foreground mt-0.5 text-xs leading-snug">
+                            {r.countries}
                           </div>
                         </SelectionCard>
                       ))}

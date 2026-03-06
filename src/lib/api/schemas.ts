@@ -62,6 +62,14 @@ export const CityWithDaysInputSchema = z.object({
   maxDays: z.number(),
 });
 
+/** Zod schema for on-demand flight search requests. */
+export const FlightSearchInputSchema = z.object({
+  fromIata: z.string().length(3).toUpperCase(),
+  toIata: z.string().length(3).toUpperCase(),
+  departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD"),
+  travelers: z.number().int().min(1).max(20),
+});
+
 // ── Form Schemas ─────────────────────────────────────────────
 // Used by page components (onboarding, plan, profile) for
 // client-side and server-side form validation.

@@ -34,6 +34,27 @@ export interface OptimizedLeg {
   airline: string;
 }
 
+/** A single flight search result with booking details */
+export interface FlightSearchResult {
+  price: number; // EUR total
+  duration: string; // "12h 30m"
+  airline: string; // IATA carrier code
+  stops: number; // 0 = nonstop
+  departureTime: string; // ISO 8601
+  arrivalTime: string; // ISO 8601
+  cabin: string; // "ECONOMY" etc.
+  bookingUrl: string; // Skyscanner deep link
+}
+
+/** Multiple flight results for a single leg */
+export interface FlightLegResults {
+  fromIata: string;
+  toIata: string;
+  departureDate: string;
+  results: FlightSearchResult[]; // up to 5, price-sorted
+  fetchedAt: number; // epoch ms
+}
+
 /** Complete optimized flight skeleton for the whole trip */
 export interface FlightSkeleton {
   homeIata: string;

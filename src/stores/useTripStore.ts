@@ -76,7 +76,7 @@ interface TripStoreActions {
 
 const initialPlanState = {
   planStep: 1,
-  tripType: "multi-city" as TripType,
+  tripType: "single-city" as TripType,
   tripDescription: "",
   region: "",
   destination: "",
