@@ -6,6 +6,8 @@ import type { MobileTab } from "../types";
 interface MobileBottomNavProps {
   activeTab: MobileTab;
   onTabChange: (tab: MobileTab) => void;
+  loadingTabs?: MobileTab[];
+  readyTabs?: MobileTab[];
 }
 
 const TABS: { id: MobileTab; emoji: string; label: string }[] = [
@@ -16,7 +18,12 @@ const TABS: { id: MobileTab; emoji: string; label: string }[] = [
   { id: "budget", emoji: "💰", label: "Budget" },
 ];
 
-export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps) {
+export function MobileBottomNav({
+  activeTab,
+  onTabChange,
+  loadingTabs = [],
+  readyTabs = [],
+}: MobileBottomNavProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleKeyDown = useCallback(
@@ -46,6 +53,8 @@ export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
+          const isLoading = loadingTabs.includes(tab.id);
+          const isReady = !isLoading && readyTabs.includes(tab.id);
           return (
             <button
               key={tab.id}
@@ -53,12 +62,18 @@ export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center gap-0.5 px-4 py-1 transition-colors ${
+              className={`relative flex flex-col items-center gap-0.5 px-4 py-1 transition-colors ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`}
             >
               <span className="text-lg">{tab.emoji}</span>
               <span className="text-[10px] font-medium">{tab.label}</span>
+              {isLoading && (
+                <span className="bg-primary absolute top-0 right-1 h-1.5 w-1.5 animate-pulse rounded-full" />
+              )}
+              {isReady && (
+                <span className="absolute top-0 right-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              )}
             </button>
           );
         })}

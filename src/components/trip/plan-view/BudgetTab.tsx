@@ -55,16 +55,43 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
   const totalActivityCost = cityBudgets.reduce((sum, c) => sum + c.activityTotal, 0);
   const hasActivityCosts = totalActivityCost > 0;
 
-  // Flight total from optimized legs
-  const flightTotal = itinerary.flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
+  // Flight total: prefer optimized legs, fall back to cheapest from flightOptions
+  let flightTotal = itinerary.flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
+  if (flightTotal === 0 && itinerary.flightOptions) {
+    flightTotal = itinerary.flightOptions.reduce((sum, leg) => {
+      const cheapest = leg.results[0];
+      return sum + (cheapest?.price ?? 0);
+    }, 0);
+  }
   const hasFlights = flightTotal > 0;
 
-  const grandTotal = totalActivityCost + flightTotal;
+  // Accommodation total from enrichment data (cheapest hotel per city × nights)
+  const accommodationTotal = (itinerary.accommodationData ?? []).reduce((sum, city) => {
+    const cheapest = city.hotels.reduce(
+      (min, h) => (h.pricePerNight != null && h.pricePerNight < min ? h.pricePerNight : min),
+      Infinity
+    );
+    if (cheapest === Infinity) return sum;
+    // Estimate nights from check-in/check-out
+    const nights =
+      city.checkIn && city.checkOut
+        ? Math.max(
+            1,
+            Math.round(
+              (new Date(city.checkOut).getTime() - new Date(city.checkIn).getTime()) / 86400000
+            )
+          )
+        : 1;
+    return sum + cheapest * nights;
+  }, 0);
+  const hasAccommodation = accommodationTotal > 0;
+
+  const grandTotal = totalActivityCost + flightTotal + accommodationTotal;
 
   return (
     <div className="space-y-8">
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {hasFlights && (
           <div className="card-travel bg-background p-4">
             <div className="mb-1 flex items-center gap-2">
@@ -75,6 +102,19 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
             </div>
             <p className="text-foreground text-xl font-bold">{formatEur(flightTotal)}</p>
             <p className="text-muted-foreground mt-0.5 text-xs">Optimized</p>
+          </div>
+        )}
+
+        {hasAccommodation && (
+          <div className="card-travel bg-background p-4">
+            <div className="mb-1 flex items-center gap-2">
+              <Hotel className="text-primary h-4 w-4" />
+              <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                Hotels
+              </span>
+            </div>
+            <p className="text-foreground text-xl font-bold">{formatEur(accommodationTotal)}</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">Cheapest per city</p>
           </div>
         )}
 
@@ -91,7 +131,7 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
           </div>
         )}
 
-        {(hasFlights || hasActivityCosts) && (
+        {(hasFlights || hasAccommodation || hasActivityCosts) && (
           <div className="card-travel bg-primary/5 border-primary/20 col-span-2 p-4 sm:col-span-1">
             <div className="mb-1 flex items-center gap-2">
               <DollarSign className="text-primary h-4 w-4" />
@@ -100,13 +140,15 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
               </span>
             </div>
             <p className="text-foreground text-xl font-bold">{formatEur(grandTotal)}</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">Excludes accommodation</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              {!hasAccommodation && !hasFlights ? "Activities only" : "Estimated total"}
+            </p>
           </div>
         )}
       </div>
 
       {/* No cost data state */}
-      {!hasActivityCosts && !hasFlights && (
+      {!hasActivityCosts && !hasFlights && !hasAccommodation && (
         <div className="text-muted-foreground py-8 text-center">
           <DollarSign className="mx-auto mb-2 h-8 w-8 opacity-30" />
           <p className="text-sm">No cost data in this itinerary yet.</p>

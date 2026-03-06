@@ -6,6 +6,8 @@ import type { DesktopTab } from "../types";
 interface DesktopTabBarProps {
   activeTab: DesktopTab;
   onTabChange: (tab: DesktopTab) => void;
+  loadingTabs?: DesktopTab[];
+  readyTabs?: DesktopTab[];
 }
 
 const TABS: { id: DesktopTab; emoji: string; label: string }[] = [
@@ -17,7 +19,12 @@ const TABS: { id: DesktopTab; emoji: string; label: string }[] = [
   { id: "budget", emoji: "💰", label: "Budget" },
 ];
 
-export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
+export function DesktopTabBar({
+  activeTab,
+  onTabChange,
+  loadingTabs = [],
+  readyTabs = [],
+}: DesktopTabBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleKeyDown = useCallback(
@@ -48,6 +55,8 @@ export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
         >
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
+            const isLoading = loadingTabs.includes(tab.id);
+            const isReady = !isLoading && readyTabs.includes(tab.id);
             return (
               <button
                 key={tab.id}
@@ -55,7 +64,7 @@ export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-primary text-primary-foreground scale-105 shadow-lg"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -63,6 +72,12 @@ export function DesktopTabBar({ activeTab, onTabChange }: DesktopTabBarProps) {
               >
                 <span>{tab.emoji}</span>
                 {tab.label}
+                {isLoading && (
+                  <span className="bg-primary absolute -top-0.5 -right-0.5 h-2 w-2 animate-pulse rounded-full" />
+                )}
+                {isReady && (
+                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500" />
+                )}
               </button>
             );
           })}

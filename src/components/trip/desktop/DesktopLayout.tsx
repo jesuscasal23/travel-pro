@@ -281,7 +281,24 @@ export function DesktopLayout({
       )}
 
       {/* Tab bar (hidden in edit mode — edit mode shows all cities inline) */}
-      {!isEditMode && <DesktopTabBar activeTab={activeTab} onTabChange={setActiveTab} />}
+      {!isEditMode && (
+        <DesktopTabBar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          loadingTabs={[...(accommodationLoading ? ["accommodation" as const] : [])]}
+          readyTabs={[
+            ...(!accommodationLoading &&
+            !accommodationError &&
+            (itinerary.accommodationData?.length ?? 0) > 0
+              ? ["accommodation" as const]
+              : []),
+            ...((itinerary.flightOptions?.length ?? 0) > 0 ||
+            (itinerary.flightLegs?.length ?? 0) > 0
+              ? ["flights" as const]
+              : []),
+          ]}
+        />
+      )}
 
       {/* Tab content */}
       <div className="animate-tab-in">
