@@ -100,7 +100,7 @@ describe("POST /api/v1/trips/:id/flights", () => {
     const req = makeRequest(validBody);
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2);
+    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
   });
 
   it("returns 404 when trip not found", async () => {
@@ -155,6 +155,23 @@ describe("POST /api/v1/trips/:id/flights", () => {
     const req = makeRequest({ ...validBody, fromIata: "cdg", toIata: "nrt" });
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2);
+    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
+  });
+
+  it("passes nonStop and maxPrice filters to searchFlightsMulti", async () => {
+    const req = makeRequest({ ...validBody, nonStop: true, maxPrice: 500 });
+    await POST(req, { params: Promise.resolve({ id: tripId }) });
+
+    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, {
+      nonStop: true,
+      maxPrice: 500,
+    });
+  });
+
+  it("passes undefined filters when none provided", async () => {
+    const req = makeRequest(validBody);
+    await POST(req, { params: Promise.resolve({ id: tripId }) });
+
+    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
   });
 });

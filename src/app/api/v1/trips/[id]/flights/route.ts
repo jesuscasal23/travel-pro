@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
 import { FlightSearchInputSchema } from "@/lib/api/schemas";
-import { searchFlightsMulti } from "@/lib/flights/amadeus";
+import { searchFlightsMulti, AmadeusRateLimitError } from "@/lib/flights/amadeus";
 import { prisma } from "@/lib/db/prisma";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +18,22 @@ export const POST = apiHandler("POST /api/v1/trips/:id/flights", async (req, par
   }
 
   const body = await parseJsonBody(req);
-  const { fromIata, toIata, departureDate, travelers } = validateBody(
+  const { fromIata, toIata, departureDate, travelers, nonStop, maxPrice } = validateBody(
     FlightSearchInputSchema,
     body
   );
 
-  const results = await searchFlightsMulti(fromIata, toIata, departureDate, travelers);
+  const filters = nonStop || maxPrice ? { nonStop, maxPrice } : undefined;
+
+  let results;
+  try {
+    results = await searchFlightsMulti(fromIata, toIata, departureDate, travelers, filters);
+  } catch (e) {
+    if (e instanceof AmadeusRateLimitError) {
+      return NextResponse.json({ error: e.message }, { status: 429 });
+    }
+    throw e;
+  }
 
   return NextResponse.json({
     fromIata,

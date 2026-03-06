@@ -11,6 +11,13 @@ import { createLogger } from "@/lib/logger";
 
 const log = createLogger("amadeus");
 
+export class AmadeusRateLimitError extends Error {
+  constructor() {
+    super("Flight search is busy — please try again in a moment.");
+    this.name = "AmadeusRateLimitError";
+  }
+}
+
 let _redis: Redis | null | undefined;
 
 function getRedis(): Redis | null {
@@ -193,7 +200,8 @@ export async function searchFlightsMulti(
   origin: string,
   destination: string,
   date: string,
-  adults: number
+  adults: number,
+  filters?: { nonStop?: boolean; maxPrice?: number }
 ): Promise<FlightSearchResult[]> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
     log.warn("Amadeus credentials missing — skipping multi-flight search", {
@@ -205,7 +213,13 @@ export async function searchFlightsMulti(
   }
 
   const redis = getRedis();
-  const cacheKey = `flights:multi:${origin}:${destination}:${date}:${adults}`;
+  const filterSuffix = [
+    filters?.nonStop ? "nonstop" : "",
+    filters?.maxPrice ? `max${filters.maxPrice}` : "",
+  ]
+    .filter(Boolean)
+    .join(":");
+  const cacheKey = `flights:multi:${origin}:${destination}:${date}:${adults}${filterSuffix ? `:${filterSuffix}` : ""}`;
   if (redis) {
     const cached = await safeRedisGet<FlightSearchResult[]>(redis, cacheKey);
     if (cached) return cached;
@@ -227,6 +241,8 @@ export async function searchFlightsMulti(
     max: "10",
     currencyCode: "EUR",
   });
+  if (filters?.nonStop) params.set("nonStop", "true");
+  if (filters?.maxPrice) params.set("maxPrice", String(filters.maxPrice));
 
   let res: Response;
   try {
@@ -236,6 +252,11 @@ export async function searchFlightsMulti(
   } catch (e) {
     log.warn("Network error", { error: getErrorMessage(e) });
     return [];
+  }
+
+  if (res.status === 429) {
+    log.warn("Amadeus rate limit hit", { origin, destination, date });
+    throw new AmadeusRateLimitError();
   }
 
   if (!res.ok) {

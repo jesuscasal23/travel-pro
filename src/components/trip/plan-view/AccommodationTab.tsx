@@ -1,8 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Hotel, Star, ExternalLink, MapPin, Loader2, AlertTriangle, Search } from "lucide-react";
-import type { Itinerary } from "@/types";
+import {
+  Hotel,
+  Star,
+  ExternalLink,
+  MapPin,
+  Loader2,
+  AlertTriangle,
+  Search,
+  RefreshCw,
+} from "lucide-react";
+import { Button } from "@/components/ui";
+import { useTripStore } from "@/stores/useTripStore";
+import type { Itinerary, CityAccommodation } from "@/types";
 
 const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
 
@@ -32,6 +44,113 @@ function SkeletonCard() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function useManualAccommodationFetch(itinerary: Itinerary) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{
+    data: CityAccommodation[] | null;
+    error: string | null;
+    status: number | null;
+    raw: unknown;
+  } | null>(null);
+
+  const dateStart = useTripStore((s) => s.dateStart);
+  const travelers = useTripStore((s) => s.travelers) || 1;
+  const travelStyle = useTripStore((s) => s.travelStyle) || "comfort";
+  const setItinerary = useTripStore((s) => s.setItinerary);
+
+  const fetch_ = async () => {
+    setLoading(true);
+    setResult(null);
+    try {
+      const payload = {
+        route: itinerary.route.map((r) => ({
+          id: r.id,
+          city: r.city,
+          country: r.country,
+          countryCode: r.countryCode,
+          lat: r.lat,
+          lng: r.lng,
+          days: r.days,
+          iataCode: r.iataCode,
+        })),
+        dateStart,
+        travelers,
+        travelStyle,
+      };
+      const res = await fetch("/api/v1/enrich/accommodation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      const accomData = body.accommodationData ?? null;
+      setResult({
+        data: accomData,
+        error: res.ok ? null : (body.error ?? `HTTP ${res.status}`),
+        status: res.status,
+        raw: body,
+      });
+
+      // If we got data, sync it back to the store
+      if (res.ok && accomData && accomData.length > 0) {
+        const current = useTripStore.getState().itinerary;
+        if (current) {
+          setItinerary({ ...current, accommodationData: accomData });
+        }
+      }
+    } catch (e) {
+      setResult({
+        data: null,
+        error: e instanceof Error ? e.message : "Network error",
+        status: null,
+        raw: null,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { loading, result, fetch: fetch_ };
+}
+
+function ManualFetchButton({ itinerary }: { itinerary: Itinerary }) {
+  const { loading, result, fetch: doFetch } = useManualAccommodationFetch(itinerary);
+
+  return (
+    <div className="space-y-3">
+      <Button variant="ghost" size="sm" onClick={doFetch} loading={loading} className="gap-1.5">
+        <RefreshCw className="h-3.5 w-3.5" />
+        Fetch hotels now
+      </Button>
+      {result && (
+        <div className="border-border bg-secondary/50 max-h-60 overflow-auto rounded-lg border p-3">
+          <div className="mb-2 flex items-center gap-2 text-xs">
+            <span
+              className={`rounded-full px-2 py-0.5 font-medium ${
+                result.error
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+              }`}
+            >
+              {result.status ?? "ERR"}
+            </span>
+            {result.error && <span className="text-red-600 dark:text-red-400">{result.error}</span>}
+            {result.data && (
+              <span className="text-muted-foreground">
+                {result.data.length} cities, {result.data.reduce((s, c) => s + c.hotels.length, 0)}{" "}
+                hotels total
+              </span>
+            )}
+          </div>
+          <pre className="text-muted-foreground text-[11px] leading-relaxed whitespace-pre-wrap">
+            {JSON.stringify(result.raw, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
@@ -84,6 +203,7 @@ export function AccommodationTab({
             </div>
           </div>
         </div>
+        <ManualFetchButton itinerary={itinerary} />
         <FallbackCards route={route} accommodationData={accommodationData} />
       </div>
     );
@@ -129,6 +249,7 @@ export function AccommodationTab({
           </div>
         )}
 
+        <ManualFetchButton itinerary={itinerary} />
         <FallbackCards route={route} accommodationData={accommodationData} />
       </div>
     );

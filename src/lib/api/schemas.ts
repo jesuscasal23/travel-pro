@@ -68,6 +68,8 @@ export const FlightSearchInputSchema = z.object({
   toIata: z.string().length(3).toUpperCase(),
   departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD"),
   travelers: z.number().int().min(1).max(20),
+  nonStop: z.boolean().optional(),
+  maxPrice: z.number().int().min(1).optional(),
 });
 
 // ── Form Schemas ─────────────────────────────────────────────

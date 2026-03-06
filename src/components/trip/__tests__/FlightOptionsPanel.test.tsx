@@ -130,7 +130,7 @@ describe("FlightOptionsPanel", () => {
 
     fireEvent.click(screen.getByText(/Refresh/));
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2);
+    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
   });
 
   it("shows loading spinner during search", () => {

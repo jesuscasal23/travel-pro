@@ -19,14 +19,20 @@ export function useFlightSearch(tripId: string) {
   });
 
   const search = useCallback(
-    async (fromIata: string, toIata: string, departureDate: string, travelers: number) => {
+    async (
+      fromIata: string,
+      toIata: string,
+      departureDate: string,
+      travelers: number,
+      filters?: { nonStop?: boolean; maxPrice?: number }
+    ) => {
       setState((s) => ({ ...s, loading: true, error: null }));
 
       try {
         const res = await fetch(`/api/v1/trips/${tripId}/flights`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fromIata, toIata, departureDate, travelers }),
+          body: JSON.stringify({ fromIata, toIata, departureDate, travelers, ...filters }),
         });
 
         if (!res.ok) {

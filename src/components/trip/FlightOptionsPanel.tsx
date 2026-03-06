@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { ChevronDown, ChevronUp, Search, ExternalLink, AlertTriangle, Filter } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useFlightSearch } from "@/hooks/useFlightSearch";
@@ -138,6 +138,19 @@ export function FlightOptionsPanel({
     fetchedAt: manualFetchedAt,
   } = useFlightSearch(tripId);
 
+  // Cooldown: prevent rapid-fire filter fetches (2s between calls)
+  const [cooldown, setCooldown] = useState(false);
+  const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchWithCooldown = useCallback(
+    (...args: Parameters<typeof search>) => {
+      void search(...args);
+      setCooldown(true);
+      if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
+      cooldownTimer.current = setTimeout(() => setCooldown(false), 2000);
+    },
+    [search]
+  );
+
   // Priority: manual search > batch search > prefetched
   const hasManual =
     manualResults.length > 0 || manualFetchedAt !== null || manualLoading || manualError !== null;
@@ -197,13 +210,40 @@ export function FlightOptionsPanel({
 
   const activeFilterCount = (stopsFilter !== "any" ? 1 : 0) + (maxPrice !== null ? 1 : 0);
 
+  const buildFilters = (): { nonStop?: boolean; maxPrice?: number } | undefined => {
+    const f: { nonStop?: boolean; maxPrice?: number } = {};
+    if (stopsFilter === "nonstop") f.nonStop = true;
+    if (maxPrice !== null) f.maxPrice = maxPrice;
+    return Object.keys(f).length > 0 ? f : undefined;
+  };
+
   const handleLiveSearch = () => {
-    void search(leg.fromIata, leg.toIata, leg.departureDate, travelers);
+    searchWithCooldown(leg.fromIata, leg.toIata, leg.departureDate, travelers, buildFilters());
+  };
+
+  const handleFilterSearch = (overrides?: {
+    stopsFilter?: StopsFilter;
+    maxPrice?: number | null;
+  }) => {
+    if (cooldown) return;
+    const stops = overrides?.stopsFilter ?? stopsFilter;
+    const price = overrides?.maxPrice !== undefined ? overrides.maxPrice : maxPrice;
+    const f: { nonStop?: boolean; maxPrice?: number } = {};
+    if (stops === "nonstop") f.nonStop = true;
+    if (price !== null) f.maxPrice = price;
+    searchWithCooldown(
+      leg.fromIata,
+      leg.toIata,
+      leg.departureDate,
+      travelers,
+      Object.keys(f).length > 0 ? f : undefined
+    );
   };
 
   const clearFilters = () => {
     setStopsFilter("any");
     setMaxPrice(null);
+    searchWithCooldown(leg.fromIata, leg.toIata, leg.departureDate, travelers);
   };
 
   // No results at all — show appropriate message + Skyscanner CTA
@@ -322,8 +362,14 @@ export function FlightOptionsPanel({
               {STOPS_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => setStopsFilter(opt.value)}
-                  className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                  disabled={cooldown && opt.value !== stopsFilter}
+                  onClick={() => {
+                    setStopsFilter(opt.value);
+                    if (opt.value === "nonstop" || stopsFilter === "nonstop") {
+                      handleFilterSearch({ stopsFilter: opt.value });
+                    }
+                  }}
+                  className={`rounded-full px-3 py-1 text-xs transition-colors disabled:opacity-50 ${
                     stopsFilter === opt.value
                       ? "bg-primary font-medium text-white"
                       : "bg-secondary text-foreground hover:bg-secondary/80"
@@ -355,6 +401,16 @@ export function FlightOptionsPanel({
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
                   setMaxPrice(val >= priceRange.max ? null : val);
+                }}
+                onMouseUp={(e) => {
+                  const val = parseInt((e.target as HTMLInputElement).value);
+                  const newMax = val >= priceRange.max ? null : val;
+                  handleFilterSearch({ maxPrice: newMax });
+                }}
+                onTouchEnd={(e) => {
+                  const val = parseInt((e.target as HTMLInputElement).value);
+                  const newMax = val >= priceRange.max ? null : val;
+                  handleFilterSearch({ maxPrice: newMax });
                 }}
                 className="accent-primary w-full"
               />
