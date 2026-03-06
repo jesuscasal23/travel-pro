@@ -128,7 +128,7 @@ describe("FlightOptionsPanel", () => {
   it("triggers live search when clicking 'Search live options'", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    fireEvent.click(screen.getByText(/Search live options/));
+    fireEvent.click(screen.getByText(/Refresh/));
 
     expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2);
   });

@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plane } from "lucide-react";
+import { Plane, Loader2 } from "lucide-react";
 import { FlightOptionsPanel } from "@/components/trip/FlightOptionsPanel";
+import { useBatchFlightSearch } from "@/hooks/useFlightSearch";
 import { useTripStore } from "@/stores/useTripStore";
 import type { Itinerary } from "@/types";
 import type { FlightLegResults } from "@/lib/flights/types";
@@ -136,6 +137,15 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
     return derived;
   }, [route, flightOptions, flightLegs, homeIata, dateStart]);
 
+  // Auto-fetch all legs that don't have results
+  const hasLegsToFetch = legs.some((l) => l.results.length === 0 && l.departureDate);
+  const { getResultsForLeg, isLoading: batchLoading } = useBatchFlightSearch(
+    tripId,
+    legs,
+    travelers,
+    hasLegsToFetch
+  );
+
   if (legs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -153,20 +163,34 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-foreground text-lg font-semibold">Flight Options</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-foreground text-lg font-semibold">Flight Options</h2>
+          {batchLoading && (
+            <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
+              <Loader2 className="h-3 w-3 animate-spin" /> Searching…
+            </span>
+          )}
+        </div>
         <span className="text-muted-foreground text-xs">
           {legs.length} leg{legs.length !== 1 ? "s" : ""}
         </span>
       </div>
-      {legs.map((leg, i) => (
-        <FlightOptionsPanel
-          key={`${leg.fromIata}-${leg.toIata}-${i}`}
-          leg={leg}
-          tripId={tripId}
-          travelers={travelers}
-          itineraryId={tripId}
-        />
-      ))}
+      {legs.map((leg, i) => {
+        const batch = getResultsForLeg(leg.fromIata, leg.toIata, leg.departureDate);
+        return (
+          <FlightOptionsPanel
+            key={`${leg.fromIata}-${leg.toIata}-${i}`}
+            leg={leg}
+            tripId={tripId}
+            travelers={travelers}
+            itineraryId={tripId}
+            batchResults={batch.results}
+            batchLoading={batch.loading}
+            batchError={batch.error}
+            batchFetchedAt={batch.fetchedAt}
+          />
+        );
+      })}
     </div>
   );
 }

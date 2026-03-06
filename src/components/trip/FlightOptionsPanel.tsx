@@ -15,6 +15,11 @@ interface FlightOptionsPanelProps {
   tripId: string;
   travelers: number;
   itineraryId?: string;
+  /** Pre-fetched live results from batch search */
+  batchResults?: FlightSearchResult[];
+  batchLoading?: boolean;
+  batchError?: string | null;
+  batchFetchedAt?: number | null;
 }
 
 /** Parse "12h 30m" -> total minutes for duration sorting */
@@ -102,7 +107,7 @@ function matchesStopsFilter(stops: number, filter: StopsFilter): boolean {
     case "1stop":
       return stops <= 1;
     case "2plus":
-      return true; // show all — it's a "max" filter
+      return true;
     default:
       return true;
   }
@@ -113,23 +118,53 @@ export function FlightOptionsPanel({
   tripId,
   travelers,
   itineraryId,
+  batchResults,
+  batchLoading,
+  batchError,
+  batchFetchedAt,
 }: FlightOptionsPanelProps) {
   const [sortMode, setSortMode] = useState<SortMode>("price");
   const [expanded, setExpanded] = useState(false);
   const [stopsFilter, setStopsFilter] = useState<StopsFilter>("any");
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Manual per-leg search (refresh button)
   const {
-    results: liveResults,
-    loading,
-    error,
+    results: manualResults,
+    loading: manualLoading,
+    error: manualError,
     search,
-    fetchedAt: liveFetchedAt,
+    fetchedAt: manualFetchedAt,
   } = useFlightSearch(tripId);
 
-  // Use live results if available, otherwise prefetched
-  const hasLive = liveResults.length > 0 || liveFetchedAt !== null;
-  const displayResults = hasLive ? liveResults : leg.results;
+  // Priority: manual search > batch search > prefetched
+  const hasManual =
+    manualResults.length > 0 || manualFetchedAt !== null || manualLoading || manualError !== null;
+  const hasBatch =
+    (batchResults && batchResults.length > 0) || (batchFetchedAt != null && batchFetchedAt > 0);
+
+  let displayResults: FlightSearchResult[];
+  let loading: boolean;
+  let error: string | null;
+  let searchDone: boolean;
+
+  if (hasManual) {
+    displayResults = manualResults;
+    loading = manualLoading;
+    error = manualError;
+    searchDone = manualFetchedAt !== null;
+  } else if (hasBatch) {
+    displayResults = batchResults ?? [];
+    loading = batchLoading ?? false;
+    error = batchError ?? null;
+    searchDone = batchFetchedAt !== null;
+  } else {
+    displayResults = leg.results;
+    loading = false;
+    error = null;
+    searchDone = false;
+  }
 
   // Price range for the slider
   const priceRange = useMemo(() => {
@@ -173,7 +208,6 @@ export function FlightOptionsPanel({
 
   // No results at all — show appropriate message + Skyscanner CTA
   if (displayResults.length === 0 && !loading) {
-    const liveSearchDone = liveFetchedAt !== null;
     const fallbackUrl = buildTrackedLink({
       provider: "skyscanner",
       type: "flight",
@@ -186,7 +220,16 @@ export function FlightOptionsPanel({
         <div className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
           {leg.fromIata} → {leg.toIata} · {leg.departureDate}
         </div>
-        {liveSearchDone && (
+        {error && (
+          <div className="border-border bg-background mb-3 flex items-start gap-2.5 rounded-lg border p-3">
+            <AlertTriangle className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
+            <div>
+              <p className="text-foreground text-sm font-medium">Flight search failed</p>
+              <p className="text-muted-foreground mt-0.5 text-xs">{error}</p>
+            </div>
+          </div>
+        )}
+        {searchDone && !error && (
           <div className="border-border bg-background mb-3 rounded-lg border p-3">
             <p className="text-foreground text-sm font-medium">No flights found for this route</p>
             <p className="text-muted-foreground mt-0.5 text-xs">
@@ -208,7 +251,7 @@ export function FlightOptionsPanel({
             Skyscanner →
           </div>
         </a>
-        {!liveSearchDone && (
+        {!searchDone && (
           <div className="mt-2 flex justify-center">
             <Button variant="ghost" size="sm" onClick={handleLiveSearch} loading={loading}>
               <Search className="mr-1.5 h-3.5 w-3.5" />
@@ -392,9 +435,9 @@ export function FlightOptionsPanel({
         ) : (
           <span />
         )}
-        <Button variant="ghost" size="sm" onClick={handleLiveSearch} loading={loading}>
+        <Button variant="ghost" size="sm" onClick={handleLiveSearch} loading={manualLoading}>
           <Search className="mr-1.5 h-3.5 w-3.5" />
-          Search live options
+          Refresh
         </Button>
       </div>
     </div>
