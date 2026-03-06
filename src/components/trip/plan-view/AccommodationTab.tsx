@@ -117,40 +117,39 @@ function useManualAccommodationFetch(itinerary: Itinerary) {
   return { loading, result, fetch: fetch_ };
 }
 
-function ManualFetchButton({ itinerary }: { itinerary: Itinerary }) {
-  const { loading, result, fetch: doFetch } = useManualAccommodationFetch(itinerary);
-
+function FetchResponsePanel({
+  result,
+}: {
+  result: {
+    data: CityAccommodation[] | null;
+    error: string | null;
+    status: number | null;
+    raw: unknown;
+  };
+}) {
   return (
-    <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={doFetch} loading={loading} className="gap-1.5">
-        <RefreshCw className="h-3.5 w-3.5" />
-        Fetch hotels now
-      </Button>
-      {result && (
-        <div className="border-border bg-secondary/50 max-h-60 overflow-auto rounded-lg border p-3">
-          <div className="mb-2 flex items-center gap-2 text-xs">
-            <span
-              className={`rounded-full px-2 py-0.5 font-medium ${
-                result.error
-                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              }`}
-            >
-              {result.status ?? "ERR"}
-            </span>
-            {result.error && <span className="text-red-600 dark:text-red-400">{result.error}</span>}
-            {result.data && (
-              <span className="text-muted-foreground">
-                {result.data.length} cities, {result.data.reduce((s, c) => s + c.hotels.length, 0)}{" "}
-                hotels total
-              </span>
-            )}
-          </div>
-          <pre className="text-muted-foreground text-[11px] leading-relaxed whitespace-pre-wrap">
-            {JSON.stringify(result.raw, null, 2)}
-          </pre>
-        </div>
-      )}
+    <div className="border-border bg-secondary/50 max-h-60 overflow-auto rounded-lg border p-3">
+      <div className="mb-2 flex items-center gap-2 text-xs">
+        <span
+          className={`rounded-full px-2 py-0.5 font-medium ${
+            result.error
+              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+          }`}
+        >
+          {result.status ?? "ERR"}
+        </span>
+        {result.error && <span className="text-red-600 dark:text-red-400">{result.error}</span>}
+        {result.data && (
+          <span className="text-muted-foreground">
+            {result.data.length} cities, {result.data.reduce((s, c) => s + c.hotels.length, 0)}{" "}
+            hotels total
+          </span>
+        )}
+      </div>
+      <pre className="text-muted-foreground text-[11px] leading-relaxed whitespace-pre-wrap">
+        {JSON.stringify(result.raw, null, 2)}
+      </pre>
     </div>
   );
 }
@@ -160,8 +159,28 @@ export function AccommodationTab({
   accommodationLoading,
   accommodationError,
 }: AccommodationTabProps) {
+  const {
+    loading: manualLoading,
+    result: manualResult,
+    fetch: doManualFetch,
+  } = useManualAccommodationFetch(itinerary);
   const accommodationData = itinerary.accommodationData;
   const route = itinerary.route;
+
+  const fetchButton = (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={doManualFetch}
+      loading={manualLoading}
+      className="gap-1.5"
+    >
+      <RefreshCw className="h-3.5 w-3.5" />
+      Fetch hotels
+    </Button>
+  );
+
+  const responsePanel = manualResult ? <FetchResponsePanel result={manualResult} /> : null;
 
   if (accommodationLoading) {
     return (
@@ -185,9 +204,12 @@ export function AccommodationTab({
   if (accommodationError) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Hotel className="text-primary h-5 w-5" />
-          <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Hotel className="text-primary h-5 w-5" />
+            <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+          </div>
+          {fetchButton}
         </div>
         <div className="card-travel space-y-3 p-5">
           <div className="flex items-start gap-3">
@@ -203,7 +225,7 @@ export function AccommodationTab({
             </div>
           </div>
         </div>
-        <ManualFetchButton itinerary={itinerary} />
+        {responsePanel}
         <FallbackCards route={route} accommodationData={accommodationData} />
       </div>
     );
@@ -214,9 +236,12 @@ export function AccommodationTab({
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Hotel className="text-primary h-5 w-5" />
-          <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Hotel className="text-primary h-5 w-5" />
+            <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+          </div>
+          {fetchButton}
         </div>
 
         {hasNoHotels ? (
@@ -249,7 +274,7 @@ export function AccommodationTab({
           </div>
         )}
 
-        <ManualFetchButton itinerary={itinerary} />
+        {responsePanel}
         <FallbackCards route={route} accommodationData={accommodationData} />
       </div>
     );
@@ -257,9 +282,12 @@ export function AccommodationTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Hotel className="text-primary h-5 w-5" />
-        <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Hotel className="text-primary h-5 w-5" />
+          <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+        </div>
+        {fetchButton}
       </div>
 
       <div className="space-y-4">
@@ -350,7 +378,7 @@ export function AccommodationTab({
           </motion.div>
         ))}
       </div>
-      <ManualFetchButton itinerary={itinerary} />
+      {responsePanel}
     </div>
   );
 }
