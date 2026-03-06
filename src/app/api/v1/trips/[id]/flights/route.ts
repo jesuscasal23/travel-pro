@@ -11,9 +11,11 @@ import { prisma } from "@/lib/db/prisma";
 export const dynamic = "force-dynamic";
 
 export const POST = apiHandler("POST /api/v1/trips/:id/flights", async (req, params) => {
-  // Verify trip exists
-  const trip = await prisma.trip.findUnique({ where: { id: params.id } });
-  if (!trip) throw new ApiError(404, "Trip not found");
+  // Guest trips skip DB check — flight search only needs IATA codes
+  if (params.id !== "guest") {
+    const trip = await prisma.trip.findUnique({ where: { id: params.id } });
+    if (!trip) throw new ApiError(404, "Trip not found");
+  }
 
   const body = await parseJsonBody(req);
   const { fromIata, toIata, departureDate, travelers } = validateBody(

@@ -52,6 +52,25 @@ type AmadeusFlightOffer = {
   }>;
 };
 
+/** Safe Redis get — returns null on any error (auth, network, etc.) */
+async function safeRedisGet<T>(redis: Redis, key: string): Promise<T | null> {
+  try {
+    return await redis.get<T>(key);
+  } catch (e) {
+    log.warn("Redis get failed, skipping cache", { key, error: getErrorMessage(e) });
+    return null;
+  }
+}
+
+/** Safe Redis set — silently ignores errors */
+async function safeRedisSet(redis: Redis, key: string, ttl: number, value: unknown): Promise<void> {
+  try {
+    await redis.setex(key, ttl, value);
+  } catch (e) {
+    log.warn("Redis set failed, skipping cache", { key, error: getErrorMessage(e) });
+  }
+}
+
 /** Parse ISO 8601 duration (PT12H30M) → human-readable ("12h 30m"). */
 function parseDuration(iso: string): string {
   const h = iso.match(/(\d+)H/)?.[1];
@@ -66,7 +85,7 @@ function parseDuration(iso: string): string {
 export async function getToken(): Promise<string> {
   const redis = getRedis();
   if (redis) {
-    const cached = await redis.get<string>("amadeus:token");
+    const cached = await safeRedisGet<string>(redis, "amadeus:token");
     if (cached) return cached;
   }
 
@@ -86,7 +105,12 @@ export async function getToken(): Promise<string> {
 
   const data = (await res.json()) as AmadeusTokenResponse;
   if (redis) {
-    await redis.setex("amadeus:token", Math.max(data.expires_in - 60, 60), data.access_token);
+    await safeRedisSet(
+      redis,
+      "amadeus:token",
+      Math.max(data.expires_in - 60, 60),
+      data.access_token
+    );
   }
   return data.access_token;
 }
@@ -109,7 +133,7 @@ export async function searchFlights(
   const redis = getRedis();
   const cacheKey = `flights:${origin}:${destination}:${date}:${adults}`;
   if (redis) {
-    const cached = await redis.get<FlightOption>(cacheKey);
+    const cached = await safeRedisGet<FlightOption>(redis, cacheKey);
     if (cached) return cached;
   }
 
@@ -155,7 +179,7 @@ export async function searchFlights(
     airline: best.validatingAirlineCodes[0] ?? "?",
   };
 
-  if (redis) await redis.setex(cacheKey, 7200, option);
+  if (redis) await safeRedisSet(redis, cacheKey, 7200, option);
   return option;
 }
 
@@ -177,7 +201,7 @@ export async function searchFlightsMulti(
   const redis = getRedis();
   const cacheKey = `flights:multi:${origin}:${destination}:${date}:${adults}`;
   if (redis) {
-    const cached = await redis.get<FlightSearchResult[]>(cacheKey);
+    const cached = await safeRedisGet<FlightSearchResult[]>(redis, cacheKey);
     if (cached) return cached;
   }
 
@@ -243,7 +267,7 @@ export async function searchFlightsMulti(
   // Sort by price ascending
   results.sort((a, b) => a.price - b.price);
 
-  if (redis) await redis.setex(cacheKey, 7200, results);
+  if (redis) await safeRedisSet(redis, cacheKey, 7200, results);
   return results;
 }
 
