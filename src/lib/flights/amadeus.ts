@@ -127,6 +127,7 @@ export async function searchFlights(
   adults: number
 ): Promise<FlightOption | null> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+    log.warn("Amadeus credentials missing — skipping flight search", { origin, destination, date });
     return null;
   }
 
@@ -195,6 +196,11 @@ export async function searchFlightsMulti(
   adults: number
 ): Promise<FlightSearchResult[]> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+    log.warn("Amadeus credentials missing — skipping multi-flight search", {
+      origin,
+      destination,
+      date,
+    });
     return [];
   }
 

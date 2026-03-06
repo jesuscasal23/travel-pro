@@ -33,6 +33,7 @@ const CACHE_TTL = 4 * 60 * 60; // 4 hours
  */
 export async function searchHotelsByCity(cityCode: string): Promise<AmadeusHotelEntry[] | null> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+    log.warn("Amadeus credentials missing — skipping hotel search", { cityCode });
     return null;
   }
 
@@ -94,6 +95,7 @@ export async function searchHotelOffers(
   adults: number
 ): Promise<AmadeusHotelOffer[] | null> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+    log.warn("Amadeus credentials missing — skipping hotel offers search");
     return null;
   }
   if (hotelIds.length === 0) return null;
