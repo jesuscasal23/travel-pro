@@ -488,6 +488,11 @@ export async function enrichAccommodation(
       try {
         const hotelList = await searchHotelsByCity(iataCode);
         if (!hotelList || hotelList.length === 0) {
+          accomLog.warn("No hotels returned from Amadeus for city", {
+            city: city.city,
+            iataCode,
+            hotelListNull: hotelList === null,
+          });
           return {
             city: city.city,
             countryCode: city.countryCode,
@@ -498,11 +503,22 @@ export async function enrichAccommodation(
           } satisfies CityAccommodation;
         }
 
+        accomLog.info("Hotel list fetched", { city: city.city, iataCode, count: hotelList.length });
         const hotelIds = hotelList.map((h) => h.hotelId);
         const offers = await searchHotelOffers(hotelIds, checkIn, checkOut, travelers);
+        accomLog.info("Hotel offers fetched", {
+          city: city.city,
+          offersNull: offers === null,
+          offersCount: offers?.length ?? 0,
+        });
         const candidates = buildCandidates(hotelList, offers, nights);
 
         if (candidates.length === 0) {
+          accomLog.warn("No candidates with prices after merging offers", {
+            city: city.city,
+            hotelCount: hotelList.length,
+            offersCount: offers?.length ?? 0,
+          });
           return {
             city: city.city,
             countryCode: city.countryCode,

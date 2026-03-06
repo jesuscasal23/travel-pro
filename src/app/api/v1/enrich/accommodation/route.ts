@@ -47,10 +47,17 @@ export async function POST(req: NextRequest) {
 
   const { route, dateStart, travelers, travelStyle } = parsed.data;
 
+  // Include diagnostic info so the client can see what was sent
+  const debug = {
+    citiesReceived: route.map((r) => ({ city: r.city, iataCode: r.iataCode ?? null })),
+    hasAmadeusKey: !!process.env.AMADEUS_API_KEY,
+    amadeusEnv: process.env.AMADEUS_ENVIRONMENT ?? "not set",
+  };
+
   try {
     const accommodationData = await enrichAccommodation(route, dateStart, travelers, travelStyle);
-    return NextResponse.json({ accommodationData });
+    return NextResponse.json({ accommodationData, debug });
   } catch {
-    return NextResponse.json({ error: "Accommodation enrichment failed" }, { status: 500 });
+    return NextResponse.json({ error: "Accommodation enrichment failed", debug }, { status: 500 });
   }
 }
