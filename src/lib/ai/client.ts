@@ -12,6 +12,7 @@ import { SYSTEM_PROMPT_V1 } from "./prompts/v1";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
 import { abortableDelay, isAbortError } from "@/lib/abort";
+import { getAnthropicApiKey } from "@/lib/config/server-env";
 
 const log = createLogger("ai:client");
 
@@ -22,7 +23,7 @@ let _anthropic: Anthropic | undefined;
 export function getAnthropic(): Anthropic {
   if (!_anthropic) {
     _anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: getAnthropicApiKey(),
       timeout: 50_000, // 50s — fail cleanly before Vercel's 60s limit
     });
   }

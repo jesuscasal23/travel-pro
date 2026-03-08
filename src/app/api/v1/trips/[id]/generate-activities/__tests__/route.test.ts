@@ -33,14 +33,24 @@ vi.mock("@/lib/ai/pipeline", () => ({
   generateCityActivities: vi.fn(),
 }));
 
-vi.mock("@/lib/services/trip-service", () => ({
-  tripToIntent: vi.fn().mockReturnValue({
-    id: "trip-1",
-    tripType: "multi-city",
-    region: "east-asia",
-    dateStart: "2026-10-01",
-    dateEnd: "2026-10-08",
-    travelers: 2,
+vi.mock("@/lib/features/trips/trip-query-service", () => ({
+  loadTripContext: vi.fn().mockResolvedValue({
+    trip: {
+      id: "trip-1",
+      tripType: "multi-city",
+      region: "east-asia",
+      dateStart: "2026-10-01",
+      dateEnd: "2026-10-08",
+      travelers: 2,
+    },
+    intent: {
+      id: "trip-1",
+      tripType: "multi-city",
+      region: "east-asia",
+      dateStart: "2026-10-01",
+      dateEnd: "2026-10-08",
+      travelers: 2,
+    },
   }),
 }));
 

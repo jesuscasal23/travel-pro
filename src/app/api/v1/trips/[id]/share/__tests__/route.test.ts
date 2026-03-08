@@ -13,8 +13,12 @@ vi.mock("@/lib/supabase/server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/services/trip-service", () => ({
-  ensureShareToken: vi.fn(),
+vi.mock("@/lib/features/trips/trip-share-service", () => ({
+  getOrCreateTripShareToken: vi.fn(),
+  serializeTripShareToken: vi.fn((shareToken: string) => ({
+    shareToken,
+    shareUrl: `https://travelpro.app/share/${shareToken}`,
+  })),
 }));
 
 vi.mock("@/lib/logger", () => ({
@@ -34,7 +38,7 @@ vi.mock("@/lib/request-context", () => ({
 
 import { prisma } from "@/lib/db/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import { ensureShareToken } from "@/lib/services/trip-service";
+import { getOrCreateTripShareToken } from "@/lib/features/trips/trip-share-service";
 import { GET } from "../route";
 
 const mockPrisma = prisma as unknown as {
@@ -42,14 +46,14 @@ const mockPrisma = prisma as unknown as {
   trip: { findUnique: ReturnType<typeof vi.fn> };
 };
 const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
-const mockEnsureShareToken = ensureShareToken as ReturnType<typeof vi.fn>;
+const mockGetOrCreateTripShareToken = getOrCreateTripShareToken as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockAuth.mockResolvedValue("user-1");
   mockPrisma.profile.findUnique.mockResolvedValue({ id: "profile-1", userId: "user-1" });
   mockPrisma.trip.findUnique.mockResolvedValue({ id: "trip-1", profileId: "profile-1" });
-  mockEnsureShareToken.mockResolvedValue("abc123token");
+  mockGetOrCreateTripShareToken.mockResolvedValue("abc123token");
 });
 
 describe("GET /api/v1/trips/:id/share", () => {
@@ -59,7 +63,7 @@ describe("GET /api/v1/trips/:id/share", () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(mockEnsureShareToken).toHaveBeenCalledWith("trip-1");
+    expect(mockGetOrCreateTripShareToken).toHaveBeenCalledWith("trip-1");
     expect(json.shareToken).toBe("abc123token");
     expect(json.shareUrl).toContain("/share/abc123token");
   });
@@ -82,6 +86,6 @@ describe("GET /api/v1/trips/:id/share", () => {
 
     expect(res.status).toBe(403);
     expect(json.error).toBe("Forbidden");
-    expect(mockEnsureShareToken).not.toHaveBeenCalled();
+    expect(mockGetOrCreateTripShareToken).not.toHaveBeenCalled();
   });
 });

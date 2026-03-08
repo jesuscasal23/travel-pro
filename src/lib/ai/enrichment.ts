@@ -21,6 +21,7 @@ import { searchHotelsByCity, searchHotelOffers, buildCandidates } from "@/lib/ho
 import { buildHotelLink } from "@/lib/affiliate/link-generator";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
 import { getAnthropic } from "@/lib/ai/client";
+import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { createLogger } from "@/lib/logger";
 
 // ============================================================
@@ -28,13 +29,11 @@ import { createLogger } from "@/lib/logger";
 // ============================================================
 
 function getRedis(): Redis | null {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  const redisEnv = getOptionalRedisEnv();
+  if (!redisEnv) {
     return null;
   }
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  });
+  return new Redis(redisEnv);
 }
 
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days

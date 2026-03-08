@@ -5,73 +5,74 @@ import { prisma } from "@/lib/db/prisma";
 import { createLogger } from "@/lib/logger";
 import { requestContext } from "@/lib/request-context";
 import { hasGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
+import {
+  ApiError,
+  InvalidJsonError,
+  ProfileNotFoundError,
+  TripNotFoundError,
+  TripOwnerRequiredError,
+  UnauthorizedError,
+  ValidationError,
+} from "@/lib/api/errors";
+import { TRIP_ACCESS_SELECT } from "@/lib/features/trips/query-shapes";
 
 const log = createLogger("api");
-
-// ── Custom error class ──────────────────────────────────────────
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-  }
-}
 
 // ── Auth guards ─────────────────────────────────────────────────
 
 /** Returns userId or throws 401. */
 export async function requireAuth(): Promise<string> {
   const userId = await getAuthenticatedUserId();
-  if (!userId) throw new ApiError(401, "Unauthorized");
+  if (!userId) throw new UnauthorizedError();
   return userId;
 }
 
 /** Returns profile or throws 404. */
 export async function requireProfile(userId: string) {
   const profile = await prisma.profile.findUnique({ where: { userId } });
-  if (!profile) throw new ApiError(404, "Profile not found");
+  if (!profile) throw new ProfileNotFoundError({ userId });
   return profile;
 }
 
 /** Returns trip after verifying ownership, or throws 403/404. */
-export async function requireTripOwnership(tripId: string, profileId: string) {
+export async function requireUserTripOwner(tripId: string, profileId: string) {
   const trip = await prisma.trip.findUnique({ where: { id: tripId } });
-  if (!trip) throw new ApiError(404, "Trip not found");
-  if (trip.profileId !== profileId) throw new ApiError(403, "Forbidden");
+  if (!trip) throw new TripNotFoundError({ tripId });
+  if (trip.profileId !== profileId) throw new TripOwnerRequiredError({ tripId, profileId });
   return trip;
 }
 
 /**
  * Access policy for trip routes:
  * - `allowGuestId`: permit synthetic `tripId === "guest"` requests for stateless guest flows.
- * - `requireOwnershipForUserTrips`: enforce auth+ownership for user trips and owner-cookie checks for guest trips.
+ * - `requireTripOwner`: enforce auth+ownership for user trips and owner-cookie checks for guest trips.
  */
 export async function assertTripAccess(
   req: NextRequest,
   tripId: string,
   options: {
     allowGuestId?: boolean;
-    requireOwnershipForUserTrips?: boolean;
+    requireTripOwner?: boolean;
   } = {}
 ) {
   if (options.allowGuestId && tripId === "guest") return;
 
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },
-    select: { profileId: true },
+    select: TRIP_ACCESS_SELECT,
   });
 
-  if (!trip) throw new ApiError(404, "Trip not found");
+  if (!trip) throw new TripNotFoundError({ tripId });
 
-  if (options.requireOwnershipForUserTrips) {
+  if (options.requireTripOwner) {
     if (trip.profileId) {
       const userId = await requireAuth();
       const profile = await requireProfile(userId);
-      if (trip.profileId !== profile.id) throw new ApiError(403, "Forbidden");
+      if (trip.profileId !== profile.id) {
+        throw new TripOwnerRequiredError({ tripId, profileId: profile.id });
+      }
     } else if (!hasGuestTripOwnerCookie(req, tripId)) {
-      throw new ApiError(403, "Forbidden");
+      throw new TripOwnerRequiredError({ tripId, ownerType: "guest" });
     }
   }
 
@@ -85,7 +86,7 @@ export async function parseJsonBody(req: NextRequest | Request): Promise<unknown
   try {
     return await req.json();
   } catch {
-    throw new ApiError(400, "Invalid JSON");
+    throw new InvalidJsonError();
   }
 }
 
@@ -93,19 +94,36 @@ export async function parseJsonBody(req: NextRequest | Request): Promise<unknown
 export function validateBody<T>(schema: z.ZodType<T>, body: unknown): T {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    throw new ApiError(400, "Validation failed", parsed.error.flatten().fieldErrors);
+    throw new ValidationError(parsed.error.flatten().fieldErrors);
   }
   return parsed.data;
 }
 
-// ── Shared Prisma include for active itinerary ──────────────────
-export const ACTIVE_ITINERARY_INCLUDE = {
-  itineraries: {
-    where: { isActive: true },
-    orderBy: { version: "desc" as const },
-    take: 1,
-  },
-};
+/** Parse JSON request body and validate it against a Zod schema. */
+export async function parseAndValidateRequest<T>(
+  req: NextRequest | Request,
+  schema: z.ZodType<T>
+): Promise<T> {
+  return validateBody(schema, await parseJsonBody(req));
+}
+
+export function parseAndValidateSearchParams<T>(
+  searchParams:
+    | URLSearchParams
+    | { entries(): IterableIterator<[string, string]> }
+    | Record<string, string | undefined>,
+  schema: z.ZodType<T>
+): T {
+  if (searchParams instanceof URLSearchParams) {
+    return validateBody(schema, Object.fromEntries(searchParams.entries()));
+  }
+
+  if (typeof (searchParams as URLSearchParams).entries === "function") {
+    return validateBody(schema, Object.fromEntries((searchParams as URLSearchParams).entries()));
+  }
+
+  return validateBody(schema, searchParams);
+}
 
 // ── IP extraction ───────────────────────────────────────────────
 export function getClientIp(req: NextRequest | Request): string {
@@ -147,3 +165,15 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
     });
   };
 }
+
+export {
+  ApiError,
+  ActiveItineraryNotFoundError,
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+  ServiceMisconfiguredError,
+  UnauthorizedError,
+  UpstreamServiceError,
+  ValidationError,
+} from "@/lib/api/errors";

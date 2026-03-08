@@ -5,6 +5,7 @@
 
 import { Redis } from "@upstash/redis";
 import { getToken, AMADEUS_BASE } from "@/lib/flights/amadeus";
+import { getOptionalAmadeusEnv, getOptionalRedisEnv } from "@/lib/config/server-env";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
 import type { AmadeusHotelEntry, AmadeusHotelOffer, HotelCandidate } from "./types";
@@ -15,13 +16,12 @@ let _redis: Redis | null | undefined;
 
 function getRedis(): Redis | null {
   if (_redis !== undefined) return _redis;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+  const redisEnv = getOptionalRedisEnv();
+  if (!redisEnv) {
     _redis = null;
     return null;
   }
-  _redis = new Redis({ url, token });
+  _redis = new Redis(redisEnv);
   return _redis;
 }
 
@@ -32,7 +32,7 @@ const CACHE_TTL = 4 * 60 * 60; // 4 hours
  * Returns up to 20 hotels (3-5 star) near the city center.
  */
 export async function searchHotelsByCity(cityCode: string): Promise<AmadeusHotelEntry[] | null> {
-  if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+  if (!getOptionalAmadeusEnv()) {
     log.warn("Amadeus credentials missing — skipping hotel search", { cityCode });
     return null;
   }
@@ -94,7 +94,7 @@ export async function searchHotelOffers(
   checkOut: string,
   adults: number
 ): Promise<AmadeusHotelOffer[] | null> {
-  if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+  if (!getOptionalAmadeusEnv()) {
     log.warn("Amadeus credentials missing — skipping hotel offers search");
     return null;
   }

@@ -251,6 +251,16 @@ describe("GET /api/v1/trips/:id", () => {
       .mockResolvedValueOnce({
         id: tripId,
         profileId: null,
+        tripType: "multi-city",
+        region: "europe",
+        destination: null,
+        destinationCountry: null,
+        destinationCountryCode: null,
+        dateStart: "2026-06-01",
+        dateEnd: "2026-06-10",
+        flexibleDates: false,
+        travelers: 2,
+        description: null,
         itineraries: [
           {
             id: "itin-1",

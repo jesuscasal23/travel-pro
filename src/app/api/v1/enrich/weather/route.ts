@@ -5,17 +5,12 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { enrichWeather } from "@/lib/ai/enrichment";
-import { apiHandler, parseJsonBody, validateBody } from "@/lib/api/helpers";
-import { EnrichWeatherInputSchema } from "@/lib/api/schemas";
+import { apiHandler, parseAndValidateRequest } from "@/lib/api/helpers";
+import { EnrichWeatherInputSchema } from "@/lib/features/enrichment/schemas";
+import { getWeatherEnrichment } from "@/lib/features/enrichment/service";
 
 export const POST = apiHandler("POST /api/v1/enrich/weather", async (req: NextRequest) => {
-  const body = await parseJsonBody(req);
-  const { route, dateStart } = validateBody(EnrichWeatherInputSchema, body);
-
-  const weatherData = await enrichWeather(
-    route.map((r, i) => ({ id: String(i), days: 0, ...r })),
-    dateStart
-  );
+  const input = await parseAndValidateRequest(req, EnrichWeatherInputSchema);
+  const weatherData = await getWeatherEnrichment(input);
   return NextResponse.json({ weatherData });
 });

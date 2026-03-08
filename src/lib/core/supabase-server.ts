@@ -4,30 +4,29 @@
 // ============================================================
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getOptionalSupabaseSessionEnv } from "@/lib/config/server-env";
 
 async function createClient() {
   const cookieStore = await cookies();
+  const env = getOptionalSupabaseSessionEnv();
+  if (!env) {
+    return null;
+  }
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Called from a Server Component — safe to ignore
-          }
-        },
+  return createServerClient(env.url, env.anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        } catch {
+          // Called from a Server Component — safe to ignore
+        }
+      },
+    },
+  });
 }
 
 /**
@@ -36,10 +35,10 @@ async function createClient() {
  * Use this in every API route that requires authentication.
  */
 export async function getAuthenticatedUserId(): Promise<string | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  const supabase = await createClient();
+  if (!supabase) {
     return null;
   }
-  const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   return data.user?.id ?? null;
 }

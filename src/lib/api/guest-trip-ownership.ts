@@ -1,26 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
+import { getGuestTripOwnerSecret } from "@/lib/config/server-env";
 
 const GUEST_TRIP_OWNER_COOKIE_PREFIX = "travelpro_guest_trip_";
 const GUEST_TRIP_OWNER_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 const GUEST_TRIP_OWNER_SIGNATURE_VERSION = "v1";
-
-function getGuestTripOwnerSecret(): string {
-  const secret =
-    process.env.GUEST_TRIP_OWNER_SECRET ??
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.CRON_SECRET;
-
-  if (secret) {
-    return secret;
-  }
-
-  if (process.env.NODE_ENV !== "production") {
-    return "travelpro-dev-guest-trip-owner-secret";
-  }
-
-  throw new Error("Missing guest trip owner secret");
-}
 
 function signGuestTripId(tripId: string): string {
   return createHmac("sha256", getGuestTripOwnerSecret())

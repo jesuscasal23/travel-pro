@@ -5,18 +5,12 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { enrichVisa } from "@/lib/ai/enrichment";
-import { apiHandler, parseJsonBody, validateBody } from "@/lib/api/helpers";
-import { EnrichVisaInputSchema } from "@/lib/api/schemas";
+import { apiHandler, parseAndValidateRequest } from "@/lib/api/helpers";
+import { EnrichVisaInputSchema } from "@/lib/features/enrichment/schemas";
+import { getVisaEnrichment } from "@/lib/features/enrichment/service";
 
 export const POST = apiHandler("POST /api/v1/enrich/visa", async (req: NextRequest) => {
-  const body = await parseJsonBody(req);
-  const { nationality, route } = validateBody(EnrichVisaInputSchema, body);
-
-  // enrichVisa is synchronous (static Passport Index lookup) — effectively instant
-  const visaData = await enrichVisa(
-    nationality,
-    route.map((r, i) => ({ id: String(i), days: 0, ...r }))
-  );
+  const input = await parseAndValidateRequest(req, EnrichVisaInputSchema);
+  const visaData = await getVisaEnrichment(input);
   return NextResponse.json({ visaData });
 });

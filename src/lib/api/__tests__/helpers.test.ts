@@ -25,7 +25,14 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-import { ApiError, validateBody, getClientIp, apiHandler } from "../helpers";
+import {
+  apiHandler,
+  getClientIp,
+  parseAndValidateRequest,
+  parseAndValidateSearchParams,
+  validateBody,
+} from "../helpers";
+import { ApiError } from "../errors";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db/prisma";
 
@@ -85,6 +92,37 @@ describe("validateBody", () => {
   });
 });
 
+// ── parseAndValidateRequest ──────────────────────────────────
+
+describe("parseAndValidateRequest", () => {
+  const schema = z.object({
+    name: z.string().min(1),
+  });
+
+  it("parses JSON and validates the request body", async () => {
+    const req = new Request("http://localhost/api/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "Alice" }),
+    });
+
+    await expect(parseAndValidateRequest(req, schema)).resolves.toEqual({ name: "Alice" });
+  });
+
+  it("throws ApiError for invalid JSON", async () => {
+    const req = new Request("http://localhost/api/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "not-json",
+    });
+
+    await expect(parseAndValidateRequest(req, schema)).rejects.toMatchObject({
+      status: 400,
+      message: "Invalid JSON",
+    });
+  });
+});
+
 // ── getClientIp ──────────────────────────────────────────────
 
 describe("getClientIp", () => {
@@ -107,6 +145,19 @@ describe("getClientIp", () => {
       headers: new Headers(),
     } as unknown as Request;
     expect(getClientIp(req)).toBe("unknown");
+  });
+});
+
+// ── parseAndValidateSearchParams ─────────────────────────────
+
+describe("parseAndValidateSearchParams", () => {
+  const schema = z.object({
+    q: z.string().min(1),
+  });
+
+  it("parses and validates query params", () => {
+    const params = new URLSearchParams({ q: "tokyo" });
+    expect(parseAndValidateSearchParams(params, schema)).toEqual({ q: "tokyo" });
   });
 });
 
@@ -202,27 +253,27 @@ describe("requireProfile", () => {
   });
 });
 
-// ── requireTripOwnership ─────────────────────────────────────
+// ── requireUserTripOwner ─────────────────────────────────────
 
-describe("requireTripOwnership", () => {
+describe("requireUserTripOwner", () => {
   it("returns trip when ownership matches", async () => {
-    const { requireTripOwnership } = await import("../helpers");
+    const { requireUserTripOwner } = await import("../helpers");
     const mockTrip = { id: "t1", profileId: "p1", region: "Asia" };
     vi.mocked(prisma.trip.findUnique).mockResolvedValue(mockTrip as never);
-    const result = await requireTripOwnership("t1", "p1");
+    const result = await requireUserTripOwner("t1", "p1");
     expect(result.region).toBe("Asia");
   });
 
   it("throws 404 when trip not found", async () => {
-    const { requireTripOwnership } = await import("../helpers");
+    const { requireUserTripOwner } = await import("../helpers");
     vi.mocked(prisma.trip.findUnique).mockResolvedValue(null as never);
-    await expect(requireTripOwnership("t1", "p1")).rejects.toThrow("Trip not found");
+    await expect(requireUserTripOwner("t1", "p1")).rejects.toThrow("Trip not found");
   });
 
   it("throws 403 when ownership does not match", async () => {
-    const { requireTripOwnership } = await import("../helpers");
+    const { requireUserTripOwner } = await import("../helpers");
     const mockTrip = { id: "t1", profileId: "p-other" };
     vi.mocked(prisma.trip.findUnique).mockResolvedValue(mockTrip as never);
-    await expect(requireTripOwnership("t1", "p1")).rejects.toThrow("Forbidden");
+    await expect(requireUserTripOwner("t1", "p1")).rejects.toThrow("Forbidden");
   });
 });

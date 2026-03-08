@@ -63,6 +63,8 @@ const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://supabase.test";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
   mockAuth.mockResolvedValue("user-1");
   mockPrisma.profile.upsert.mockResolvedValue({
     id: "profile-1",

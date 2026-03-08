@@ -5,6 +5,10 @@
 // ============================================================
 import { prisma } from "@/lib/db/prisma";
 import crypto from "crypto";
+import {
+  GENERATING_ITINERARY_SELECT,
+  ITINERARY_VERSION_SELECT,
+} from "@/lib/features/trips/query-shapes";
 import { createLogger } from "@/lib/logger";
 import type { Itinerary } from "@/types";
 
@@ -87,7 +91,7 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
     const existing = await tx.itinerary.findFirst({
       where: { tripId: input.tripId, generationStatus: "generating" },
       orderBy: { createdAt: "desc" },
-      select: { id: true, generationJobId: true, createdAt: true },
+      select: GENERATING_ITINERARY_SELECT,
     });
 
     if (existing) {
@@ -108,7 +112,7 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
     const latest = await tx.itinerary.findFirst({
       where: { tripId: input.tripId },
       orderBy: { version: "desc" },
-      select: { version: true },
+      select: ITINERARY_VERSION_SELECT,
     });
 
     return tx.itinerary.create({

@@ -5,17 +5,12 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { enrichAccommodation } from "@/lib/ai/enrichment";
-import { apiHandler, parseJsonBody, validateBody } from "@/lib/api/helpers";
-import { EnrichAccommodationInputSchema } from "@/lib/api/schemas";
+import { apiHandler, parseAndValidateRequest } from "@/lib/api/helpers";
+import { EnrichAccommodationInputSchema } from "@/lib/features/enrichment/schemas";
+import { getAccommodationEnrichment } from "@/lib/features/enrichment/service";
 
 export const POST = apiHandler("POST /api/v1/enrich/accommodation", async (req: NextRequest) => {
-  const body = await parseJsonBody(req);
-  const { route, dateStart, travelers, travelStyle } = validateBody(
-    EnrichAccommodationInputSchema,
-    body
-  );
-
-  const accommodationData = await enrichAccommodation(route, dateStart, travelers, travelStyle);
+  const input = await parseAndValidateRequest(req, EnrichAccommodationInputSchema);
+  const accommodationData = await getAccommodationEnrichment(input);
   return NextResponse.json({ accommodationData });
 });

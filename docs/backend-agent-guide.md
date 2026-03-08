@@ -2,6 +2,8 @@
 
 This guide is the canonical starting point for backend changes in Travel Pro.
 
+Read this together with [backend-conventions.md](./backend-conventions.md). The conventions doc is the primary style reference.
+
 ## Stack
 
 - Runtime: Next.js App Router route handlers (`src/app/api/**/route.ts`)
@@ -9,22 +11,24 @@ This guide is the canonical starting point for backend changes in Travel Pro.
 - Auth: Supabase session cookies (`src/lib/supabase/server.ts`)
 - Validation: shared Zod contracts in `src/lib/api/schemas.ts`
 - Error handling and request IDs: `apiHandler` in `src/lib/api/helpers.ts`
+- Feature modules: `src/lib/features/**`
 
 ## Route Conventions
 
 - Wrap API routes with `apiHandler(routeName, handler)`.
-- Parse JSON with `parseJsonBody(req)`.
-- Validate payloads with `validateBody(schema, body)`.
-- Throw `ApiError(status, message, details?)` for handled failures.
+- Prefer the route shape `assert access -> parse input -> call feature service -> serialize -> return`.
+- Parse JSON with `parseAndValidateRequest(req, schema)`.
+- Parse query strings with `parseAndValidateSearchParams(searchParams, schema)`.
+- Throw typed errors from `src/lib/api/errors.ts` for handled failures.
 - Route responses include `x-request-id` automatically via `apiHandler`.
 
 ## Trip Access Rules
 
-Use `assertTripAccess(tripId, options)` from `src/lib/api/helpers.ts`.
+Use `assertTripAccess(req, tripId, options)` from `src/lib/api/helpers.ts`.
 
-- `requireOwnershipForUserTrips: true`
+- `requireTripOwner: true`
   - If trip has `profileId`, auth + ownership is required.
-  - If trip has no `profileId` (guest trip), access is allowed.
+  - If trip has no `profileId` (guest trip), the signed guest-owner cookie is required.
 - `allowGuestId: true`
   - Allows synthetic `tripId === "guest"` for stateless guest endpoints.
 
@@ -36,6 +40,7 @@ Import from public `@/lib/*` wrappers, not `@/lib/core/*`.
 - Use `@/lib/db/prisma`
 - Use `@/lib/request-context`
 - Use `@/lib/supabase/server`
+- Use feature modules such as `@/lib/features/trips/*` when a backend concern clearly belongs to one feature
 
 Lint enforces this in `eslint.config.mjs` (`no-restricted-imports`).
 

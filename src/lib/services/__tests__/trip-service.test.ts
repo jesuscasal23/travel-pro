@@ -22,7 +22,8 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 import { prisma } from "@/lib/db/prisma";
-import { tripToIntent, ensureShareToken } from "../trip-service";
+import { tripToIntent } from "@/lib/features/trips/trip-intent";
+import { getOrCreateTripShareToken } from "@/lib/features/trips/trip-share-service";
 
 const mockPrisma = prisma as unknown as {
   trip: {
@@ -64,6 +65,7 @@ describe("tripToIntent", () => {
       destinationCountryCode: undefined,
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
+      flexibleDates: false,
       travelers: 2,
     });
   });
@@ -93,13 +95,13 @@ describe("tripToIntent", () => {
   });
 });
 
-// ── ensureShareToken ────────────────────────────────────────
+// ── getOrCreateTripShareToken ───────────────────────────────
 
-describe("ensureShareToken", () => {
+describe("getOrCreateTripShareToken", () => {
   it("returns existing token when trip already has one", async () => {
     mockPrisma.trip.findUnique.mockResolvedValue({ shareToken: "existing-token" });
 
-    const result = await ensureShareToken("trip-1");
+    const result = await getOrCreateTripShareToken("trip-1");
 
     expect(result).toBe("existing-token");
     expect(mockPrisma.trip.update).not.toHaveBeenCalled();
@@ -109,7 +111,7 @@ describe("ensureShareToken", () => {
     mockPrisma.trip.findUnique.mockResolvedValue({ shareToken: null });
     mockPrisma.trip.update.mockResolvedValue({});
 
-    const result = await ensureShareToken("trip-1");
+    const result = await getOrCreateTripShareToken("trip-1");
 
     expect(typeof result).toBe("string");
     expect(result.length).toBe(12); // base64url of 9 bytes = 12 chars
@@ -123,7 +125,7 @@ describe("ensureShareToken", () => {
     mockPrisma.trip.findUnique.mockResolvedValue({ shareToken: null });
     mockPrisma.trip.update.mockResolvedValue({});
 
-    const result = await ensureShareToken("trip-1");
+    const result = await getOrCreateTripShareToken("trip-1");
 
     // base64url should not contain +, /, or =
     expect(result).toMatch(/^[A-Za-z0-9_-]+$/);

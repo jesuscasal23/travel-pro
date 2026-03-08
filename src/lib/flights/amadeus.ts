@@ -8,6 +8,7 @@ import type { FlightOption, FlightSearchResult, FlightLegResults } from "./types
 import { buildFlightLink } from "@/lib/affiliate/link-generator";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
+import { getOptionalAmadeusEnv, getOptionalRedisEnv } from "@/lib/config/server-env";
 
 const log = createLogger("amadeus");
 
@@ -22,18 +23,17 @@ let _redis: Redis | null | undefined;
 
 function getRedis(): Redis | null {
   if (_redis !== undefined) return _redis;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+  const redisEnv = getOptionalRedisEnv();
+  if (!redisEnv) {
     _redis = null;
     return null;
   }
-  _redis = new Redis({ url, token });
+  _redis = new Redis(redisEnv);
   return _redis;
 }
 
 export const AMADEUS_BASE =
-  process.env.AMADEUS_ENVIRONMENT === "production"
+  getOptionalAmadeusEnv()?.environment === "production"
     ? "https://api.amadeus.com"
     : "https://test.api.amadeus.com";
 
@@ -101,8 +101,8 @@ export async function getToken(signal?: AbortSignal): Promise<string> {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "client_credentials",
-      client_id: process.env.AMADEUS_API_KEY ?? "",
-      client_secret: process.env.AMADEUS_API_SECRET ?? "",
+      client_id: getOptionalAmadeusEnv()?.apiKey ?? "",
+      client_secret: getOptionalAmadeusEnv()?.apiSecret ?? "",
     }).toString(),
     signal,
   });
@@ -135,7 +135,7 @@ export async function searchFlights(
   adults: number,
   signal?: AbortSignal
 ): Promise<FlightOption | null> {
-  if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+  if (!getOptionalAmadeusEnv()) {
     log.warn("Amadeus credentials missing — skipping flight search", { origin, destination, date });
     return null;
   }
@@ -207,7 +207,7 @@ export async function searchFlightsMulti(
   filters?: { nonStop?: boolean; maxPrice?: number },
   signal?: AbortSignal
 ): Promise<FlightSearchResult[]> {
-  if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
+  if (!getOptionalAmadeusEnv()) {
     log.warn("Amadeus credentials missing — skipping multi-flight search", {
       origin,
       destination,
