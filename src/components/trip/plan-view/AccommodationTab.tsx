@@ -15,6 +15,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
+import { useTripContext } from "../TripContext";
 import type { Itinerary, CityAccommodation } from "@/types";
 
 const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
@@ -22,8 +23,6 @@ const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }
 interface AccommodationTabProps {
   itinerary: Itinerary;
   tripId: string;
-  accommodationLoading?: boolean;
-  accommodationError?: boolean;
 }
 
 function SkeletonCard() {
@@ -49,11 +48,8 @@ function SkeletonCard() {
   );
 }
 
-export function AccommodationTab({
-  itinerary,
-  accommodationLoading,
-  accommodationError,
-}: AccommodationTabProps) {
+export function AccommodationTab({ itinerary }: AccommodationTabProps) {
+  const { accommodationLoading, accommodationError } = useTripContext();
   const accommodationData = itinerary.accommodationData;
   const route = itinerary.route;
 

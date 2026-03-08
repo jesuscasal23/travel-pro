@@ -20,8 +20,8 @@ const mocks = vi.hoisted(() => ({
   setItinerary: vi.fn(),
   setCurrentTripId: vi.fn(),
   setNeedsRegeneration: vi.fn(),
-  mobileProps: null as Record<string, unknown> | null,
-  desktopProps: null as Record<string, unknown> | null,
+  mobileCtx: null as Record<string, unknown> | null,
+  desktopCtx: null as Record<string, unknown> | null,
 }));
 
 vi.mock("posthog-js/react", () => ({
@@ -88,24 +88,37 @@ vi.mock("@/lib/utils/city-images", () => ({
   getCityHeroImage: vi.fn(() => null),
 }));
 
-vi.mock("@/components/trip/mobile/MobileLayout", () => ({
-  MobileLayout: (props: Record<string, unknown>) => {
-    mocks.mobileProps = props;
-    return (
-      <div data-testid="mobile-layout">
-        <button onClick={props.onRetry as () => void}>retry</button>
-        <button onClick={props.onRegenerate as () => void}>regenerate</button>
-      </div>
-    );
-  },
-}));
+// Mock MobileLayout to read from TripContext and render test buttons
+vi.mock("@/components/trip/mobile/MobileLayout", async () => {
+  const { useTripContext } = await vi.importActual<typeof import("@/components/trip/TripContext")>(
+    "@/components/trip/TripContext"
+  );
+  return {
+    MobileLayout: () => {
+      const ctx = useTripContext();
+      mocks.mobileCtx = ctx as unknown as Record<string, unknown>;
+      return (
+        <div data-testid="mobile-layout">
+          <button onClick={ctx.onRetry}>retry</button>
+          <button onClick={ctx.onRegenerate}>regenerate</button>
+        </div>
+      );
+    },
+  };
+});
 
-vi.mock("@/components/trip/desktop/DesktopLayout", () => ({
-  DesktopLayout: (props: Record<string, unknown>) => {
-    mocks.desktopProps = props;
-    return <div data-testid="desktop-layout" />;
-  },
-}));
+vi.mock("@/components/trip/desktop/DesktopLayout", async () => {
+  const { useTripContext } = await vi.importActual<typeof import("@/components/trip/TripContext")>(
+    "@/components/trip/TripContext"
+  );
+  return {
+    DesktopLayout: () => {
+      const ctx = useTripContext();
+      mocks.desktopCtx = ctx as unknown as Record<string, unknown>;
+      return <div data-testid="desktop-layout" />;
+    },
+  };
+});
 
 import TripPage from "@/app/trip/[id]/page";
 
@@ -262,6 +275,6 @@ describe("TripPage layout and action wiring", () => {
       },
     ]);
     expect(mocks.setItinerary).toHaveBeenCalledWith(generated);
-    expect(mocks.mobileProps?.generationError).toBe("Generation failed");
+    expect(mocks.mobileCtx?.generationError).toBe("Generation failed");
   });
 });

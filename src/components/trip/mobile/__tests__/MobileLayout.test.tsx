@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Itinerary } from "@/types";
 import type { EditItinerary } from "@/stores/useEditStore";
+import type { TripContextValue } from "../../TripContext";
 
 const mocks = vi.hoisted(() => ({
   editStore: {
@@ -85,11 +86,30 @@ vi.mock("../../ShareModal", () => ({
   ShareModal: () => <div data-testid="share-modal" />,
 }));
 
+vi.mock("../../TripBanners", async () => {
+  const { useTripContext } =
+    await vi.importActual<typeof import("../../TripContext")>("../../TripContext");
+  return {
+    TripBanners: () => {
+      const ctx = useTripContext();
+      return (
+        <div data-testid="trip-banners">
+          {ctx.isAuthenticated === false &&
+            !ctx.isPartialItinerary &&
+            !ctx.generationError &&
+            !ctx.needsRegeneration && <a href={`/signup?next=/trip/${ctx.tripId}`}>Save trip</a>}
+        </div>
+      );
+    },
+  };
+});
+
 vi.mock("@/hooks/api", () => ({
   useShareTrip: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 import { MobileLayout } from "../MobileLayout";
+import { TripProvider } from "../../TripContext";
 
 function makeItinerary(): Itinerary {
   return {
@@ -126,6 +146,41 @@ function makeEditDraft(base: Itinerary): EditItinerary {
       })),
     })),
   };
+}
+
+function makeContextValue(overrides?: Partial<TripContextValue>): TripContextValue {
+  return {
+    itinerary: makeItinerary(),
+    tripId: "trip-123",
+    tripTitle: "Paris",
+    totalDays: 2,
+    countries: ["France"],
+    isAuthenticated: true,
+    isPartialItinerary: false,
+    isGenerating: false,
+    generationError: null,
+    needsRegeneration: false,
+    onRetry: vi.fn(),
+    onRegenerate: vi.fn(),
+    onDismissRegeneration: vi.fn(),
+    visaLoading: false,
+    weatherLoading: false,
+    visaError: false,
+    weatherError: false,
+    accommodationLoading: false,
+    accommodationError: false,
+    generatingCityId: null,
+    onGenerateActivities: vi.fn(),
+    ...overrides,
+  };
+}
+
+function renderWithContext(contextOverrides?: Partial<TripContextValue>) {
+  return render(
+    <TripProvider value={makeContextValue(contextOverrides)}>
+      <MobileLayout />
+    </TripProvider>
+  );
 }
 
 describe("MobileLayout", () => {
@@ -170,31 +225,7 @@ describe("MobileLayout", () => {
     });
     mocks.recalculateTravelDays.mockReturnValue(recalculatedDays);
 
-    render(
-      <MobileLayout
-        itinerary={initial}
-        tripId="trip-123"
-        tripTitle="Paris"
-        totalDays={2}
-        countries={["France"]}
-        isAuthenticated
-        isPartialItinerary={false}
-        isGenerating={false}
-        generationError={null}
-        needsRegeneration={false}
-        onRetry={vi.fn()}
-        onRegenerate={vi.fn()}
-        onDismissRegeneration={vi.fn()}
-        visaLoading={false}
-        weatherLoading={false}
-        visaError={false}
-        weatherError={false}
-        accommodationLoading={false}
-        accommodationError={false}
-        generatingCityId={null}
-        onGenerateActivities={vi.fn()}
-      />
-    );
+    renderWithContext();
 
     fireEvent.click(screen.getByRole("button", { name: "Save edits" }));
 
@@ -213,36 +244,14 @@ describe("MobileLayout", () => {
   });
 
   it("shows guest save-trip nudge when not authenticated", () => {
-    const initial = makeItinerary();
     mocks.editStore.isEditMode = false;
     mocks.editStore.draft = null;
     mocks.editStore.undoStack = [];
 
-    render(
-      <MobileLayout
-        itinerary={initial}
-        tripId="guest-trip"
-        tripTitle="Paris"
-        totalDays={2}
-        countries={["France"]}
-        isAuthenticated={false}
-        isPartialItinerary={false}
-        isGenerating={false}
-        generationError={null}
-        needsRegeneration={false}
-        onRetry={vi.fn()}
-        onRegenerate={vi.fn()}
-        onDismissRegeneration={vi.fn()}
-        visaLoading={false}
-        weatherLoading={false}
-        visaError={false}
-        weatherError={false}
-        accommodationLoading={false}
-        accommodationError={false}
-        generatingCityId={null}
-        onGenerateActivities={vi.fn()}
-      />
-    );
+    renderWithContext({
+      tripId: "guest-trip",
+      isAuthenticated: false,
+    });
 
     const link = screen.getByRole("link", { name: "Save trip" });
     expect(link).toHaveAttribute("href", "/signup?next=/trip/guest-trip");

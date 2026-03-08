@@ -62,6 +62,7 @@ export function DesktopJourneyTab({
         const isGeneratingThis = generatingCityId === cityStop.id;
         const activeDayNum = activeDayMap[groupIdx] ?? group.days[0]?.day;
         const activeDay = group.days.find((d) => d.day === activeDayNum) ?? group.days[0];
+        const timedActivities = activeDay && hasActivities ? distributeActivities(activeDay) : [];
 
         return (
           <div key={group.cityId + groupIdx} className="mb-8">
@@ -91,12 +92,12 @@ export function DesktopJourneyTab({
                     )}
 
                     {/* Stacked activity cards */}
-                    {distributeActivities(activeDay).map((ta, i, arr) => (
+                    {timedActivities.map((ta, i) => (
                       <ActivityCard
                         key={i}
                         timedActivity={ta}
                         isFirst={i === 0}
-                        isLast={i === arr.length - 1}
+                        isLast={i === timedActivities.length - 1}
                       />
                     ))}
                   </div>

@@ -3,6 +3,7 @@ import { render, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Itinerary } from "@/types";
 import type { EditItinerary } from "@/stores/useEditStore";
+import type { TripContextValue } from "../../TripContext";
 
 const mocks = vi.hoisted(() => ({
   editStore: {
@@ -87,11 +88,16 @@ vi.mock("../../ShareModal", () => ({
   ShareModal: () => <div data-testid="share-modal" />,
 }));
 
+vi.mock("../../TripBanners", () => ({
+  TripBanners: () => <div data-testid="trip-banners" />,
+}));
+
 vi.mock("@/hooks/api", () => ({
   useShareTrip: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 import { DesktopLayout } from "../DesktopLayout";
+import { TripProvider } from "../../TripContext";
 
 function makeItinerary(): Itinerary {
   return {
@@ -115,6 +121,41 @@ function makeItinerary(): Itinerary {
       },
     ],
   };
+}
+
+function makeContextValue(overrides?: Partial<TripContextValue>): TripContextValue {
+  return {
+    itinerary: makeItinerary(),
+    tripId: "trip-123",
+    tripTitle: "Paris",
+    totalDays: 2,
+    countries: ["France"],
+    isAuthenticated: true,
+    isPartialItinerary: false,
+    isGenerating: false,
+    generationError: null,
+    needsRegeneration: false,
+    onRetry: vi.fn(),
+    onRegenerate: vi.fn(),
+    onDismissRegeneration: vi.fn(),
+    visaLoading: false,
+    weatherLoading: false,
+    visaError: false,
+    weatherError: false,
+    accommodationLoading: false,
+    accommodationError: false,
+    generatingCityId: null,
+    onGenerateActivities: vi.fn(),
+    ...overrides,
+  };
+}
+
+function renderWithContext(contextOverrides?: Partial<TripContextValue>) {
+  return render(
+    <TripProvider value={makeContextValue(contextOverrides)}>
+      <DesktopLayout activeCityIndex={0} onCityClick={vi.fn()} />
+    </TripProvider>
+  );
 }
 
 describe("DesktopLayout", () => {
@@ -143,33 +184,7 @@ describe("DesktopLayout", () => {
   });
 
   it("handles keyboard shortcuts in edit mode", () => {
-    render(
-      <DesktopLayout
-        itinerary={makeItinerary()}
-        tripId="trip-123"
-        tripTitle="Paris"
-        totalDays={2}
-        countries={["France"]}
-        isAuthenticated
-        isPartialItinerary={false}
-        isGenerating={false}
-        generationError={null}
-        needsRegeneration={false}
-        onRetry={vi.fn()}
-        onRegenerate={vi.fn()}
-        onDismissRegeneration={vi.fn()}
-        visaLoading={false}
-        weatherLoading={false}
-        visaError={false}
-        weatherError={false}
-        accommodationLoading={false}
-        accommodationError={false}
-        activeCityIndex={0}
-        onCityClick={vi.fn()}
-        generatingCityId={null}
-        onGenerateActivities={vi.fn()}
-      />
-    );
+    renderWithContext();
 
     fireEvent.keyDown(document, { key: "z", ctrlKey: true });
     fireEvent.keyDown(document, { key: "Escape" });
@@ -182,33 +197,7 @@ describe("DesktopLayout", () => {
     mocks.editStore.isEditMode = false;
     mocks.editStore.draft = null;
 
-    render(
-      <DesktopLayout
-        itinerary={makeItinerary()}
-        tripId="trip-123"
-        tripTitle="Paris"
-        totalDays={2}
-        countries={["France"]}
-        isAuthenticated
-        isPartialItinerary={false}
-        isGenerating={false}
-        generationError={null}
-        needsRegeneration={false}
-        onRetry={vi.fn()}
-        onRegenerate={vi.fn()}
-        onDismissRegeneration={vi.fn()}
-        visaLoading={false}
-        weatherLoading={false}
-        visaError={false}
-        weatherError={false}
-        accommodationLoading={false}
-        accommodationError={false}
-        activeCityIndex={0}
-        onCityClick={vi.fn()}
-        generatingCityId={null}
-        onGenerateActivities={vi.fn()}
-      />
-    );
+    renderWithContext();
 
     fireEvent.keyDown(document, { key: "z", ctrlKey: true });
     fireEvent.keyDown(document, { key: "Escape" });

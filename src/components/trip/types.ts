@@ -1,33 +1,7 @@
-import type { Itinerary } from "@/types";
-
 export type MobileTab = "journey" | "prep" | "accommodation" | "flights" | "budget";
 export type DesktopTab = "journey" | "prep" | "route" | "accommodation" | "flights" | "budget";
 
-export interface TripLayoutProps {
-  itinerary: Itinerary;
-  tripId: string;
-  tripTitle: string;
-  totalDays: number;
-  countries: string[];
-  isAuthenticated: boolean | null;
-  isPartialItinerary: boolean;
-  isGenerating: boolean;
-  generationError: string | null;
-  needsRegeneration: boolean;
-  onRetry: () => void;
-  onRegenerate: () => void;
-  onDismissRegeneration: () => void;
-  visaLoading: boolean;
-  weatherLoading: boolean;
-  visaError: boolean;
-  weatherError: boolean;
-  accommodationLoading: boolean;
-  accommodationError: boolean;
-  generatingCityId: string | null;
-  onGenerateActivities: (cityId: string, cityName: string) => void;
-}
-
-export interface DesktopLayoutProps extends TripLayoutProps {
+export interface DesktopLayoutProps {
   activeCityIndex: number | null;
   onCityClick: (index: number) => void;
 }

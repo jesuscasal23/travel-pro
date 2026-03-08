@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import Image from "next/image";
 import { getCityImage, getCityPlaceholder, CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
 import type { CityStop } from "@/types";
@@ -12,7 +12,12 @@ interface CityCardProps {
   variant: "mobile" | "desktop";
 }
 
-export function CityCard({ city, isActive, onClick, variant }: CityCardProps) {
+export const CityCard = memo(function CityCard({
+  city,
+  isActive,
+  onClick,
+  variant,
+}: CityCardProps) {
   const isMobile = variant === "mobile";
   const [src, setSrc] = useState(() => getCityImage(city.city, city.countryCode));
 
@@ -50,4 +55,4 @@ export function CityCard({ city, isActive, onClick, variant }: CityCardProps) {
       </div>
     </button>
   );
-}
+});

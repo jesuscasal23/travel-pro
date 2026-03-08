@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect, useRef } from "react";
+import { use, useState, useEffect, useRef, useMemo } from "react";
 import { usePostHog } from "posthog-js/react";
 import { useItinerary } from "@/hooks/useItinerary";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -16,8 +16,10 @@ import { useTripStore } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { MobileLayout } from "@/components/trip/mobile/MobileLayout";
 import { DesktopLayout } from "@/components/trip/desktop/DesktopLayout";
+import { TripProvider } from "@/components/trip/TripContext";
 import { getCityHeroImage } from "@/lib/utils/city-images";
 import type { Itinerary } from "@/types";
+import type { TripContextValue } from "@/components/trip/TripContext";
 
 type Params = Promise<{ id: string }>;
 
@@ -44,13 +46,6 @@ export default function TripPage({ params }: { params: Params }) {
   const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
 
   // ── Sync Zustand store with DB on mount (non-guest trips) ───────────────────
-  // dbSyncDone gates generation: we wait for the DB check to resolve before
-  // firing generation so that a complete DB itinerary can overwrite a stale
-  // partial store value before we decide whether to generate.  Without this
-  // gate the generation effect fires on the first render where isPartialItinerary
-  // is true (from persisted localStorage) even though the DB already holds a
-  // complete result, causing a redundant generation request and overwriting the
-  // DB-synced itinerary.  Guest trips skip the sync entirely, so we start done.
   const [dbSyncDone, setDbSyncDone] = useState(id === "guest");
   const syncFiredRef = useRef(false);
   useEffect(() => {
@@ -62,7 +57,6 @@ export default function TripPage({ params }: { params: Params }) {
       .then((data) => {
         if (!data?.trip?.itineraries?.[0]?.data) return;
         const dbItinerary = data.trip.itineraries[0].data as Itinerary;
-        // Only update if the DB version has data the local store lacks
         const local = useTripStore.getState().itinerary;
         const localTripId = useTripStore.getState().currentTripId;
         const dbHasActivities = dbItinerary.days?.some(
@@ -95,9 +89,6 @@ export default function TripPage({ params }: { params: Params }) {
   const generateMutation = useTripGeneration();
   const genFiredRef = useRef(false);
 
-  // Fire background generation via SSE when we have a partial itinerary.
-  // Gated on dbSyncDone so the DB sync above gets a chance to overwrite a
-  // stale partial store value with a complete itinerary before we generate.
   useEffect(() => {
     if (!isPartialItinerary || !dbSyncDone || genFiredRef.current) return;
     genFiredRef.current = true;
@@ -125,7 +116,7 @@ export default function TripPage({ params }: { params: Params }) {
           if (result) setItinerary(result);
         },
         onError: () => {
-          genFiredRef.current = false; // allow retry
+          genFiredRef.current = false;
         },
       }
     );
@@ -322,7 +313,7 @@ export default function TripPage({ params }: { params: Params }) {
     );
   };
 
-  const sharedProps = {
+  const contextValue: TripContextValue = {
     itinerary,
     tripId: id,
     tripTitle,
@@ -347,14 +338,16 @@ export default function TripPage({ params }: { params: Params }) {
   };
 
   if (isMobile) {
-    return <MobileLayout {...sharedProps} />;
+    return (
+      <TripProvider value={contextValue}>
+        <MobileLayout />
+      </TripProvider>
+    );
   }
 
   return (
-    <DesktopLayout
-      {...sharedProps}
-      activeCityIndex={activeCityIndex}
-      onCityClick={setActiveCityIndex}
-    />
+    <TripProvider value={contextValue}>
+      <DesktopLayout activeCityIndex={activeCityIndex} onCityClick={setActiveCityIndex} />
+    </TripProvider>
   );
 }

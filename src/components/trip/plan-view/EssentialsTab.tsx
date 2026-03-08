@@ -15,14 +15,11 @@ import { generatePackingList } from "@/lib/utils/generate-packing-list";
 import { shouldHideVisaSection } from "@/lib/utils/visa-utils";
 import { NATIONALITY_TO_ISO2 } from "@/data/nationality-to-iso2";
 import { useTripStore } from "@/stores/useTripStore";
+import { useTripContext } from "../TripContext";
 import type { Itinerary } from "@/types";
 
 interface EssentialsTabProps {
   itinerary: Itinerary;
-  visaLoading?: boolean;
-  weatherLoading?: boolean;
-  visaError?: boolean;
-  weatherError?: boolean;
 }
 
 function SectionSkeleton({ lines = 3 }: { lines?: number }) {
@@ -67,13 +64,8 @@ function ErrorCard({ message }: { message: string }) {
   );
 }
 
-export function EssentialsTab({
-  itinerary,
-  visaLoading,
-  weatherLoading,
-  visaError,
-  weatherError,
-}: EssentialsTabProps) {
+export function EssentialsTab({ itinerary }: EssentialsTabProps) {
+  const { visaLoading, weatherLoading, visaError, weatherError } = useTripContext();
   const { route, days, visaData, weatherData } = itinerary;
 
   // Stable localStorage key derived from the route — so each trip has its own packing state
@@ -129,25 +121,26 @@ export function EssentialsTab({
     });
   };
 
-  // Group weather by country
-  const countries = [...new Set(route.map((r) => r.country))];
-  const countryWeather = hasWeather
-    ? countries.map((country) => {
-        const countryRoute = route.filter((r) => r.country === country);
-        const cities = weatherData.filter((w) => countryRoute.some((r) => r.city === w.city));
-        const temps = cities.map((c) => {
-          const match = c.temp.match(/(\d+)/);
-          return match ? parseInt(match[1]) : 0;
-        });
-        const conditions = [...new Set(cities.map((c) => c.condition))];
-        return {
-          country,
-          conditions: conditions.join(", "),
-          minTemp: Math.min(...temps),
-          maxTemp: Math.max(...temps),
-        };
-      })
-    : [];
+  // Group weather by country (memoized)
+  const countries = useMemo(() => [...new Set(route.map((r) => r.country))], [route]);
+  const countryWeather = useMemo(() => {
+    if (!hasWeather) return [];
+    return countries.map((country) => {
+      const countryRoute = route.filter((r) => r.country === country);
+      const cities = weatherData!.filter((w) => countryRoute.some((r) => r.city === w.city));
+      const temps = cities.map((c) => {
+        const match = c.temp.match(/(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+      const conditions = [...new Set(cities.map((c) => c.condition))];
+      return {
+        country,
+        conditions: conditions.join(", "),
+        minTemp: Math.min(...temps),
+        maxTemp: Math.max(...temps),
+      };
+    });
+  }, [hasWeather, countries, route, weatherData]);
 
   return (
     <div className="space-y-10">

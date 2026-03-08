@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback } from "react";
-import { ChevronDown, ChevronUp, Search, ExternalLink, AlertTriangle, Filter } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, AlertTriangle, Filter } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useFlightSearch } from "@/hooks/useFlightSearch";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
+import { FlightRow } from "./flight/FlightRow";
+import { FlightFilterPanel, matchesStopsFilter } from "./flight/FlightFilterPanel";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
+import type { StopsFilter } from "./flight/FlightFilterPanel";
 
 type SortMode = "price" | "duration";
-type StopsFilter = "any" | "nonstop" | "1stop" | "2plus";
 
 interface FlightOptionsPanelProps {
   leg: FlightLegResults;
@@ -27,90 +29,6 @@ function durationToMinutes(d: string): number {
   const h = d.match(/(\d+)h/)?.[1];
   const m = d.match(/(\d+)m/)?.[1];
   return parseInt(h ?? "0") * 60 + parseInt(m ?? "0");
-}
-
-/** Format ISO time -> "08:30" */
-function formatTime(iso: string): string {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return iso.slice(11, 16);
-  }
-}
-
-function StopsLabel({ stops }: { stops: number }) {
-  if (stops === 0) return <span className="text-green-600 dark:text-green-400">Nonstop</span>;
-  return (
-    <span className="text-amber-600 dark:text-amber-400">
-      {stops} stop{stops > 1 ? "s" : ""}
-    </span>
-  );
-}
-
-function FlightRow({ result, itineraryId }: { result: FlightSearchResult; itineraryId?: string }) {
-  const trackedUrl = buildTrackedLink({
-    provider: "skyscanner",
-    type: "flight",
-    itineraryId,
-    dest: result.bookingUrl,
-  });
-
-  return (
-    <a
-      href={trackedUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="border-border hover:border-primary hover:bg-primary/5 group flex items-center justify-between rounded-lg border p-3 transition-all duration-200"
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="shrink-0 text-base">✈️</span>
-        <div className="min-w-0">
-          <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-            <span>{result.airline}</span>
-            <span className="text-muted-foreground">·</span>
-            <StopsLabel stops={result.stops} />
-            <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{result.duration}</span>
-          </div>
-          <div className="text-muted-foreground text-xs">
-            {formatTime(result.departureTime)}
-            {result.arrivalTime && ` → ${formatTime(result.arrivalTime)}`}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 text-right">
-        <div>
-          <div className="text-foreground text-sm font-bold">
-            €{Math.round(result.price).toLocaleString()}
-          </div>
-          <div className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
-            Book <ExternalLink className="mb-0.5 inline h-3 w-3" />
-          </div>
-        </div>
-      </div>
-    </a>
-  );
-}
-
-const STOPS_OPTIONS: { value: StopsFilter; label: string }[] = [
-  { value: "any", label: "Any" },
-  { value: "nonstop", label: "Nonstop" },
-  { value: "1stop", label: "1 stop" },
-  { value: "2plus", label: "2+" },
-];
-
-function matchesStopsFilter(stops: number, filter: StopsFilter): boolean {
-  switch (filter) {
-    case "nonstop":
-      return stops === 0;
-    case "1stop":
-      return stops <= 1;
-    case "2plus":
-      return true;
-    default:
-      return true;
-  }
 }
 
 export function FlightOptionsPanel({
@@ -354,83 +272,22 @@ export function FlightOptionsPanel({
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="border-border bg-background mb-3 space-y-3 rounded-lg border p-3">
-          {/* Stops filter */}
-          <div>
-            <label className="text-muted-foreground mb-1.5 block text-xs font-medium">Stops</label>
-            <div className="flex flex-wrap gap-1.5">
-              {STOPS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  disabled={cooldown && opt.value !== stopsFilter}
-                  onClick={() => {
-                    setStopsFilter(opt.value);
-                    if (opt.value === "nonstop" || stopsFilter === "nonstop") {
-                      handleFilterSearch({ stopsFilter: opt.value });
-                    }
-                  }}
-                  className={`rounded-full px-3 py-1 text-xs transition-colors disabled:opacity-50 ${
-                    stopsFilter === opt.value
-                      ? "bg-primary font-medium text-white"
-                      : "bg-secondary text-foreground hover:bg-secondary/80"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Max price filter */}
-          {priceRange.min < priceRange.max && (
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-muted-foreground text-xs font-medium">Max price</label>
-                <span className="text-foreground text-xs font-medium">
-                  {maxPrice !== null
-                    ? `€${maxPrice.toLocaleString()}`
-                    : `€${priceRange.max.toLocaleString()}`}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={priceRange.min}
-                max={priceRange.max}
-                step={10}
-                value={maxPrice ?? priceRange.max}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  setMaxPrice(val >= priceRange.max ? null : val);
-                }}
-                onMouseUp={(e) => {
-                  const val = parseInt((e.target as HTMLInputElement).value);
-                  const newMax = val >= priceRange.max ? null : val;
-                  handleFilterSearch({ maxPrice: newMax });
-                }}
-                onTouchEnd={(e) => {
-                  const val = parseInt((e.target as HTMLInputElement).value);
-                  const newMax = val >= priceRange.max ? null : val;
-                  handleFilterSearch({ maxPrice: newMax });
-                }}
-                className="accent-primary w-full"
-              />
-              <div className="text-muted-foreground mt-0.5 flex justify-between text-[10px]">
-                <span>€{priceRange.min.toLocaleString()}</span>
-                <span>€{priceRange.max.toLocaleString()}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Clear filters */}
-          {activeFilterCount > 0 && (
-            <button
-              onClick={clearFilters}
-              className="text-primary text-xs font-medium hover:underline"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
+        <FlightFilterPanel
+          stopsFilter={stopsFilter}
+          maxPrice={maxPrice}
+          priceRange={priceRange}
+          cooldown={cooldown}
+          activeFilterCount={activeFilterCount}
+          onStopsFilterChange={(filter) => {
+            setStopsFilter(filter);
+            if (filter === "nonstop" || stopsFilter === "nonstop") {
+              handleFilterSearch({ stopsFilter: filter });
+            }
+          }}
+          onMaxPriceChange={setMaxPrice}
+          onMaxPriceCommit={(price) => handleFilterSearch({ maxPrice: price })}
+          onClearFilters={clearFilters}
+        />
       )}
 
       {/* Results */}

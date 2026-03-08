@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Clock } from "lucide-react";
 import { getCategoryStyle, getCategoryEmoji } from "@/lib/utils/category-colors";
 import { parseDurationMinutes } from "@/lib/utils/duration";
@@ -11,7 +12,11 @@ interface ActivityCardProps {
   isLast: boolean;
 }
 
-export function ActivityCard({ timedActivity, isFirst, isLast }: ActivityCardProps) {
+export const ActivityCard = memo(function ActivityCard({
+  timedActivity,
+  isFirst,
+  isLast,
+}: ActivityCardProps) {
   const { activity, startTime, endTime, durationMinutes } = timedActivity;
   const style = getCategoryStyle(activity.category);
 
@@ -72,4 +77,4 @@ export function ActivityCard({ timedActivity, isFirst, isLast }: ActivityCardPro
       </div>
     </div>
   );
-}
+});
