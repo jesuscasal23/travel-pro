@@ -13,6 +13,10 @@ const PAGES = [
   { name: "09-summary", url: "/v2/onboarding/summary" },
   { name: "10-signup", url: "/v2/onboarding/signup" },
   { name: "11-home", url: "/v2/home" },
+  { name: "12-trips", url: "/v2/trips" },
+  { name: "13-discover", url: "/v2/discover" },
+  { name: "14-bookings", url: "/v2/bookings" },
+  { name: "15-profile", url: "/v2/profile" },
 ];
 
 const OUT_DIR = path.join(process.cwd(), "tmp/v2-screenshots");

@@ -9,6 +9,7 @@ interface OnboardingShellProps {
   ctaVariant?: "primary" | "dark";
   onCtaClick: () => void;
   ctaDisabled?: boolean;
+  aboveCta?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export function OnboardingShell({
   ctaVariant = "primary",
   onCtaClick,
   ctaDisabled,
+  aboveCta,
   children,
 }: OnboardingShellProps) {
   return (
@@ -25,6 +27,7 @@ export function OnboardingShell({
       {progress !== undefined && <ProgressBar progress={progress} />}
       <div className="flex-1 px-6 pt-10 pb-4">{children}</div>
       <div className="shrink-0 px-6 pt-2 pb-8">
+        {aboveCta}
         <Button variant={ctaVariant} onClick={onCtaClick} disabled={ctaDisabled}>
           {ctaLabel}
         </Button>

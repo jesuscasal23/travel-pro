@@ -2,9 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { OnboardingShell } from "@/components/v2/OnboardingShell";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { Button } from "@/components/v2/ui/Button";
 
 export default function V2LandingPage() {
   const router = useRouter();
+  const { canInstall, install } = useInstallPrompt();
 
   const cards = [
     {
@@ -40,7 +43,31 @@ export default function V2LandingPage() {
   ];
 
   return (
-    <OnboardingShell ctaLabel="CONTINUE" onCtaClick={() => router.push("/v2/onboarding/features")}>
+    <OnboardingShell
+      ctaLabel="CONTINUE"
+      onCtaClick={() => router.push("/v2/onboarding/features")}
+      aboveCta={
+        canInstall ? (
+          <Button variant="outline" onClick={install} className="mb-3">
+            <span className="flex items-center justify-center gap-2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12l7 7 7-7" />
+              </svg>
+              Install App
+            </span>
+          </Button>
+        ) : null
+      }
+    >
       <div className="flex flex-col items-center pt-8">
         <h1 className="text-v2-navy text-center text-3xl leading-tight font-bold">
           Planning trips shouldn&apos;t

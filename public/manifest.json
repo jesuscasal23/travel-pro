@@ -1,0 +1,28 @@
+{
+  "name": "Travel Pro — AI Trip Planning",
+  "short_name": "Travel Pro",
+  "description": "Plan your dream trip in minutes with AI-powered itineraries, visa checks, and weather insights.",
+  "start_url": "/v2",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1b2b4b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
