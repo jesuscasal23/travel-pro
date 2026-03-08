@@ -13,7 +13,7 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
     <nav className="bg-background/95 border-border fixed top-0 right-0 left-0 z-50 h-16 border-b backdrop-blur-sm">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Logo */}
-        <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2">
+        <Link href={isAuthenticated ? "/home" : "/"} className="flex items-center gap-2">
           <span className="text-primary text-xl font-bold">Travel Pro</span>
         </Link>
 

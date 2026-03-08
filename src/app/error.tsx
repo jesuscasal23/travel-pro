@@ -29,8 +29,8 @@ export default function Error({
           <button onClick={reset} className="btn-primary px-6 py-2.5 text-sm">
             Try again
           </button>
-          <Link href="/dashboard" className="btn-ghost px-6 py-2.5 text-sm">
-            Go to dashboard
+          <Link href="/home" className="btn-ghost px-6 py-2.5 text-sm">
+            Go to home
           </Link>
         </div>
         {error.digest && (

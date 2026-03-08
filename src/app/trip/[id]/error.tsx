@@ -33,8 +33,8 @@ export default function TripError({
           <button onClick={reset} className="btn-primary px-5 py-2 text-sm">
             Try again
           </button>
-          <Link href="/dashboard" className="btn-ghost px-5 py-2 text-sm">
-            Back to dashboard
+          <Link href="/home" className="btn-ghost px-5 py-2 text-sm">
+            Back to home
           </Link>
         </div>
       </div>

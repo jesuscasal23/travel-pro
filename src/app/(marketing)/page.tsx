@@ -405,7 +405,7 @@ export default function LandingPage() {
               >
                 Start Planning
               </Link>
-              <Link href="/dashboard" className="btn-ghost px-8 py-4 text-base">
+              <Link href="/home" className="btn-ghost px-8 py-4 text-base">
                 View sample trips →
               </Link>
             </div>

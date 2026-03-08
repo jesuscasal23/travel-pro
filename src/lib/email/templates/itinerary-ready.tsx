@@ -15,7 +15,7 @@ export function ItineraryReadyEmail({
   destination = "Your Trip",
   cities = [],
   dates = "",
-  itineraryUrl = "https://travelpro.app/dashboard",
+  itineraryUrl = "https://travelpro.app/home",
 }: ItineraryReadyEmailProps) {
   return (
     <EmailLayout preview={`Your ${destination} itinerary is ready ✈`}>

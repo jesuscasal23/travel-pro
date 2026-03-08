@@ -130,7 +130,7 @@ data as unknown as Itinerary; // Always double-cast .data fields from DB
 
 ### Guest vs Auth
 
-`/plan` and `/trip` are public — guests can generate and view. Auth encouraged (not required) via "save your trip" nudge. `/profile` is protected. `/home`, `/trips`, `/discover`, `/bookings` are public but auth-aware (show sign-in prompts inline). `/dashboard` redirects to `/home`.
+`/plan` and `/trip` are public — guests can generate and view. Auth encouraged (not required) via "save your trip" nudge. `/profile` is protected. `/home`, `/trips`, `/discover`, `/bookings` are public but auth-aware (show sign-in prompts inline).
 
 ## Types (all in `src/types/index.ts`)
 
