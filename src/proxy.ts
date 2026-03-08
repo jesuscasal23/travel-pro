@@ -21,6 +21,11 @@ const PUBLIC_PREFIXES = [
   "/share",
   "/api/health",
   "/auth/callback",
+  "/get-started",
+  "/onboarding",
+  "/trips",
+  "/discover",
+  "/bookings",
 ];
 
 function isProtected(pathname: string): boolean {

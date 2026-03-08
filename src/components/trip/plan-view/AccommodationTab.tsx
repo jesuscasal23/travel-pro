@@ -1,8 +1,21 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Hotel, Star, ExternalLink, MapPin, Loader2, AlertTriangle, Search } from "lucide-react";
-import type { Itinerary } from "@/types";
+import {
+  Hotel,
+  Star,
+  ExternalLink,
+  MapPin,
+  Loader2,
+  AlertTriangle,
+  Search,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { useTripStore } from "@/stores/useTripStore";
+import type { Itinerary, CityAccommodation } from "@/types";
 
 const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
 
@@ -44,6 +57,94 @@ export function AccommodationTab({
   const accommodationData = itinerary.accommodationData;
   const route = itinerary.route;
 
+  const dateStart = useTripStore((s) => s.dateStart);
+  const travelers = useTripStore((s) => s.travelers) || 1;
+  const travelStyle = useTripStore((s) => s.travelStyle) || "comfort";
+  const setItinerary = useTripStore((s) => s.setItinerary);
+
+  const [refetching, setRefetching] = useState(false);
+  const [debugResponse, setDebugResponse] = useState<string | null>(null);
+  const [debugOpen, setDebugOpen] = useState(false);
+
+  const handleRefetch = useCallback(async () => {
+    setRefetching(true);
+    setDebugResponse(null);
+    try {
+      const payload = {
+        route: route.map((r) => ({
+          id: r.id,
+          city: r.city,
+          country: r.country,
+          countryCode: r.countryCode,
+          lat: r.lat,
+          lng: r.lng,
+          days: r.days,
+          iataCode: r.iataCode,
+        })),
+        dateStart,
+        travelers,
+        travelStyle,
+      };
+      const res = await fetch("/api/v1/enrich/accommodation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      setDebugResponse(JSON.stringify({ status: res.status, ...json }, null, 2));
+      setDebugOpen(true);
+
+      if (res.ok && json.accommodationData) {
+        const current = useTripStore.getState().itinerary;
+        if (current) {
+          setItinerary({
+            ...current,
+            accommodationData: json.accommodationData as CityAccommodation[],
+          });
+        }
+      }
+    } catch (e) {
+      setDebugResponse(JSON.stringify({ error: String(e) }, null, 2));
+      setDebugOpen(true);
+    } finally {
+      setRefetching(false);
+    }
+  }, [route, dateStart, travelers, travelStyle, setItinerary]);
+
+  const RefetchButton = () => (
+    <button
+      onClick={handleRefetch}
+      disabled={refetching}
+      className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors disabled:opacity-50"
+      title="Re-fetch hotel data from Amadeus"
+    >
+      {refetching ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <RefreshCw className="h-3 w-3" />
+      )}
+      {refetching ? "Fetching…" : "Refetch"}
+    </button>
+  );
+
+  const DebugPanel = () =>
+    debugResponse ? (
+      <div className="border-border bg-secondary/50 rounded-lg border">
+        <button
+          onClick={() => setDebugOpen(!debugOpen)}
+          className="text-muted-foreground hover:text-foreground flex w-full items-center justify-between px-3 py-2 text-xs font-medium"
+        >
+          API Response
+          {debugOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </button>
+        {debugOpen && (
+          <pre className="text-foreground border-border max-h-64 overflow-auto border-t px-3 py-2 font-mono text-[11px] leading-relaxed">
+            {debugResponse}
+          </pre>
+        )}
+      </div>
+    ) : null;
+
   if (accommodationLoading) {
     return (
       <div className="space-y-4">
@@ -66,10 +167,14 @@ export function AccommodationTab({
   if (accommodationError) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Hotel className="text-primary h-5 w-5" />
-          <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Hotel className="text-primary h-5 w-5" />
+            <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+          </div>
+          <RefetchButton />
         </div>
+        <DebugPanel />
         <div className="card-travel space-y-3 p-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="text-accent mt-0.5 h-5 w-5 flex-shrink-0" />
@@ -94,10 +199,14 @@ export function AccommodationTab({
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Hotel className="text-primary h-5 w-5" />
-          <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Hotel className="text-primary h-5 w-5" />
+            <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+          </div>
+          <RefetchButton />
         </div>
+        <DebugPanel />
 
         {hasNoHotels ? (
           <div className="card-travel space-y-3 p-5">
@@ -136,10 +245,14 @@ export function AccommodationTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Hotel className="text-primary h-5 w-5" />
-        <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Hotel className="text-primary h-5 w-5" />
+          <h2 className="text-foreground text-lg font-semibold">Accommodation</h2>
+        </div>
+        <RefetchButton />
       </div>
+      <DebugPanel />
 
       <div className="space-y-4">
         {accommodationData.map((cityAccom, i) => (

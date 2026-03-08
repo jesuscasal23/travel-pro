@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const tabs = [
-  { label: "Home", icon: Home, href: "/v2/home" },
-  { label: "Trips", icon: Map, href: "/v2/trips" },
-  { label: "Discover", icon: Compass, href: "/v2/discover" },
-  { label: "Bookings", icon: CalendarCheck, href: "/v2/bookings" },
-  { label: "Profile", icon: User, href: "/v2/profile" },
+  { label: "Home", icon: Home, href: "/home" },
+  { label: "Trips", icon: Map, href: "/trips" },
+  { label: "Discover", icon: Compass, href: "/discover" },
+  { label: "Bookings", icon: CalendarCheck, href: "/bookings" },
+  { label: "Profile", icon: User, href: "/profile" },
 ];
 
 export function BottomNav() {

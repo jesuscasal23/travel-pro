@@ -177,6 +177,14 @@ export interface UserProfile {
   pace?: ActivityPace;
 }
 
+/** Home dashboard — departure preparation task */
+export interface DepartureTask {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: "packing" | "checkin" | "document" | "insurance";
+}
+
 /** Trip planning intent from questionnaire */
 export interface TripIntent {
   id: string;
@@ -190,6 +198,7 @@ export interface TripIntent {
   destinationLng?: number;
   dateStart: string;
   dateEnd: string;
+  flexibleDates?: boolean;
   travelers: number;
   description?: string;
 }

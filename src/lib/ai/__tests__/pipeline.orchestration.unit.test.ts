@@ -31,6 +31,10 @@ vi.mock("@anthropic-ai/sdk", () => ({
   },
 }));
 
+vi.mock("@/lib/config/server-env", () => ({
+  getAnthropicApiKey: () => "test-key",
+}));
+
 vi.mock("../prompts/v1", () => ({
   SYSTEM_PROMPT_V1: "system-v1",
   assemblePrompt: mocks.assemblePrompt,

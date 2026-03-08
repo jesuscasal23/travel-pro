@@ -47,9 +47,15 @@ src/
 ├── app/
 │   ├── (marketing)/           # Landing + privacy (public, Navbar wrapper)
 │   ├── (auth)/                # signup, login, forgot-password, reset-password
-│   ├── (app)/profile/         # Settings + data export + account delete
-│   ├── onboarding/            # 2-step profile form
-│   ├── dashboard/             # Trip list (API + sample fallback)
+│   ├── (v2-app)/              # Mobile-first app shell (430px container layout)
+│   │   ├── get-started/       # v2 onboarding entry (mobile landing)
+│   │   ├── onboarding/        # Multi-step onboarding: about-you → preferences → interests → pace → pain-points → summary → signup
+│   │   ├── home/              # Dashboard: next trip, info cards, departure tasks
+│   │   ├── trips/             # Trip list (real API data via useTrips)
+│   │   ├── discover/          # Trending destinations (mock — future feature)
+│   │   ├── bookings/          # Travel wallet (mock — future feature)
+│   │   └── profile/           # Settings hub: auth-aware, sign out, travel DNA
+│   ├── dashboard/             # Redirect → /home (backwards compatibility)
 │   ├── plan/                  # Multi-step questionnaire + SSE generation
 │   ├── trip/[id]/             # 40/60 map+timeline, edit (drag-drop), summary (tabs+share+PDF)
 │   ├── share/[token]/         # Public read-only view + growth CTA
@@ -60,6 +66,7 @@ src/
 │       └── v1/                # REST API: trips, profile, affiliate
 ├── components/
 │   ├── ui/                    # Button, Card, Chip, Badge, Modal, Toast, AirportCombobox, CityCombobox
+│   ├── v2/                    # V2 mobile components: OnboardingShell, ui/ (Button, ProgressBar, BottomNav)
 │   ├── auth/                  # Auth form styles + ServerErrorAlert
 │   ├── map/                   # RouteMap (MapLibre, dynamic import) + fallback
 │   ├── export/                # PDFDownloadButton
@@ -81,9 +88,9 @@ src/
 │   └── animations.ts          # slideVariants, fadeUp, simpleFadeUp (Framer Motion)
 ├── stores/useTripStore.ts     # Zustand store (persisted + transient fields)
 ├── types/index.ts             # All TypeScript types
-├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps
+├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps, v2-mock-data
 ├── hooks/                     # useItinerary, useAuthStatus, useToast, useScrollSync
-└── middleware.ts              # Auth (protects /dashboard, /profile) + rate limiting (Upstash Redis)
+└── proxy.ts                   # Auth (protects /profile) + rate limiting (Upstash Redis)
 ```
 
 ## Key Patterns
@@ -123,7 +130,7 @@ data as unknown as Itinerary; // Always double-cast .data fields from DB
 
 ### Guest vs Auth
 
-`/plan` and `/trip` are public — guests can generate and view. Auth encouraged (not required) via "save your trip" nudge. `/dashboard` and `/profile` are protected.
+`/plan` and `/trip` are public — guests can generate and view. Auth encouraged (not required) via "save your trip" nudge. `/profile` is protected. `/home`, `/trips`, `/discover`, `/bookings` are public but auth-aware (show sign-in prompts inline). `/dashboard` redirects to `/home`.
 
 ## Types (all in `src/types/index.ts`)
 
@@ -156,7 +163,6 @@ Content filtering retry: backoff, max 2 retries.
 
 | Route                          | Methods            | Auth                             | Notes                                           |
 | ------------------------------ | ------------------ | -------------------------------- | ----------------------------------------------- |
-| `/api/generate`                | POST               | Public (10/min IP)               | Phase 0 generation, Zod validation              |
 | `/api/generate/select-route`   | POST               | Public (10/min IP)               | Haiku route selection (multi-city)              |
 | `/api/health`                  | GET                | None                             | Env check (anthropic, supabase, db)             |
 | `/api/v1/trips`                | GET, POST          | GET: auth, POST: optional        | List/create trips                               |
@@ -181,8 +187,8 @@ Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { t
 
 ## Proxy (`src/proxy.ts`)
 
-- **Protected routes**: `/dashboard`, `/profile` → redirect to `/login?next=...` if unauthenticated
-- **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`
+- **Protected routes**: `/profile` → redirect to `/login?next=...` if unauthenticated
+- **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`, `/get-started`, `/onboarding`, `/home`, `/trips`, `/discover`, `/bookings`
 - **Rate limiting** (Upstash Redis sliding window):
   - `/api/v1/trips/*/generate`: 5 req/hour (LLM cost protection)
   - `/api/v1/trips/shared/*`: 60 req/min
@@ -191,12 +197,16 @@ Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { t
 
 ## Styling
 
-| Token       | Value           | Tailwind class               |
-| ----------- | --------------- | ---------------------------- |
-| `--primary` | teal `#0D7377`  | `bg-primary`, `text-primary` |
-| `--accent`  | coral `#E85D4A` | `bg-accent`, `text-accent`   |
+| Token       | Value           | Tailwind class               | Used by |
+| ----------- | --------------- | ---------------------------- | ------- |
+| `--primary` | teal `#0D7377`  | `bg-primary`, `text-primary` | v1      |
+| `--accent`  | coral `#E85D4A` | `bg-accent`, `text-accent`   | v1      |
+| `v2-navy`   | `#1b2b4b`       | `bg-v2-navy`, `text-v2-navy` | v2      |
+| `v2-orange` | `#f97316`       | `bg-v2-orange`               | v2      |
 
-Component classes: `.card-travel`, `.btn-primary`, `.btn-ghost`, `.chip`, `.chip-selected`, `.badge-success/.warning/.info`
+V1 classes: `.card-travel`, `.btn-primary`, `.btn-ghost`, `.chip`, `.chip-selected`, `.badge-success/.warning/.info`
+V2 components: `@/components/v2/ui/Button` (5 variants), `ProgressBar`, `BottomNav`, `OnboardingShell`
+V2 tokens defined in `globals.css` `@theme inline` block (lines 93+).
 
 Dark mode: `dark` class on `<html>` via ThemeToggle + inline script in root layout prevents flash.
 

@@ -2,7 +2,7 @@
 // E2E: Airport combobox dropdown visibility
 //
 // Regression test: the dropdown must not be clipped by parent
-// overflow styles (e.g. the AnimatePresence wrapper).
+// overflow styles.
 // ============================================================
 
 import { test, expect } from "@playwright/test";
@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("airport dropdown is visible and selectable on onboarding", async ({ page }) => {
-  await page.goto("/onboarding");
+  await page.goto("/onboarding/about-you");
   await expect(page.getByText("Where are you from?")).toBeVisible();
 
   // Focus the airport input and type a query

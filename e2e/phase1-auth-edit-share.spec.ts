@@ -9,7 +9,7 @@ async function loginViaUI(page: Page) {
   await page.getByLabel(/Email address/i).fill(TEST_EMAIL);
   await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
   await page.getByRole("button", { name: /sign in|log in/i }).click();
-  await page.waitForURL("**/dashboard", { timeout: 15_000 });
+  await page.waitForURL("**/home", { timeout: 15_000 });
 }
 
 async function signUpViaUI(page: Page, email: string, password: string) {
@@ -23,10 +23,10 @@ async function signUpViaUI(page: Page, email: string, password: string) {
   }
 
   await page.getByRole("button", { name: /sign up|create account/i }).click();
-  await page.waitForURL("**/onboarding", { timeout: 15_000 });
+  await page.waitForURL("**/home", { timeout: 15_000 });
 }
 
-test("E2E-02: signup -> onboarding -> plan", async ({ page }) => {
+test("E2E-02: signup -> onboarding -> home", async ({ page }) => {
   if (!hasAuthCreds) {
     test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set - skipping auth journey");
     return;
@@ -35,20 +35,37 @@ test("E2E-02: signup -> onboarding -> plan", async ({ page }) => {
   const uniqueEmail = `e2e+${Date.now()}@travelpro-test.dev`;
 
   await signUpViaUI(page, uniqueEmail, TEST_PASSWORD);
-  await expect(page).toHaveURL(/onboarding/);
+  await expect(page).toHaveURL(/home/);
 
+  // Navigate to onboarding to set up profile
+  await page.goto("/onboarding/about-you");
   await expect(page.getByText("Where are you from?")).toBeVisible();
   await page.locator("select").selectOption("Germany");
   await page.getByPlaceholder(/Search airport or city/i).fill("FRA");
   await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: /CONTINUE/i }).click();
 
-  await expect(page.getByText("Your travel style")).toBeVisible();
-  await page.getByRole("button", { name: /comfort/i }).click();
-  await page.getByRole("button", { name: /Culture & History/i }).click();
-  await page.getByRole("button", { name: /Start Planning|Continue/i }).click();
+  // Travel style step
+  await expect(page.getByText("What's your travel style?")).toBeVisible();
+  await page.getByRole("button", { name: /Comfort/i }).click();
+  await page.getByRole("button", { name: /CONTINUE/i }).click();
 
-  await page.waitForURL(/\/plan/, { timeout: 10_000 });
+  // Interests step
+  await expect(page.getByText("What interests you?")).toBeVisible();
+  await page.getByRole("button", { name: /Culture/i }).click();
+  await page.getByRole("button", { name: /CONTINUE/i }).click();
+
+  // Pace step
+  await expect(page.getByText("How do you like to travel?")).toBeVisible();
+  await page.getByRole("button", { name: /Balanced Traveler/i }).click();
+  await page.getByRole("button", { name: /CONTINUE/i }).click();
+
+  // Pain points step
+  await expect(page.getByText("hardest part of planning")).toBeVisible();
+  await page.getByRole("button", { name: /START PLANNING/i }).click();
+
+  // Summary step
+  await expect(page.getByText("BASED ON YOUR ANSWERS")).toBeVisible();
 });
 
 test("E2E-03: login -> trip edit -> route change -> save -> share", async ({ page }) => {
@@ -58,7 +75,7 @@ test("E2E-03: login -> trip edit -> route change -> save -> share", async ({ pag
   }
 
   await loginViaUI(page);
-  await expect(page).toHaveURL(/dashboard/);
+  await expect(page).toHaveURL(/home/);
 
   const firstTripLink = page.locator("a[href*='/trip/']").first();
   await expect(firstTripLink).toBeVisible({ timeout: 10_000 });
