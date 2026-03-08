@@ -21,7 +21,7 @@ import { searchHotelsByCity, searchHotelOffers, buildCandidates } from "@/lib/ho
 import { buildHotelLink } from "@/lib/affiliate/link-generator";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
 import { getAnthropic } from "@/lib/ai/client";
-import { createLogger } from "@/lib/core/logger";
+import { createLogger } from "@/lib/logger";
 
 // ============================================================
 // Redis client (lazy — only instantiated if env vars are set)

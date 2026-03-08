@@ -17,6 +17,12 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
+vi.mock("@/lib/request-context", () => ({
+  requestContext: {
+    run: (_ctx: unknown, fn: () => unknown) => fn(),
+  },
+}));
+
 import { prisma } from "@/lib/db/prisma";
 import { GET } from "../route";
 
@@ -75,6 +81,6 @@ describe("GET /api/v1/trips/shared/:token", () => {
     const json = await res.json();
 
     expect(res.status).toBe(500);
-    expect(json.error).toBe("Failed to load trip");
+    expect(json.error).toBe("Internal server error");
   });
 });

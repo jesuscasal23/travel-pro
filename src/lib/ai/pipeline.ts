@@ -27,7 +27,7 @@ import { parseAndValidate, extractJSON, cityActivitiesOutputSchema } from "./par
 import type { UserProfile, TripIntent, Itinerary, TripDay } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
-import { createLogger } from "@/lib/core/logger";
+import { createLogger } from "@/lib/logger";
 import { discoverNewCities } from "@/lib/services/city-discovery";
 
 const log = createLogger("pipeline");
@@ -326,7 +326,7 @@ export async function generateItinerary(
   // Stage 5: Persist via Prisma (best-effort)
   const t5 = Date.now();
   try {
-    const { getPrisma } = await import("@/lib/core/prisma");
+    const { getPrisma } = await import("@/lib/db/prisma");
     const existing = await getPrisma().itinerary.findFirst({
       where: { tripId: tripIntent.id, isActive: true },
     });

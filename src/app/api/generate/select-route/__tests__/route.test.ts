@@ -19,6 +19,12 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
+vi.mock("@/lib/request-context", () => ({
+  requestContext: {
+    run: (_ctx: unknown, fn: () => unknown) => fn(),
+  },
+}));
+
 import { selectRoute } from "@/lib/ai/prompts/route-selector";
 import { POST } from "../route";
 
@@ -79,7 +85,7 @@ describe("POST /api/generate/select-route", () => {
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json.error).toContain("Invalid request body");
+    expect(json.error).toBe("Invalid JSON");
   });
 
   it("returns 400 for invalid request schema", async () => {
@@ -88,7 +94,7 @@ describe("POST /api/generate/select-route", () => {
     const json = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json.error).toBe("Invalid request data");
+    expect(json.error).toBe("Validation failed");
     expect(json.details).toBeDefined();
   });
 

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { apiHandler } from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export const GET = apiHandler("GET /api/health", async () => {
   const checks: Record<string, string> = {
     anthropic: process.env.ANTHROPIC_API_KEY ? "ok" : "missing",
     supabase:
@@ -32,4 +33,4 @@ export async function GET() {
   const healthy = Object.values(checks).every((s) => s === "ok");
 
   return NextResponse.json({ healthy, checks }, { status: healthy ? 200 : 207 });
-}
+});

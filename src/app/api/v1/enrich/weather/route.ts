@@ -5,50 +5,17 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { enrichWeather } from "@/lib/ai/enrichment";
+import { apiHandler, parseJsonBody, validateBody } from "@/lib/api/helpers";
+import { EnrichWeatherInputSchema } from "@/lib/api/schemas";
 
-const RequestSchema = z.object({
-  route: z
-    .array(
-      z.object({
-        city: z.string(),
-        country: z.string(),
-        countryCode: z.string(),
-        lat: z.number(),
-        lng: z.number(),
-      })
-    )
-    .min(1)
-    .max(20),
-  dateStart: z.string().min(1).max(20),
+export const POST = apiHandler("POST /api/v1/enrich/weather", async (req: NextRequest) => {
+  const body = await parseJsonBody(req);
+  const { route, dateStart } = validateBody(EnrichWeatherInputSchema, body);
+
+  const weatherData = await enrichWeather(
+    route.map((r, i) => ({ id: String(i), days: 0, ...r })),
+    dateStart
+  );
+  return NextResponse.json({ weatherData });
 });
-
-export async function POST(req: NextRequest) {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = RequestSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
-
-  const { route, dateStart } = parsed.data;
-
-  try {
-    const weatherData = await enrichWeather(
-      route.map((r, i) => ({ id: String(i), days: 0, ...r })),
-      dateStart
-    );
-    return NextResponse.json({ weatherData });
-  } catch {
-    return NextResponse.json({ error: "Weather enrichment failed" }, { status: 500 });
-  }
-}

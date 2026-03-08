@@ -5,11 +5,11 @@ import { lookupIata } from "@/lib/flights/city-iata-map";
 import {
   apiHandler,
   ApiError,
-  requireAuth,
-  requireProfile,
-  requireTripOwnership,
+  assertTripAccess,
   parseJsonBody,
+  validateBody,
 } from "@/lib/api/helpers";
+import { OptimizeTripInputSchema } from "@/lib/api/schemas";
 import type { CityStop } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 
@@ -23,23 +23,13 @@ import type { CityWithDays } from "@/lib/flights/types";
  * The client is responsible for persisting the result via setItinerary().
  */
 export const POST = apiHandler("POST /api/v1/trips/:id/optimize", async (req, params) => {
-  const userId = await requireAuth();
-  const profile = await requireProfile(userId);
-  await requireTripOwnership(params.id, profile.id);
+  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
 
-  const body = (await parseJsonBody(req)) as {
-    homeAirport: string;
-    route: CityStop[];
-    dateStart: string;
-    dateEnd: string;
-    travelers: number;
-  };
-
-  const { homeAirport, route, dateStart, dateEnd, travelers } = body;
-
-  if (!homeAirport || !route?.length || !dateStart || !dateEnd) {
-    throw new ApiError(400, "Missing required fields");
-  }
+  const body = await parseJsonBody(req);
+  const { homeAirport, route, dateStart, dateEnd, travelers } = validateBody(
+    OptimizeTripInputSchema,
+    body
+  );
 
   const homeIata = parseIataCode(homeAirport);
   if (!homeIata) {

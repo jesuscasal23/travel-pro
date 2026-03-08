@@ -3,37 +3,24 @@
 // Fetch, update, or delete a specific trip
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import {
   apiHandler,
   ApiError,
-  requireAuth,
-  requireProfile,
-  requireTripOwnership,
+  assertTripAccess,
   parseJsonBody,
   validateBody,
   ACTIVE_ITINERARY_INCLUDE,
 } from "@/lib/api/helpers";
+import { EditItineraryInputSchema } from "@/lib/api/schemas";
 import { findActiveItinerary, createItineraryVersion } from "@/lib/services/itinerary-service";
 import type { Itinerary } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-const EditItinerarySchema = z.object({
-  editType: z.enum([
-    "adjust_days",
-    "remove_city",
-    "reorder_cities",
-    "add_city",
-    "regenerate_activities",
-  ]),
-  editPayload: z.record(z.string(), z.unknown()),
-  description: z.string().optional(),
-  data: z.unknown().optional(), // Updated itinerary data
-});
-
 export const GET = apiHandler("GET /api/v1/trips/:id", async (_req: NextRequest, params) => {
+  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+
   const trip = await prisma.trip.findUnique({
     where: { id: params.id },
     include: ACTIVE_ITINERARY_INCLUDE,
@@ -47,12 +34,10 @@ export const GET = apiHandler("GET /api/v1/trips/:id", async (_req: NextRequest,
 });
 
 export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextRequest, params) => {
-  const userId = await requireAuth();
-  const profile = await requireProfile(userId);
-  await requireTripOwnership(params.id, profile.id);
+  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
 
   const body = await parseJsonBody(req);
-  const { editType, editPayload, description, data } = validateBody(EditItinerarySchema, body);
+  const { editType, editPayload, description, data } = validateBody(EditItineraryInputSchema, body);
 
   // Find the current active itinerary
   const currentItinerary = await findActiveItinerary(params.id);
@@ -87,9 +72,7 @@ export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextReque
 });
 
 export const DELETE = apiHandler("DELETE /api/v1/trips/:id", async (_req: NextRequest, params) => {
-  const userId = await requireAuth();
-  const profile = await requireProfile(userId);
-  await requireTripOwnership(params.id, profile.id);
+  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
 
   await prisma.trip.delete({ where: { id: params.id } });
   return NextResponse.json({ success: true });

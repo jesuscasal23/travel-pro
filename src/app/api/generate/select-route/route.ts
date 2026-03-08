@@ -9,10 +9,10 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { selectRoute } from "@/lib/ai/prompts/route-selector";
-import { ProfileInputSchema, TripIntentInputSchema } from "@/lib/api/schemas";
+import { SelectRouteInputSchema } from "@/lib/api/schemas";
+import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("api/generate/select-route");
@@ -20,39 +20,18 @@ const log = createLogger("api/generate/select-route");
 export const dynamic = "force-dynamic";
 export const maxDuration = 15; // Haiku is fast — 15s is generous
 
-// ── Input validation ────────────────────────────────────────────────────────
-const RequestSchema = z.object({
-  profile: ProfileInputSchema,
-  tripIntent: TripIntentInputSchema,
-});
-
-export async function POST(req: NextRequest) {
+export const POST = apiHandler("POST /api/generate/select-route", async (req: NextRequest) => {
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
 
   log.info("Request received");
 
-  // ── Parse + validate ──────────────────────────────────────────────────────
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body — expected JSON" }, { status: 400 });
-  }
-
-  const parsed = RequestSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request data", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
+  const body = await parseJsonBody(req);
+  const { profile, tripIntent } = validateBody(SelectRouteInputSchema, body);
 
   if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: "Service is not configured" }, { status: 500 });
+    throw new ApiError(500, "Service is not configured");
   }
-
-  const { profile, tripIntent } = parsed.data;
   log.info("Validated", {
     tripType: tripIntent.tripType,
     region: tripIntent.region,
@@ -109,4 +88,4 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ cities: null }, { status: 200 });
   }
-}
+});

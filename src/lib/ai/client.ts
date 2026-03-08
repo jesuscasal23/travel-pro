@@ -10,7 +10,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT_V1 } from "./prompts/v1";
 import { getErrorMessage } from "@/lib/utils/error";
-import { createLogger } from "@/lib/core/logger";
+import { createLogger } from "@/lib/logger";
 
 const log = createLogger("ai:client");
 

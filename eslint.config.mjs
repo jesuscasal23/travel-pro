@@ -40,6 +40,30 @@ const eslintConfig = defineConfig([
       "import/no-cycle": ["error", { maxDepth: 3, ignoreExternal: true }],
     },
   },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      "src/lib/logger.ts",
+      "src/lib/db/prisma.ts",
+      "src/lib/request-context.ts",
+      "src/lib/supabase/client.ts",
+      "src/lib/supabase/server.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/lib/core/*"],
+              message:
+                "Import from the public '@/lib/*' wrappers to keep one canonical import surface.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

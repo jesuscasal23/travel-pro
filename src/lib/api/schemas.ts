@@ -4,12 +4,11 @@ import { z } from "zod";
 // Travel Pro — Zod Schemas
 //
 // Two groups:
-//   API Input Schemas — validate request bodies in API routes
+//   API Input Schemas — validate request/query payloads in API routes
 //   Form Schemas      — validate user input in page components
 // ============================================================
 
 // ── API Input Schemas ────────────────────────────────────────
-// Used by route handlers to validate incoming request bodies.
 
 /** Zod schema for profile data sent with generation requests. */
 export const ProfileInputSchema = z.object({
@@ -49,6 +48,40 @@ export const TripIntentInputSchema = z
     }
   );
 
+/** Request body for route pre-selection endpoint. */
+export const SelectRouteInputSchema = z.object({
+  profile: ProfileInputSchema,
+  tripIntent: TripIntentInputSchema,
+});
+
+/** Trip creation payload. */
+export const CreateTripInputSchema = z.object({
+  tripType: z.enum(["single-city", "single-country", "multi-city"]).default("multi-city"),
+  region: z.string().max(100).default(""),
+  destination: z.string().max(100).optional(),
+  destinationCountry: z.string().max(100).optional(),
+  destinationCountryCode: z.string().max(10).optional(),
+  dateStart: z.string().max(20),
+  dateEnd: z.string().max(20),
+  flexibleDates: z.boolean().default(false),
+  travelers: z.number().int().min(1).max(20).default(2),
+  description: z.string().max(2000).optional(),
+});
+
+/** Edit payload for itinerary mutation endpoint. */
+export const EditItineraryInputSchema = z.object({
+  editType: z.enum([
+    "adjust_days",
+    "remove_city",
+    "reorder_cities",
+    "add_city",
+    "regenerate_activities",
+  ]),
+  editPayload: z.record(z.string(), z.unknown()),
+  description: z.string().optional(),
+  data: z.unknown().optional(),
+});
+
 /** Zod schema for pre-selected cities from Haiku route selection. */
 export const CityWithDaysInputSchema = z.object({
   id: z.string(),
@@ -60,6 +93,105 @@ export const CityWithDaysInputSchema = z.object({
   lng: z.number(),
   minDays: z.number(),
   maxDays: z.number(),
+});
+
+/** Request body for route-only generation SSE endpoint. */
+export const GenerateTripInputSchema = z.object({
+  profile: ProfileInputSchema,
+  promptVersion: z.string().default("v1"),
+  cities: z.array(CityWithDaysInputSchema).optional(),
+});
+
+/** Request body for city activity generation endpoint. */
+export const GenerateActivitiesInputSchema = z.object({
+  profile: ProfileInputSchema,
+  cityId: z.string().min(1).max(100),
+});
+
+/** Canonical route stop shape used by optimize/enrichment endpoints. */
+export const RouteStopInputSchema = z.object({
+  id: z.string(),
+  city: z.string(),
+  country: z.string(),
+  countryCode: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  days: z.number().optional(),
+  iataCode: z.string().optional(),
+});
+
+/** Request body for flight optimization endpoint. */
+export const OptimizeTripInputSchema = z.object({
+  homeAirport: z.string().min(1),
+  route: z.array(RouteStopInputSchema.extend({ days: z.number() })).min(1),
+  dateStart: z.string().min(1).max(20),
+  dateEnd: z.string().min(1).max(20),
+  travelers: z.number().int().min(1).max(20).optional(),
+});
+
+/** Request body for weather enrichment endpoint. */
+export const EnrichWeatherInputSchema = z.object({
+  route: z
+    .array(
+      z.object({
+        city: z.string(),
+        country: z.string(),
+        countryCode: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+      })
+    )
+    .min(1)
+    .max(20),
+  dateStart: z.string().min(1).max(20),
+});
+
+/** Request body for visa enrichment endpoint. */
+export const EnrichVisaInputSchema = z.object({
+  nationality: z.string().min(1).max(100),
+  route: z
+    .array(
+      z.object({
+        city: z.string(),
+        country: z.string(),
+        countryCode: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+      })
+    )
+    .min(1)
+    .max(20),
+});
+
+/** Request body for accommodation enrichment endpoint. */
+export const EnrichAccommodationInputSchema = z.object({
+  route: z
+    .array(
+      z.object({
+        id: z.string(),
+        city: z.string(),
+        country: z.string(),
+        countryCode: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+        days: z.number(),
+        iataCode: z.string().optional(),
+      })
+    )
+    .min(1)
+    .max(20),
+  dateStart: z.string().min(1).max(20),
+  travelers: z.number().int().min(1).max(20),
+  travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
+});
+
+/** Query string shape for affiliate redirect endpoint. */
+export const AffiliateRedirectQuerySchema = z.object({
+  provider: z.enum(["skyscanner", "booking", "getyourguide"]),
+  type: z.enum(["flight", "hotel", "activity"]),
+  dest: z.string().url("dest must be a valid URL"),
+  itinerary_id: z.string().optional(),
+  city: z.string().optional(),
 });
 
 /** Zod schema for on-demand flight search requests. */

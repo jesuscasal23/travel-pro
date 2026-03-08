@@ -42,6 +42,34 @@ export async function requireTripOwnership(tripId: string, profileId: string) {
   return trip;
 }
 
+/**
+ * Access policy for trip routes:
+ * - `allowGuestId`: permit synthetic `tripId === "guest"` requests for stateless guest flows.
+ * - `requireOwnershipForUserTrips`: enforce auth+ownership only when trip is linked to a profile.
+ */
+export async function assertTripAccess(
+  tripId: string,
+  options: {
+    allowGuestId?: boolean;
+    requireOwnershipForUserTrips?: boolean;
+  } = {}
+): Promise<void> {
+  if (options.allowGuestId && tripId === "guest") return;
+
+  const trip = await prisma.trip.findUnique({
+    where: { id: tripId },
+    select: { profileId: true },
+  });
+
+  if (!trip) throw new ApiError(404, "Trip not found");
+
+  if (options.requireOwnershipForUserTrips && trip.profileId) {
+    const userId = await requireAuth();
+    const profile = await requireProfile(userId);
+    if (trip.profileId !== profile.id) throw new ApiError(403, "Forbidden");
+  }
+}
+
 // ── Request helpers ─────────────────────────────────────────────
 
 /** Parse JSON body or throw 400. */

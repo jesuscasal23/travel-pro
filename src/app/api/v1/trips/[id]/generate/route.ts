@@ -2,18 +2,23 @@
 // Travel Pro — POST /api/v1/trips/[id]/generate
 // Kick off AI generation for a trip and stream progress via SSE
 // ============================================================
-import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { generateRouteOnly } from "@/lib/ai/pipeline";
-import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
-import { ProfileInputSchema, CityWithDaysInputSchema } from "@/lib/api/schemas";
+import {
+  apiHandler,
+  ApiError,
+  assertTripAccess,
+  parseJsonBody,
+  validateBody,
+} from "@/lib/api/helpers";
+import { GenerateTripInputSchema } from "@/lib/api/schemas";
 import { tripToIntent } from "@/lib/services/trip-service";
 import {
   createGeneratingRecord,
   activateGeneratedItinerary,
   markGenerationFailed,
 } from "@/lib/services/itinerary-service";
-import type { UserProfile, Itinerary, CityStop } from "@/types";
+import type { Itinerary, CityStop } from "@/types";
 import { createLogger } from "@/lib/logger";
 import { prefetchFlightOptions } from "@/lib/flights/amadeus";
 import { parseIataCode } from "@/lib/affiliate/link-generator";
@@ -24,15 +29,11 @@ const log = createLogger("api/v1/trips/generate");
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const GenerateSchema = z.object({
-  profile: ProfileInputSchema,
-  promptVersion: z.string().default("v1"),
-  cities: z.array(CityWithDaysInputSchema).optional(),
-});
-
 export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, params) => {
+  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+
   const body = await parseJsonBody(req);
-  const { profile, promptVersion, cities } = validateBody(GenerateSchema, body);
+  const { profile, promptVersion, cities } = validateBody(GenerateTripInputSchema, body);
 
   // Load the trip
   const trip = await prisma.trip.findUnique({ where: { id: params.id } });
@@ -59,11 +60,7 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
         send({ stage: "route", message: "Planning your route...", pct: 20 });
 
         // Run route-only generation (no activities, no enrichment)
-        const itinerary: Itinerary = await generateRouteOnly(
-          profile as UserProfile,
-          intent,
-          cities
-        );
+        const itinerary: Itinerary = await generateRouteOnly(profile, intent, cities);
 
         // Best-effort flight pre-fetch (8s timeout, never blocks itinerary delivery)
         try {

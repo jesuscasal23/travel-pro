@@ -1,0 +1,104 @@
+// @vitest-environment node
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
+
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    profile: { findUnique: vi.fn() },
+    trip: { findMany: vi.fn(), create: vi.fn() },
+  },
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  getAuthenticatedUserId: vi.fn(),
+}));
+
+vi.mock("@/lib/logger", () => ({
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  }),
+}));
+
+vi.mock("@/lib/request-context", () => ({
+  requestContext: {
+    run: (_ctx: unknown, fn: () => unknown) => fn(),
+  },
+}));
+
+import { prisma } from "@/lib/db/prisma";
+import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { GET, POST } from "../route";
+
+const mockPrisma = prisma as unknown as {
+  profile: { findUnique: ReturnType<typeof vi.fn> };
+  trip: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
+};
+const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
+
+describe("/api/v1/trips", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAuth.mockResolvedValue("user-1");
+    mockPrisma.profile.findUnique.mockResolvedValue({ id: "profile-1", userId: "user-1" });
+    mockPrisma.trip.findMany.mockResolvedValue([{ id: "trip-1" }]);
+    mockPrisma.trip.create.mockResolvedValue({ id: "trip-new" });
+  });
+
+  it("GET returns 401 when unauthenticated", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips");
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Unauthorized");
+  });
+
+  it("GET returns user trips", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/trips");
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.trips).toHaveLength(1);
+  });
+
+  it("POST validates body", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/trips", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tripType: "multi-city" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toBe("Validation failed");
+  });
+
+  it("POST creates trip", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/trips", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tripType: "multi-city",
+        region: "europe",
+        dateStart: "2026-06-01",
+        dateEnd: "2026-06-10",
+        travelers: 2,
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(json.trip.id).toBe("trip-new");
+    expect(mockPrisma.trip.create).toHaveBeenCalled();
+  });
+});

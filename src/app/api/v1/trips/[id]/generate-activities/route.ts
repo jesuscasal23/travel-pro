@@ -2,31 +2,34 @@
 // Travel Pro — POST /api/v1/trips/[id]/generate-activities
 // Generate activities for a single city within an existing itinerary.
 // ============================================================
-import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { generateCityActivities } from "@/lib/ai/pipeline";
-import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
-import { ProfileInputSchema } from "@/lib/api/schemas";
+import {
+  apiHandler,
+  ApiError,
+  assertTripAccess,
+  parseJsonBody,
+  validateBody,
+} from "@/lib/api/helpers";
+import { GenerateActivitiesInputSchema } from "@/lib/api/schemas";
 import { tripToIntent } from "@/lib/services/trip-service";
 import { findActiveItinerary } from "@/lib/services/itinerary-service";
-import type { UserProfile, Itinerary } from "@/types";
+import type { Itinerary } from "@/types";
 import { createLogger } from "@/lib/logger";
+import { parseItineraryData } from "@/lib/utils/trip-metadata";
 
 const log = createLogger("api/v1/trips/generate-activities");
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const GenerateActivitiesSchema = z.object({
-  profile: ProfileInputSchema,
-  cityId: z.string().min(1).max(100),
-});
-
 export const POST = apiHandler(
   "POST /api/v1/trips/:id/generate-activities",
   async (req, params) => {
+    await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+
     const body = await parseJsonBody(req);
-    const { profile, cityId } = validateBody(GenerateActivitiesSchema, body);
+    const { profile, cityId } = validateBody(GenerateActivitiesInputSchema, body);
 
     // Load the trip
     const trip = await prisma.trip.findUnique({ where: { id: params.id } });
@@ -36,7 +39,7 @@ export const POST = apiHandler(
     const itineraryRecord = await findActiveItinerary(params.id);
     if (!itineraryRecord) throw new ApiError(404, "No active itinerary found");
 
-    const itinerary = itineraryRecord.data as unknown as Itinerary;
+    const itinerary = parseItineraryData(itineraryRecord.data);
 
     // Validate cityId exists in route
     const cityStop = itinerary.route.find((r) => r.id === cityId);
@@ -59,12 +62,7 @@ export const POST = apiHandler(
     log.info("Generating activities for city", { tripId: params.id, cityId, city: cityStop.city });
 
     // Generate activities
-    const updatedDays = await generateCityActivities(
-      profile as UserProfile,
-      intent,
-      itinerary,
-      cityId
-    );
+    const updatedDays = await generateCityActivities(profile, intent, itinerary, cityId);
 
     // Merge into itinerary — replace days for this city with the activity-populated versions
     const mergedDays = itinerary.days.map((day) => {
