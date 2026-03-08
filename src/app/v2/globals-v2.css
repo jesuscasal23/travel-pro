@@ -1,0 +1,56 @@
+/* ============================================================
+   V2 Design System — TravelOS
+   ============================================================ */
+
+@theme inline {
+  --color-v2-navy: #1b2b4b;
+  --color-v2-navy-light: #2d4562;
+  --color-v2-orange: #f97316;
+  --color-v2-orange-dark: #ea680c;
+  --color-v2-green: #10b981;
+  --color-v2-red: #ef4444;
+  --color-v2-blue: #3b82f6;
+  --color-v2-purple: #8b5cf6;
+  --color-v2-pink: #ec4899;
+  --color-v2-teal: #0d9488;
+  --color-v2-text-muted: #6b7280;
+  --color-v2-text-light: #9ca3af;
+  --color-v2-border: #e5e7eb;
+  --color-v2-chip-bg: #f9fafb;
+  --color-v2-surface: #f3f4f6;
+}
+
+/* ============================================================
+   Custom Slider
+   ============================================================ */
+
+.v2-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #d1d5db;
+  outline: none;
+  width: 100%;
+}
+
+.v2-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1b2b4b;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.v2-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1b2b4b;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
