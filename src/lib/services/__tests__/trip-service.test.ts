@@ -6,7 +6,7 @@ vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     trip: {
       findUnique: vi.fn(),
-      update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -28,7 +28,7 @@ import { getOrCreateTripShareToken } from "@/lib/features/trips/trip-share-servi
 const mockPrisma = prisma as unknown as {
   trip: {
     findUnique: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -104,26 +104,31 @@ describe("getOrCreateTripShareToken", () => {
     const result = await getOrCreateTripShareToken("trip-1");
 
     expect(result).toBe("existing-token");
-    expect(mockPrisma.trip.update).not.toHaveBeenCalled();
+    expect(mockPrisma.trip.updateMany).not.toHaveBeenCalled();
   });
 
   it("generates and persists a new token when trip has no shareToken", async () => {
     mockPrisma.trip.findUnique.mockResolvedValue({ shareToken: null });
-    mockPrisma.trip.update.mockResolvedValue({});
+    mockPrisma.trip.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await getOrCreateTripShareToken("trip-1");
 
     expect(typeof result).toBe("string");
     expect(result.length).toBe(12); // base64url of 9 bytes = 12 chars
-    expect(mockPrisma.trip.update).toHaveBeenCalledWith({
-      where: { id: "trip-1" },
-      data: { shareToken: result },
+    expect(mockPrisma.trip.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "trip-1",
+        shareToken: null,
+      },
+      data: {
+        shareToken: result,
+      },
     });
   });
 
   it("generates a URL-safe token", async () => {
     mockPrisma.trip.findUnique.mockResolvedValue({ shareToken: null });
-    mockPrisma.trip.update.mockResolvedValue({});
+    mockPrisma.trip.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await getOrCreateTripShareToken("trip-1");
 

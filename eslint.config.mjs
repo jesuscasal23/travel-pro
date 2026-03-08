@@ -12,10 +12,16 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "tmp/**",
     "next-env.d.ts",
     // Scripts and config files are not part of the app — skip strict rules
     "scripts/**",
     "prisma/seed.ts",
+    "eslint.config.mjs",
+    "lint-staged.config.mjs",
+    "next-sitemap.config.js",
+    "postcss.config.mjs",
+    "prisma.config.ts",
   ]),
   // Stricter rules for catching common agent-introduced mistakes
   {

@@ -12,7 +12,7 @@ interface GenerateParams {
     travelStyle: string;
     interests: string[];
   };
-  promptVersion: string;
+  promptVersion: "v1";
   cities?: Array<{
     id: string;
     city: string;

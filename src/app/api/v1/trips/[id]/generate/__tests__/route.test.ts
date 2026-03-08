@@ -211,6 +211,29 @@ describe("POST /api/v1/trips/:id/generate", () => {
     expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
   });
 
+  it("returns 400 for unsupported prompt versions", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["food"],
+        },
+        promptVersion: "v2",
+      }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toBe("Validation failed");
+    expect(mocks.createGeneratingRecord).not.toHaveBeenCalled();
+  });
+
   it("marks the itinerary as failed and closes the stream when generation is aborted", async () => {
     const aborted = new Error("Request aborted");
     aborted.name = "AbortError";

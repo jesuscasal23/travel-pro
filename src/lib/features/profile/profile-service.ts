@@ -52,7 +52,30 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
 }
 
 export async function deleteUserProfileAndAccount(userId: string) {
-  await prisma.profile.deleteMany({ where: { userId } });
+  await prisma.$transaction(async (tx) => {
+    const profile = await tx.profile.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (profile) {
+      const trips = await tx.trip.findMany({
+        where: { profileId: profile.id },
+        select: { id: true },
+      });
+      const tripIds = trips.map((trip) => trip.id);
+
+      if (tripIds.length > 0) {
+        await tx.affiliateClick.deleteMany({
+          where: { tripId: { in: tripIds } },
+        });
+      }
+
+      await tx.trip.deleteMany({ where: { profileId: profile.id } });
+    }
+
+    await tx.profile.deleteMany({ where: { userId } });
+  });
 
   const { url, serviceRoleKey } = getSupabaseAdminEnv();
   const cookieStore = await cookies();

@@ -57,7 +57,7 @@ const baseParams = {
     travelStyle: "comfort",
     interests: ["culture", "food"],
   },
-  promptVersion: "v1",
+  promptVersion: "v1" as const,
 };
 
 describe("useTripGeneration", () => {

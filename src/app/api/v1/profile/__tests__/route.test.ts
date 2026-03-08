@@ -9,6 +9,14 @@ vi.mock("@/lib/db/prisma", () => ({
       upsert: vi.fn(),
       deleteMany: vi.fn(),
     },
+    trip: {
+      findMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    affiliateClick: {
+      deleteMany: vi.fn(),
+    },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -58,6 +66,14 @@ const mockPrisma = prisma as unknown as {
     upsert: ReturnType<typeof vi.fn>;
     deleteMany: ReturnType<typeof vi.fn>;
   };
+  trip: {
+    findMany: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
+  affiliateClick: {
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
+  $transaction: ReturnType<typeof vi.fn>;
 };
 const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
 
@@ -87,6 +103,24 @@ beforeEach(() => {
     onboardingCompleted: true,
   });
   mockPrisma.profile.deleteMany.mockResolvedValue({ count: 1 });
+  mockPrisma.trip.findMany.mockResolvedValue([{ id: "trip-1" }, { id: "trip-2" }]);
+  mockPrisma.trip.deleteMany.mockResolvedValue({ count: 2 });
+  mockPrisma.affiliateClick.deleteMany.mockResolvedValue({ count: 3 });
+  mockPrisma.$transaction.mockImplementation(async (callback) =>
+    callback({
+      profile: {
+        findUnique: mockPrisma.profile.findUnique,
+        deleteMany: mockPrisma.profile.deleteMany,
+      },
+      trip: {
+        findMany: mockPrisma.trip.findMany,
+        deleteMany: mockPrisma.trip.deleteMany,
+      },
+      affiliateClick: {
+        deleteMany: mockPrisma.affiliateClick.deleteMany,
+      },
+    })
+  );
   mockDeleteUser.mockResolvedValue({});
 });
 
@@ -177,6 +211,21 @@ describe("DELETE /api/v1/profile", () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
+    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mockPrisma.profile.findUnique).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
+      select: { id: true },
+    });
+    expect(mockPrisma.trip.findMany).toHaveBeenCalledWith({
+      where: { profileId: "profile-1" },
+      select: { id: true },
+    });
+    expect(mockPrisma.affiliateClick.deleteMany).toHaveBeenCalledWith({
+      where: { tripId: { in: ["trip-1", "trip-2"] } },
+    });
+    expect(mockPrisma.trip.deleteMany).toHaveBeenCalledWith({
+      where: { profileId: "profile-1" },
+    });
     expect(mockPrisma.profile.deleteMany).toHaveBeenCalledWith({
       where: { userId: "user-1" },
     });

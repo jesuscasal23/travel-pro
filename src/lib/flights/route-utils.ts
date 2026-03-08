@@ -1,5 +1,6 @@
 import { lookupIata } from "@/lib/flights/city-iata-map";
 import type { CityWithDays } from "@/lib/flights/types";
+import { addDays } from "@/lib/utils/date";
 import type { CityStop } from "@/types";
 
 export interface FlightRouteLeg {
@@ -35,12 +36,10 @@ export function buildFlightLegsFromRoute(
     const fromIata = resolveStopIata(route[i]);
     const toIata = resolveStopIata(route[i + 1]);
     if (fromIata && toIata) {
-      const departureDate = new Date(dateStart);
-      departureDate.setDate(departureDate.getDate() + dayOffset);
       legs.push({
         fromIata,
         toIata,
-        departureDate: departureDate.toISOString().slice(0, 10),
+        departureDate: addDays(dateStart, dayOffset),
       });
     }
   }
