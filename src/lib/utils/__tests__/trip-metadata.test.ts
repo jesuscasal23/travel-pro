@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { isSingleCity, getTripTitle, getUniqueCountries } from "../trip-metadata";
+import {
+  isSingleCity,
+  getTripTitle,
+  getUniqueCountries,
+  parseItineraryData,
+} from "../trip-metadata";
 import type { CityStop, Itinerary } from "@/types";
 
 // ── Fixtures ────────────────────────────────────────────────────
@@ -80,5 +85,17 @@ describe("getUniqueCountries", () => {
 
   it("returns single country for single-city route", () => {
     expect(getUniqueCountries([tokyo])).toEqual(["Japan"]);
+  });
+});
+
+describe("parseItineraryData", () => {
+  it("returns typed itinerary data when the stored JSON shape is valid", () => {
+    expect(parseItineraryData(makeItinerary([tokyo]))).toEqual(makeItinerary([tokyo]));
+  });
+
+  it("throws when the stored JSON shape is invalid", () => {
+    expect(() => parseItineraryData({ route: "bad", days: [] })).toThrow(
+      /Stored itinerary data is invalid/
+    );
   });
 });

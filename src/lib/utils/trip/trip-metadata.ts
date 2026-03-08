@@ -1,8 +1,17 @@
 import type { CityStop, Itinerary } from "@/types";
+import { itinerarySchema } from "@/lib/itinerary/schema";
 
-/** Safely cast Prisma JSON `data` field to an Itinerary (avoids scattered double-casts). */
+/** Parse Prisma JSON `data` into a validated Itinerary. */
 export function parseItineraryData(data: unknown): Itinerary {
-  return data as unknown as Itinerary;
+  const result = itinerarySchema.safeParse(data);
+  if (!result.success) {
+    const issues = result.error.issues
+      .slice(0, 5)
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Stored itinerary data is invalid: ${issues}`);
+  }
+  return result.data;
 }
 
 /** Get unique country names from a route. */

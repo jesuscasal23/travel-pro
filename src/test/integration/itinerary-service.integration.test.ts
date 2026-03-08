@@ -20,6 +20,7 @@ import {
   createItineraryVersion,
   createGeneratingRecord,
   activateGeneratedItinerary,
+  GenerationAlreadyInProgressError,
   markGenerationFailed,
   cleanupStaleGenerations,
 } from "@/lib/services/itinerary-service";
@@ -85,6 +86,39 @@ describe("itinerary-service", () => {
     expect(record?.isActive).toBe(false);
     expect(record?.generationStatus).toBe("generating");
     expect(record?.version).toBe(1);
+  });
+
+  it("createGeneratingRecord increments the version after existing itineraries", async () => {
+    const trip = await createTestTrip(prisma);
+    await createTestItinerary(prisma, trip.id, {
+      version: 2,
+      isActive: true,
+      generationStatus: "complete",
+    });
+
+    const { id } = await createGeneratingRecord({
+      tripId: trip.id,
+      promptVersion: "v1",
+    });
+
+    const record = await prisma.itinerary.findUnique({ where: { id } });
+    expect(record?.version).toBe(3);
+  });
+
+  it("createGeneratingRecord rejects when another generation is already active", async () => {
+    const trip = await createTestTrip(prisma);
+    await createTestItinerary(prisma, trip.id, {
+      version: 1,
+      isActive: false,
+      generationStatus: "generating",
+    });
+
+    await expect(
+      createGeneratingRecord({
+        tripId: trip.id,
+        promptVersion: "v1",
+      })
+    ).rejects.toBeInstanceOf(GenerationAlreadyInProgressError);
   });
 
   it("activateGeneratedItinerary activates one and deactivates others", async () => {

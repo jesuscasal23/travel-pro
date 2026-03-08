@@ -14,6 +14,7 @@ import { selectRoute } from "@/lib/ai/prompts/route-selector";
 import { SelectRouteInputSchema } from "@/lib/api/schemas";
 import { apiHandler, ApiError, parseJsonBody, validateBody } from "@/lib/api/helpers";
 import { createLogger } from "@/lib/logger";
+import { throwIfAborted } from "@/lib/abort";
 
 const log = createLogger("api/generate/select-route");
 
@@ -21,6 +22,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 15; // Haiku is fast — 15s is generous
 
 export const POST = apiHandler("POST /api/generate/select-route", async (req: NextRequest) => {
+  const signal = req.signal;
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
 
@@ -78,7 +80,8 @@ export const POST = apiHandler("POST /api/generate/select-route", async (req: Ne
   // ── Haiku route selection ─────────────────────────────────────────────────
   try {
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const cities = await selectRoute(profile, tripIntent, anthropic);
+    const cities = await selectRoute(profile, tripIntent, anthropic, signal);
+    throwIfAborted(signal);
     log.info("Success", { cities: cities.length, elapsed: elapsed() });
     return NextResponse.json({ cities }, { status: 200 });
   } catch (err) {

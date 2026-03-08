@@ -209,7 +209,8 @@ describe("pipeline orchestration", () => {
       expect.objectContaining({
         system: "system-single",
         max_tokens: 8000,
-      })
+      }),
+      { signal: undefined }
     );
   });
 
@@ -227,7 +228,8 @@ describe("pipeline orchestration", () => {
       expect.objectContaining({
         system: "system-route-only-single",
         max_tokens: 2000,
-      })
+      }),
+      { signal: undefined }
     );
     expect(result.days[0].activities).toHaveLength(0);
   });

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { ACTIVE_ITINERARY_INCLUDE, ApiError, apiHandler } from "@/lib/api/helpers";
+import { parseItineraryData } from "@/lib/utils/trip-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export const GET = apiHandler(
         dateEnd: trip.dateEnd,
         travelers: trip.travelers,
       },
-      itinerary: trip.itineraries[0].data,
+      itinerary: parseItineraryData(trip.itineraries[0].data),
     });
   }
 );

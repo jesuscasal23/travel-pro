@@ -83,4 +83,22 @@ describe("GET /api/v1/trips/shared/:token", () => {
     expect(res.status).toBe(500);
     expect(json.error).toBe("Internal server error");
   });
+
+  it("returns 500 when stored itinerary data is invalid", async () => {
+    mockPrisma.trip.findFirst.mockResolvedValue({
+      id: "trip-1",
+      region: "east-asia",
+      dateStart: "2026-04-01",
+      dateEnd: "2026-04-08",
+      travelers: 2,
+      itineraries: [{ data: { route: "bad", days: [] } }],
+    });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/shared/token-1");
+    const res = await GET(req, { params: Promise.resolve({ token: "token-1" }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toBe("Internal server error");
+  });
 });

@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { apiHandler, ApiError, requireAuth } from "@/lib/api/helpers";
+import { serializeProfileWithPace } from "@/lib/profile/pace";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,6 @@ export const GET = apiHandler("GET /api/v1/profile/export", async () => {
 
   return NextResponse.json({
     exportedAt: new Date().toISOString(),
-    profile,
+    profile: serializeProfileWithPace(profile),
   });
 });

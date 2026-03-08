@@ -17,6 +17,7 @@ import { findActiveItinerary } from "@/lib/services/itinerary-service";
 import type { Itinerary } from "@/types";
 import { createLogger } from "@/lib/logger";
 import { parseItineraryData } from "@/lib/utils/trip-metadata";
+import { throwIfAborted } from "@/lib/abort";
 
 const log = createLogger("api/v1/trips/generate-activities");
 
@@ -26,7 +27,8 @@ export const maxDuration = 60;
 export const POST = apiHandler(
   "POST /api/v1/trips/:id/generate-activities",
   async (req, params) => {
-    await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+    const signal = req.signal;
+    await assertTripAccess(req, params.id, { requireOwnershipForUserTrips: true });
 
     const body = await parseJsonBody(req);
     const { profile, cityId } = validateBody(GenerateActivitiesInputSchema, body);
@@ -62,7 +64,10 @@ export const POST = apiHandler(
     log.info("Generating activities for city", { tripId: params.id, cityId, city: cityStop.city });
 
     // Generate activities
-    const updatedDays = await generateCityActivities(profile, intent, itinerary, cityId);
+    const updatedDays = await generateCityActivities(profile, intent, itinerary, cityId, {
+      signal,
+    });
+    throwIfAborted(signal);
 
     // Merge into itinerary — replace days for this city with the activity-populated versions
     const mergedDays = itinerary.days.map((day) => {

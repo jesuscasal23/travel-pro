@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { itinerarySchema } from "@/lib/itinerary/schema";
 
 // ============================================================
 // Travel Pro — Zod Schemas
@@ -79,7 +80,7 @@ export const EditItineraryInputSchema = z.object({
   ]),
   editPayload: z.record(z.string(), z.unknown()),
   description: z.string().optional(),
-  data: z.unknown().optional(),
+  data: itinerarySchema.optional(),
 });
 
 /** Zod schema for pre-selected cities from Haiku route selection. */

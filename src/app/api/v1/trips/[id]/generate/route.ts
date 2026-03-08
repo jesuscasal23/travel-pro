@@ -16,6 +16,7 @@ import { tripToIntent } from "@/lib/services/trip-service";
 import {
   createGeneratingRecord,
   activateGeneratedItinerary,
+  GenerationAlreadyInProgressError,
   markGenerationFailed,
 } from "@/lib/services/itinerary-service";
 import type { Itinerary, CityStop } from "@/types";
@@ -23,6 +24,7 @@ import { createLogger } from "@/lib/logger";
 import { prefetchFlightOptions } from "@/lib/flights/amadeus";
 import { parseIataCode } from "@/lib/affiliate/link-generator";
 import { lookupIata } from "@/lib/flights/city-iata-map";
+import { abortableDelay, isAbortError, throwIfAborted } from "@/lib/abort";
 
 const log = createLogger("api/v1/trips/generate");
 
@@ -30,7 +32,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, params) => {
-  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+  const signal = req.signal;
+  await assertTripAccess(req, params.id, { requireOwnershipForUserTrips: true });
 
   const body = await parseJsonBody(req);
   const { profile, promptVersion, cities } = validateBody(GenerateTripInputSchema, body);
@@ -42,10 +45,21 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
   const intent = tripToIntent(trip);
 
   // Create itinerary record in "generating" state
-  const { id: itineraryId } = await createGeneratingRecord({
-    tripId: params.id,
-    promptVersion,
-  });
+  let itineraryId: string;
+  try {
+    ({ id: itineraryId } = await createGeneratingRecord({
+      tripId: params.id,
+      promptVersion,
+    }));
+  } catch (error) {
+    if (error instanceof GenerationAlreadyInProgressError) {
+      throw new ApiError(409, "Generation already in progress", {
+        itineraryId: error.itineraryId,
+        generationJobId: error.generationJobId ?? undefined,
+      });
+    }
+    throw error;
+  }
 
   // Return SSE stream
   const encoder = new TextEncoder();
@@ -57,10 +71,12 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
       };
 
       try {
+        throwIfAborted(signal);
         send({ stage: "route", message: "Planning your route...", pct: 20 });
 
         // Run route-only generation (no activities, no enrichment)
-        const itinerary: Itinerary = await generateRouteOnly(profile, intent, cities);
+        const itinerary: Itinerary = await generateRouteOnly(profile, intent, cities, { signal });
+        throwIfAborted(signal);
 
         // Best-effort flight pre-fetch (8s timeout, never blocks itinerary delivery)
         try {
@@ -71,8 +87,8 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
             send({ stage: "flights", message: "Searching flights...", pct: 70 });
 
             const flightOptions = await Promise.race([
-              prefetchFlightOptions(legs, trip.travelers),
-              sleep(8000).then(() => null),
+              prefetchFlightOptions(legs, trip.travelers, signal),
+              abortableDelay(8000, signal).then(() => null),
             ]);
 
             if (flightOptions && flightOptions.some((l) => l.results.length > 0)) {
@@ -80,29 +96,43 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
             }
           }
         } catch (e) {
+          if (isAbortError(e)) {
+            throw e;
+          }
           log.warn("Flight pre-fetch failed (non-blocking)", {
             error: e instanceof Error ? e.message : String(e),
           });
         }
 
         // Save + activate in one atomic transaction
+        throwIfAborted(signal);
         await activateGeneratedItinerary(itineraryId, params.id, itinerary);
 
-        send({
-          stage: "done",
-          message: "Your trip is ready!",
-          pct: 100,
-          itinerary_id: itineraryId,
-          trip_id: params.id,
-        });
+        if (!signal.aborted) {
+          send({
+            stage: "done",
+            message: "Your trip is ready!",
+            pct: 100,
+            itinerary_id: itineraryId,
+            trip_id: params.id,
+          });
+        }
       } catch (err) {
-        log.error("SSE generation error", {
-          error: err instanceof Error ? err.message : String(err),
-        });
+        const aborted = isAbortError(err) || signal.aborted;
+
+        if (aborted) {
+          log.info("SSE generation aborted by client", { tripId: params.id, itineraryId });
+        } else {
+          log.error("SSE generation error", {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
 
         await markGenerationFailed(itineraryId);
 
-        send({ stage: "error", message: "Generation failed. Please try again.", pct: 0 });
+        if (!aborted && !signal.aborted) {
+          send({ stage: "error", message: "Generation failed. Please try again.", pct: 0 });
+        }
       } finally {
         controller.close();
       }
@@ -117,10 +147,6 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
     },
   });
 });
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /** Build flight legs from route + trip dates for pre-fetching. */
 function buildLegsFromRoute(

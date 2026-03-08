@@ -14,12 +14,12 @@ import {
 } from "@/lib/api/helpers";
 import { EditItineraryInputSchema } from "@/lib/api/schemas";
 import { findActiveItinerary, createItineraryVersion } from "@/lib/services/itinerary-service";
-import type { Itinerary } from "@/types";
+import { parseItineraryData } from "@/lib/utils/trip-metadata";
 
 export const dynamic = "force-dynamic";
 
 export const GET = apiHandler("GET /api/v1/trips/:id", async (_req: NextRequest, params) => {
-  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+  await assertTripAccess(_req, params.id, { requireOwnershipForUserTrips: true });
 
   const trip = await prisma.trip.findUnique({
     where: { id: params.id },
@@ -30,11 +30,19 @@ export const GET = apiHandler("GET /api/v1/trips/:id", async (_req: NextRequest,
     throw new ApiError(404, "Trip not found");
   }
 
-  return NextResponse.json({ trip });
+  return NextResponse.json({
+    trip: {
+      ...trip,
+      itineraries: trip.itineraries.map((itinerary) => ({
+        ...itinerary,
+        data: parseItineraryData(itinerary.data),
+      })),
+    },
+  });
 });
 
 export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextRequest, params) => {
-  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+  await assertTripAccess(req, params.id, { requireOwnershipForUserTrips: true });
 
   const body = await parseJsonBody(req);
   const { editType, editPayload, description, data } = validateBody(EditItineraryInputSchema, body);
@@ -59,7 +67,7 @@ export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextReque
   if (data) {
     const newItinerary = await createItineraryVersion({
       tripId: params.id,
-      data: data as Itinerary,
+      data,
       promptVersion: currentItinerary.promptVersion,
       previousItineraryId: currentItinerary.id,
       previousVersion: currentItinerary.version,
@@ -72,7 +80,7 @@ export const PATCH = apiHandler("PATCH /api/v1/trips/:id", async (req: NextReque
 });
 
 export const DELETE = apiHandler("DELETE /api/v1/trips/:id", async (_req: NextRequest, params) => {
-  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+  await assertTripAccess(_req, params.id, { requireOwnershipForUserTrips: true });
 
   await prisma.trip.delete({ where: { id: params.id } });
   return NextResponse.json({ success: true });

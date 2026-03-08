@@ -11,6 +11,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT_V1 } from "./prompts/v1";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
+import { abortableDelay, isAbortError } from "@/lib/abort";
 
 const log = createLogger("ai:client");
 
@@ -48,16 +49,20 @@ export async function callClaude(
   userPrompt: string,
   systemPrompt: string = SYSTEM_PROMPT_V1,
   maxTokens: number = 10000,
-  retryCount = 0
+  retryCount = 0,
+  signal?: AbortSignal
 ): Promise<ClaudeResult> {
   try {
-    const message = await getAnthropic().messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: maxTokens,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt }],
-    });
+    const message = await getAnthropic().messages.create(
+      {
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: maxTokens,
+        temperature: 0.7,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      },
+      { signal }
+    );
 
     const block = message.content[0];
     if (block.type !== "text") {
@@ -83,13 +88,16 @@ export async function callClaude(
       stopReason,
     };
   } catch (err) {
+    if (isAbortError(err)) {
+      throw err;
+    }
     // Content filtering is probabilistic — retry with backoff (usually succeeds on 2nd attempt)
     const msg = getErrorMessage(err);
     const isContentFilter = msg.includes("content filtering") || msg.includes("Output blocked");
     if (isContentFilter && retryCount < 2) {
       log.warn("Content filter triggered, retrying", { attempt: retryCount + 1, maxRetries: 2 });
-      await new Promise((r) => setTimeout(r, 600 * (retryCount + 1)));
-      return callClaude(userPrompt, systemPrompt, maxTokens, retryCount + 1);
+      await abortableDelay(600 * (retryCount + 1), signal);
+      return callClaude(userPrompt, systemPrompt, maxTokens, retryCount + 1, signal);
     }
     throw err;
   }

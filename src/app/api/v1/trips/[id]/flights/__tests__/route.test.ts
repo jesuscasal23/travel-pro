@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
@@ -39,9 +40,14 @@ const mockSearch = searchFlightsMulti as ReturnType<typeof vi.fn>;
 const tripId = "trip-123";
 
 function makeRequest(body: object) {
+  const ownerCookie = createGuestTripOwnerCookie(tripId);
+
   return new NextRequest(`http://localhost:3000/api/v1/trips/${tripId}/flights`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      cookie: `${ownerCookie.name}=${ownerCookie.value}`,
+    },
     body: JSON.stringify(body),
   });
 }

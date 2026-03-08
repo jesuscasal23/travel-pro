@@ -4,10 +4,23 @@
 // generation state transitions. No HTTP concerns.
 // ============================================================
 import { prisma } from "@/lib/db/prisma";
+import crypto from "crypto";
 import { createLogger } from "@/lib/logger";
 import type { Itinerary } from "@/types";
 
 const log = createLogger("itinerary-service");
+const STALE_GENERATION_MAX_AGE_MS = 2 * 60 * 1000;
+
+export class GenerationAlreadyInProgressError extends Error {
+  constructor(
+    public tripId: string,
+    public itineraryId: string,
+    public generationJobId?: string | null
+  ) {
+    super("Generation already in progress");
+    this.name = "GenerationAlreadyInProgressError";
+  }
+}
 
 /**
  * Find the current active itinerary for a trip.
@@ -67,18 +80,56 @@ export async function createItineraryVersion(input: {
  * Called at the start of AI generation before the pipeline runs.
  */
 export async function createGeneratingRecord(input: { tripId: string; promptVersion: string }) {
-  const record = await prisma.itinerary.create({
-    data: {
-      tripId: input.tripId,
-      data: {},
-      version: 1,
-      isActive: false,
-      promptVersion: input.promptVersion,
-      generationStatus: "generating",
-    },
+  const generationJobId = crypto.randomUUID();
+  const record = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${input.tripId}))`;
+
+    const existing = await tx.itinerary.findFirst({
+      where: { tripId: input.tripId, generationStatus: "generating" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, generationJobId: true, createdAt: true },
+    });
+
+    if (existing) {
+      if (Date.now() - existing.createdAt.getTime() <= STALE_GENERATION_MAX_AGE_MS) {
+        throw new GenerationAlreadyInProgressError(
+          input.tripId,
+          existing.id,
+          existing.generationJobId
+        );
+      }
+
+      await tx.itinerary.update({
+        where: { id: existing.id },
+        data: { generationStatus: "failed" },
+      });
+    }
+
+    const latest = await tx.itinerary.findFirst({
+      where: { tripId: input.tripId },
+      orderBy: { version: "desc" },
+      select: { version: true },
+    });
+
+    return tx.itinerary.create({
+      data: {
+        tripId: input.tripId,
+        data: {},
+        version: (latest?.version ?? 0) + 1,
+        isActive: false,
+        promptVersion: input.promptVersion,
+        generationStatus: "generating",
+        generationJobId,
+      },
+    });
   });
 
-  log.info("Created generating record", { itineraryId: record.id, tripId: input.tripId });
+  log.info("Created generating record", {
+    itineraryId: record.id,
+    tripId: input.tripId,
+    version: record.version,
+    generationJobId: record.generationJobId,
+  });
   return { id: record.id };
 }
 

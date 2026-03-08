@@ -18,6 +18,7 @@ import {
   parseJsonBody,
   validateBody,
 } from "@/lib/api/helpers";
+import { resolvePaceInput, serializeProfileWithPace } from "@/lib/profile/pace";
 
 const patchSchema = z.object({
   nationality: z.string().min(1).optional(),
@@ -34,7 +35,7 @@ const patchSchema = z.object({
 export const GET = apiHandler("GET /api/v1/profile", async () => {
   const userId = await requireAuth();
   const profile = await requireProfile(userId);
-  return NextResponse.json({ profile });
+  return NextResponse.json({ profile: serializeProfileWithPace(profile) });
 });
 
 // ── PATCH /api/v1/profile ─────────────────────────────────────
@@ -42,6 +43,7 @@ export const PATCH = apiHandler("PATCH /api/v1/profile", async (req) => {
   const userId = await requireAuth();
   const body = await parseJsonBody(req);
   const data = validateBody(patchSchema, body);
+  const pace = resolvePaceInput(data);
 
   const profile = await prisma.profile.upsert({
     where: { userId },
@@ -51,7 +53,7 @@ export const PATCH = apiHandler("PATCH /api/v1/profile", async (req) => {
       homeAirport: data.homeAirport ?? "",
       travelStyle: data.travelStyle ?? "comfort",
       interests: data.interests ?? [],
-      activityLevel: data.pace ?? data.activityLevel,
+      activityLevel: pace,
       languagesSpoken: data.languagesSpoken ?? [],
       onboardingCompleted: data.onboardingCompleted ?? false,
     },
@@ -60,7 +62,7 @@ export const PATCH = apiHandler("PATCH /api/v1/profile", async (req) => {
       ...(data.homeAirport && { homeAirport: data.homeAirport }),
       ...(data.travelStyle && { travelStyle: data.travelStyle }),
       ...(data.interests && { interests: data.interests }),
-      ...((data.pace || data.activityLevel) && { activityLevel: data.pace ?? data.activityLevel }),
+      ...(pace && { activityLevel: pace }),
       ...(data.languagesSpoken && { languagesSpoken: data.languagesSpoken }),
       ...(data.onboardingCompleted !== undefined && {
         onboardingCompleted: data.onboardingCompleted,
@@ -68,7 +70,7 @@ export const PATCH = apiHandler("PATCH /api/v1/profile", async (req) => {
     },
   });
 
-  return NextResponse.json({ profile });
+  return NextResponse.json({ profile: serializeProfileWithPace(profile) });
 });
 
 // ── DELETE /api/v1/profile ────────────────────────────────────

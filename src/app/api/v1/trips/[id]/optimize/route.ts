@@ -23,7 +23,7 @@ import type { CityWithDays } from "@/lib/flights/types";
  * The client is responsible for persisting the result via setItinerary().
  */
 export const POST = apiHandler("POST /api/v1/trips/:id/optimize", async (req, params) => {
-  await assertTripAccess(params.id, { requireOwnershipForUserTrips: true });
+  await assertTripAccess(req, params.id, { requireOwnershipForUserTrips: true });
 
   const body = await parseJsonBody(req);
   const { homeAirport, route, dateStart, dateEnd, travelers } = validateBody(

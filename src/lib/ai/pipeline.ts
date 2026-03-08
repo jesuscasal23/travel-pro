@@ -29,6 +29,7 @@ import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/logger";
 import { discoverNewCities } from "@/lib/services/city-discovery";
+import { throwIfAborted } from "@/lib/abort";
 
 const log = createLogger("pipeline");
 
@@ -44,11 +45,14 @@ const log = createLogger("pipeline");
 export async function generateCoreItinerary(
   profile: UserProfile,
   tripIntent: TripIntent,
-  preSelectedCities?: CityWithDays[]
+  preSelectedCities?: CityWithDays[],
+  options?: { signal?: AbortSignal }
 ): Promise<Itinerary> {
+  const signal = options?.signal;
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
   const isSingleCityTrip = tripIntent.tripType === "single-city";
+  throwIfAborted(signal);
 
   let userPrompt: string;
   let systemPrompt: string;
@@ -70,7 +74,7 @@ export async function generateCoreItinerary(
       const tA = Date.now();
       try {
         log.info("Stage A: Selecting route with Haiku");
-        cities = await selectRoute(profile, tripIntent, getAnthropic());
+        cities = await selectRoute(profile, tripIntent, getAnthropic(), signal);
         log.info("Stage A complete", {
           duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
           cities: cities.map((c) => c.city),
@@ -101,7 +105,7 @@ export async function generateCoreItinerary(
   // Stage 2: Call Claude
   const t2 = Date.now();
   log.info("Stage 2: Calling Claude Haiku", { tripId: tripIntent.id });
-  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens);
+  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
   const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
   log.info("Stage 2 complete", {
     duration: `${claudeDuration}s`,
@@ -112,6 +116,7 @@ export async function generateCoreItinerary(
   });
 
   // Stage 3: Parse + validate
+  throwIfAborted(signal);
   const t3 = Date.now();
   const parsed = parseAndValidate(claudeResult.text);
   log.info("Stage 3 (parse+validate) done", {
@@ -143,11 +148,14 @@ export async function generateCoreItinerary(
 export async function generateRouteOnly(
   profile: UserProfile,
   tripIntent: TripIntent,
-  preSelectedCities?: CityWithDays[]
+  preSelectedCities?: CityWithDays[],
+  options?: { signal?: AbortSignal }
 ): Promise<Itinerary> {
+  const signal = options?.signal;
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
   const isSingleCityTrip = tripIntent.tripType === "single-city";
+  throwIfAborted(signal);
 
   let userPrompt: string;
   let systemPrompt: string;
@@ -168,7 +176,7 @@ export async function generateRouteOnly(
       const tA = Date.now();
       try {
         log.info("Route-only Stage A: Selecting route with Haiku");
-        cities = await selectRoute(profile, tripIntent, getAnthropic());
+        cities = await selectRoute(profile, tripIntent, getAnthropic(), signal);
         log.info("Route-only Stage A complete", {
           duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
           cities: cities.map((c) => c.city),
@@ -191,7 +199,7 @@ export async function generateRouteOnly(
   log.info("Route-only prompt assembled", { elapsed: elapsed() });
 
   const t2 = Date.now();
-  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens);
+  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
   log.info("Route-only Claude call complete", {
     duration: `${((Date.now() - t2) / 1000).toFixed(1)}s`,
     model: claudeResult.model,
@@ -200,6 +208,7 @@ export async function generateRouteOnly(
     elapsed: elapsed(),
   });
 
+  throwIfAborted(signal);
   const parsed = parseAndValidate(claudeResult.text);
   log.info("Route-only generation complete", {
     tripId: tripIntent.id,
@@ -226,10 +235,13 @@ export async function generateCityActivities(
   profile: UserProfile,
   tripIntent: TripIntent,
   itinerary: Itinerary,
-  cityId: string
+  cityId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<TripDay[]> {
+  const signal = options?.signal;
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+  throwIfAborted(signal);
 
   const cityStop = itinerary.route.find((r) => r.id === cityId);
   if (!cityStop) {
@@ -253,7 +265,13 @@ export async function generateCityActivities(
 
   const userPrompt = assembleCityActivitiesPrompt(profile, tripIntent, cityStop, cityDays);
 
-  const claudeResult = await callClaude(userPrompt, SYSTEM_PROMPT_CITY_ACTIVITIES, maxTokens);
+  const claudeResult = await callClaude(
+    userPrompt,
+    SYSTEM_PROMPT_CITY_ACTIVITIES,
+    maxTokens,
+    0,
+    signal
+  );
   log.info("City activities Claude call complete", {
     cityId,
     duration: `${((Date.now() - t0) / 1000).toFixed(1)}s`,
@@ -263,6 +281,7 @@ export async function generateCityActivities(
   });
 
   // Parse + validate city activities output
+  throwIfAborted(signal);
   const json = extractJSON(claudeResult.text);
   let parsed: unknown;
   try {
@@ -297,14 +316,17 @@ export async function generateCityActivities(
 export async function generateItinerary(
   profile: UserProfile,
   tripIntent: TripIntent,
-  preSelectedCities?: CityWithDays[]
+  preSelectedCities?: CityWithDays[],
+  options?: { signal?: AbortSignal }
 ): Promise<Itinerary> {
+  const signal = options?.signal;
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
 
-  const core = await generateCoreItinerary(profile, tripIntent, preSelectedCities);
+  const core = await generateCoreItinerary(profile, tripIntent, preSelectedCities, { signal });
 
   // Stage 4: Enrich (visa + weather) in parallel
+  throwIfAborted(signal);
   const t4 = Date.now();
   const [visaData, weatherData] = await Promise.all([
     enrichVisa(profile.nationality, core.route),

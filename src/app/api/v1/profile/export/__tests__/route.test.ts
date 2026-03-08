@@ -43,6 +43,7 @@ describe("GET /api/v1/profile/export", () => {
     mockPrisma.profile.findUnique.mockResolvedValue({
       id: "profile-1",
       userId: "user-1",
+      activityLevel: "high",
       trips: [],
     });
   });
@@ -65,6 +66,8 @@ describe("GET /api/v1/profile/export", () => {
 
     expect(res.status).toBe(200);
     expect(json.profile.id).toBe("profile-1");
+    expect(json.profile.pace).toBe("active");
+    expect(json.profile.activityLevel).toBeUndefined();
     expect(json.exportedAt).toBeTypeOf("string");
   });
 });

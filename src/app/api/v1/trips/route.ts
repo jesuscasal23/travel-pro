@@ -13,6 +13,7 @@ import {
   parseJsonBody,
   validateBody,
 } from "@/lib/api/helpers";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 export const dynamic = "force-dynamic";
 
@@ -50,5 +51,11 @@ export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) =>
   const trip = await prisma.trip.create({
     data: { ...data, profileId },
   });
-  return NextResponse.json({ trip }, { status: 201 });
+
+  const response = NextResponse.json({ trip }, { status: 201 });
+  if (!trip.profileId) {
+    response.cookies.set(createGuestTripOwnerCookie(trip.id));
+  }
+
+  return response;
 });

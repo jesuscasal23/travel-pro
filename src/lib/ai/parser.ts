@@ -9,46 +9,11 @@
 
 import { z } from "zod";
 import { getErrorMessage } from "@/lib/utils/error";
+import { itineraryCoreSchema, dayActivitySchema } from "@/lib/itinerary/schema";
 
 // ── Zod schemas ───────────────────────────────────────────────
 
-const dayActivitySchema = z.object({
-  name: z.string(),
-  category: z.string(),
-  icon: z.string().optional(),
-  why: z.string(),
-  duration: z.string(),
-  tip: z.string().optional(),
-  food: z.string().optional(),
-  cost: z.string().optional(),
-});
-
-const tripDaySchema = z.object({
-  day: z.number(),
-  date: z.string(),
-  city: z.string(),
-  activities: z.array(dayActivitySchema),
-  isTravel: z.boolean().optional(),
-  travelFrom: z.string().optional(),
-  travelTo: z.string().optional(),
-  travelDuration: z.string().optional(),
-});
-
-const cityStopSchema = z.object({
-  id: z.string(),
-  city: z.string(),
-  country: z.string(),
-  lat: z.number(),
-  lng: z.number(),
-  days: z.number(),
-  countryCode: z.string(),
-  iataCode: z.string().optional(),
-});
-
-const claudeItinerarySchema = z.object({
-  route: z.array(cityStopSchema),
-  days: z.array(tripDaySchema),
-});
+const claudeItinerarySchema = itineraryCoreSchema;
 
 type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
 

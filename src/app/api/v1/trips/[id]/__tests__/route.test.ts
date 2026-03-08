@@ -38,7 +38,8 @@ vi.mock("@/lib/request-context", () => ({
 import { prisma } from "@/lib/db/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { findActiveItinerary, createItineraryVersion } from "@/lib/services/itinerary-service";
-import { PATCH, DELETE } from "../route";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
+import { GET, PATCH, DELETE } from "../route";
 
 const mockPrisma = prisma as unknown as {
   profile: { findUnique: ReturnType<typeof vi.fn> };
@@ -68,10 +69,22 @@ function makePatchRequest(body: object) {
   });
 }
 
+function makeGetRequest(headers?: HeadersInit) {
+  return new NextRequest(`http://localhost:3000/api/v1/trips/${tripId}`, {
+    method: "GET",
+    headers,
+  });
+}
+
 function makeDeleteRequest() {
   return new NextRequest(`http://localhost:3000/api/v1/trips/${tripId}`, {
     method: "DELETE",
   });
+}
+
+function makeSignedGuestCookieHeader() {
+  const cookie = createGuestTripOwnerCookie(tripId);
+  return { cookie: `${cookie.name}=${cookie.value}` };
 }
 
 beforeEach(() => {
@@ -165,6 +178,95 @@ describe("PATCH /api/v1/trips/:id", () => {
     expect(res.status).toBe(403);
     expect(json.error).toBe("Forbidden");
     expect(mockPrisma.itineraryEdit.create).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when a guest trip is missing the owner cookie", async () => {
+    mockPrisma.trip.findUnique.mockResolvedValue({ id: tripId, profileId: null });
+    const req = makePatchRequest({
+      editType: "remove_city",
+      editPayload: { cityId: "tokyo" },
+    });
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: tripId }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(json.error).toBe("Forbidden");
+    expect(mockPrisma.itineraryEdit.create).not.toHaveBeenCalled();
+  });
+
+  it("allows a guest trip edit when the signed owner cookie is present", async () => {
+    mockAuth.mockResolvedValue(null);
+    mockPrisma.trip.findUnique.mockResolvedValue({ id: tripId, profileId: null });
+    const req = new NextRequest(`http://localhost:3000/api/v1/trips/${tripId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...makeSignedGuestCookieHeader(),
+      },
+      body: JSON.stringify({
+        editType: "add_city",
+        editPayload: { city: "Osaka" },
+        data: itineraryData,
+      }),
+    });
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: tripId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockCreateItineraryVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 400 when itinerary data does not match the stored itinerary schema", async () => {
+    const req = makePatchRequest({
+      editType: "add_city",
+      editPayload: { city: "Osaka" },
+      data: { route: "invalid", days: [] },
+    });
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: tripId }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toBe("Validation failed");
+    expect(mockCreateItineraryVersion).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/v1/trips/:id", () => {
+  it("returns 403 for guest trips without the owner cookie", async () => {
+    mockPrisma.trip.findUnique.mockResolvedValueOnce({ id: tripId, profileId: null });
+
+    const res = await GET(makeGetRequest(), { params: Promise.resolve({ id: tripId }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(json.error).toBe("Forbidden");
+  });
+
+  it("returns the guest trip when the signed owner cookie is present", async () => {
+    mockAuth.mockResolvedValue(null);
+    mockPrisma.trip.findUnique
+      .mockResolvedValueOnce({ id: tripId, profileId: null })
+      .mockResolvedValueOnce({
+        id: tripId,
+        profileId: null,
+        itineraries: [
+          {
+            id: "itin-1",
+            data: itineraryData,
+          },
+        ],
+      });
+
+    const res = await GET(makeGetRequest(makeSignedGuestCookieHeader()), {
+      params: Promise.resolve({ id: tripId }),
+    });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.trip.id).toBe(tripId);
+    expect(json.trip.itineraries[0].data).toEqual(itineraryData);
   });
 });
 

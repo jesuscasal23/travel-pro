@@ -50,7 +50,7 @@ vi.mock("@/lib/request-context", () => ({
 
 import { prisma } from "@/lib/db/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import { PATCH, DELETE } from "../route";
+import { GET, PATCH, DELETE } from "../route";
 
 const mockPrisma = prisma as unknown as {
   profile: {
@@ -71,10 +71,33 @@ beforeEach(() => {
     homeAirport: "FRA",
     travelStyle: "comfort",
     interests: ["culture"],
+    activityLevel: "moderate",
+    onboardingCompleted: true,
+  });
+  mockPrisma.profile.findUnique.mockResolvedValue({
+    id: "profile-1",
+    userId: "user-1",
+    nationality: "German",
+    homeAirport: "FRA",
+    travelStyle: "comfort",
+    interests: ["culture"],
+    activityLevel: "low",
     onboardingCompleted: true,
   });
   mockPrisma.profile.deleteMany.mockResolvedValue({ count: 1 });
   mockDeleteUser.mockResolvedValue({});
+});
+
+describe("GET /api/v1/profile", () => {
+  it("returns the profile with canonical pace semantics", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/profile");
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.profile.pace).toBe("relaxed");
+    expect(json.profile.activityLevel).toBeUndefined();
+  });
 });
 
 describe("PATCH /api/v1/profile", () => {
@@ -101,6 +124,29 @@ describe("PATCH /api/v1/profile", () => {
       })
     );
     expect(json.profile.userId).toBe("user-1");
+    expect(json.profile.pace).toBe("moderate");
+    expect(json.profile.activityLevel).toBeUndefined();
+  });
+
+  it("maps legacy activityLevel input onto canonical pace storage", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nationality: "German",
+        activityLevel: "high",
+      }),
+    });
+
+    const res = await PATCH(req);
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.profile.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ activityLevel: "active" }),
+        update: expect.objectContaining({ activityLevel: "active" }),
+      })
+    );
   });
 
   it("returns 401 when unauthenticated", async () => {

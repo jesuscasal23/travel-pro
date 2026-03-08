@@ -13,7 +13,8 @@ const SYSTEM = `You are a travel route planning expert. Your only job is to sele
 export async function selectRoute(
   profile: UserProfile,
   intent: TripIntent,
-  anthropic: Anthropic
+  anthropic: Anthropic,
+  signal?: AbortSignal
 ): Promise<CityWithDays[]> {
   const durationDays =
     intent.dateStart && intent.dateEnd ? daysBetween(intent.dateStart, intent.dateEnd) : 21;
@@ -65,12 +66,15 @@ Return ONLY a JSON array, example:
   }
 ]`;
 
-  const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 1200,
-    system: SYSTEM,
-    messages: [{ role: "user", content: prompt }],
-  });
+  const message = await anthropic.messages.create(
+    {
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1200,
+      system: SYSTEM,
+      messages: [{ role: "user", content: prompt }],
+    },
+    { signal }
+  );
 
   const block = message.content[0];
   if (block.type !== "text") throw new Error("Route selector returned non-text");

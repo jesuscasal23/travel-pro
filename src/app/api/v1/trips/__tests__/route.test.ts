@@ -30,6 +30,7 @@ vi.mock("@/lib/request-context", () => ({
 
 import { prisma } from "@/lib/db/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getGuestTripOwnerCookieName } from "@/lib/api/guest-trip-ownership";
 import { GET, POST } from "../route";
 
 const mockPrisma = prisma as unknown as {
@@ -100,5 +101,27 @@ describe("/api/v1/trips", () => {
     expect(res.status).toBe(201);
     expect(json.trip.id).toBe("trip-new");
     expect(mockPrisma.trip.create).toHaveBeenCalled();
+  });
+
+  it("POST issues an owner cookie for guest trips", async () => {
+    mockAuth.mockResolvedValue(null);
+    mockPrisma.trip.create.mockResolvedValue({ id: "guest-trip-1", profileId: null });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tripType: "multi-city",
+        region: "europe",
+        dateStart: "2026-06-01",
+        dateEnd: "2026-06-10",
+        travelers: 2,
+      }),
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(201);
+    expect(res.headers.get("set-cookie")).toContain(getGuestTripOwnerCookieName("guest-trip-1"));
   });
 });

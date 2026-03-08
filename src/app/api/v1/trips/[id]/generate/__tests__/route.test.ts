@@ -11,6 +11,19 @@ const mocks = vi.hoisted(() => ({
   prefetchFlightOptions: vi.fn(),
   parseIataCode: vi.fn(),
   lookupIata: vi.fn(),
+  GenerationAlreadyInProgressError: class GenerationAlreadyInProgressError extends Error {
+    tripId: string;
+    itineraryId: string;
+    generationJobId?: string | null;
+
+    constructor(tripId: string, itineraryId: string, generationJobId?: string | null) {
+      super("Generation already in progress");
+      this.name = "GenerationAlreadyInProgressError";
+      this.tripId = tripId;
+      this.itineraryId = itineraryId;
+      this.generationJobId = generationJobId;
+    }
+  },
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
@@ -27,6 +40,7 @@ vi.mock("@/lib/ai/pipeline", () => ({
 vi.mock("@/lib/services/itinerary-service", () => ({
   createGeneratingRecord: mocks.createGeneratingRecord,
   activateGeneratedItinerary: mocks.activateGeneratedItinerary,
+  GenerationAlreadyInProgressError: mocks.GenerationAlreadyInProgressError,
   markGenerationFailed: mocks.markGenerationFailed,
 }));
 
@@ -165,5 +179,62 @@ describe("POST /api/v1/trips/:id/generate", () => {
       promptVersion: "v1",
     });
     expect(mocks.activateGeneratedItinerary).toHaveBeenCalled();
+  });
+
+  it("returns 409 when a generation is already running for the trip", async () => {
+    mocks.createGeneratingRecord.mockRejectedValue(
+      new mocks.GenerationAlreadyInProgressError("trip-1", "itin-active", "job-active")
+    );
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["food"],
+        },
+      }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(json.error).toBe("Generation already in progress");
+    expect(json.details).toEqual({
+      itineraryId: "itin-active",
+      generationJobId: "job-active",
+    });
+    expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
+  });
+
+  it("marks the itinerary as failed and closes the stream when generation is aborted", async () => {
+    const aborted = new Error("Request aborted");
+    aborted.name = "AbortError";
+    mocks.generateRouteOnly.mockRejectedValue(aborted);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["food"],
+        },
+      }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
+    const body = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(body).not.toContain('"stage":"error"');
+    expect(mocks.markGenerationFailed).toHaveBeenCalledWith("itin-1");
+    expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db/prisma";
 import { createLogger } from "@/lib/logger";
 import { requestContext } from "@/lib/request-context";
+import { hasGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 const log = createLogger("api");
 
@@ -45,15 +46,16 @@ export async function requireTripOwnership(tripId: string, profileId: string) {
 /**
  * Access policy for trip routes:
  * - `allowGuestId`: permit synthetic `tripId === "guest"` requests for stateless guest flows.
- * - `requireOwnershipForUserTrips`: enforce auth+ownership only when trip is linked to a profile.
+ * - `requireOwnershipForUserTrips`: enforce auth+ownership for user trips and owner-cookie checks for guest trips.
  */
 export async function assertTripAccess(
+  req: NextRequest,
   tripId: string,
   options: {
     allowGuestId?: boolean;
     requireOwnershipForUserTrips?: boolean;
   } = {}
-): Promise<void> {
+) {
   if (options.allowGuestId && tripId === "guest") return;
 
   const trip = await prisma.trip.findUnique({
@@ -63,11 +65,17 @@ export async function assertTripAccess(
 
   if (!trip) throw new ApiError(404, "Trip not found");
 
-  if (options.requireOwnershipForUserTrips && trip.profileId) {
-    const userId = await requireAuth();
-    const profile = await requireProfile(userId);
-    if (trip.profileId !== profile.id) throw new ApiError(403, "Forbidden");
+  if (options.requireOwnershipForUserTrips) {
+    if (trip.profileId) {
+      const userId = await requireAuth();
+      const profile = await requireProfile(userId);
+      if (trip.profileId !== profile.id) throw new ApiError(403, "Forbidden");
+    } else if (!hasGuestTripOwnerCookie(req, tripId)) {
+      throw new ApiError(403, "Forbidden");
+    }
   }
+
+  return trip;
 }
 
 // ── Request helpers ─────────────────────────────────────────────

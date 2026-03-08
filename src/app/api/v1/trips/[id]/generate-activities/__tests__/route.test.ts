@@ -14,6 +14,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import type { Itinerary, TripDay } from "@/types";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 // ── Mocks ─────────────────────────────────────────────────────
 
@@ -146,9 +147,14 @@ const validProfile = {
 // ── Helpers ───────────────────────────────────────────────────
 
 function makeRequest(body: object): NextRequest {
+  const ownerCookie = createGuestTripOwnerCookie("trip-1");
+
   return new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate-activities", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      cookie: `${ownerCookie.name}=${ownerCookie.value}`,
+    },
     body: JSON.stringify(body),
   });
 }

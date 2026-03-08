@@ -10,7 +10,7 @@ import { searchFlightsMulti, AmadeusRateLimitError } from "@/lib/flights/amadeus
 export const dynamic = "force-dynamic";
 
 export const POST = apiHandler("POST /api/v1/trips/:id/flights", async (req, params) => {
-  await assertTripAccess(params.id, {
+  await assertTripAccess(req, params.id, {
     allowGuestId: true,
     requireOwnershipForUserTrips: true,
   });

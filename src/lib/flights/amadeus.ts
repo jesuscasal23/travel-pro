@@ -89,7 +89,7 @@ function parseDuration(iso: string): string {
 }
 
 /** Get a cached Amadeus OAuth2 bearer token. */
-export async function getToken(): Promise<string> {
+export async function getToken(signal?: AbortSignal): Promise<string> {
   const redis = getRedis();
   if (redis) {
     const cached = await safeRedisGet<string>(redis, "amadeus:token");
@@ -104,6 +104,7 @@ export async function getToken(): Promise<string> {
       client_id: process.env.AMADEUS_API_KEY ?? "",
       client_secret: process.env.AMADEUS_API_SECRET ?? "",
     }).toString(),
+    signal,
   });
 
   if (!res.ok) {
@@ -131,7 +132,8 @@ export async function searchFlights(
   origin: string,
   destination: string,
   date: string, // YYYY-MM-DD
-  adults: number
+  adults: number,
+  signal?: AbortSignal
 ): Promise<FlightOption | null> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
     log.warn("Amadeus credentials missing — skipping flight search", { origin, destination, date });
@@ -147,7 +149,7 @@ export async function searchFlights(
 
   let token: string;
   try {
-    token = await getToken();
+    token = await getToken(signal);
   } catch (e) {
     log.warn("Token fetch failed", { error: getErrorMessage(e) });
     return null;
@@ -166,6 +168,7 @@ export async function searchFlights(
   try {
     res = await fetch(`${AMADEUS_BASE}/v2/shopping/flight-offers?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal,
     });
   } catch (e) {
     log.warn("Network error", { error: getErrorMessage(e) });
@@ -201,7 +204,8 @@ export async function searchFlightsMulti(
   destination: string,
   date: string,
   adults: number,
-  filters?: { nonStop?: boolean; maxPrice?: number }
+  filters?: { nonStop?: boolean; maxPrice?: number },
+  signal?: AbortSignal
 ): Promise<FlightSearchResult[]> {
   if (!process.env.AMADEUS_API_KEY || !process.env.AMADEUS_API_SECRET) {
     log.warn("Amadeus credentials missing — skipping multi-flight search", {
@@ -227,7 +231,7 @@ export async function searchFlightsMulti(
 
   let token: string;
   try {
-    token = await getToken();
+    token = await getToken(signal);
   } catch (e) {
     log.warn("Token fetch failed", { error: getErrorMessage(e) });
     return [];
@@ -248,6 +252,7 @@ export async function searchFlightsMulti(
   try {
     res = await fetch(`${AMADEUS_BASE}/v2/shopping/flight-offers?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal,
     });
   } catch (e) {
     log.warn("Network error", { error: getErrorMessage(e) });
@@ -304,10 +309,13 @@ export async function searchFlightsMulti(
  */
 export async function prefetchFlightOptions(
   legs: Array<{ fromIata: string; toIata: string; departureDate: string }>,
-  travelers: number
+  travelers: number,
+  signal?: AbortSignal
 ): Promise<FlightLegResults[]> {
   const settled = await Promise.allSettled(
-    legs.map((leg) => searchFlightsMulti(leg.fromIata, leg.toIata, leg.departureDate, travelers))
+    legs.map((leg) =>
+      searchFlightsMulti(leg.fromIata, leg.toIata, leg.departureDate, travelers, undefined, signal)
+    )
   );
 
   return legs.map((leg, i) => ({

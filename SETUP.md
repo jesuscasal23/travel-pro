@@ -87,6 +87,14 @@ Edit `.env.local` to enable additional features:
 3. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 4. Weather API responses will now be cached for 7 days
 
+### Guest trip owner secret (recommended for production)
+
+1. Generate a random secret for signing guest-trip owner cookies
+2. Set `GUEST_TRIP_OWNER_SECRET=your_random_secret` in `.env.local`
+3. Restart the dev server
+
+If omitted, the app falls back to other server-only secrets. A dedicated value is cleaner and keeps guest-trip ownership isolated.
+
 ---
 
 ## Testing the Full Flow
