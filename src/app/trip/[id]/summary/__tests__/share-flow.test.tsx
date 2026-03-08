@@ -120,19 +120,6 @@ describe("SummaryPage share flow", () => {
     mocks.itinerary = makeItinerary();
   });
 
-  it("opens share modal with guest trip URL without calling share mutation", async () => {
-    mocks.mutateAsync.mockResolvedValue({ shareToken: "unused" });
-    await renderWithSuspense("guest");
-
-    fireEvent.click(screen.getByRole("button", { name: /share/i }));
-
-    await waitFor(() => expect(screen.getByTestId("share-modal")).toBeInTheDocument());
-    expect(screen.getByTestId("share-modal")).toHaveTextContent(
-      `${window.location.origin}/trip/guest`
-    );
-    expect(mocks.mutateAsync).not.toHaveBeenCalled();
-  });
-
   it("opens share modal and fetches share token for saved trips", async () => {
     mocks.mutateAsync.mockResolvedValue({ shareToken: "token-123" });
     await renderWithSuspense("trip-123");

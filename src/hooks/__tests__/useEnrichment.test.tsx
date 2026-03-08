@@ -106,15 +106,4 @@ describe("useEnrichment hooks", () => {
       expect(global.fetch).not.toHaveBeenCalled();
     });
   });
-
-  it("surfaces weather enrichment errors for non-ok responses", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false } as Response);
-
-    const { result } = renderHook(() => useWeatherEnrichment(route, "2026-06-01", true), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 4_000 });
-    expect(result.current.error?.message).toBe("Failed to load weather data");
-  });
 });

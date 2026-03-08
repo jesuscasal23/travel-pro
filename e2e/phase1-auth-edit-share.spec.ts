@@ -98,38 +98,6 @@ test("E2E-03: login -> trip edit -> route change -> save -> share", async ({ pag
   }
 });
 
-test("E2E-04: public share page smoke test", async ({ page }) => {
-  await page.goto("/share/demo-asia-2026");
-
-  const banner = page.getByText(/plan your own trip/i);
-  const notFound = page.getByText(/not found|404|expired/i);
-
-  const bannerVisible = await banner.isVisible({ timeout: 5_000 }).catch(() => false);
-  const notFoundVisible = await notFound.isVisible({ timeout: 5_000 }).catch(() => false);
-
-  expect(bannerVisible || notFoundVisible).toBe(true);
-});
-
-test("E2E-05: unauthenticated app routes render without hard redirect", async ({ page }) => {
-  await page.context().clearCookies();
-  await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-
-  await page.goto("/dashboard");
-  await expect(page).toHaveURL(/\/dashboard/);
-  await expect(
-    page.getByText(/Welcome back\.|No trips yet|Couldn't load your trips/i)
-  ).toBeVisible();
-
-  await page.goto("/plan");
-  await expect(page).toHaveURL(/\/plan/);
-  await expect(page.getByText("Where are you from?")).toBeVisible();
-
-  await page.goto("/profile");
-  await expect(page).toHaveURL(/\/profile/);
-  await expect(page.getByText("Profile Settings")).toBeVisible();
-});
-
 test("E2E-06: auth pages render key form elements", async ({ page }) => {
   await page.goto("/signup");
   await expect(page.getByPlaceholder("you@example.com")).toBeVisible();

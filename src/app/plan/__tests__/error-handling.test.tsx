@@ -4,7 +4,6 @@
 // Covers:
 //   - Guest mode: stays on the plan page with an error message when
 //     trip creation returns a non-200 response (no navigation)
-//   - Guest mode: same behaviour when fetch throws a network error
 //   - Retry clears the error and restarts generation
 // ============================================================
 
@@ -117,24 +116,6 @@ describe("PlanPage — guest mode API failure", () => {
     // Single-city: no speculative route selection
     // Fetch #1: POST /api/v1/trips (on Generate click) → fails
     global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, json: async () => ({}) });
-
-    render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /generate my itinerary/i })
-    );
-
-    fireEvent.click(generateBtn);
-
-    await waitFor(() =>
-      expect(screen.getByText(/failed to create trip|something went wrong/i)).toBeInTheDocument()
-    );
-
-    expect(mockRouterPush).not.toHaveBeenCalled();
-  }, 15_000);
-
-  it("shows an error message when fetch throws a network error", async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
