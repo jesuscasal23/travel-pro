@@ -2,8 +2,6 @@
 
 import { useTripStore } from "@/stores/useTripStore";
 import { regions } from "@/data/sampleData";
-import { Badge, FormField, SelectionCard } from "@/components/ui";
-import { inputClass } from "@/components/auth/auth-styles";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { CountryCombobox } from "@/components/ui/CountryCombobox";
 
@@ -11,6 +9,15 @@ interface DestinationStepProps {
   errors: Record<string, string>;
   clearError: (field: string) => void;
 }
+
+const plannerInputClass =
+  "border-v2-border focus:border-v2-orange focus:ring-0 text-v2-navy placeholder:text-v2-text-light w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none transition-colors";
+
+const tripTypeOptions = [
+  { value: "single-city", label: "City" },
+  { value: "single-country", label: "Country" },
+  { value: "multi-city", label: "Region" },
+] as const;
 
 export function DestinationStep({ errors, clearError }: DestinationStepProps) {
   const tripType = useTripStore((s) => s.tripType);
@@ -21,144 +28,127 @@ export function DestinationStep({ errors, clearError }: DestinationStepProps) {
   const destinationCountry = useTripStore((s) => s.destinationCountry);
   const setDestination = useTripStore((s) => s.setDestination);
   const clearDestination = useTripStore((s) => s.clearDestination);
-  const dateStart = useTripStore((s) => s.dateStart);
-  const setDateStart = useTripStore((s) => s.setDateStart);
-  const dateEnd = useTripStore((s) => s.dateEnd);
-  const setDateEnd = useTripStore((s) => s.setDateEnd);
-  const travelers = useTripStore((s) => s.travelers);
-  const setTravelers = useTripStore((s) => s.setTravelers);
 
   const isSingleCity = tripType === "single-city";
   const isSingleCountry = tripType === "single-country";
 
   return (
-    <div>
-      <h2 className="text-foreground mb-1 text-2xl font-bold">Where & when?</h2>
-      <p className="text-muted-foreground mb-6">Pick your destination and travel dates.</p>
-
-      {/* Trip type toggle */}
-      <div className="bg-secondary mb-6 flex gap-0 rounded-xl p-1">
-        {(
-          [
-            { value: "single-city", label: "One City" },
-            { value: "single-country", label: "One Country" },
-            { value: "multi-city", label: "Region" },
-          ] as const
-        ).map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => {
-              setTripType(opt.value);
-              setRegion("");
-              clearDestination();
-            }}
-            className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-              tripType === opt.value
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
+    <div className="space-y-6 pb-2">
+      <div>
+        <h2 className="text-v2-navy text-[28px] leading-tight font-bold">Where are you headed?</h2>
+        <p className="text-v2-text-muted mt-2 text-sm">
+          Start with the destination shape. We&apos;ll ask for dates on the next screen.
+        </p>
       </div>
 
-      {/* Destination input */}
-      {isSingleCity ? (
-        <FormField label="City" className="mb-6" error={errors.destination}>
-          <CityCombobox
-            value={destination ? `${destination}, ${destinationCountry}` : ""}
-            onChange={(entry) => {
-              setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng);
-              clearError("destination");
-            }}
-          />
-        </FormField>
-      ) : isSingleCountry ? (
-        <FormField label="Country" className="mb-6" error={errors.destinationCountry}>
-          <CountryCombobox
-            value={destinationCountry}
-            onChange={(entry) => {
-              setDestination("", entry.country, entry.countryCode, entry.lat, entry.lng);
-              clearError("destinationCountry");
-            }}
-          />
-        </FormField>
-      ) : (
-        <div className="mb-6 grid grid-cols-2 gap-2">
-          {regions.map((r) => (
-            <SelectionCard
-              key={r.id}
-              selected={region === r.id}
-              onClick={() => {
-                setRegion(r.id);
-                clearError("region");
+      <section>
+        <p className="text-v2-text-muted mb-3 text-xs font-bold tracking-[0.22em] uppercase">
+          Trip Type
+        </p>
+        <div className="bg-v2-chip-bg grid grid-cols-3 gap-1 rounded-2xl p-1">
+          {tripTypeOptions.map((option) => {
+            const isSelected = tripType === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setTripType(option.value);
+                  setRegion("");
+                  clearDestination();
+                  clearError("region");
+                  clearError("destination");
+                  clearError("destinationCountry");
+                }}
+                aria-pressed={isSelected}
+                className={`rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${
+                  isSelected
+                    ? "bg-v2-orange text-white shadow-[0_10px_24px_rgba(249,115,22,0.22)]"
+                    : "text-v2-navy"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section>
+        <label className="text-v2-navy mb-2 block text-sm font-semibold">
+          {isSingleCity ? "City" : isSingleCountry ? "Country" : "Region"}
+        </label>
+
+        {isSingleCity ? (
+          <>
+            <CityCombobox
+              value={destination ? `${destination}, ${destinationCountry}` : ""}
+              onChange={(entry) => {
+                setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng);
+                clearError("destination");
               }}
-              className="!p-3"
-            >
-              <div className="flex items-start justify-between gap-1">
-                <div className="text-foreground text-sm font-semibold">{r.name}</div>
-                {r.popular && (
-                  <Badge variant="info" className="shrink-0 text-[10px]">
-                    Popular
-                  </Badge>
-                )}
-              </div>
-              <div className="text-muted-foreground mt-0.5 text-xs leading-snug">{r.countries}</div>
-            </SelectionCard>
-          ))}
-          {errors.region && (
-            <p className="text-sm text-red-500 dark:text-red-400">{errors.region}</p>
-          )}
-        </div>
-      )}
-
-      {/* Dates */}
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Start date" error={errors.dateStart}>
-          <input
-            type="date"
-            value={dateStart}
-            onChange={(e) => {
-              setDateStart(e.target.value);
-              clearError("dateStart");
-            }}
-            className={inputClass}
-          />
-        </FormField>
-        <FormField label="End date" error={errors.dateEnd}>
-          <input
-            type="date"
-            value={dateEnd}
-            onChange={(e) => {
-              setDateEnd(e.target.value);
-              clearError("dateEnd");
-            }}
-            min={dateStart}
-            className={inputClass}
-          />
-        </FormField>
-      </div>
-
-      {/* Travelers */}
-      <div className="border-border bg-background mt-4 flex items-center justify-between rounded-xl border px-4 py-3">
-        <span className="text-foreground text-sm font-medium">Travelers</span>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setTravelers(Math.max(1, travelers - 1))}
-            className="border-border text-foreground hover:border-primary hover:bg-primary/5 flex h-8 w-8 items-center justify-center rounded-full border text-lg font-bold transition-all"
-          >
-            −
-          </button>
-          <span className="text-primary w-6 text-center text-lg font-bold">{travelers}</span>
-          <button
-            onClick={() => setTravelers(Math.min(10, travelers + 1))}
-            className="border-border text-foreground hover:border-primary hover:bg-primary/5 flex h-8 w-8 items-center justify-center rounded-full border text-lg font-bold transition-all"
-          >
-            +
-          </button>
-        </div>
-      </div>
+              className={plannerInputClass}
+              variant="v2"
+            />
+            {errors.destination && <p className="text-v2-red mt-2 text-sm">{errors.destination}</p>}
+          </>
+        ) : isSingleCountry ? (
+          <>
+            <CountryCombobox
+              value={destinationCountry}
+              onChange={(entry) => {
+                setDestination("", entry.country, entry.countryCode, entry.lat, entry.lng);
+                clearError("destinationCountry");
+              }}
+              className={plannerInputClass}
+              variant="v2"
+            />
+            {errors.destinationCountry && (
+              <p className="text-v2-red mt-2 text-sm">{errors.destinationCountry}</p>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2.5">
+              {regions.map((item) => {
+                const isSelected = region === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setRegion(item.id);
+                      clearError("region");
+                    }}
+                    className={`rounded-2xl border p-3 text-left transition-all ${
+                      isSelected
+                        ? "bg-v2-orange border-v2-orange text-white"
+                        : "border-v2-border text-v2-navy bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-sm font-bold">{item.name}</span>
+                      {item.popular && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            isSelected ? "bg-white/20 text-white" : "bg-v2-chip-bg text-v2-orange"
+                          }`}
+                        >
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-[11px] leading-relaxed opacity-80">
+                      {item.countries}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+            {errors.region && <p className="text-v2-red mt-2 text-sm">{errors.region}</p>}
+          </>
+        )}
+      </section>
     </div>
   );
 }

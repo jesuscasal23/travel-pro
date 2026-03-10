@@ -32,7 +32,8 @@ export default function AboutYouPage() {
           <select
             value={nationality}
             onChange={(e) => setNationality(e.target.value)}
-            className="border-v2-border text-v2-navy focus:border-v2-orange w-full rounded-xl border bg-white px-4 py-3.5 text-sm outline-none"
+            className="border-v2-border focus:border-v2-orange w-full rounded-xl border bg-white px-4 py-3.5 text-sm outline-none"
+            style={{ color: nationality ? "#1b2b4b" : "#9ca3af" }}
           >
             <option value="">Select your nationality</option>
             {nationalities.map((n) => (

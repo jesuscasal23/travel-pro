@@ -9,6 +9,7 @@ interface Props {
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
+  variant?: "default" | "v2";
 }
 
 /** Format an airport entry into the canonical label stored in the Zustand store */
@@ -35,6 +36,7 @@ export function AirportCombobox({
   onChange,
   className = "",
   placeholder = "Search airport or city…",
+  variant = "default",
 }: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -43,6 +45,7 @@ export function AirportCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const results = filterAirports(query);
+  const isV2 = variant === "v2";
 
   // Derive display label from stored value (show it when input is not focused)
   const displayValue = value ? value.split("(")[0].trim() : "";
@@ -110,25 +113,53 @@ export function AirportCombobox({
       {/* Show current selection when not focused */}
       {!open && value && (
         <div className="pointer-events-none absolute inset-0 flex items-center px-4">
-          <span className="text-foreground truncate text-sm">{displayValue}</span>
+          <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate text-sm`}>
+            {displayValue}
+          </span>
         </div>
       )}
 
       {open && results.length > 0 && (
-        <ul className="bg-background border-border absolute z-50 mt-1 max-h-[min(16rem,50vh)] w-full overflow-hidden overflow-y-auto rounded-lg border shadow-lg">
+        <ul
+          className={`absolute z-50 w-full overflow-hidden overflow-y-auto border ${
+            isV2
+              ? "border-v2-border mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white shadow-[0_18px_40px_rgba(27,43,75,0.12)]"
+              : "bg-background border-border mt-1 max-h-[min(16rem,50vh)] rounded-lg shadow-lg"
+          }`}
+        >
           {results.map((a, i) => (
             <li
               key={a.iata}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm transition-colors ${i === highlighted ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                isV2
+                  ? i === highlighted
+                    ? "bg-v2-chip-bg text-v2-navy"
+                    : "text-v2-navy hover:bg-v2-chip-bg"
+                  : i === highlighted
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted"
+              }`}
               onMouseDown={(e) => {
                 e.preventDefault();
                 select(a.iata, a.name, a.city, a.country);
               }}
               onMouseEnter={() => setHighlighted(i)}
             >
-              <span className="text-primary w-9 shrink-0 font-mono font-semibold">{a.iata}</span>
-              <span className="text-foreground truncate">{a.name}</span>
-              <span className="text-muted-foreground ml-auto shrink-0">
+              <span
+                className={`w-9 shrink-0 font-mono font-semibold ${
+                  isV2 ? "text-v2-orange" : "text-primary"
+                }`}
+              >
+                {a.iata}
+              </span>
+              <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate`}>
+                {a.name}
+              </span>
+              <span
+                className={`ml-auto shrink-0 ${
+                  isV2 ? "text-v2-text-muted" : "text-muted-foreground"
+                }`}
+              >
                 {a.city ? `${a.city}, ${a.country}` : a.country}
               </span>
             </li>
@@ -137,7 +168,13 @@ export function AirportCombobox({
       )}
 
       {open && query.length >= 2 && results.length === 0 && (
-        <div className="bg-background border-border text-muted-foreground absolute z-50 mt-1 w-full rounded-lg border px-4 py-3 text-sm shadow-lg">
+        <div
+          className={`absolute z-50 w-full border px-4 py-3 text-sm ${
+            isV2
+              ? "border-v2-border text-v2-text-muted mt-2 rounded-2xl bg-white shadow-[0_18px_40px_rgba(27,43,75,0.12)]"
+              : "bg-background border-border text-muted-foreground mt-1 rounded-lg shadow-lg"
+          }`}
+        >
           No airports found for &ldquo;{query}&rdquo;
         </div>
       )}

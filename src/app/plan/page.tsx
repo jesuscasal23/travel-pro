@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
-import { Button } from "@/components/ui";
-import { Navbar } from "@/components/Navbar";
-import { StepProgress } from "@/components/ui/StepProgress";
+import { ProgressBar } from "@/components/v2/ui/ProgressBar";
+import { Button } from "@/components/v2/ui/Button";
 import {
   useAuthStatus,
   usePrefetchRouteSelection,
@@ -18,7 +17,9 @@ import {
 } from "@/hooks/api";
 import { slideVariants } from "@/lib/animations";
 import { DestinationStep } from "./steps/DestinationStep";
+import { ScheduleStep } from "./steps/ScheduleStep";
 import { StyleStep } from "./steps/StyleStep";
+import { PreferencesStep } from "./steps/PreferencesStep";
 import { ProfileStep } from "./steps/ProfileStep";
 import type { CityStop, Itinerary } from "@/types";
 import {
@@ -60,9 +61,9 @@ export default function PlanPage() {
     setItinerary,
   } = useTripStore();
 
-  // Treat as guest unless auth explicitly confirmed
   const hasCoreProfile = Boolean(nationality && homeAirport);
-  const isGuest = isAuthenticated !== true || !hasCoreProfile;
+  const canSkipProfileStep = isAuthenticated === true && hasCoreProfile;
+  const needsProfileStep = !canSkipProfileStep;
 
   const prefetchRoute = usePrefetchRouteSelection();
   const fetchRoute = useFetchRouteSelection();
@@ -78,20 +79,24 @@ export default function PlanPage() {
   const isSingleCity = tripType === "single-city";
   const isSingleCountry = tripType === "single-country";
   const isMultiCountry = tripType === "multi-city";
-  const totalSteps = isGuest ? 3 : 2;
+  const totalSteps = needsProfileStep ? 5 : 4;
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
 
-  // Which content to show based on step + auth
+  // Which content to show based on step + profile completeness
   const showDestination = step === 1;
-  const showStyle = isGuest && step === 2;
-  const showProfileAndDescription = isGuest ? step === 3 : step === 2;
+  const showSchedule = step === 2;
+  const showStyle = step === 3;
+  const showPreferences = step === 4;
+  const showProfileAndDescription = needsProfileStep && step === 5;
+  const isFinalStep = step === totalSteps;
+  const progress = Math.round((step / totalSteps) * 100);
 
   // Speculative route selection: prefetch when user reaches destination step.
   useEffect(() => {
     if (isSingleCity || !dateStart || !dateEnd) return;
-    if (!showDestination) return;
+    if (step < 2) return;
     if (isSingleCountry && !destinationCountry) return;
     if (isMultiCountry && !region) return;
 
@@ -112,7 +117,7 @@ export default function PlanPage() {
     prefetchRoute(params, cacheKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    showDestination,
+    step,
     isSingleCity,
     isSingleCountry,
     isMultiCountry,
@@ -132,28 +137,40 @@ export default function PlanPage() {
   })();
 
   const canAdvance = () => {
-    if (showStyle) return true;
-    if (showProfileAndDescription) return !!nationality;
     if (showDestination) {
       const hasDestination = isSingleCity
         ? !!destination
         : isSingleCountry
           ? !!destinationCountry
           : !!region;
-      return hasDestination && !!dateStart && !!dateEnd && dayCount > 0 && travelers > 0;
+      return hasDestination;
+    }
+    if (showSchedule) {
+      return !!dateStart && !!dateEnd && dayCount > 0 && travelers > 0;
+    }
+    if (showStyle || showPreferences) {
+      return true;
+    }
+    if (showProfileAndDescription) {
+      return !!nationality && !!homeAirport;
     }
     return true;
   };
 
   const goNext = () => {
-    if (showProfileAndDescription) {
-      const fieldErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
-      if (fieldErrors) {
-        setErrors(fieldErrors);
+    if (showDestination) {
+      const nextErrors: Record<string, string> = {};
+      if (isMultiCountry && !region) nextErrors.region = "Please select a region";
+      if (isSingleCity && !destination) nextErrors.destination = "Please select a city";
+      if (isSingleCountry && !destinationCountry) {
+        nextErrors.destinationCountry = "Please select a country";
+      }
+      if (Object.keys(nextErrors).length > 0) {
+        setErrors(nextErrors);
         return;
       }
     }
-    if (showDestination) {
+    if (showSchedule) {
       const fieldErrors = validate(destinationStepSchema, {
         tripType,
         region,
@@ -162,13 +179,9 @@ export default function PlanPage() {
         dateStart,
         dateEnd,
       });
-      if (fieldErrors) {
-        setErrors(fieldErrors);
-        return;
-      }
       const detailErrors = validate(detailsStepSchema, { travelers });
-      if (detailErrors) {
-        setErrors(detailErrors);
+      if (fieldErrors || detailErrors) {
+        setErrors({ ...(fieldErrors ?? {}), ...(detailErrors ?? {}) });
         return;
       }
     }
@@ -247,6 +260,14 @@ export default function PlanPage() {
   );
 
   const handleGenerate = useCallback(async () => {
+    if (needsProfileStep) {
+      const profileErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
+      if (profileErrors) {
+        setErrors(profileErrors);
+        return;
+      }
+    }
+
     const fieldErrors = validate(destinationStepSchema, {
       tripType,
       region,
@@ -334,6 +355,7 @@ export default function PlanPage() {
       setIsGenerating(false);
     }
   }, [
+    needsProfileStep,
     isSingleCity,
     isSingleCountry,
     isMultiCountry,
@@ -364,15 +386,58 @@ export default function PlanPage() {
     posthog,
   ]);
 
+  const stepLabel = showDestination
+    ? "Trip Basics"
+    : showSchedule
+      ? "Dates"
+      : showStyle
+        ? "Travel Style"
+        : showPreferences
+          ? "Preferences"
+          : "About You";
+
+  const stepHelp = showDestination
+    ? "Choose the trip format and destination before we map the rest."
+    : showSchedule
+      ? "Lock in the dates and group size so routing and pacing stay realistic."
+      : showStyle
+        ? "Pick the overall level of comfort and budget for this trip."
+        : showPreferences
+          ? needsProfileStep
+            ? "Set the pace and interests so the first itinerary draft feels personal."
+            : "Set the pace, interests, and any special requests before we generate the trip."
+          : "We use these details for visa checks, flights, and your final itinerary.";
+
   return (
-    <div className="bg-background min-h-screen">
-      <Navbar isAuthenticated={isAuthenticated ?? false} />
+    <div className="flex min-h-dvh flex-col bg-white">
+      <ProgressBar progress={progress} />
 
-      <div className="mx-auto max-w-xl px-4 pt-24 pb-12">
-        {/* Progress */}
-        <StepProgress step={step} totalSteps={totalSteps} />
+      <div className="flex-1 overflow-y-auto px-6 pt-5 pb-4">
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={goBack}
+            className={`text-v2-text-muted hover:text-v2-navy flex items-center gap-1 text-sm font-medium transition-colors ${
+              step === 1 ? "pointer-events-none opacity-0" : ""
+            }`}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
 
-        <div className="relative -mx-1 overflow-x-clip overflow-y-visible px-1">
+          <div className="text-right">
+            <p className="text-v2-text-muted text-[11px] font-bold tracking-[0.22em] uppercase">
+              {stepLabel}
+            </p>
+            <p className="text-v2-navy mt-1 text-sm font-semibold">
+              Step {step} of {totalSteps}
+            </p>
+          </div>
+        </div>
+
+        <p className="text-v2-text-muted mb-4 text-sm">{stepHelp}</p>
+
+        <div className="relative overflow-x-clip overflow-y-visible">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}
@@ -383,42 +448,54 @@ export default function PlanPage() {
               exit="exit"
             >
               {showDestination && <DestinationStep errors={errors} clearError={clearError} />}
+              {showSchedule && <ScheduleStep errors={errors} clearError={clearError} />}
               {showStyle && <StyleStep />}
+              {showPreferences && <PreferencesStep includeTripDescription={!needsProfileStep} />}
               {showProfileAndDescription && <ProfileStep errors={errors} clearError={clearError} />}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Navigation */}
-        <div className="mt-8 flex items-center justify-between">
-          <button
-            onClick={goBack}
-            className={`text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors ${step === 1 ? "pointer-events-none opacity-0" : ""}`}
-          >
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          {step < totalSteps ? (
-            <Button onClick={goNext} disabled={!canAdvance()} size="sm" className="gap-1.5">
-              Continue
-            </Button>
-          ) : (
-            <Button
-              onClick={() => handleGenerate()}
-              disabled={!canAdvance()}
-              loading={isGenerating}
-              className="gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              {isGenerating ? "Creating trip..." : "Generate My Itinerary"}
-            </Button>
-          )}
-        </div>
-
         {createTripMutation.error && (
-          <p className="text-accent mt-4 text-center text-sm">
+          <p className="text-v2-red mt-5 text-center text-sm">
             {createTripMutation.error.message || "Something went wrong. Please try again."}
           </p>
+        )}
+      </div>
+
+      <div className="border-v2-border shrink-0 border-t bg-white px-6 pt-4 pb-8">
+        <p className="text-v2-text-muted mb-3 text-sm">
+          {isFinalStep
+            ? "We’ll open your trip as soon as the first itinerary draft is ready."
+            : "You can adjust any of these details again after the next step."}
+        </p>
+
+        {isFinalStep ? (
+          <Button
+            onClick={() => handleGenerate()}
+            disabled={!canAdvance() || isGenerating}
+            className="flex items-center justify-center gap-2"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Creating trip...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-5 w-5" />
+                Generate My Itinerary
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button
+            onClick={goNext}
+            disabled={!canAdvance()}
+            className="flex items-center justify-center gap-2"
+          >
+            Continue
+          </Button>
         )}
       </div>
     </div>

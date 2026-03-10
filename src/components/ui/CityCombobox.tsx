@@ -9,6 +9,7 @@ interface Props {
   onChange: (entry: CityEntry) => void;
   className?: string;
   placeholder?: string;
+  variant?: "default" | "v2";
 }
 
 /** Show popular cities when query is empty */
@@ -33,6 +34,7 @@ export function CityCombobox({
   onChange,
   className = "",
   placeholder = "Search city or country\u2026",
+  variant = "default",
 }: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -41,6 +43,7 @@ export function CityCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const results = filterCities(query);
+  const isV2 = variant === "v2";
 
   const select = useCallback(
     (entry: CityEntry) => {
@@ -105,22 +108,42 @@ export function CityCombobox({
       {/* Show current selection when not focused */}
       {!open && value && (
         <div className="pointer-events-none absolute inset-0 flex items-center px-4">
-          <span className="text-foreground truncate text-sm">{value}</span>
+          <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate text-sm`}>
+            {value}
+          </span>
         </div>
       )}
 
       {open && results.length > 0 && (
-        <ul className="bg-background border-border absolute z-50 mt-1 max-h-[min(16rem,50vh)] w-full overflow-hidden overflow-y-auto rounded-lg border shadow-lg">
+        <ul
+          className={`absolute z-50 w-full overflow-hidden overflow-y-auto border ${
+            isV2
+              ? "border-v2-border mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white shadow-[0_18px_40px_rgba(27,43,75,0.12)]"
+              : "bg-background border-border mt-1 max-h-[min(16rem,50vh)] rounded-lg shadow-lg"
+          }`}
+        >
           {!query && (
-            <li className="text-muted-foreground border-border border-b px-4 py-1.5 text-xs font-medium">
+            <li
+              className={`border-b px-4 py-1.5 text-xs font-medium ${
+                isV2
+                  ? "border-v2-border text-v2-text-muted bg-v2-chip-bg"
+                  : "text-muted-foreground border-border"
+              }`}
+            >
               Popular destinations
             </li>
           )}
           {results.map((c, i) => (
             <li
               key={`${c.countryCode}-${c.city}`}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                i === highlighted ? "bg-primary/10 text-primary" : "hover:bg-muted"
+              className={`flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                isV2
+                  ? i === highlighted
+                    ? "bg-v2-chip-bg text-v2-navy"
+                    : "text-v2-navy hover:bg-v2-chip-bg"
+                  : i === highlighted
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted"
               }`}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -128,9 +151,19 @@ export function CityCombobox({
               }}
               onMouseEnter={() => setHighlighted(i)}
             >
-              <span className="text-foreground truncate font-medium">{c.city}</span>
-              <span className="text-muted-foreground ml-auto shrink-0">{c.country}</span>
-              <span className="text-muted-foreground/60 w-6 shrink-0 font-mono text-xs">
+              <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate font-medium`}>
+                {c.city}
+              </span>
+              <span
+                className={`ml-auto shrink-0 ${isV2 ? "text-v2-text-muted" : "text-muted-foreground"}`}
+              >
+                {c.country}
+              </span>
+              <span
+                className={`w-6 shrink-0 font-mono text-xs ${
+                  isV2 ? "text-v2-text-light" : "text-muted-foreground/60"
+                }`}
+              >
                 {c.countryCode}
               </span>
             </li>
@@ -139,7 +172,13 @@ export function CityCombobox({
       )}
 
       {open && query.length >= 2 && results.length === 0 && (
-        <div className="bg-background border-border text-muted-foreground absolute z-50 mt-1 w-full rounded-lg border px-4 py-3 text-sm shadow-lg">
+        <div
+          className={`absolute z-50 w-full border px-4 py-3 text-sm ${
+            isV2
+              ? "border-v2-border text-v2-text-muted mt-2 rounded-2xl bg-white shadow-[0_18px_40px_rgba(27,43,75,0.12)]"
+              : "bg-background border-border text-muted-foreground mt-1 rounded-lg shadow-lg"
+          }`}
+        >
           No cities found for &ldquo;{query}&rdquo;
         </div>
       )}
