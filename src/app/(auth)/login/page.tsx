@@ -4,12 +4,14 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Compass, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { Button } from "@/components/v2/ui/Button";
+import { queryKeys } from "@/hooks/api/keys";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -25,6 +27,7 @@ const errorClass = "text-v2-red mt-2 text-sm";
 
 function LoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/trips";
   const [serverError, setServerError] = useState<string | null>(null);
@@ -59,7 +62,9 @@ function LoginForm() {
       return;
     }
 
-    router.push(next);
+    queryClient.setQueryData(queryKeys.auth.status, true);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
+    router.replace(next);
     router.refresh();
   };
 

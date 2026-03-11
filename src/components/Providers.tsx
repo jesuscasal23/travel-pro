@@ -9,6 +9,8 @@ import { useTripStore } from "@/stores/useTripStore";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { Itinerary } from "@/types";
 import type { PostHog } from "posthog-js";
+import { createClient } from "@/lib/supabase/client";
+import { queryKeys } from "@/hooks/api/keys";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => {
@@ -69,6 +71,21 @@ export function Providers({ children }: { children: ReactNode }) {
       setPhClient(posthog);
     });
   }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+    });
+
+    return () => subscription.unsubscribe();
+  }, [queryClient]);
 
   const toasts = useToastStore((s) => s.toasts);
   const dismissToast = useToastStore((s) => s.dismiss);

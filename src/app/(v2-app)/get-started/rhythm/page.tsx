@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Compass, CupSoda, Zap, type LucideIcon } from "lucide-react";
-import { useAuthStatus } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import type { ActivityPace } from "@/types";
 
@@ -36,14 +35,8 @@ const rhythmOptions: RhythmOption[] = [
 
 export default function V2RhythmPage() {
   const router = useRouter();
-  const isAuthenticated = useAuthStatus();
   const pace = useTripStore((s) => s.pace);
   const setPace = useTripStore((s) => s.setPace);
-  const planPath = "/plan";
-  const signupPath = `/signup?next=${encodeURIComponent(planPath)}`;
-  const loginPath = `/login?next=${encodeURIComponent(planPath)}`;
-  const requiresAuth = isAuthenticated === false;
-  const authStatusLoading = isAuthenticated === null;
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
@@ -128,28 +121,12 @@ export default function V2RhythmPage() {
         <div className="shrink-0 px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           <button
             type="button"
-            onClick={() => router.push(requiresAuth ? signupPath : planPath)}
-            disabled={authStatusLoading}
+            onClick={() => router.push("/plan")}
             className="flex w-full items-center justify-center gap-3 rounded-[24px] bg-[#101114] px-6 py-5 text-lg font-bold text-white shadow-[0_18px_36px_rgba(16,17,20,0.22)] transition-transform duration-200 active:scale-[0.985]"
           >
-            <span>
-              {authStatusLoading
-                ? "Checking account..."
-                : requiresAuth
-                  ? "Create Account to Continue"
-                  : "Continue"}
-            </span>
+            <span>Continue</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
           </button>
-          {requiresAuth ? (
-            <button
-              type="button"
-              onClick={() => router.push(loginPath)}
-              className="mx-auto mt-3 block text-sm font-semibold text-[#6d7b91] transition-colors hover:text-[#1b2b4b]"
-            >
-              Already have an account? Sign in
-            </button>
-          ) : null}
         </div>
       </div>
     </div>
