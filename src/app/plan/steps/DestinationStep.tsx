@@ -243,16 +243,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           )}
         </div>
 
-        <div className="mt-6">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-v2-text-light text-[11px] font-bold tracking-[0.2em] uppercase">
-              When
-            </p>
-            <span className="rounded-2xl bg-[#101114] px-4 py-2 text-[11px] font-bold tracking-[0.18em] text-white uppercase shadow-[0_10px_24px_rgba(16,17,20,0.14)]">
-              Dates
-            </span>
-          </div>
-
+        <div className="mt-5">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">

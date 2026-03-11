@@ -548,10 +548,10 @@ export default function PlanPage() {
           </>
         ) : (
           <Button
-            variant="apple"
+            variant="primary"
             onClick={goNext}
             disabled={!canAdvance()}
-            className="flex items-center justify-center gap-3 rounded-[24px] !bg-[#101114] py-5 text-lg font-bold shadow-[0_18px_36px_rgba(16,17,20,0.22)]"
+            className="flex items-center justify-center gap-3 rounded-[24px] py-5 text-lg font-bold shadow-[var(--shadow-brand-xl)]"
           >
             <span>{showPriorities ? "Analyze My Profile" : "Continue"}</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

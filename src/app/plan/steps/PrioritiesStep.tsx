@@ -40,8 +40,8 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
-      <section className="max-h-[360px] overflow-y-auto pr-1">
-        <div className="grid grid-cols-2 gap-x-5 gap-y-6 pt-2">
+      <section className="pr-1">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-5 pt-2">
           {priorityOptions.map((option) => {
             const isSelected = planningPriority === option;
 
