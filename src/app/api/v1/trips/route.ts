@@ -8,7 +8,6 @@ import {
   apiHandler,
   parseAndValidateRequest,
   requireAuth,
-  requireProfile,
 } from "@/lib/api/helpers";
 import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import { findProfileByUserId } from "@/lib/features/profile/profile-service";
@@ -19,7 +18,10 @@ export const dynamic = "force-dynamic";
 
 export const GET = apiHandler("GET /api/v1/trips", async () => {
   const userId = await requireAuth();
-  const profile = await requireProfile(userId);
+  const profile = await findProfileByUserId(userId);
+  if (!profile) {
+    return NextResponse.json({ trips: [] });
+  }
   const trips = await listTripsForProfile(profile.id);
   return NextResponse.json({ trips });
 });

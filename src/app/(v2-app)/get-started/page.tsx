@@ -44,8 +44,8 @@ export default function V2LandingPage() {
 
   return (
     <OnboardingShell
-      ctaLabel="CONTINUE"
-      onCtaClick={() => router.push("/onboarding/features")}
+      ctaLabel="START PLANNING"
+      onCtaClick={() => router.push("/plan")}
       aboveCta={
         canInstall ? (
           <Button variant="outline" onClick={install} className="mb-3">

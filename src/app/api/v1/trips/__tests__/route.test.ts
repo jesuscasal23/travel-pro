@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     profile: { findUnique: vi.fn() },
     trip: { findMany: vi.fn(), create: vi.fn() },
@@ -13,7 +13,7 @@ vi.mock("@/lib/supabase/server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -22,13 +22,13 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { getGuestTripOwnerCookieName } from "@/lib/api/guest-trip-ownership";
 import { GET, POST } from "../route";
@@ -66,6 +66,18 @@ describe("/api/v1/trips", () => {
 
     expect(res.status).toBe(200);
     expect(json.trips).toHaveLength(1);
+  });
+
+  it("GET returns an empty list when the user has no profile yet", async () => {
+    mockPrisma.profile.findUnique.mockResolvedValue(null);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips");
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ trips: [] });
+    expect(mockPrisma.trip.findMany).not.toHaveBeenCalled();
   });
 
   it("POST validates body", async () => {

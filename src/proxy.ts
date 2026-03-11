@@ -22,9 +22,7 @@ const PUBLIC_PREFIXES = [
   "/api/health",
   "/auth/callback",
   "/get-started",
-  "/onboarding",
   "/trips",
-  "/discover",
   "/bookings",
 ];
 

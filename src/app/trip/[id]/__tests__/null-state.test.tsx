@@ -132,12 +132,12 @@ describe("TripPage — null itinerary", () => {
     await waitFor(() => expect(screen.getByText("Trip not found.")).toBeInTheDocument());
   });
 
-  it("renders a link back to home", async () => {
+  it("renders a link back to trips", async () => {
     await renderWithSuspense(<TripPage params={resolvedParams} />);
     await waitFor(() => {
-      const link = screen.getByText("Back to home");
+      const link = screen.getByText("Back to trips");
       expect(link).toBeInTheDocument();
-      expect(link.closest("a")).toHaveAttribute("href", "/home");
+      expect(link.closest("a")).toHaveAttribute("href", "/trips");
     });
   });
 
@@ -159,11 +159,11 @@ describe("SummaryPage — null itinerary", () => {
     await waitFor(() => expect(screen.getByText("Trip not found.")).toBeInTheDocument());
   });
 
-  it("renders a link back to home", async () => {
+  it("renders a link back to trips", async () => {
     await renderWithSuspense(<SummaryPage params={resolvedParams} />);
     await waitFor(() => {
-      const link = screen.getByText("Back to home");
-      expect(link.closest("a")).toHaveAttribute("href", "/home");
+      const link = screen.getByText("Back to trips");
+      expect(link.closest("a")).toHaveAttribute("href", "/trips");
     });
   });
 });

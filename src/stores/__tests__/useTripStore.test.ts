@@ -6,7 +6,6 @@ import { useTripStore } from "../useTripStore";
 function resetTripStore() {
   act(() => {
     useTripStore.setState({
-      onboardingStep: 1,
       nationality: "",
       homeAirport: "",
       travelStyle: "comfort",
@@ -24,7 +23,6 @@ function resetTripStore() {
       dateEnd: "",
       travelers: 2,
       isGenerating: false,
-      generationStep: 0,
       needsRegeneration: false,
       currentTripId: "",
       itinerary: null,
@@ -62,10 +60,9 @@ describe("useTripStore", () => {
     resetTripStore();
   });
 
-  it("updates onboarding and plan fields with dedicated setters", () => {
+  it("updates profile and plan fields with dedicated setters", () => {
     act(() => {
       const state = useTripStore.getState();
-      state.setOnboardingStep(3);
       state.setNationality("German");
       state.setHomeAirport("FRA");
       state.setTravelStyle("luxury");
@@ -79,7 +76,6 @@ describe("useTripStore", () => {
     });
 
     const state = useTripStore.getState();
-    expect(state.onboardingStep).toBe(3);
     expect(state.nationality).toBe("German");
     expect(state.homeAirport).toBe("FRA");
     expect(state.travelStyle).toBe("luxury");
@@ -130,7 +126,6 @@ describe("useTripStore", () => {
     act(() => {
       const state = useTripStore.getState();
       state.setIsGenerating(true);
-      state.setGenerationStep(2);
       state.setNeedsRegeneration(true);
       state.setCurrentTripId("trip-123");
       state.setItinerary(itinerary);
@@ -138,13 +133,12 @@ describe("useTripStore", () => {
 
     const state = useTripStore.getState();
     expect(state.isGenerating).toBe(true);
-    expect(state.generationStep).toBe(2);
     expect(state.needsRegeneration).toBe(true);
     expect(state.currentTripId).toBe("trip-123");
     expect(state.itinerary).toEqual(itinerary);
   });
 
-  it("resetPlan restores plan state without changing onboarding profile defaults", () => {
+  it("resetPlan restores plan state without changing saved profile defaults", () => {
     act(() => {
       const state = useTripStore.getState();
       state.setNationality("German");

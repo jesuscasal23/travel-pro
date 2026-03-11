@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useSaveProfile, useExportData, useDeleteAccount } from "@/hooks/api/useProfile";
+import { useProfile, useSaveProfile, useExportData, useDeleteAccount } from "@/hooks/api/useProfile";
 
 const originalFetch = global.fetch;
 const originalCreateObjectURL = URL.createObjectURL;
@@ -51,6 +51,48 @@ describe("useProfile hooks", () => {
       "/api/v1/profile",
       expect.objectContaining({ method: "PATCH" })
     );
+  });
+
+  it("loads a saved profile successfully", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        profile: {
+          id: "profile-1",
+          userId: "user-1",
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "comfort",
+          interests: ["Food"],
+          pace: "moderate",
+        },
+      }),
+    } as Response);
+
+    const { result } = renderHook(() => useProfile(), { wrapper: createWrapper() });
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual({
+        id: "profile-1",
+        userId: "user-1",
+        nationality: "German",
+        homeAirport: "FRA",
+        travelStyle: "comfort",
+        interests: ["Food"],
+        pace: "moderate",
+      })
+    );
+  });
+
+  it("returns null when no profile exists yet", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+    } as Response);
+
+    const { result } = renderHook(() => useProfile(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.data).toBeNull());
   });
 
   it("throws when profile save API fails", async () => {

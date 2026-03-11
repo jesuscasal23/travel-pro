@@ -2,6 +2,11 @@
 
 import { useTripStore } from "@/stores/useTripStore";
 import { regions } from "@/data/sampleData";
+import {
+  travelFieldErrorClass,
+  travelFieldLabelClass,
+  travelInputClass,
+} from "@/components/forms/travel-field-styles";
 import { CityCombobox } from "@/components/ui/CityCombobox";
 import { CountryCombobox } from "@/components/ui/CountryCombobox";
 
@@ -9,9 +14,6 @@ interface DestinationStepProps {
   errors: Record<string, string>;
   clearError: (field: string) => void;
 }
-
-const plannerInputClass =
-  "border-v2-border focus:border-v2-orange focus:ring-0 text-v2-navy placeholder:text-v2-text-light w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none transition-colors";
 
 const tripTypeOptions = [
   { value: "single-city", label: "City" },
@@ -75,7 +77,7 @@ export function DestinationStep({ errors, clearError }: DestinationStepProps) {
       </section>
 
       <section>
-        <label className="text-v2-navy mb-2 block text-sm font-semibold">
+        <label className={travelFieldLabelClass}>
           {isSingleCity ? "City" : isSingleCountry ? "Country" : "Region"}
         </label>
 
@@ -87,10 +89,10 @@ export function DestinationStep({ errors, clearError }: DestinationStepProps) {
                 setDestination(entry.city, entry.country, entry.countryCode, entry.lat, entry.lng);
                 clearError("destination");
               }}
-              className={plannerInputClass}
+              className={travelInputClass}
               variant="v2"
             />
-            {errors.destination && <p className="text-v2-red mt-2 text-sm">{errors.destination}</p>}
+            {errors.destination && <p className={travelFieldErrorClass}>{errors.destination}</p>}
           </>
         ) : isSingleCountry ? (
           <>
@@ -100,12 +102,10 @@ export function DestinationStep({ errors, clearError }: DestinationStepProps) {
                 setDestination("", entry.country, entry.countryCode, entry.lat, entry.lng);
                 clearError("destinationCountry");
               }}
-              className={plannerInputClass}
+              className={travelInputClass}
               variant="v2"
             />
-            {errors.destinationCountry && (
-              <p className="text-v2-red mt-2 text-sm">{errors.destinationCountry}</p>
-            )}
+            {errors.destinationCountry && <p className={travelFieldErrorClass}>{errors.destinationCountry}</p>}
           </>
         ) : (
           <>
@@ -145,7 +145,7 @@ export function DestinationStep({ errors, clearError }: DestinationStepProps) {
                 );
               })}
             </div>
-            {errors.region && <p className="text-v2-red mt-2 text-sm">{errors.region}</p>}
+            {errors.region && <p className={travelFieldErrorClass}>{errors.region}</p>}
           </>
         )}
       </section>

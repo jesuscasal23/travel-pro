@@ -20,4 +20,4 @@ export {
 } from "./useEnrichment";
 
 // Profile
-export { useSaveProfile, useExportData, useDeleteAccount } from "./useProfile";
+export { useProfile, useSaveProfile, useExportData, useDeleteAccount } from "./useProfile";

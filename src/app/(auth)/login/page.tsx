@@ -25,7 +25,7 @@ const errorClass = "text-v2-red mt-2 text-sm";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/home";
+  const next = searchParams.get("next") ?? "/trips";
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -70,7 +70,7 @@ function LoginForm() {
         <div className="relative flex flex-1 flex-col px-6 pt-8 pb-10">
           <div className="flex items-center justify-between">
             <Link
-              href="/home"
+              href="/trips"
               className="text-v2-text-muted hover:text-v2-navy inline-flex items-center gap-2 text-sm font-medium transition-colors"
             >
               <ArrowLeft size={16} />
@@ -157,7 +157,7 @@ function LoginForm() {
             <p className="text-v2-text-muted text-sm">
               Don&apos;t have an account?{" "}
               <Link
-                href={`/signup${next !== "/home" ? `?next=${encodeURIComponent(next)}` : ""}`}
+                href={`/signup${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
                 className="text-v2-orange font-semibold transition-colors hover:brightness-95"
               >
                 Sign up

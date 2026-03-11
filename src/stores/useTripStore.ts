@@ -3,8 +3,7 @@ import { persist } from "zustand/middleware";
 import type { TravelStyle, TripType, Itinerary, ActivityPace } from "@/types";
 
 interface TripStoreState {
-  // Onboarding
-  onboardingStep: number;
+  // Profile inputs reused across planner and profile screen
   nationality: string;
   homeAirport: string;
   travelStyle: TravelStyle;
@@ -27,7 +26,6 @@ interface TripStoreState {
 
   // Generation
   isGenerating: boolean;
-  generationStep: number;
   needsRegeneration: boolean;
 
   // Result
@@ -36,8 +34,7 @@ interface TripStoreState {
 }
 
 interface TripStoreActions {
-  // Onboarding
-  setOnboardingStep: (step: number) => void;
+  // Profile
   setNationality: (nationality: string) => void;
   setHomeAirport: (airport: string) => void;
   setTravelStyle: (style: TravelStyle) => void;
@@ -63,7 +60,6 @@ interface TripStoreActions {
 
   // Generation
   setIsGenerating: (generating: boolean) => void;
-  setGenerationStep: (step: number) => void;
   setNeedsRegeneration: (needs: boolean) => void;
 
   // Result
@@ -88,7 +84,6 @@ const initialPlanState = {
   dateEnd: "",
   travelers: 2,
   isGenerating: false,
-  generationStep: 0,
   needsRegeneration: false,
   currentTripId: "",
   itinerary: null,
@@ -97,8 +92,7 @@ const initialPlanState = {
 export const useTripStore = create<TripStoreState & TripStoreActions>()(
   persist(
     (set) => ({
-      // Onboarding defaults
-      onboardingStep: 1,
+      // Profile defaults
       nationality: "",
       homeAirport: "",
       travelStyle: "comfort",
@@ -107,8 +101,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Plan defaults
       ...initialPlanState,
 
-      // Onboarding actions
-      setOnboardingStep: (step) => set({ onboardingStep: step }),
+      // Profile actions
       setNationality: (nationality) => set({ nationality }),
       setHomeAirport: (airport) => set({ homeAirport: airport }),
       setTravelStyle: (style) => set({ travelStyle: style }),
@@ -147,7 +140,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
 
       // Generation actions
       setIsGenerating: (generating) => set({ isGenerating: generating }),
-      setGenerationStep: (step) => set({ generationStep: step }),
       setNeedsRegeneration: (needs) => set({ needsRegeneration: needs }),
 
       // Result actions
@@ -160,13 +152,12 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
     {
       name: "travel-pro-store",
       // Explicitly whitelist what gets written to localStorage.
-      // Transient UI state (isGenerating, generationStep, planStep) is excluded —
+      // Transient UI state (isGenerating, planStep) is excluded —
       // it doesn't need to survive a page refresh and pollutes the stored payload.
       // Note: itinerary is retained so the trip view survives a refresh without
       // a DB round-trip. In a production multi-user build, move this to a
       // server-side session or re-fetch from Supabase by currentTripId.
       partialize: (state) => ({
-        onboardingStep: state.onboardingStep,
         nationality: state.nationality,
         homeAirport: state.homeAirport,
         travelStyle: state.travelStyle,

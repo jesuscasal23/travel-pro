@@ -1,15 +1,13 @@
 "use client";
 
 import { CalendarDays, Users } from "lucide-react";
+import { travelFieldErrorClass, travelInputClass } from "@/components/forms/travel-field-styles";
 import { useTripStore } from "@/stores/useTripStore";
 
 interface ScheduleStepProps {
   errors: Record<string, string>;
   clearError: (field: string) => void;
 }
-
-const plannerInputClass =
-  "border-v2-border focus:border-v2-orange focus:ring-0 text-v2-navy placeholder:text-v2-text-light w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none transition-colors";
 
 export function ScheduleStep({ errors, clearError }: ScheduleStepProps) {
   const dateStart = useTripStore((s) => s.dateStart);
@@ -49,10 +47,10 @@ export function ScheduleStep({ errors, clearError }: ScheduleStepProps) {
               setDateStart(event.target.value);
               clearError("dateStart");
             }}
-            className={plannerInputClass}
+            className={travelInputClass}
             style={{ color: dateStart ? "#1b2b4b" : "#9ca3af" }}
           />
-          {errors.dateStart && <p className="text-v2-red mt-2 text-sm">{errors.dateStart}</p>}
+          {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
         </div>
 
         <div>
@@ -68,10 +66,10 @@ export function ScheduleStep({ errors, clearError }: ScheduleStepProps) {
               setDateEnd(event.target.value);
               clearError("dateEnd");
             }}
-            className={plannerInputClass}
+            className={travelInputClass}
             style={{ color: dateEnd ? "#1b2b4b" : "#9ca3af" }}
           />
-          {errors.dateEnd && <p className="text-v2-red mt-2 text-sm">{errors.dateEnd}</p>}
+          {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
         </div>
       </section>
 

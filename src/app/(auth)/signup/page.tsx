@@ -32,7 +32,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/home";
+  const next = searchParams.get("next") ?? "/trips";
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -123,7 +123,7 @@ function SignupForm() {
           <p className="text-muted-foreground mt-6 text-center text-sm">
             Already have an account?{" "}
             <Link
-              href={`/login${next !== "/home" ? `?next=${encodeURIComponent(next)}` : ""}`}
+              href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
               className="text-primary font-medium hover:underline"
             >
               Sign in

@@ -2,14 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { Mic, MicOff } from "lucide-react";
+import { travelInputClass } from "@/components/forms/travel-field-styles";
 import { useTripStore } from "@/stores/useTripStore";
 
 interface TripDescriptionCardProps {
   compact?: boolean;
 }
-
-const plannerInputClass =
-  "border-v2-border focus:border-v2-orange focus:ring-0 text-v2-navy placeholder:text-v2-text-light w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none transition-colors";
 
 const quickAddHints = [
   "Street food lover",
@@ -87,7 +85,7 @@ export function TripDescriptionCard({ compact = false }: TripDescriptionCardProp
           placeholder="Street food, slow mornings, local neighborhoods, no shellfish."
           rows={compact ? 3 : 4}
           maxLength={2000}
-          className={`${plannerInputClass} ${compact ? "min-h-[108px]" : "min-h-[132px]"} resize-none pr-12`}
+          className={`${travelInputClass} ${compact ? "min-h-[108px]" : "min-h-[132px]"} resize-none pr-12`}
         />
         <button
           type="button"

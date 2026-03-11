@@ -1,19 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
+import { useToastStore } from "@/stores/useToastStore";
 import { ProgressBar } from "@/components/v2/ui/ProgressBar";
 import { Button } from "@/components/v2/ui/Button";
 import {
   useAuthStatus,
+  useProfile,
   usePrefetchRouteSelection,
   useFetchRouteSelection,
   buildCacheKey,
   useCreateTrip,
+  useSaveProfile,
 } from "@/hooks/api";
 import { slideVariants } from "@/lib/animations";
 import { DestinationStep } from "./steps/DestinationStep";
@@ -27,13 +30,14 @@ import {
   onboardingStep1Schema,
   destinationStepSchema,
   detailsStepSchema,
-} from "@/lib/api/schemas";
+} from "@/lib/forms/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
 
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
+  const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
 
   const {
@@ -61,13 +65,12 @@ export default function PlanPage() {
     setItinerary,
   } = useTripStore();
 
-  const hasCoreProfile = Boolean(nationality && homeAirport);
-  const canSkipProfileStep = isAuthenticated === true && hasCoreProfile;
-  const needsProfileStep = !canSkipProfileStep;
-
   const prefetchRoute = usePrefetchRouteSelection();
   const fetchRoute = useFetchRouteSelection();
   const createTripMutation = useCreateTrip();
+  const saveProfileMutation = useSaveProfile();
+  const { data: persistedProfile } = useProfile({ enabled: isAuthenticated === true });
+  const toast = useToastStore((s) => s.toast);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clearError = (field: string) =>
@@ -79,7 +82,26 @@ export default function PlanPage() {
   const isSingleCity = tripType === "single-city";
   const isSingleCountry = tripType === "single-country";
   const isMultiCountry = tripType === "multi-city";
+  const effectiveNationality = nationality || persistedProfile?.nationality || "";
+  const effectiveHomeAirport = homeAirport || persistedProfile?.homeAirport || "";
+  const hasCoreProfile = Boolean(effectiveNationality && effectiveHomeAirport);
+  const canSkipProfileStep = isAuthenticated === true && hasCoreProfile;
+  const needsProfileStep = !canSkipProfileStep;
   const totalSteps = needsProfileStep ? 5 : 4;
+
+  useEffect(() => {
+    if (hydratedProfileRef.current || !persistedProfile) return;
+    if (nationality || homeAirport) return;
+
+    useTripStore.setState({
+      nationality: persistedProfile.nationality,
+      homeAirport: persistedProfile.homeAirport,
+      travelStyle: persistedProfile.travelStyle,
+      interests: persistedProfile.interests,
+      pace: persistedProfile.pace ?? "moderate",
+    });
+    hydratedProfileRef.current = true;
+  }, [persistedProfile, nationality, homeAirport]);
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
@@ -102,7 +124,13 @@ export default function PlanPage() {
 
     const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
     const params = {
-      profile: { nationality, homeAirport, travelStyle, interests, pace },
+      profile: {
+        nationality: effectiveNationality,
+        homeAirport: effectiveHomeAirport,
+        travelStyle,
+        interests,
+        pace,
+      },
       tripIntent: {
         id: "speculative",
         tripType,
@@ -152,7 +180,7 @@ export default function PlanPage() {
       return true;
     }
     if (showProfileAndDescription) {
-      return !!nationality && !!homeAirport;
+      return !!effectiveNationality && !!effectiveHomeAirport;
     }
     return true;
   };
@@ -261,7 +289,10 @@ export default function PlanPage() {
 
   const handleGenerate = useCallback(async () => {
     if (needsProfileStep) {
-      const profileErrors = validate(onboardingStep1Schema, { nationality, homeAirport });
+      const profileErrors = validate(onboardingStep1Schema, {
+        nationality: effectiveNationality,
+        homeAirport: effectiveHomeAirport,
+      });
       if (profileErrors) {
         setErrors(profileErrors);
         return;
@@ -309,7 +340,13 @@ export default function PlanPage() {
         travelStyle,
       });
       const params = {
-        profile: { nationality, homeAirport, travelStyle, interests, pace },
+        profile: {
+          nationality: effectiveNationality,
+          homeAirport: effectiveHomeAirport,
+          travelStyle,
+          interests,
+          pace,
+        },
         tripIntent: {
           id: "speculative",
           tripType,
@@ -333,6 +370,17 @@ export default function PlanPage() {
     }
 
     try {
+      if (isAuthenticated === true) {
+        await saveProfileMutation.mutateAsync({
+          nationality: effectiveNationality,
+          homeAirport: effectiveHomeAirport,
+          travelStyle,
+          interests,
+          pace,
+          onboardingCompleted: true,
+        });
+      }
+
       const { trip } = await createTripMutation.mutateAsync({
         tripType,
         region: isMultiCountry ? region : "",
@@ -353,6 +401,13 @@ export default function PlanPage() {
       router.push(`/trip/${trip.id}`);
     } catch {
       setIsGenerating(false);
+      if (isAuthenticated === true) {
+        toast({
+          title: "Profile save failed",
+          description: "We couldn't save your profile, so trip creation was stopped.",
+          variant: "error",
+        });
+      }
     }
   }, [
     needsProfileStep,
@@ -369,14 +424,15 @@ export default function PlanPage() {
     dateEnd,
     travelers,
     dayCount,
-    nationality,
-    homeAirport,
+    effectiveNationality,
+    effectiveHomeAirport,
     travelStyle,
     interests,
     setIsGenerating,
     setCurrentTripId,
     setItinerary,
     pace,
+    saveProfileMutation,
     citiesToRoute,
     singleCityRoute,
     buildPartialItinerary,
@@ -384,6 +440,8 @@ export default function PlanPage() {
     createTripMutation,
     router,
     posthog,
+    isAuthenticated,
+    toast,
   ]);
 
   const stepLabel = showDestination

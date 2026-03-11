@@ -1,14 +1,12 @@
 "use client";
 
-import { Home, Map, Compass, CalendarCheck, User } from "lucide-react";
+import { Map, PlusCircle, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const tabs = [
-  { label: "Home", icon: Home, href: "/home" },
   { label: "Trips", icon: Map, href: "/trips" },
-  { label: "Discover", icon: Compass, href: "/discover" },
-  { label: "Bookings", icon: CalendarCheck, href: "/bookings" },
+  { label: "Plan", icon: PlusCircle, href: "/plan" },
   { label: "Profile", icon: User, href: "/profile" },
 ];
 

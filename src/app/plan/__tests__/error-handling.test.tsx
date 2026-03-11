@@ -93,7 +93,6 @@ function setValidFinalStepState() {
       dateEnd: "2026-04-22",
       travelers: 2,
       isGenerating: false,
-      generationStep: 0,
       itinerary: null,
     });
   });

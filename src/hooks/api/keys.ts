@@ -17,6 +17,7 @@ export const queryKeys = {
   },
   profile: {
     all: ["profile"] as const,
+    detail: () => [...queryKeys.profile.all, "detail"] as const,
     export: () => [...queryKeys.profile.all, "export"] as const,
   },
   routeSelection: {

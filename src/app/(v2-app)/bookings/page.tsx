@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { Plus, Plane, Building2, Car, Ticket, ChevronLeft, ChevronRight } from "lucide-react";
-import { BottomNav } from "@/components/v2/ui/BottomNav";
+import { DevelopmentTag } from "@/components/v2/ui/DevelopmentTag";
+import { V2FilterChips } from "@/components/v2/ui/V2FilterChips";
+import { V2IconActionButton } from "@/components/v2/ui/V2IconActionButton";
+import { V2PageHeader } from "@/components/v2/ui/V2PageHeader";
+import { V2Screen } from "@/components/v2/ui/V2Screen";
 
 type BookingType = "flight" | "stay" | "transport" | "activity";
 
@@ -170,60 +174,48 @@ export default function BookingsPage() {
   });
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto pb-4">
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-8 pb-4">
-          <div>
-            <h1 className="text-v2-navy text-2xl font-bold">Wallet</h1>
-            <p className="text-v2-text-muted text-sm">3 Active Bookings</p>
-          </div>
-          <button className="bg-v2-navy flex h-10 w-10 items-center justify-center rounded-full">
-            <Plus size={20} className="text-white" />
-          </button>
-        </div>
+    <V2Screen>
+      <V2PageHeader
+        title="Wallet"
+        titleBadge={<DevelopmentTag />}
+        description="Preview data only. Booking sync and management are still in development."
+        action={
+          <V2IconActionButton
+            icon={<Plus size={20} className="text-white" />}
+            badge={
+              <DevelopmentTag label="Mock" className="bg-white text-v2-navy" />
+            }
+          />
+        }
+      />
 
-        {/* Filter chips */}
-        <div className="scrollbar-hide mb-4 flex gap-2 overflow-x-auto px-6">
-          {filters.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                activeFilter === filter
-                  ? "bg-v2-navy text-white"
-                  : "border-v2-border text-v2-navy border bg-white"
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
+      <V2FilterChips options={filters} active={activeFilter} onChange={setActiveFilter} />
 
-        {/* Timeline bar */}
-        <div className="mx-6 mb-6 flex items-center gap-2">
-          <ChevronLeft size={14} className="text-v2-text-light shrink-0" />
-          <div className="h-2 flex-1 rounded-full bg-gray-200">
-            <div className="h-2 w-3/4 rounded-full bg-gray-400" />
-          </div>
-          <ChevronRight size={14} className="text-v2-text-light shrink-0" />
-        </div>
-
-        {/* Booking cards */}
-        <div className="space-y-3 px-6">
-          {filteredBookings.map((booking) =>
-            booking.type === "flight" ? (
-              <FlightCard key={booking.id} booking={booking} />
-            ) : (
-              <BookingCard key={booking.id} booking={booking} />
-            )
-          )}
-        </div>
+      <div className="px-6 pb-2">
+        <DevelopmentTag label="Filters are preview-only" />
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav />
-    </div>
+      <div className="mx-6 mb-6 flex items-center gap-2">
+        <ChevronLeft size={14} className="text-v2-text-light shrink-0" />
+        <div className="h-2 flex-1 rounded-full bg-gray-200">
+          <div className="h-2 w-3/4 rounded-full bg-gray-400" />
+        </div>
+        <ChevronRight size={14} className="text-v2-text-light shrink-0" />
+      </div>
+
+      <div className="px-6 pb-2">
+        <DevelopmentTag label="Timeline is preview-only" />
+      </div>
+
+      <div className="space-y-3 px-6">
+        {filteredBookings.map((booking) =>
+          booking.type === "flight" ? (
+            <FlightCard key={booking.id} booking={booking} />
+          ) : (
+            <BookingCard key={booking.id} booking={booking} />
+          )
+        )}
+      </div>
+    </V2Screen>
   );
 }

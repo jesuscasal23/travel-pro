@@ -1,6 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseApiErrorResponse, reportApiError } from "@/lib/client/api-error-reporting";
-import type { TravelStyle, ActivityPace } from "@/types";
+import { queryKeys } from "./keys";
+import type { TravelStyle, ActivityPace, UserProfile } from "@/types";
 
 interface ProfileData {
   nationality: string;
@@ -8,9 +9,64 @@ interface ProfileData {
   travelStyle: TravelStyle;
   interests: string[];
   pace?: ActivityPace;
+  onboardingCompleted?: boolean;
+}
+
+export interface PersistedProfile extends UserProfile {
+  id: string;
+  userId: string;
+  onboardingCompleted?: boolean;
+  languagesSpoken?: string[];
+}
+
+async function fetchProfile(): Promise<PersistedProfile | null> {
+  const endpoint = "/api/v1/profile";
+  let res: Response;
+  try {
+    res = await fetch(endpoint);
+  } catch (error) {
+    await reportApiError({
+      source: "useProfile",
+      endpoint,
+      method: "GET",
+      message: error instanceof Error ? error.message : "Network error while loading profile",
+    });
+    throw new Error("Failed to load profile");
+  }
+
+  if (res.status === 404) {
+    return null;
+  }
+
+  if (!res.ok) {
+    const parsed = await parseApiErrorResponse(res, "Failed to load profile");
+    await reportApiError({
+      source: "useProfile",
+      endpoint,
+      method: "GET",
+      message: parsed.message,
+      status: parsed.status,
+      requestId: parsed.requestId,
+      responseBody: parsed.responseBody,
+    });
+    throw new Error(parsed.message);
+  }
+
+  const data = await res.json();
+  return data.profile ?? null;
+}
+
+export function useProfile(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: queryKeys.profile.detail(),
+    queryFn: fetchProfile,
+    enabled: options?.enabled ?? true,
+  });
 }
 
 export function useSaveProfile() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: ProfileData) => {
       const endpoint = "/api/v1/profile";
@@ -44,6 +100,9 @@ export function useSaveProfile() {
         throw new Error(parsed.message);
       }
       return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.profile.detail(), data.profile ?? null);
     },
   });
 }
@@ -92,6 +151,8 @@ export function useExportData() {
 }
 
 export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async () => {
       const endpoint = "/api/v1/profile";
@@ -121,6 +182,10 @@ export function useDeleteAccount() {
         throw new Error(parsed.message);
       }
       return res.json();
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(queryKeys.profile.detail(), null);
+      queryClient.removeQueries({ queryKey: queryKeys.trips.all });
     },
   });
 }

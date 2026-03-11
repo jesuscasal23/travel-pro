@@ -14,11 +14,9 @@ const config: KnipConfig = {
   ignore: [
     // Email templates are rendered server-side by reference string — knip can't trace them
     "src/lib/email/**",
-    // Plan-view components are imported dynamically inside trip/[id]/page.tsx
-    "src/components/trip/plan-view/**",
     // Map fallback rendered conditionally by react-map-gl internals
     "src/components/map/RouteMapFallback.tsx",
-    // CollapsibleSection imported dynamically from plan-view (covered by plan-view ignore above)
+    // CollapsibleSection rendered inside trip plan-view tabs in a way knip misses
     "src/components/ui/CollapsibleSection.tsx",
     // TripPDFDocument is lazy-imported by PDFDownloadButton via dynamic import — knip can't trace it
     "src/lib/export/pdf-generator.tsx",

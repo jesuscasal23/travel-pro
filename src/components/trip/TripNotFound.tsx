@@ -13,8 +13,8 @@ export function TripNotFound({ isAuthenticated = true }: TripNotFoundProps) {
       <Navbar isAuthenticated={isAuthenticated} />
       <div className="pt-32 text-center">
         <p className="text-muted-foreground mb-4 text-lg">Trip not found.</p>
-        <Link href="/home" className="btn-primary inline-block">
-          Back to home
+        <Link href="/trips" className="btn-primary inline-block">
+          Back to trips
         </Link>
       </div>
     </div>

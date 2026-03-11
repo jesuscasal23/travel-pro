@@ -27,14 +27,14 @@ export default function TripError({
         <p className="text-muted-foreground mx-auto mb-8 max-w-md text-sm">
           {process.env.NODE_ENV === "development"
             ? error.message
-            : "An unexpected error occurred. Please try again or go back to your dashboard."}
+            : "An unexpected error occurred. Please try again or go back to your trips."}
         </p>
         <div className="flex items-center justify-center gap-3">
           <button onClick={reset} className="btn-primary px-5 py-2 text-sm">
             Try again
           </button>
-          <Link href="/home" className="btn-ghost px-5 py-2 text-sm">
-            Back to home
+          <Link href="/trips" className="btn-ghost px-5 py-2 text-sm">
+            Back to trips
           </Link>
         </div>
       </div>
