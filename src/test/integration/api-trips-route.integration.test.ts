@@ -13,7 +13,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { createTestTrip, createTestProfile, createTestItinerary } from "./helpers";
 
 // Import actual route handlers

@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiHandler, parseAndValidateRequest } from "@/lib/api/helpers";
 import { SelectRouteInputSchema } from "@/lib/features/generation/schemas";
 import { selectRouteCandidates } from "@/lib/features/generation/route-selection-service";
-import { createLogger } from "@/lib/logger";
+import { createLogger } from "@/lib/core/logger";
 
 const log = createLogger("api/generate/select-route");
 

@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { Button } from "@/components/v2/ui/Button";
 
 const loginSchema = z.object({
@@ -18,7 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const inputClass =
-  "border-v2-border focus:border-v2-orange text-v2-navy placeholder:text-v2-text-light w-full rounded-2xl border bg-white px-4 py-3.5 text-sm outline-none transition-colors";
+  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-[#1b2b4b] outline-none transition-colors placeholder:text-[#9aacbf] focus:border-[#2563ff]";
 const labelClass = "text-v2-navy mb-2 flex items-center gap-2 text-sm font-semibold";
 const errorClass = "text-v2-red mt-2 text-sm";
 
@@ -63,40 +64,61 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-dvh justify-center bg-gray-100">
-      <div className="relative flex min-h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white shadow-xl">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.18),transparent_60%)]" />
+    <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
-        <div className="relative flex flex-1 flex-col px-6 pt-8 pb-10">
-          <div className="flex items-center justify-between">
+      <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-6 pt-8 pb-10">
+        <div className="flex items-center justify-between">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm">
             <Link
-              href="/trips"
-              className="text-v2-text-muted hover:text-v2-navy inline-flex items-center gap-2 text-sm font-medium transition-colors"
+              href={next}
+              className="inline-flex items-center justify-center text-[#8aa0c0] transition-colors hover:text-[#1b2b4b]"
+              aria-label="Go back"
             >
-              <ArrowLeft size={16} />
-              Back
+              <ArrowLeft size={20} />
             </Link>
-            <span className="bg-v2-chip-bg text-v2-navy rounded-full px-3 py-1 text-[11px] font-bold tracking-[0.18em] uppercase">
-              Travel Pro
-            </span>
+          </div>
+          <span className="rounded-full border border-white/70 bg-white/75 px-3 py-1.5 text-[11px] font-bold tracking-[0.18em] text-[#8ea0bb] uppercase shadow-[0_12px_24px_rgba(27,43,75,0.05)]">
+            Sign In
+          </span>
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[#2563ff] shadow-[0_24px_48px_rgba(37,99,255,0.24)]">
+            <Compass className="h-10 w-10 text-white" strokeWidth={2.2} />
           </div>
 
-          <div className="flex flex-1 flex-col justify-center">
-            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-orange-50 shadow-[0_14px_32px_rgba(249,115,22,0.18)]">
-              <Compass className="text-v2-orange h-10 w-10" strokeWidth={2.2} />
-            </div>
+          <div className="text-center">
+            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+              Travel Pro
+            </p>
+            <h1 className="mt-4 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+              Welcome back
+            </h1>
+            <p className="mt-3 text-sm leading-7 text-[#6d7b91]">
+              Sign in to pick up your saved trips, plans, and checklists.
+            </p>
+          </div>
 
-            <div className="text-center">
-              <h1 className="text-v2-navy text-3xl leading-tight font-bold">Welcome back</h1>
-              <p className="text-v2-text-muted mt-3 text-sm">
-                Sign in to pick up your saved trips, plans, and checklists.
-              </p>
-            </div>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-10 rounded-[30px] border border-white/80 bg-white/88 px-5 py-5 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+          >
+            <div className="space-y-5">
+              <GoogleAuthButton next={next} disabled={isLoading} onError={setServerError} />
 
-            <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-[#dbe4f2]" />
+                <span className="text-[11px] font-bold tracking-[0.22em] text-[#9aacbf] uppercase">
+                  Or with email
+                </span>
+                <div className="h-px flex-1 bg-[#dbe4f2]" />
+              </div>
+
               <div>
                 <label htmlFor="email" className={labelClass}>
-                  <Mail className="text-v2-text-muted h-4 w-4" />
+                  <Mail className="h-4 w-4 text-[#8ea0bb]" />
                   Email address
                 </label>
                 <input
@@ -114,12 +136,12 @@ function LoginForm() {
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <label htmlFor="password" className={`${labelClass} mb-0`}>
-                    <LockKeyhole className="text-v2-text-muted h-4 w-4" />
+                    <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
                     Password
                   </label>
                   <Link
                     href="/forgot-password"
-                    className="text-v2-orange text-sm font-semibold transition-colors hover:brightness-95"
+                    className="text-sm font-semibold text-[#2563ff] transition-colors hover:brightness-95"
                   >
                     Forgot?
                   </Link>
@@ -144,26 +166,30 @@ function LoginForm() {
                 </div>
               )}
 
-              <Button type="submit" disabled={isLoading} className="mt-2">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="mt-2 !bg-[#2563ff] py-4 shadow-[0_18px_36px_rgba(37,99,255,0.28)] hover:brightness-105"
+              >
                 <span className="flex items-center justify-center gap-2">
                   {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isLoading ? "Signing in..." : "SIGN IN"}
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </span>
               </Button>
-            </form>
-          </div>
+            </div>
+          </form>
 
           <div className="space-y-3 pt-6 text-center">
-            <p className="text-v2-text-muted text-sm">
+            <p className="text-sm text-[#6d7b91]">
               Don&apos;t have an account?{" "}
               <Link
                 href={`/signup${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
-                className="text-v2-orange font-semibold transition-colors hover:brightness-95"
+                className="font-semibold text-[#2563ff] transition-colors hover:brightness-95"
               >
                 Sign up
               </Link>
             </p>
-            <p className="text-v2-text-light text-xs">
+            <p className="text-xs text-[#9aacbf]">
               By signing in you can sync your plans across devices.
             </p>
           </div>

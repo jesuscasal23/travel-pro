@@ -15,7 +15,7 @@ const params = {
   profile: {
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort",
+    travelStyle: "smart-budget",
     interests: ["culture", "food"],
   },
   tripIntent: {
@@ -64,14 +64,14 @@ describe("useRouteSelection hooks", () => {
       destinationCountry: "Japan",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-08",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
     });
     const b = buildCacheKey({
       region: "east-asia",
       destinationCountry: "Japan",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-08",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
     });
 
     expect(a).toBe(b);
@@ -92,7 +92,7 @@ describe("useRouteSelection hooks", () => {
       region: "east-asia",
       dateStart: "2026-04-01",
       dateEnd: "2026-04-08",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
     });
 
     let output: unknown;

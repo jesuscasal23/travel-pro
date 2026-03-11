@@ -4,7 +4,7 @@ import { itinerarySchema } from "@/lib/itinerary/schema";
 export const ProfileInputSchema = z.object({
   nationality: z.string().min(1).max(100),
   homeAirport: z.string().min(2).max(100),
-  travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
+  travelStyle: z.enum(["backpacker", "smart-budget", "comfort-explorer", "luxury"]),
   interests: z.array(z.string().max(50)).max(10),
   pace: z.enum(["relaxed", "moderate", "active"]).optional(),
 });

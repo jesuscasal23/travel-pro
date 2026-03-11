@@ -4,8 +4,8 @@ import {
   ProfileInputSchema,
   TripIntentInputSchema,
   CityWithDaysInputSchema,
-  FlightSearchInputSchema,
-} from "../schemas";
+} from "@/lib/features/generation/schemas";
+import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
 
 // ── ProfileInputSchema ───────────────────────────────────────
 
@@ -13,7 +13,7 @@ describe("ProfileInputSchema", () => {
   const valid = {
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort" as const,
+    travelStyle: "smart-budget" as const,
     interests: ["Culture", "Food"],
   };
 
@@ -48,8 +48,8 @@ describe("ProfileInputSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts all three travelStyle values", () => {
-    for (const style of ["backpacker", "comfort", "luxury"]) {
+  it("accepts all four travelStyle values", () => {
+    for (const style of ["backpacker", "smart-budget", "comfort-explorer", "luxury"]) {
       const result = ProfileInputSchema.safeParse({ ...valid, travelStyle: style });
       expect(result.success).toBe(true);
     }

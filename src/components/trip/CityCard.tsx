@@ -29,9 +29,9 @@ export const CityCard = memo(function CityCard({
       onClick={onClick}
       className={`group relative flex-shrink-0 overflow-hidden ${
         isMobile ? "h-32 w-24 rounded-2xl" : "h-[200px] min-w-[160px] rounded-2xl"
-      } ${isActive ? "ring-primary ring-offset-background ring-2 ring-offset-2" : ""} ${
-        !isMobile ? "transition-transform duration-200 hover:scale-105" : ""
-      }`}
+      } border border-white/70 shadow-[0_16px_28px_rgba(27,43,75,0.08)] ${
+        isActive ? "ring-2 ring-[#2563ff] ring-offset-2 ring-offset-[#f8fbff]" : ""
+      } ${!isMobile ? "transition-transform duration-200 hover:scale-105" : ""}`}
     >
       <Image
         src={src}

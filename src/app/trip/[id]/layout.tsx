@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { parseItineraryData, getTripTitle } from "@/lib/utils/trip-metadata";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://travelpro.app";
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .filter(Boolean)
       .join(" ");
 
-    const url = `${APP_URL}/trip/${id}`;
+    const url = `${APP_URL}/trips/${id}`;
 
     return {
       title,

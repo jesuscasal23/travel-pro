@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 
 const mockLogError = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },

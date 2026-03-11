@@ -8,7 +8,7 @@ vi.mock("@upstash/redis", () => ({
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),

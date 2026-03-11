@@ -43,16 +43,20 @@ describe("useFlightSearch", () => {
       await result.current.search("CDG", "NRT", "2026-06-01", 2);
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith("/api/v1/trips/trip-1/flights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fromIata: "CDG",
-        toIata: "NRT",
-        departureDate: "2026-06-01",
-        travelers: 2,
-      }),
-    });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/v1/trips/trip-1/flights",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fromIata: "CDG",
+          toIata: "NRT",
+          departureDate: "2026-06-01",
+          travelers: 2,
+        }),
+        signal: expect.any(AbortSignal),
+      })
+    );
     expect(result.current.results).toEqual(mockResults);
     expect(result.current.loading).toBe(false);
     expect(result.current.fetchedAt).toBe(1000);

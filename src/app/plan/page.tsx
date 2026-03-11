@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
 import { useToastStore } from "@/stores/useToastStore";
@@ -19,18 +19,13 @@ import {
   useSaveProfile,
 } from "@/hooks/api";
 import { slideVariants } from "@/lib/animations";
+import { normalizeInterests } from "@/lib/profile/interests";
 import { DestinationStep } from "./steps/DestinationStep";
-import { ScheduleStep } from "./steps/ScheduleStep";
-import { StyleStep } from "./steps/StyleStep";
-import { PreferencesStep } from "./steps/PreferencesStep";
 import { ProfileStep } from "./steps/ProfileStep";
+import { PrioritiesStep } from "./steps/PrioritiesStep";
+import { OverviewStep } from "./steps/OverviewStep";
 import type { CityStop, Itinerary } from "@/types";
-import {
-  validate,
-  onboardingStep1Schema,
-  destinationStepSchema,
-  detailsStepSchema,
-} from "@/lib/forms/schemas";
+import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
 import type { CityWithDays } from "@/lib/flights/types";
 
 export default function PlanPage() {
@@ -39,6 +34,11 @@ export default function PlanPage() {
   const isAuthenticated = useAuthStatus();
   const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
+  const planPath = "/plan";
+  const signupPath = `/signup?next=${encodeURIComponent(planPath)}`;
+  const loginPath = `/login?next=${encodeURIComponent(planPath)}`;
+  const requiresAuth = isAuthenticated === false;
+  const authStatusLoading = isAuthenticated === null;
 
   const {
     planStep,
@@ -50,6 +50,7 @@ export default function PlanPage() {
     pace,
     tripType,
     tripDescription,
+    planningPriority,
     region,
     destination,
     destinationCountry,
@@ -75,8 +76,9 @@ export default function PlanPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clearError = (field: string) =>
     setErrors((prev) => {
-      const { [field]: _removed, ...rest } = prev;
-      return rest;
+      const nextErrors = { ...prev };
+      delete nextErrors[field];
+      return nextErrors;
     });
 
   const isSingleCity = tripType === "single-city";
@@ -87,7 +89,7 @@ export default function PlanPage() {
   const hasCoreProfile = Boolean(effectiveNationality && effectiveHomeAirport);
   const canSkipProfileStep = isAuthenticated === true && hasCoreProfile;
   const needsProfileStep = !canSkipProfileStep;
-  const totalSteps = needsProfileStep ? 5 : 4;
+  const totalSteps = needsProfileStep ? 4 : 3;
 
   useEffect(() => {
     if (hydratedProfileRef.current || !persistedProfile) return;
@@ -97,7 +99,7 @@ export default function PlanPage() {
       nationality: persistedProfile.nationality,
       homeAirport: persistedProfile.homeAirport,
       travelStyle: persistedProfile.travelStyle,
-      interests: persistedProfile.interests,
+      interests: normalizeInterests(persistedProfile.interests),
       pace: persistedProfile.pace ?? "moderate",
     });
     hydratedProfileRef.current = true;
@@ -108,17 +110,16 @@ export default function PlanPage() {
 
   // Which content to show based on step + profile completeness
   const showDestination = step === 1;
-  const showSchedule = step === 2;
-  const showStyle = step === 3;
-  const showPreferences = step === 4;
-  const showProfileAndDescription = needsProfileStep && step === 5;
+  const showDetails = needsProfileStep ? step === 2 : false;
+  const showPriorities = needsProfileStep ? step === 3 : step === 2;
+  const showOverview = needsProfileStep ? step === 4 : step === 3;
   const isFinalStep = step === totalSteps;
   const progress = Math.round((step / totalSteps) * 100);
 
   // Speculative route selection: prefetch when user reaches destination step.
   useEffect(() => {
     if (isSingleCity || !dateStart || !dateEnd) return;
-    if (step < 2) return;
+    if (step < 1) return;
     if (isSingleCountry && !destinationCountry) return;
     if (isMultiCountry && !region) return;
 
@@ -171,34 +172,22 @@ export default function PlanPage() {
         : isSingleCountry
           ? !!destinationCountry
           : !!region;
-      return hasDestination;
+      return hasDestination && !!dateStart && !!dateEnd && dayCount > 0;
     }
-    if (showSchedule) {
-      return !!dateStart && !!dateEnd && dayCount > 0 && travelers > 0;
-    }
-    if (showStyle || showPreferences) {
-      return true;
-    }
-    if (showProfileAndDescription) {
+    if (showDetails) {
       return !!effectiveNationality && !!effectiveHomeAirport;
+    }
+    if (showPriorities) {
+      return !!planningPriority;
+    }
+    if (showOverview) {
+      return true;
     }
     return true;
   };
 
   const goNext = () => {
     if (showDestination) {
-      const nextErrors: Record<string, string> = {};
-      if (isMultiCountry && !region) nextErrors.region = "Please select a region";
-      if (isSingleCity && !destination) nextErrors.destination = "Please select a city";
-      if (isSingleCountry && !destinationCountry) {
-        nextErrors.destinationCountry = "Please select a country";
-      }
-      if (Object.keys(nextErrors).length > 0) {
-        setErrors(nextErrors);
-        return;
-      }
-    }
-    if (showSchedule) {
       const fieldErrors = validate(destinationStepSchema, {
         tripType,
         region,
@@ -207,9 +196,18 @@ export default function PlanPage() {
         dateStart,
         dateEnd,
       });
-      const detailErrors = validate(detailsStepSchema, { travelers });
-      if (fieldErrors || detailErrors) {
-        setErrors({ ...(fieldErrors ?? {}), ...(detailErrors ?? {}) });
+      if (fieldErrors) {
+        setErrors(fieldErrors);
+        return;
+      }
+    }
+    if (showDetails) {
+      const profileErrors = validate(onboardingStep1Schema, {
+        nationality: effectiveNationality,
+        homeAirport: effectiveHomeAirport,
+      });
+      if (profileErrors) {
+        setErrors(profileErrors);
         return;
       }
     }
@@ -288,6 +286,11 @@ export default function PlanPage() {
   );
 
   const handleGenerate = useCallback(async () => {
+    if (isAuthenticated !== true) {
+      router.push(signupPath);
+      return;
+    }
+
     if (needsProfileStep) {
       const profileErrors = validate(onboardingStep1Schema, {
         nationality: effectiveNationality,
@@ -309,11 +312,6 @@ export default function PlanPage() {
     });
     if (fieldErrors) {
       setErrors(fieldErrors);
-      return;
-    }
-    const detailErrors = validate(detailsStepSchema, { travelers });
-    if (detailErrors) {
-      setErrors(detailErrors);
       return;
     }
     setErrors({});
@@ -370,6 +368,14 @@ export default function PlanPage() {
     }
 
     try {
+      const combinedDescription = [
+        tripDescription.trim(),
+        planningPriority ? `Primary challenge: ${planningPriority}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n")
+        .trim();
+
       if (isAuthenticated === true) {
         await saveProfileMutation.mutateAsync({
           nationality: effectiveNationality,
@@ -392,13 +398,13 @@ export default function PlanPage() {
         dateStart,
         dateEnd,
         travelers,
-        ...(tripDescription.trim() ? { description: tripDescription.trim() } : {}),
+        ...(combinedDescription ? { description: combinedDescription } : {}),
       });
 
       setItinerary(buildPartialItinerary(route));
       setCurrentTripId(trip.id);
       posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
-      router.push(`/trip/${trip.id}`);
+      router.push(`/trips/${trip.id}`);
     } catch {
       setIsGenerating(false);
       if (isAuthenticated === true) {
@@ -417,6 +423,7 @@ export default function PlanPage() {
     tripType,
     region,
     tripDescription,
+    planningPriority,
     destination,
     destinationCountry,
     destinationCountryCode,
@@ -441,59 +448,29 @@ export default function PlanPage() {
     router,
     posthog,
     isAuthenticated,
+    signupPath,
     toast,
   ]);
 
-  const stepLabel = showDestination
-    ? "Trip Basics"
-    : showSchedule
-      ? "Dates"
-      : showStyle
-        ? "Travel Style"
-        : showPreferences
-          ? "Preferences"
-          : "About You";
-
-  const stepHelp = showDestination
-    ? "Choose the trip format and destination before we map the rest."
-    : showSchedule
-      ? "Lock in the dates and group size so routing and pacing stay realistic."
-      : showStyle
-        ? "Pick the overall level of comfort and budget for this trip."
-        : showPreferences
-          ? needsProfileStep
-            ? "Set the pace and interests so the first itinerary draft feels personal."
-            : "Set the pace, interests, and any special requests before we generate the trip."
-          : "We use these details for visa checks, flights, and your final itinerary.";
-
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
       <ProgressBar progress={progress} />
 
-      <div className="flex-1 overflow-y-auto px-6 pt-5 pb-4">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="relative flex-1 overflow-y-auto px-6 pt-5 pb-4">
+        <div className="mb-4 flex items-center">
           <button
             type="button"
             onClick={goBack}
-            className={`text-v2-text-muted hover:text-v2-navy flex items-center gap-1 text-sm font-medium transition-colors ${
+            aria-label="Go back"
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors hover:text-[#1b2b4b] ${
               step === 1 ? "pointer-events-none opacity-0" : ""
             }`}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back
+            <ArrowLeft className="h-5 w-5" strokeWidth={2.2} />
           </button>
-
-          <div className="text-right">
-            <p className="text-v2-text-muted text-[11px] font-bold tracking-[0.22em] uppercase">
-              {stepLabel}
-            </p>
-            <p className="text-v2-navy mt-1 text-sm font-semibold">
-              Step {step} of {totalSteps}
-            </p>
-          </div>
         </div>
-
-        <p className="text-v2-text-muted mb-4 text-sm">{stepHelp}</p>
 
         <div className="relative overflow-x-clip overflow-y-visible">
           <AnimatePresence mode="wait" custom={direction}>
@@ -505,11 +482,24 @@ export default function PlanPage() {
               animate="center"
               exit="exit"
             >
-              {showDestination && <DestinationStep errors={errors} clearError={clearError} />}
-              {showSchedule && <ScheduleStep errors={errors} clearError={clearError} />}
-              {showStyle && <StyleStep />}
-              {showPreferences && <PreferencesStep includeTripDescription={!needsProfileStep} />}
-              {showProfileAndDescription && <ProfileStep errors={errors} clearError={clearError} />}
+              {showDestination && (
+                <DestinationStep
+                  errors={errors}
+                  clearError={clearError}
+                  step={step}
+                  totalSteps={totalSteps}
+                />
+              )}
+              {showDetails && (
+                <ProfileStep
+                  errors={errors}
+                  clearError={clearError}
+                  step={step}
+                  totalSteps={totalSteps}
+                />
+              )}
+              {showPriorities && <PrioritiesStep step={step} totalSteps={totalSteps} />}
+              {showOverview && <OverviewStep step={step} totalSteps={totalSteps} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -521,38 +511,50 @@ export default function PlanPage() {
         )}
       </div>
 
-      <div className="border-v2-border shrink-0 border-t bg-white px-6 pt-4 pb-8">
-        <p className="text-v2-text-muted mb-3 text-sm">
-          {isFinalStep
-            ? "We’ll open your trip as soon as the first itinerary draft is ready."
-            : "You can adjust any of these details again after the next step."}
-        </p>
-
+      <div className="relative shrink-0 border-t border-white/75 bg-white/86 px-6 pt-4 pb-8 backdrop-blur-sm">
         {isFinalStep ? (
-          <Button
-            onClick={() => handleGenerate()}
-            disabled={!canAdvance() || isGenerating}
-            className="flex items-center justify-center gap-2"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Creating trip...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-5 w-5" />
-                Generate My Itinerary
-              </>
-            )}
-          </Button>
+          <>
+            <Button
+              variant="apple"
+              onClick={() => (requiresAuth ? router.push(signupPath) : handleGenerate())}
+              disabled={!canAdvance() || isGenerating || authStatusLoading}
+              className="flex items-center justify-center gap-2 rounded-[24px] !bg-[#2563ff] py-5 text-lg font-bold shadow-[0_18px_36px_rgba(37,99,255,0.28)] hover:brightness-105"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Creating trip...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5" />
+                  {authStatusLoading
+                    ? "Checking account..."
+                    : requiresAuth
+                      ? "Create Account to Continue"
+                      : "Continue to Generate My Trip"}
+                </>
+              )}
+            </Button>
+            {requiresAuth ? (
+              <button
+                type="button"
+                onClick={() => router.push(loginPath)}
+                className="mx-auto mt-3 block text-sm font-semibold text-[#6d7b91] transition-colors hover:text-[#1b2b4b]"
+              >
+                Already have an account? Sign in
+              </button>
+            ) : null}
+          </>
         ) : (
           <Button
+            variant="apple"
             onClick={goNext}
             disabled={!canAdvance()}
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-3 rounded-[24px] !bg-[#101114] py-5 text-lg font-bold shadow-[0_18px_36px_rgba(16,17,20,0.22)]"
           >
-            Continue
+            <span>{showPriorities ? "Analyze My Profile" : "Continue"}</span>
+            <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
           </Button>
         )}
       </div>

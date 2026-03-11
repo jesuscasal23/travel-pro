@@ -14,12 +14,14 @@ import type { Itinerary, CityWeather } from "@/types";
 interface MobileJourneyTabProps {
   itinerary: Itinerary;
   generatingCityId?: string | null;
+  cityActivityErrors?: Record<string, string>;
   onGenerateActivities?: (cityId: string, cityName: string) => void;
 }
 
 export function MobileJourneyTab({
   itinerary,
   generatingCityId,
+  cityActivityErrors,
   onGenerateActivities,
 }: MobileJourneyTabProps) {
   const { route, days, flightLegs, weatherData } = itinerary;
@@ -61,27 +63,29 @@ export function MobileJourneyTab({
   );
 
   return (
-    <div className="pb-20">
+    <div className="pb-8">
       {/* City horizontal scroll */}
-      <div className="mb-4 px-4">
-        <div
-          ref={cityScrollRef}
-          role="tablist"
-          aria-label="City selector"
-          onKeyDown={handleCityKeyDown}
-          className="scrollbar-hide flex gap-3 overflow-x-auto py-2"
-        >
-          {route.map((city, i) => (
-            <CityCard
-              key={city.id}
-              city={city}
-              isActive={activeCityIdx === i}
-              onClick={() => setActiveCityIdx(i)}
-              variant="mobile"
-            />
-          ))}
+      {route.length > 1 && (
+        <div className="mb-4 px-4">
+          <div
+            ref={cityScrollRef}
+            role="tablist"
+            aria-label="City selector"
+            onKeyDown={handleCityKeyDown}
+            className="scrollbar-hide flex gap-3 overflow-x-auto py-2"
+          >
+            {route.map((city, i) => (
+              <CityCard
+                key={city.id}
+                city={city}
+                isActive={activeCityIdx === i}
+                onClick={() => setActiveCityIdx(i)}
+                variant="mobile"
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Boarding passes */}
       {flightLegs && flightLegs.length > 0 && (
@@ -101,13 +105,33 @@ export function MobileJourneyTab({
         const weather = weatherMap.get(group.city);
         const hasActivities = cityHasActivities(itinerary, cityStop.id);
         const isGeneratingThis = generatingCityId === cityStop.id;
+        const cityActivityError = cityActivityErrors?.[cityStop.id];
         const activeDayNum = activeDayMap[groupIdx] ?? group.days[0]?.day;
         const activeDay = group.days.find((d) => d.day === activeDayNum) ?? group.days[0];
         const timedActivities = activeDay && hasActivities ? distributeActivities(activeDay) : [];
 
         return (
           <div key={group.cityId + groupIdx} className="mb-6 px-4">
-            <CityHeader city={cityStop} weather={weather} variant="mobile" />
+            {route.length > 1 ? (
+              <CityHeader city={cityStop} weather={weather} variant="mobile" />
+            ) : (
+              <div className="mb-3 flex items-start justify-between gap-3 rounded-[22px] border border-white/80 bg-white/82 px-4 py-3 shadow-[0_16px_30px_rgba(27,43,75,0.05)]">
+                <div>
+                  <h3 className="text-[1.05rem] font-semibold tracking-[-0.02em] text-[#1b2435]">
+                    {cityStop.city}
+                  </h3>
+                  <p className="mt-1 text-[13px] text-[#6d7b91]">
+                    {cityStop.country} · {cityStop.days} days
+                  </p>
+                </div>
+                {weather ? (
+                  <div className="flex items-center gap-1 rounded-full bg-[#eef4ff] px-2.5 py-1 text-[#2563ff]">
+                    <span className="text-sm">{weather.icon}</span>
+                    <span className="text-xs font-semibold">{weather.temp}</span>
+                  </div>
+                ) : null}
+              </div>
+            )}
 
             {hasActivities ? (
               <>
@@ -124,8 +148,8 @@ export function MobileJourneyTab({
                   <div>
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                      <div className="text-muted-foreground bg-secondary mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
-                        <span className="text-primary">✈️</span>
+                      <div className="mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs text-[#6d7b91] shadow-[0_14px_28px_rgba(27,43,75,0.05)] backdrop-blur-sm">
+                        <span className="text-[#2563ff]">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
                           {activeDay.travelDuration && <> · {activeDay.travelDuration}</>}
@@ -144,28 +168,34 @@ export function MobileJourneyTab({
                   </div>
                 )}
               </>
-            ) : isGeneratingThis ? (
-              <div className="mt-3 space-y-2">
-                <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                  <div className="border-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
-                  <span>Generating activities for {cityStop.city}...</span>
-                </div>
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div key={i} className="bg-secondary h-14 animate-pulse rounded-xl" />
-                ))}
-              </div>
-            ) : (
-              <div className="mt-3">
+            ) : cityActivityError ? (
+              <div className="mt-3 rounded-xl border border-[#ffd8d8] bg-[#fff6f6] p-3">
+                <p className="text-sm font-medium text-[#7b2d2d]">
+                  Couldn&apos;t generate activities for {cityStop.city}.
+                </p>
                 <button
                   onClick={() => onGenerateActivities?.(cityStop.id, cityStop.city)}
-                  className="btn-primary flex w-full items-center justify-center gap-2 text-sm"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#7b2d2d] px-4 py-2.5 text-sm font-semibold text-white"
                 >
-                  <span>✨</span>
-                  Get activity recommendations
+                  Retry
                 </button>
-                <p className="text-muted-foreground mt-1.5 text-center text-xs">
-                  {cityStop.days} days · Tap for personalized suggestions
-                </p>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs text-[#6d7b91]">
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#2563ff] border-t-transparent" />
+                  <span>
+                    {isGeneratingThis
+                      ? `Generating activities for ${cityStop.city}...`
+                      : `Preparing activity recommendations for ${cityStop.city}...`}
+                  </span>
+                </div>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <div
+                    key={i}
+                    className="h-14 animate-pulse rounded-[20px] border border-white/80 bg-white/72 shadow-[0_14px_28px_rgba(27,43,75,0.05)]"
+                  />
+                ))}
               </div>
             )}
           </div>

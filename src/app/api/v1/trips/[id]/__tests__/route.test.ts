@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import type { Itinerary } from "@/types";
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     profile: { findUnique: vi.fn() },
     trip: { findUnique: vi.fn(), delete: vi.fn() },
@@ -11,7 +11,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/lib/services/itinerary-service", () => ({
+vi.mock("@/lib/features/trips/itinerary-service", () => ({
   findActiveItinerary: vi.fn(),
   createItineraryVersion: vi.fn(),
 }));
@@ -20,7 +20,7 @@ vi.mock("@/lib/supabase/server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -29,15 +29,18 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import { findActiveItinerary, createItineraryVersion } from "@/lib/services/itinerary-service";
+import {
+  findActiveItinerary,
+  createItineraryVersion,
+} from "@/lib/features/trips/itinerary-service";
 import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import { GET, PATCH, DELETE } from "../route";
 

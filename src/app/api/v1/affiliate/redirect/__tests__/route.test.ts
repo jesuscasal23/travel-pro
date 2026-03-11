@@ -2,14 +2,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     itinerary: { findFirst: vi.fn() },
     affiliateClick: { create: vi.fn() },
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -18,13 +18,13 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { GET } from "../route";
 
 const mockPrisma = prisma as unknown as {

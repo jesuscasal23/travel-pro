@@ -10,7 +10,7 @@ vi.mock("@/lib/ai/enrichment", () => ({
   enrichAccommodation: mocks.enrichAccommodation,
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
@@ -41,7 +41,7 @@ describe("POST /api/v1/enrich/accommodation", () => {
         route: [],
         dateStart: "2026-06-01",
         travelers: 2,
-        travelStyle: "comfort",
+        travelStyle: "smart-budget",
       }),
     });
 
@@ -70,7 +70,7 @@ describe("POST /api/v1/enrich/accommodation", () => {
         ],
         dateStart: "2026-06-01",
         travelers: 2,
-        travelStyle: "comfort",
+        travelStyle: "smart-budget",
       }),
     });
 

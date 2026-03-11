@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
 
 interface FlightSearchState {
@@ -17,6 +17,7 @@ export function useFlightSearch(tripId: string) {
     error: null,
     fetchedAt: null,
   });
+  const controllerRef = useRef<AbortController | null>(null);
 
   const search = useCallback(
     async (
@@ -26,6 +27,11 @@ export function useFlightSearch(tripId: string) {
       travelers: number,
       filters?: { nonStop?: boolean; maxPrice?: number }
     ) => {
+      // Abort any in-flight request
+      controllerRef.current?.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
+
       setState((s) => ({ ...s, loading: true, error: null }));
 
       try {
@@ -33,6 +39,7 @@ export function useFlightSearch(tripId: string) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fromIata, toIata, departureDate, travelers, ...filters }),
+          signal: controller.signal,
         });
 
         if (!res.ok) {
@@ -45,22 +52,32 @@ export function useFlightSearch(tripId: string) {
           fetchedAt: number;
         };
 
-        setState({
-          results: data.results,
-          loading: false,
-          error: null,
-          fetchedAt: data.fetchedAt,
-        });
+        if (!controller.signal.aborted) {
+          setState({
+            results: data.results,
+            loading: false,
+            error: null,
+            fetchedAt: data.fetchedAt,
+          });
+        }
       } catch (e) {
-        setState((s) => ({
-          ...s,
-          loading: false,
-          error: e instanceof Error ? e.message : "Search failed",
-        }));
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        if (!controller.signal.aborted) {
+          setState((s) => ({
+            ...s,
+            loading: false,
+            error: e instanceof Error ? e.message : "Search failed",
+          }));
+        }
       }
     },
     [tripId]
   );
+
+  // Abort on unmount
+  useEffect(() => {
+    return () => controllerRef.current?.abort();
+  }, []);
 
   return { ...state, search };
 }
@@ -92,12 +109,16 @@ export function useBatchFlightSearch(
     fetchedAt: null,
   });
   const [started, setStarted] = useState(false);
+  const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!enabled || started || legs.length === 0 || travelers < 1) return;
 
     const toFetch = legs.filter((l) => l.results.length === 0 && l.departureDate);
     if (toFetch.length === 0) return;
+
+    const controller = new AbortController();
+    controllerRef.current = controller;
 
     setStarted(true);
     setState((s) => ({ ...s, pendingCount: toFetch.length }));
@@ -114,6 +135,7 @@ export function useBatchFlightSearch(
           departureDate: leg.departureDate,
           travelers,
         }),
+        signal: controller.signal,
       })
         .then(async (res) => {
           if (!res.ok) {
@@ -124,24 +146,32 @@ export function useBatchFlightSearch(
             results: FlightSearchResult[];
             fetchedAt: number;
           };
-          setState((s) => ({
-            ...s,
-            resultsByLeg: { ...s.resultsByLeg, [key]: data.results },
-            pendingCount: s.pendingCount - 1,
-            fetchedAt: data.fetchedAt,
-          }));
+          if (!controller.signal.aborted) {
+            setState((s) => ({
+              ...s,
+              resultsByLeg: { ...s.resultsByLeg, [key]: data.results },
+              pendingCount: s.pendingCount - 1,
+              fetchedAt: data.fetchedAt,
+            }));
+          }
         })
         .catch((e) => {
-          setState((s) => ({
-            ...s,
-            errorsByLeg: {
-              ...s.errorsByLeg,
-              [key]: e instanceof Error ? e.message : "Search failed",
-            },
-            pendingCount: s.pendingCount - 1,
-          }));
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!controller.signal.aborted) {
+            setState((s) => ({
+              ...s,
+              errorsByLeg: {
+                ...s.errorsByLeg,
+                [key]: e instanceof Error ? e.message : "Search failed",
+              },
+              pendingCount: s.pendingCount - 1,
+            }));
+          }
         });
     }
+
+    // Abort all in-flight requests on cleanup
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, started]);
 

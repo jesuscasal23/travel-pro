@@ -39,7 +39,7 @@ export function DayPills({ days, activeDay, onDayClick }: DayPillsProps) {
       onKeyDown={handleKeyDown}
       className="scrollbar-hide flex gap-2 overflow-x-auto py-3"
     >
-      {days.map((day, i) => {
+      {days.map((day) => {
         const isActive = activeDay === day.day;
         return (
           <button
@@ -48,13 +48,13 @@ export function DayPills({ days, activeDay, onDayClick }: DayPillsProps) {
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
             onClick={() => onDayClick(day.day)}
-            className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`flex-shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
               isActive
-                ? "bg-foreground text-background"
-                : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                ? "border-[#2563ff] bg-[#2563ff] text-white shadow-[0_12px_20px_rgba(37,99,255,0.2)]"
+                : "border-white/80 bg-white/82 text-[#6d7b91] hover:border-[#cfe0ff] hover:bg-[#eef4ff] hover:text-[#2563ff]"
             }`}
           >
-            Day {day.day} · {day.date}
+            Day {day.day}
           </button>
         );
       })}

@@ -48,8 +48,10 @@ export function assembleSingleCityPrompt(profile: UserProfile, intent: TripInten
   const styleDescriptions: Record<string, string> = {
     backpacker:
       "backpacker style (hostels, dorms, street food, maximum adventure, budget-conscious)",
-    comfort:
-      "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
+    "smart-budget":
+      "smart budget style (mid-range hotels, well-priced restaurants, efficient routing, strong value for money)",
+    "comfort-explorer":
+      "comfort explorer style (boutique hotels, standout dining, polished experiences, more comfort without full luxury)",
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 

@@ -142,7 +142,7 @@ async function main() {
       userId: DEMO_USER_ID,
       nationality: "German",
       homeAirport: "LEJ – Leipzig/Halle",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
       interests: ["Cultural Experiences", "Food & Cuisine", "History", "Architecture"],
       activityLevel: "moderate",
       languagesSpoken: ["German", "English"],

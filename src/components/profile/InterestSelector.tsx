@@ -1,6 +1,6 @@
 "use client";
 
-import { interestOptions } from "@/data/sampleData";
+import { interestOptions } from "@/data/interests";
 
 interface InterestSelectorProps {
   selected: string[];

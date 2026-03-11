@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useProfile, useSaveProfile, useExportData, useDeleteAccount } from "@/hooks/api/useProfile";
+import {
+  useProfile,
+  useSaveProfile,
+  useExportData,
+  useDeleteAccount,
+} from "@/hooks/api/useProfile";
 
 const originalFetch = global.fetch;
 const originalCreateObjectURL = URL.createObjectURL;
@@ -41,7 +46,7 @@ describe("useProfile hooks", () => {
       const output = await result.current.mutateAsync({
         nationality: "German",
         homeAirport: "FRA",
-        travelStyle: "comfort",
+        travelStyle: "smart-budget",
         interests: ["food"],
       });
       expect(output).toEqual({ success: true });
@@ -62,7 +67,7 @@ describe("useProfile hooks", () => {
           userId: "user-1",
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["Food"],
           pace: "moderate",
         },
@@ -77,7 +82,7 @@ describe("useProfile hooks", () => {
         userId: "user-1",
         nationality: "German",
         homeAirport: "FRA",
-        travelStyle: "comfort",
+        travelStyle: "smart-budget",
         interests: ["Food"],
         pace: "moderate",
       })
@@ -103,7 +108,7 @@ describe("useProfile hooks", () => {
       result.current.mutateAsync({
         nationality: "German",
         homeAirport: "FRA",
-        travelStyle: "comfort",
+        travelStyle: "smart-budget",
         interests: [],
       })
     ).rejects.toThrow("Failed to save profile");

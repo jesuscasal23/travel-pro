@@ -10,9 +10,14 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT_V1 } from "./prompts/v1";
 import { getErrorMessage } from "@/lib/utils/error";
-import { createLogger } from "@/lib/logger";
-import { abortableDelay, isAbortError } from "@/lib/abort";
+import { createLogger } from "@/lib/core/logger";
+import { abortableDelay, isAbortError } from "@/lib/core/abort";
 import { getAnthropicApiKey } from "@/lib/config/server-env";
+import {
+  CLAUDE_TIMEOUT_MS,
+  CONTENT_FILTER_MAX_RETRIES,
+  CONTENT_FILTER_BACKOFF_MS,
+} from "@/lib/config/constants";
 
 const log = createLogger("ai:client");
 
@@ -24,7 +29,7 @@ export function getAnthropic(): Anthropic {
   if (!_anthropic) {
     _anthropic = new Anthropic({
       apiKey: getAnthropicApiKey(),
-      timeout: 50_000, // 50s — fail cleanly before Vercel's 60s limit
+      timeout: CLAUDE_TIMEOUT_MS,
     });
   }
   return _anthropic;
@@ -95,9 +100,12 @@ export async function callClaude(
     // Content filtering is probabilistic — retry with backoff (usually succeeds on 2nd attempt)
     const msg = getErrorMessage(err);
     const isContentFilter = msg.includes("content filtering") || msg.includes("Output blocked");
-    if (isContentFilter && retryCount < 2) {
-      log.warn("Content filter triggered, retrying", { attempt: retryCount + 1, maxRetries: 2 });
-      await abortableDelay(600 * (retryCount + 1), signal);
+    if (isContentFilter && retryCount < CONTENT_FILTER_MAX_RETRIES) {
+      log.warn("Content filter triggered, retrying", {
+        attempt: retryCount + 1,
+        maxRetries: CONTENT_FILTER_MAX_RETRIES,
+      });
+      await abortableDelay(CONTENT_FILTER_BACKOFF_MS * (retryCount + 1), signal);
       return callClaude(userPrompt, systemPrompt, maxTokens, retryCount + 1, signal);
     }
     throw err;

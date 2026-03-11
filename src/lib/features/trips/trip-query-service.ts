@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { parseItineraryData } from "@/lib/utils/trip-metadata";
 import type { Itinerary, TripIntent } from "@/types";
 import { ActiveItineraryNotFoundError, TripNotFoundError } from "@/lib/api/errors";

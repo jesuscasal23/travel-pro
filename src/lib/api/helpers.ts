@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { z } from "zod";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db/prisma";
-import { createLogger } from "@/lib/logger";
-import { requestContext } from "@/lib/request-context";
+import { prisma } from "@/lib/core/prisma";
+import { createLogger } from "@/lib/core/logger";
+import { requestContext } from "@/lib/core/request-context";
 import { hasGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import {
   ApiError,

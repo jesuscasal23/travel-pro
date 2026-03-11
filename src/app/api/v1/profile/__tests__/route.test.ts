@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     profile: {
       findUnique: vi.fn(),
@@ -41,7 +41,7 @@ vi.mock("next/headers", () => ({
   })),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -50,13 +50,13 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { GET, PATCH, DELETE } from "../route";
 
@@ -87,7 +87,7 @@ beforeEach(() => {
     userId: "user-1",
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort",
+    travelStyle: "smart-budget",
     interests: ["culture"],
     activityLevel: "moderate",
     onboardingCompleted: true,
@@ -97,7 +97,7 @@ beforeEach(() => {
     userId: "user-1",
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort",
+    travelStyle: "smart-budget",
     interests: ["culture"],
     activityLevel: "low",
     onboardingCompleted: true,
@@ -134,6 +134,26 @@ describe("GET /api/v1/profile", () => {
     expect(json.profile.pace).toBe("relaxed");
     expect(json.profile.activityLevel).toBeUndefined();
   });
+
+  it("normalizes stored interests onto canonical ids", async () => {
+    mockPrisma.profile.findUnique.mockResolvedValueOnce({
+      id: "profile-1",
+      userId: "user-1",
+      nationality: "German",
+      homeAirport: "FRA",
+      travelStyle: "smart-budget",
+      interests: ["Food & Cuisine", "Nature & Hiking", "Photography"],
+      activityLevel: "moderate",
+      onboardingCompleted: true,
+    });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/profile");
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.profile.interests).toEqual(["food", "nature", "photography"]);
+  });
 });
 
 describe("PATCH /api/v1/profile", () => {
@@ -144,7 +164,7 @@ describe("PATCH /api/v1/profile", () => {
       body: JSON.stringify({
         nationality: "German",
         homeAirport: "FRA",
-        travelStyle: "comfort",
+        travelStyle: "smart-budget",
         interests: ["culture"],
         onboardingCompleted: true,
       }),

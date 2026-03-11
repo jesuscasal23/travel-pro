@@ -7,7 +7,7 @@ import type { UserProfile, TripIntent } from "@/types";
 const profile: UserProfile = {
   nationality: "German",
   homeAirport: "FRA",
-  travelStyle: "comfort",
+  travelStyle: "smart-budget",
   interests: ["food", "culture", "photography"],
 };
 
@@ -57,7 +57,7 @@ describe("assembleSingleCityPrompt", () => {
     const prompt = assembleSingleCityPrompt(profile, singleCityIntent);
     expect(prompt).toContain("German");
     expect(prompt).toContain("FRA");
-    expect(prompt).toContain("comfort");
+    expect(prompt).toContain("smart budget");
   });
 
   it("calculates correct trip duration", () => {

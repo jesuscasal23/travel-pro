@@ -5,7 +5,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import SharedItineraryView from "./SharedItineraryView";
 import { parseItineraryData, getTripTitle } from "@/lib/utils/trip-metadata";
 

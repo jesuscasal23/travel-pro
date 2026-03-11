@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 // Mock Prisma
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     profile: { findUnique: vi.fn() },
     trip: { findUnique: vi.fn() },
@@ -16,7 +16,7 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 // Mock logger
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -34,7 +34,7 @@ import {
 } from "../helpers";
 import { ApiError } from "../errors";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 
 beforeEach(() => {
   vi.clearAllMocks();

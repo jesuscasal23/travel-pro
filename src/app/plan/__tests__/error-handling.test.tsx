@@ -22,6 +22,7 @@ import {
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 const mockRouterPush = vi.fn();
+const mockGetUser = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockRouterPush }),
@@ -30,8 +31,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
-      // Default: unauthenticated → triggers guest mode
-      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+      getUser: mockGetUser,
     },
   }),
 }));
@@ -71,16 +71,14 @@ import PlanPage from "@/app/plan/page";
 
 // ── Store setup ───────────────────────────────────────────────────────────────
 
-/** Prime the store so the questionnaire is on the final step with valid answers.
- *  Guest mode uses a 5-step wizard with a dedicated profile step at the end,
- *  and the Generate button appears on step 5 (the last step). */
+/** Prime the store so the questionnaire is on the final step with valid answers. */
 function setValidFinalStepState() {
   act(() => {
     useTripStore.setState({
-      planStep: 5,
+      planStep: 4,
       nationality: "German",
       homeAirport: "FRA",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
       interests: [],
       tripType: "single-city",
       destination: "Bangkok",
@@ -105,21 +103,24 @@ function setValidFinalStepState() {
 // 2. On Generate click: awaits speculative result, then creates trip via POST /api/v1/trips
 // 3. If trip creation fails → error shown on plan page
 
-describe("PlanPage — guest mode API failure", () => {
+describe("PlanPage — authenticated API failure", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
     setValidFinalStepState();
   });
 
   it("shows an error message when trip creation returns a non-200 response", async () => {
-    // Single-city: no speculative route selection
-    // Fetch #1: POST /api/v1/trips (on Generate click) → fails
-    global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /generate my itinerary/i })
+      screen.getByRole("button", { name: /continue to generate my trip/i })
     );
 
     fireEvent.click(generateBtn);
@@ -132,17 +133,22 @@ describe("PlanPage — guest mode API failure", () => {
   }, 15_000);
 
   it("clears the error message when the user clicks Generate again", async () => {
-    // Fetch #1: trip creation → fails → error
-    // Fetch #2: retry trip creation → succeeds
     global.fetch = vi
       .fn()
-      .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ trip: { id: "trip-123" } }) });
+      .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ trip: { id: "trip-123" } }),
+      });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /generate my itinerary/i })
+      screen.getByRole("button", { name: /continue to generate my trip/i })
     );
 
     // First click → error appears inline
@@ -154,16 +160,20 @@ describe("PlanPage — guest mode API failure", () => {
       fireEvent.click(generateBtn);
     });
 
-    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledWith("/trip/trip-123"));
+    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledWith("/trips/trip-123"));
   }, 15_000);
 
   it("does not inject data into the store on failure", async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
 
     const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /generate my itinerary/i })
+      screen.getByRole("button", { name: /continue to generate my trip/i })
     );
 
     fireEvent.click(generateBtn);

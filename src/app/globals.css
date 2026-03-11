@@ -87,6 +87,8 @@
   --animate-overlay-out: overlay-out 0.15s ease-in both;
   --animate-modal-in: modal-in 0.2s ease-out both;
   --animate-modal-out: modal-out 0.15s ease-in both;
+  --animate-sheet-in: sheet-in 0.22s ease-out both;
+  --animate-sheet-out: sheet-out 0.16s ease-in both;
   --animate-tab-in: tab-in 0.15s ease-out both;
   --animate-slide-down: slide-down 0.3s ease-out both;
 
@@ -208,6 +210,28 @@
   to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
   }
 }
 

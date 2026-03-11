@@ -11,7 +11,7 @@ import { z } from "zod";
 const profileSchema = z.object({
   nationality: z.string().min(1, "Please select your nationality"),
   homeAirport: z.string().min(2, "Please select your home airport"),
-  travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
+  travelStyle: z.enum(["backpacker", "smart-budget", "comfort-explorer", "luxury"]),
   interests: z.array(z.string()).max(10),
 });
 

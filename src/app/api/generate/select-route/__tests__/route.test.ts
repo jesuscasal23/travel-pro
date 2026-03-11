@@ -10,7 +10,7 @@ vi.mock("@/lib/ai/prompts/route-selector", () => ({
   selectRoute: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
@@ -35,7 +35,7 @@ const validBody = {
   profile: {
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort",
+    travelStyle: "smart-budget",
     interests: ["culture", "food"],
   },
   tripIntent: {

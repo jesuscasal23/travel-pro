@@ -7,7 +7,7 @@ import { Redis } from "@upstash/redis";
 import { getToken, AMADEUS_BASE } from "@/lib/flights/amadeus";
 import { getOptionalAmadeusEnv, getOptionalRedisEnv } from "@/lib/config/server-env";
 import { getErrorMessage } from "@/lib/utils/error";
-import { createLogger } from "@/lib/logger";
+import { createLogger } from "@/lib/core/logger";
 import type { AmadeusHotelEntry, AmadeusHotelOffer, HotelCandidate } from "./types";
 
 const log = createLogger("hotels");

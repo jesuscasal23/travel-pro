@@ -54,8 +54,10 @@ export function assembleCityActivitiesPrompt(
   const styleDescriptions: Record<string, string> = {
     backpacker:
       "backpacker style (street food, free attractions, maximum adventure, budget-conscious)",
-    comfort:
-      "comfort style (mix of local restaurants and mid-range dining, good balance of adventure and relaxation)",
+    "smart-budget":
+      "smart budget style (well-priced restaurants, efficient logistics, a strong balance of quality and cost)",
+    "comfort-explorer":
+      "comfort explorer style (standout dining, curated experiences, more comfort and polish throughout the day)",
     luxury: "luxury style (fine dining, private tours, premium experiences)",
   };
 

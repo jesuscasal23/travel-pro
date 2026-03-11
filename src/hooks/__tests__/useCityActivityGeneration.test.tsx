@@ -72,7 +72,7 @@ const mutationParams = {
   profile: {
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort",
+    travelStyle: "smart-budget",
     interests: ["culture", "food"],
   },
 };

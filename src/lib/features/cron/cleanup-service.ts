@@ -1,7 +1,7 @@
 import { UnauthorizedError } from "@/lib/api/errors";
 import { getCronSecret } from "@/lib/config/server-env";
-import { cleanupStaleGenerations } from "@/lib/services/itinerary-service";
-import { createLogger } from "@/lib/logger";
+import { cleanupStaleGenerations } from "@/lib/features/trips/itinerary-service";
+import { createLogger } from "@/lib/core/logger";
 
 const log = createLogger("cron-cleanup-service");
 

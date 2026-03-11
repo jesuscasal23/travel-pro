@@ -12,7 +12,7 @@ export function useTripShare(tripId: string, isAuthenticated: boolean | null) {
     setShareModalOpen(true);
 
     if (tripId === "guest" || isAuthenticated === false) {
-      setShareUrl(`${window.location.origin}/trip/${tripId}`);
+      setShareUrl(`${window.location.origin}/trips/${tripId}`);
       return;
     }
 

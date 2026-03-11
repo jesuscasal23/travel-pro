@@ -1,0 +1,172 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Coffee,
+  Globe2,
+  Mountain,
+  Music4,
+  SunMedium,
+  UtensilsCrossed,
+  Waves,
+  type LucideIcon,
+} from "lucide-react";
+import { useTripStore } from "@/stores/useTripStore";
+
+type InterestCard = {
+  id: string;
+  icon: LucideIcon;
+  iconClassName: string;
+  surfaceClassName: string;
+};
+
+const interestCards: InterestCard[] = [
+  {
+    id: "surfing",
+    icon: Waves,
+    iconClassName: "text-[#3b82ff]",
+    surfaceClassName: "bg-[#edf4ff]",
+  },
+  {
+    id: "food",
+    icon: UtensilsCrossed,
+    iconClassName: "text-[#f97316]",
+    surfaceClassName: "bg-[#fff3e8]",
+  },
+  {
+    id: "culture",
+    icon: Globe2,
+    iconClassName: "text-[#6b5cff]",
+    surfaceClassName: "bg-[#f0efff]",
+  },
+  {
+    id: "hiking",
+    icon: Mountain,
+    iconClassName: "text-[#10b981]",
+    surfaceClassName: "bg-[#e8f8f1]",
+  },
+  {
+    id: "nightlife",
+    icon: Music4,
+    iconClassName: "text-[#ff4b7a]",
+    surfaceClassName: "bg-[#ffeef3]",
+  },
+  {
+    id: "relaxation",
+    icon: Coffee,
+    iconClassName: "text-[#f59e0b]",
+    surfaceClassName: "bg-[#fff8e8]",
+  },
+  {
+    id: "nature",
+    icon: SunMedium,
+    iconClassName: "text-[#36a3ff]",
+    surfaceClassName: "bg-[#eef7ff]",
+  },
+  {
+    id: "photography",
+    icon: Camera,
+    iconClassName: "text-[#8b5cf6]",
+    surfaceClassName: "bg-[#f3efff]",
+  },
+];
+
+const labels: Record<string, string> = {
+  surfing: "Surfing",
+  food: "Food",
+  culture: "Culture",
+  hiking: "Hiking",
+  nightlife: "Nightlife",
+  relaxation: "Relaxation",
+  nature: "Nature",
+  photography: "Photography",
+};
+
+export default function V2InterestsPage() {
+  const router = useRouter();
+  const interests = useTripStore((s) => s.interests);
+  const toggleInterest = useTripStore((s) => s.toggleInterest);
+
+  return (
+    <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
+
+      <div className="relative flex min-h-dvh flex-col">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="pt-6">
+            <button
+              type="button"
+              onClick={() => router.push("/get-started/vibe")}
+              aria-label="Go back"
+              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors hover:text-[#1b2b4b]"
+            >
+              <ArrowLeft className="h-5 w-5" strokeWidth={2.2} />
+            </button>
+          </div>
+
+          <header className="pt-4">
+            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+              Interests
+            </p>
+            <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+              What excites you?
+            </h1>
+            <p className="mt-3 max-w-[320px] text-[15px] leading-7 text-[#6d7b91]">
+              Select the experiences that make a trip memorable for you.
+            </p>
+          </header>
+
+          <section className="grid grid-cols-2 gap-x-6 gap-y-6 pt-8">
+            {interestCards.map((interest) => {
+              const Icon = interest.icon;
+              const isSelected = interests.includes(interest.id);
+
+              return (
+                <button
+                  key={interest.id}
+                  type="button"
+                  onClick={() => toggleInterest(interest.id)}
+                  aria-pressed={isSelected}
+                  className="group flex flex-col items-center text-center"
+                >
+                  <div
+                    className={`flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-[18px] border transition-all ${
+                      isSelected
+                        ? "border-[#2563ff] bg-white shadow-[0_16px_30px_rgba(37,99,255,0.16)]"
+                        : `border-transparent ${interest.surfaceClassName}`
+                    }`}
+                  >
+                    <Icon className={`h-7 w-7 ${interest.iconClassName}`} strokeWidth={2} />
+                  </div>
+                  <span className="mt-3 text-[13px] font-bold tracking-[0.08em] text-[#314158] uppercase">
+                    {labels[interest.id]}
+                  </span>
+                </button>
+              );
+            })}
+          </section>
+        </div>
+
+        <div className="shrink-0 px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <button
+            type="button"
+            onClick={() => router.push("/get-started/budget")}
+            disabled={interests.length === 0}
+            className={`flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985] ${
+              interests.length === 0
+                ? "cursor-not-allowed bg-[#a3a3a3] shadow-none"
+                : "bg-[#101114] shadow-[0_18px_36px_rgba(16,17,20,0.22)]"
+            }`}
+          >
+            <span>Continue</span>
+            <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -6,7 +6,7 @@
 // ============================================================
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { createTestTrip } from "./helpers";
 
 // ── Mocks ────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -211,7 +211,7 @@ describe("POST /api/v1/trips/[id]/generate — single-city", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["culture", "food"],
         },
         promptVersion: "v1",
@@ -278,7 +278,7 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["culture", "food"],
         },
         promptVersion: "v1",
@@ -359,7 +359,7 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["culture"],
         },
         cities: [
@@ -419,7 +419,7 @@ describe("POST /api/v1/trips/[id]/generate — error handling", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["culture"],
         },
       }),

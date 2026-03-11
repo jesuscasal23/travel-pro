@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Mail } from "lucide-react";
+import { Copy, Check, Mail, Share2, Link2 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button, Skeleton } from "@/components/ui";
 
@@ -29,6 +29,8 @@ export function ShareModal({
   tripTitle,
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const canNativeShare =
+    typeof navigator !== "undefined" && typeof navigator.share === "function" && !!shareUrl;
 
   async function handleCopy() {
     if (!shareUrl) return;
@@ -38,6 +40,19 @@ export function ShareModal({
       setTimeout(() => setCopied(false), 2500);
     } catch {
       // Fallback: select the text manually
+    }
+  }
+
+  async function handleNativeShare() {
+    if (!shareUrl || !canNativeShare) return;
+    try {
+      await navigator.share({
+        title: tripTitle,
+        text: `Check out my trip: ${tripTitle}`,
+        url: shareUrl,
+      });
+    } catch {
+      // User cancelled or share target failed; ignore.
     }
   }
 
@@ -57,44 +72,89 @@ export function ShareModal({
   }
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title="Share your trip">
-      <div className="space-y-4">
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Share your trip"
+      mobileSheet
+      maxWidth="sm:max-w-lg"
+      contentClassName="px-5 pt-3 pb-5"
+    >
+      <div className="space-y-5">
+        <div className="mx-auto mb-1 h-1.5 w-12 rounded-full bg-[#d9e4f5] sm:hidden" />
+
+        <div className="rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,#f8fbff_0%,#f2f6fc_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+          <p className="text-[11px] font-bold tracking-[0.2em] text-[#2563ff] uppercase">
+            Share link
+          </p>
+          <p className="mt-2 text-[15px] font-semibold tracking-[-0.02em] text-[#17181c]">
+            {tripTitle}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-[#6d7b91]">
+            Send your itinerary to a friend or save the link for later.
+          </p>
+        </div>
+
         {/* URL display */}
         <div className="space-y-1.5">
-          <p className="text-muted-foreground text-xs">Share link</p>
+          <p className="text-[11px] font-bold tracking-[0.18em] text-[#8ea0bb] uppercase">Link</p>
           {isLoading || !shareUrl ? (
-            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-14 w-full rounded-[22px]" />
           ) : (
-            <div className="bg-secondary border-border flex items-center gap-2 rounded-lg border px-3 py-2.5">
-              <span className="text-muted-foreground flex-1 truncate font-mono text-sm">
+            <div className="flex items-center gap-3 rounded-[22px] border border-white/80 bg-white/90 px-4 py-3 shadow-[0_16px_30px_rgba(27,43,75,0.05)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2563ff]">
+                <Link2 className="h-4 w-4" />
+              </div>
+              <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-[#6d7b91]">
                 {shareUrl}
               </span>
             </div>
           )}
         </div>
 
-        {/* Copy button */}
-        <Button
-          variant="primary"
-          className="w-full gap-2"
-          onClick={handleCopy}
-          disabled={isLoading || !shareUrl}
-        >
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          {copied ? "Copied!" : "Copy link"}
-        </Button>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {canNativeShare ? (
+            <Button
+              variant="primary"
+              className="w-full gap-2 rounded-[22px] !bg-[#2563ff] py-3.5 text-sm font-semibold shadow-[0_18px_34px_rgba(37,99,255,0.24)]"
+              onClick={() => {
+                void handleNativeShare();
+              }}
+              disabled={isLoading || !shareUrl}
+            >
+              <Share2 className="h-4 w-4" />
+              Share now
+            </Button>
+          ) : null}
+
+          <Button
+            variant={canNativeShare ? "ghost" : "primary"}
+            className={`w-full gap-2 rounded-[22px] py-3.5 text-sm font-semibold ${
+              canNativeShare
+                ? "border border-white/80 bg-white/88 text-[#243247] shadow-[0_16px_30px_rgba(27,43,75,0.05)]"
+                : "!bg-[#2563ff] shadow-[0_18px_34px_rgba(37,99,255,0.24)]"
+            }`}
+            onClick={handleCopy}
+            disabled={isLoading || !shareUrl}
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? "Copied!" : "Copy link"}
+          </Button>
+        </div>
 
         <div className="relative flex items-center gap-3">
-          <div className="bg-border h-px flex-1" />
-          <span className="text-muted-foreground text-xs">or share via</span>
-          <div className="bg-border h-px flex-1" />
+          <div className="h-px flex-1 bg-[#dde6f2]" />
+          <span className="text-[11px] font-bold tracking-[0.18em] text-[#8ea0bb] uppercase">
+            More ways
+          </span>
+          <div className="h-px flex-1 bg-[#dde6f2]" />
         </div>
 
         {/* Social share buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Button
             variant="ghost"
-            className="border-border gap-2 border"
+            className="gap-2 rounded-[22px] border border-white/80 bg-white/88 py-3.5 text-sm font-semibold text-[#243247] shadow-[0_16px_30px_rgba(27,43,75,0.05)]"
             onClick={handleWhatsApp}
             disabled={isLoading || !shareUrl}
           >
@@ -103,7 +163,7 @@ export function ShareModal({
           </Button>
           <Button
             variant="ghost"
-            className="border-border gap-2 border"
+            className="gap-2 rounded-[22px] border border-white/80 bg-white/88 py-3.5 text-sm font-semibold text-[#243247] shadow-[0_16px_30px_rgba(27,43,75,0.05)]"
             onClick={handleEmail}
             disabled={isLoading || !shareUrl}
           >

@@ -76,9 +76,18 @@ src/
 ├── lib/
 │   ├── ai/                    # pipeline, enrichment
 │   │   └── prompts/           # v1, single-city, route-selector
-│   ├── api/                   # helpers (auth guards, apiHandler) + schemas (Zod)
-│   ├── services/              # itinerary-service (versioning), trip-service (intent, share)
-│   ├── db/prisma.ts           # Lazy-init PrismaClient (Proxy pattern)
+│   ├── api/                   # helpers (auth guards, apiHandler), errors
+│   ├── core/                  # prisma, logger, request-context, abort (canonical locations)
+│   ├── features/              # Domain services (canonical location for all business logic)
+│   │   ├── trips/             # itinerary-service, trip-query, trip-collection, trip-edit, trip-share, city-activity, flight-optimization, flight-search, query-shapes, schemas, serializer
+│   │   ├── generation/        # trip-generation-service, route-selection, city-discovery, schemas
+│   │   ├── profile/           # profile-service, schemas, query-shapes, serializer
+│   │   ├── enrichment/        # visa, weather, accommodation enrichment service
+│   │   ├── affiliate/         # redirect-service, redirect-utils, schema
+│   │   ├── health/            # health-service
+│   │   ├── cron/              # cleanup-service
+│   │   └── client-errors/     # service, schema
+│   ├── forms/                 # Form validation schemas (plan, onboarding, profile)
 │   ├── supabase/              # client.ts (browser) + server.ts (SSR cookies)
 │   ├── flights/               # amadeus.ts, optimizer.ts, city-iata-map, types
 │   ├── affiliate/             # link-generator (Skyscanner/Booking.com/GetYourGuide)
@@ -94,6 +103,33 @@ src/
 ```
 
 ## Key Patterns
+
+### Import Conventions
+
+Always import from canonical locations — no re-export shims:
+
+```ts
+// Core infrastructure — import from @/lib/core/
+import { prisma } from "@/lib/core/prisma";
+import { createLogger } from "@/lib/core/logger";
+import { requestContext } from "@/lib/core/request-context";
+import { throwIfAborted } from "@/lib/core/abort";
+
+// Business logic — import from @/lib/features/{domain}/
+import { findActiveItinerary } from "@/lib/features/trips/itinerary-service";
+import { createTripGenerationStreamResponse } from "@/lib/features/generation/trip-generation-service";
+import { getProfileByUserId } from "@/lib/features/profile/profile-service";
+
+// Within the same feature folder, use relative imports:
+import { TRIP_ACCESS_SELECT } from "./query-shapes";
+
+// Form schemas — import from @/lib/forms/
+import { validate, destinationStepSchema } from "@/lib/forms/schemas";
+
+// API schemas — import directly from the feature that owns them:
+import { GenerateTripInputSchema } from "@/lib/features/generation/schemas";
+import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
+```
 
 ### Next.js 16 Dynamic Params
 

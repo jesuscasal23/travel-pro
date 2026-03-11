@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { Clock } from "lucide-react";
 import { getCategoryStyle, getCategoryEmoji } from "@/lib/utils/category-colors";
-import { parseDurationMinutes } from "@/lib/utils/duration";
 import type { TimedActivity } from "@/lib/utils/time-distribution";
 
 interface ActivityCardProps {
@@ -24,28 +23,43 @@ export const ActivityCard = memo(function ActivityCard({
 
   return (
     <div
-      className={`border-border bg-card relative border-x border-t px-4 py-3 ${
-        isFirst ? "rounded-t-xl" : ""
-      } ${isLast ? "rounded-b-xl border-b" : ""}`}
+      className={`relative overflow-hidden rounded-[24px] border border-white/80 bg-white/88 px-4 py-4 shadow-[0_18px_34px_rgba(27,43,75,0.06)] backdrop-blur-sm ${
+        !isLast ? "mb-3" : ""
+      }`}
     >
       {/* Category color left accent */}
       <div
-        className={`absolute top-0 bottom-0 left-0 w-1 ${style.bgClass} ${
-          isFirst ? "rounded-tl-xl" : ""
-        } ${isLast ? "rounded-bl-xl" : ""}`}
+        className="absolute top-3 bottom-3 left-0 w-1 rounded-r-full"
+        style={{ backgroundColor: style.strokeHsl }}
       />
 
       <div className="pl-2">
         {/* Header: name + time badge */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="flex-shrink-0 text-sm">
+          <div className="flex min-w-0 items-start gap-3">
+            <span
+              className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+              style={{ backgroundColor: style.bgHsl, color: style.strokeHsl }}
+            >
               {activity.icon ?? getCategoryEmoji(activity.category)}
             </span>
-            <h4 className="text-foreground truncate text-sm font-semibold">{activity.name}</h4>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold tracking-[0.12em] uppercase ${style.textClass}`}
+                  style={{ backgroundColor: style.bgHsl }}
+                >
+                  {activity.category}
+                </span>
+              </div>
+              <h4 className="mt-2 truncate text-[15px] font-semibold tracking-[-0.02em] text-[#1b2435]">
+                {activity.name}
+              </h4>
+            </div>
           </div>
           <span
-            className={`flex-shrink-0 ${style.badgeBg} rounded-full px-2 py-0.5 font-mono text-[10px] font-medium text-white`}
+            className="flex-shrink-0 rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold tracking-[0.06em]"
+            style={{ backgroundColor: style.bgHsl, color: style.strokeHsl }}
           >
             {startTime}–{endTime}
           </span>
@@ -53,13 +67,13 @@ export const ActivityCard = memo(function ActivityCard({
 
         {/* Why description */}
         {activity.why && (
-          <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{activity.why}</p>
+          <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-[#6d7b91]">{activity.why}</p>
         )}
 
         {/* Meta row */}
-        <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
+        <div className="mt-3 flex items-center gap-3 text-[12px] text-[#7d8ea7]">
           {activity.duration && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 rounded-full bg-[#f4f7fb] px-2.5 py-1">
               <Clock className="h-3 w-3" /> {activity.duration}
             </span>
           )}
@@ -67,12 +81,12 @@ export const ActivityCard = memo(function ActivityCard({
 
         {/* Food recommendation — show if duration >= 1.5h */}
         {activity.food && durationHours >= 1.5 && (
-          <p className="mt-1.5 text-xs text-amber-700 dark:text-amber-400">🍽️ {activity.food}</p>
+          <p className="mt-2 text-[12px] text-[#9a6a10]">🍽️ {activity.food}</p>
         )}
 
         {/* Pro tip — show if duration >= 2h */}
         {activity.tip && durationHours >= 2 && (
-          <p className="text-muted-foreground mt-1 text-xs italic">💡 {activity.tip}</p>
+          <p className="mt-1.5 text-[12px] text-[#6d7b91] italic">💡 {activity.tip}</p>
         )}
       </div>
     </div>

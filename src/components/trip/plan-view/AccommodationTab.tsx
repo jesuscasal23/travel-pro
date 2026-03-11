@@ -55,7 +55,7 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
 
   const dateStart = useTripStore((s) => s.dateStart);
   const travelers = useTripStore((s) => s.travelers) || 1;
-  const travelStyle = useTripStore((s) => s.travelStyle) || "comfort";
+  const travelStyle = useTripStore((s) => s.travelStyle) || "smart-budget";
   const setItinerary = useTripStore((s) => s.setItinerary);
 
   const [refetching, setRefetching] = useState(false);

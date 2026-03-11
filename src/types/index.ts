@@ -142,7 +142,7 @@ export interface InterestOption {
 }
 
 /** Travel style */
-export type TravelStyle = "backpacker" | "comfort" | "luxury";
+export type TravelStyle = "backpacker" | "smart-budget" | "comfort-explorer" | "luxury";
 
 /** Activity pace — how many activities per day the traveler prefers */
 export type ActivityPace = "relaxed" | "moderate" | "active";

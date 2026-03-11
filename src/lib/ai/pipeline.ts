@@ -27,11 +27,59 @@ import { parseAndValidate, extractJSON, cityActivitiesOutputSchema } from "./par
 import type { UserProfile, TripIntent, Itinerary, TripDay } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
-import { createLogger } from "@/lib/logger";
-import { discoverNewCities } from "@/lib/services/city-discovery";
-import { throwIfAborted } from "@/lib/abort";
+import { createLogger } from "@/lib/core/logger";
+import { discoverNewCities } from "@/lib/features/generation/city-discovery";
+import { throwIfAborted } from "@/lib/core/abort";
+import {
+  MAX_TOKENS_MULTI_CITY,
+  MAX_TOKENS_SINGLE_CITY,
+  MAX_TOKENS_ROUTE_ONLY,
+  MAX_TOKENS_CITY_ACTIVITIES,
+} from "@/lib/config/constants";
 
 const log = createLogger("pipeline");
+
+// ── Shared Stage A: route selection ─────────────────────────
+
+/**
+ * Resolve multi-city route via Haiku. Falls back gracefully if route
+ * selection fails (Claude will pick the route inline instead).
+ */
+async function resolveMultiCityRoute(
+  profile: UserProfile,
+  tripIntent: TripIntent,
+  preSelectedCities: CityWithDays[] | undefined,
+  signal: AbortSignal | undefined,
+  logPrefix: string,
+  elapsed: () => string
+): Promise<CityWithDays[] | undefined> {
+  if (preSelectedCities) {
+    log.info(`${logPrefix} Stage A skipped: using pre-selected cities`, {
+      count: preSelectedCities.length,
+      elapsed: elapsed(),
+    });
+    return preSelectedCities;
+  }
+
+  const tA = Date.now();
+  try {
+    log.info(`${logPrefix} Stage A: Selecting route with Haiku`);
+    const cities = await selectRoute(profile, tripIntent, getAnthropic(), signal);
+    log.info(`${logPrefix} Stage A complete`, {
+      duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
+      cities: cities.map((c) => c.city),
+      elapsed: elapsed(),
+    });
+    return cities;
+  } catch (e) {
+    log.warn(`${logPrefix} Stage A failed, falling back to Claude-only route`, {
+      duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
+      error: getErrorMessage(e),
+      elapsed: elapsed(),
+    });
+    return undefined;
+  }
+}
 
 // ============================================================
 // generateCoreItinerary (route + days, no enrichment)
@@ -66,38 +114,19 @@ export async function generateCoreItinerary(
     });
     userPrompt = assembleSingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
-    maxTokens = 8000;
+    maxTokens = MAX_TOKENS_SINGLE_CITY;
   } else {
-    let cities: CityWithDays[] | undefined = preSelectedCities;
-
-    if (!cities) {
-      const tA = Date.now();
-      try {
-        log.info("Stage A: Selecting route with Haiku");
-        cities = await selectRoute(profile, tripIntent, getAnthropic(), signal);
-        log.info("Stage A complete", {
-          duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
-          cities: cities.map((c) => c.city),
-          elapsed: elapsed(),
-        });
-      } catch (e) {
-        log.warn("Stage A failed, falling back to Claude-only route", {
-          duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
-          error: getErrorMessage(e),
-          elapsed: elapsed(),
-        });
-        cities = undefined;
-      }
-    } else {
-      log.info("Stage A skipped: using pre-selected cities", {
-        count: cities.length,
-        elapsed: elapsed(),
-      });
-    }
-
+    const cities = await resolveMultiCityRoute(
+      profile,
+      tripIntent,
+      preSelectedCities,
+      signal,
+      "",
+      elapsed
+    );
     userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
     systemPrompt = SYSTEM_PROMPT_V1;
-    maxTokens = 10000;
+    maxTokens = MAX_TOKENS_MULTI_CITY;
   }
 
   log.info("Stage 1 (prompt assembly) done", { elapsed: elapsed() });
@@ -132,7 +161,9 @@ export async function generateCoreItinerary(
   });
 
   // Best-effort: discover unknown cities (non-blocking)
-  discoverNewCities(parsed.route, tripIntent.id).catch(() => {});
+  discoverNewCities(parsed.route, tripIntent.id).catch((e) => {
+    log.warn("City discovery failed (non-blocking)", { error: getErrorMessage(e) });
+  });
 
   return parsed;
 }
@@ -168,32 +199,19 @@ export async function generateRouteOnly(
     });
     userPrompt = assembleRouteOnlySingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY;
-    maxTokens = 2000;
+    maxTokens = MAX_TOKENS_ROUTE_ONLY;
   } else {
-    let cities: CityWithDays[] | undefined = preSelectedCities;
-
-    if (!cities) {
-      const tA = Date.now();
-      try {
-        log.info("Route-only Stage A: Selecting route with Haiku");
-        cities = await selectRoute(profile, tripIntent, getAnthropic(), signal);
-        log.info("Route-only Stage A complete", {
-          duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
-          cities: cities.map((c) => c.city),
-          elapsed: elapsed(),
-        });
-      } catch (e) {
-        log.warn("Route-only Stage A failed, falling back", {
-          error: getErrorMessage(e),
-          elapsed: elapsed(),
-        });
-        cities = undefined;
-      }
-    }
-
+    const cities = await resolveMultiCityRoute(
+      profile,
+      tripIntent,
+      preSelectedCities,
+      signal,
+      "Route-only",
+      elapsed
+    );
     userPrompt = assembleRouteOnlyPrompt(profile, tripIntent, undefined, cities);
     systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY;
-    maxTokens = 2000;
+    maxTokens = MAX_TOKENS_ROUTE_ONLY;
   }
 
   log.info("Route-only prompt assembled", { elapsed: elapsed() });
@@ -218,7 +236,9 @@ export async function generateRouteOnly(
   });
 
   // Best-effort: discover unknown cities (non-blocking)
-  discoverNewCities(parsed.route, tripIntent.id).catch(() => {});
+  discoverNewCities(parsed.route, tripIntent.id).catch((e) => {
+    log.warn("City discovery failed (non-blocking)", { error: getErrorMessage(e) });
+  });
 
   return parsed;
 }
@@ -253,7 +273,7 @@ export async function generateCityActivities(
     throw new Error(`No days found for city "${cityStop.city}"`);
   }
 
-  const maxTokens = 8000;
+  const maxTokens = MAX_TOKENS_CITY_ACTIVITIES;
 
   log.info("Generating activities for city", {
     cityId,
@@ -348,7 +368,7 @@ export async function generateItinerary(
   // Stage 5: Persist via Prisma (best-effort)
   const t5 = Date.now();
   try {
-    const { getPrisma } = await import("@/lib/db/prisma");
+    const { getPrisma } = await import("@/lib/core/prisma");
     const existing = await getPrisma().itinerary.findFirst({
       where: { tripId: tripIntent.id, isActive: true },
     });

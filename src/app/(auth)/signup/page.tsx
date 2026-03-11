@@ -3,14 +3,13 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, Loader2, Mail, LockKeyhole, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
-import { Navbar } from "@/components/Navbar";
-import { Button, FormField } from "@/components/ui";
-import { inputClass } from "@/components/auth/auth-styles";
-import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
+import { Button } from "@/components/v2/ui/Button";
 
 const signupSchema = z
   .object({
@@ -28,6 +27,11 @@ const signupSchema = z
   });
 
 type SignupFormData = z.infer<typeof signupSchema>;
+
+const inputClass =
+  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-[#1b2b4b] outline-none transition-colors placeholder:text-[#9aacbf] focus:border-[#2563ff]";
+const labelClass = "mb-2 flex items-center gap-2 text-sm font-semibold text-[#1b2b4b]";
+const errorClass = "mt-2 text-sm text-[#dc2626]";
 
 function SignupForm() {
   const router = useRouter();
@@ -72,59 +76,131 @@ function SignupForm() {
   };
 
   return (
-    <div className="bg-background min-h-screen">
-      <Navbar isAuthenticated={false} />
+    <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
-      <div className="mx-auto max-w-md px-4 pt-24 pb-12">
-        <div className="card-travel p-8">
-          <h1 className="text-foreground mb-2 text-2xl font-bold">Create your account</h1>
-          <p className="text-muted-foreground mb-8 text-sm">
-            Start planning smarter trips in minutes.
-          </p>
+      <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-6 pt-8 pb-10">
+        <div className="flex items-center justify-between">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm">
+            <Link
+              href={next}
+              className="inline-flex items-center justify-center text-[#8aa0c0] transition-colors hover:text-[#1b2b4b]"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+            </Link>
+          </div>
+          <span className="rounded-full border border-white/70 bg-white/75 px-3 py-1.5 text-[11px] font-bold tracking-[0.18em] text-[#8ea0bb] uppercase shadow-[0_12px_24px_rgba(27,43,75,0.05)]">
+            Sign Up
+          </span>
+        </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <FormField label="Email address" error={errors.email?.message}>
-              <input
-                {...register("email")}
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                className={inputClass}
-              />
-            </FormField>
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[#2563ff] shadow-[0_24px_48px_rgba(37,99,255,0.24)]">
+            <Sparkles className="h-10 w-10 text-white" strokeWidth={2.2} />
+          </div>
 
-            <FormField label="Password" error={errors.password?.message}>
-              <input
-                {...register("password")}
-                type="password"
-                autoComplete="new-password"
-                placeholder="At least 8 characters"
-                className={inputClass}
-              />
-            </FormField>
+          <div className="text-center">
+            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+              Travel Pro
+            </p>
+            <h1 className="mt-4 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+              Create your account
+            </h1>
+            <p className="mt-3 text-sm leading-7 text-[#6d7b91]">
+              Start planning smarter trips in minutes.
+            </p>
+          </div>
 
-            <FormField label="Confirm password" error={errors.confirmPassword?.message}>
-              <input
-                {...register("confirmPassword")}
-                type="password"
-                autoComplete="new-password"
-                placeholder="Repeat your password"
-                className={inputClass}
-              />
-            </FormField>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-10 rounded-[30px] border border-white/80 bg-white/88 px-5 py-5 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+          >
+            <div className="space-y-5">
+              <GoogleAuthButton next={next} disabled={isLoading} onError={setServerError} />
 
-            <ServerErrorAlert error={serverError} />
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-[#dbe4f2]" />
+                <span className="text-[11px] font-bold tracking-[0.22em] text-[#9aacbf] uppercase">
+                  Or with email
+                </span>
+                <div className="h-px flex-1 bg-[#dbe4f2]" />
+              </div>
 
-            <Button type="submit" loading={isLoading} className="w-full">
-              Create account
-            </Button>
+              <div>
+                <label className={labelClass}>
+                  <Mail className="h-4 w-4 text-[#8ea0bb]" />
+                  Email address
+                </label>
+                <input
+                  {...register("email")}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className={inputClass}
+                />
+                {errors.email?.message && <p className={errorClass}>{errors.email.message}</p>}
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
+                  Password
+                </label>
+                <input
+                  {...register("password")}
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="At least 8 characters"
+                  className={inputClass}
+                />
+                {errors.password?.message && (
+                  <p className={errorClass}>{errors.password.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
+                  Confirm password
+                </label>
+                <input
+                  {...register("confirmPassword")}
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Repeat your password"
+                  className={inputClass}
+                />
+                {errors.confirmPassword?.message && (
+                  <p className={errorClass}>{errors.confirmPassword.message}</p>
+                )}
+              </div>
+
+              {serverError ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                  <p className="text-sm text-[#dc2626]">{serverError}</p>
+                </div>
+              ) : null}
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full !bg-[#2563ff] py-4 shadow-[0_18px_36px_rgba(37,99,255,0.28)] hover:brightness-105"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isLoading ? "Creating account..." : "Create Account"}
+                </span>
+              </Button>
+            </div>
           </form>
 
-          <p className="text-muted-foreground mt-6 text-center text-sm">
+          <p className="pt-6 text-center text-sm text-[#6d7b91]">
             Already have an account?{" "}
             <Link
               href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
-              className="text-primary font-medium hover:underline"
+              className="font-semibold text-[#2563ff] transition-colors hover:brightness-95"
             >
               Sign in
             </Link>

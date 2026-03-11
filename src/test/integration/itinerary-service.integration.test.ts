@@ -2,11 +2,11 @@
 // Itinerary Service — Integration Tests (real $transaction)
 // ============================================================
 import { describe, it, expect, vi } from "vitest";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { createTestTrip, createTestItinerary } from "./helpers";
 
 // Mock only the logger (no side effects)
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -23,7 +23,7 @@ import {
   GenerationAlreadyInProgressError,
   markGenerationFailed,
   cleanupStaleGenerations,
-} from "@/lib/services/itinerary-service";
+} from "@/lib/features/trips/itinerary-service";
 
 describe("itinerary-service", () => {
   it("findActiveItinerary returns the active itinerary", async () => {

@@ -25,10 +25,17 @@ import { TravelStyleSelector } from "@/components/profile/TravelStyleSelector";
 import { BottomNav } from "@/components/v2/ui/BottomNav";
 import { DevelopmentTag } from "@/components/v2/ui/DevelopmentTag";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { useAuthStatus, useDeleteAccount, useExportData, useProfile, useSaveProfile } from "@/hooks/api";
+import {
+  useAuthStatus,
+  useDeleteAccount,
+  useExportData,
+  useProfile,
+  useSaveProfile,
+} from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { createClient } from "@/lib/supabase/client";
 import { travelStyles } from "@/data/travelStyles";
+import { hasInterest, normalizeInterests } from "@/lib/profile/interests";
 
 const accountItems: { icon: LucideIcon; label: string; isMock?: boolean }[] = [
   { icon: FileText, label: "Travel Documents", isMock: true },
@@ -89,7 +96,7 @@ export default function ProfilePage() {
 
   const [displayName, setDisplayName] = useState("Traveler");
   const [email, setEmail] = useState("");
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileEditorOverride, setProfileEditorOverride] = useState<boolean | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -123,19 +130,16 @@ export default function ProfilePage() {
       nationality: persistedProfile.nationality,
       homeAirport: persistedProfile.homeAirport,
       travelStyle: persistedProfile.travelStyle,
-      interests: persistedProfile.interests,
+      interests: normalizeInterests(persistedProfile.interests),
       pace: persistedProfile.pace ?? "moderate",
     });
-    setIsEditingProfile(false);
   }, [persistedProfile]);
 
-  useEffect(() => {
-    if (isAuth === true && !isProfileLoading && persistedProfile === null) {
-      setIsEditingProfile(true);
-    }
-  }, [isAuth, isProfileLoading, persistedProfile]);
+  const defaultIsEditingProfile = isAuth === true && !isProfileLoading && persistedProfile === null;
+  const isEditingProfile = profileEditorOverride ?? defaultIsEditingProfile;
 
-  const styleLabel = travelStyles.find((style) => style.id === travelStyle)?.label ?? "Comfort";
+  const styleLabel =
+    travelStyles.find((style) => style.id === travelStyle)?.label ?? "Smart Budget";
 
   const tags: { label: string; icon: LucideIcon }[] = [];
   tags.push({ label: styleLabel, icon: Sparkles });
@@ -143,9 +147,9 @@ export default function ProfilePage() {
   else if (pace === "relaxed") tags.push({ label: "Slow Traveler", icon: Leaf });
   else tags.push({ label: "Balanced Pace", icon: Clock });
 
-  if (interests.includes("Food")) tags.push({ label: "Foodie", icon: UtensilsCrossed });
-  if (interests.includes("Photography")) tags.push({ label: "Photography", icon: Camera });
-  if (interests.includes("Nature")) tags.push({ label: "Nature Lover", icon: Leaf });
+  if (hasInterest(interests, "food")) tags.push({ label: "Foodie", icon: UtensilsCrossed });
+  if (hasInterest(interests, "photography")) tags.push({ label: "Photography", icon: Camera });
+  if (hasInterest(interests, "nature")) tags.push({ label: "Nature Lover", icon: Leaf });
 
   async function handleSaveProfile() {
     try {
@@ -158,7 +162,7 @@ export default function ProfilePage() {
         onboardingCompleted: true,
       });
       setFeedback("Travel profile saved.");
-      setIsEditingProfile(false);
+      setProfileEditorOverride(false);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Failed to save profile.");
     }
@@ -243,7 +247,9 @@ export default function ProfilePage() {
             </div>
             <button
               type="button"
-              onClick={() => setIsEditingProfile((value) => !value)}
+              onClick={() =>
+                setProfileEditorOverride((value) => !(value ?? defaultIsEditingProfile))
+              }
               className="text-v2-orange text-sm font-semibold"
             >
               {isEditingProfile ? "Close" : "Edit"}
@@ -335,7 +341,10 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleSaveProfile}
                   disabled={
-                    !nationality || !homeAirport || saveProfileMutation.isPending || isProfileLoading
+                    !nationality ||
+                    !homeAirport ||
+                    saveProfileMutation.isPending ||
+                    isProfileLoading
                   }
                   className="bg-v2-navy disabled:bg-v2-navy/40 w-full rounded-xl px-4 py-3 text-sm font-bold text-white"
                 >
@@ -418,7 +427,11 @@ export default function ProfilePage() {
         onOpenChange={setIsDeleteOpen}
         title="Delete account?"
         description="This will permanently remove your profile and trips."
-        items={["Your saved travel profile", "Your trips and itinerary history", "Any shareable links"]}
+        items={[
+          "Your saved travel profile",
+          "Your trips and itinerary history",
+          "Any shareable links",
+        ]}
         warning="This action cannot be undone."
         confirmLabel="Delete account"
         loading={deleteAccountMutation.isPending}

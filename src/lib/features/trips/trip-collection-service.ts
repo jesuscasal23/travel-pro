@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { z } from "zod";
 import { CreateTripInputSchema } from "./schemas";
 import { TRIP_LIST_INCLUDE } from "./query-shapes";

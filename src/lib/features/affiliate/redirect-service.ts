@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { BadRequestError } from "@/lib/api/errors";
-import { createLogger } from "@/lib/logger";
+import { createLogger } from "@/lib/core/logger";
 import { ITINERARY_TRIP_ID_SELECT } from "@/lib/features/trips/query-shapes";
 import {
   getAffiliateDestinationHostname,

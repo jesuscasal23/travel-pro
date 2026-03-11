@@ -22,7 +22,8 @@ import { buildHotelLink } from "@/lib/affiliate/link-generator";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
 import { getAnthropic } from "@/lib/ai/client";
 import { getOptionalRedisEnv } from "@/lib/config/server-env";
-import { createLogger } from "@/lib/logger";
+import { WEATHER_CACHE_TTL_SECONDS, WEATHER_API_TIMEOUT_MS } from "@/lib/config/constants";
+import { createLogger } from "@/lib/core/logger";
 
 // ============================================================
 // Redis client (lazy — only instantiated if env vars are set)
@@ -35,8 +36,6 @@ function getRedis(): Redis | null {
   }
   return new Redis(redisEnv);
 }
-
-const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 // ============================================================
 // Visa Enrichment — Passport Index static dataset (199 passports × 227 destinations)
@@ -266,7 +265,7 @@ async function getHistoricalWeather(
 
   // 5s timeout — prevents a hanging Open-Meteo request from stalling the pipeline
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), WEATHER_API_TIMEOUT_MS);
 
   let response: Response;
   try {
@@ -302,7 +301,7 @@ async function getHistoricalWeather(
   // Store in Redis cache
   if (redis) {
     try {
-      await redis.set(cacheKey, result, { ex: CACHE_TTL_SECONDS });
+      await redis.set(cacheKey, result, { ex: WEATHER_CACHE_TTL_SECONDS });
     } catch {
       // Cache write failure is non-fatal
     }

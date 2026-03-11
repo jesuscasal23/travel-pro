@@ -2,7 +2,7 @@
 // Trip CRUD — Integration Tests (real database)
 // ============================================================
 import { describe, it, expect } from "vitest";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { createTestTrip, createTestItinerary } from "./helpers";
 
 describe("Trip CRUD", () => {

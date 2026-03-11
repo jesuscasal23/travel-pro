@@ -69,7 +69,10 @@ export function assembleRouteOnlyPrompt(
 
   const styleDescriptions: Record<string, string> = {
     backpacker: "backpacker style (hostels, dorms, street food, budget-conscious)",
-    comfort: "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining)",
+    "smart-budget":
+      "smart budget style (mid-range hotels, value-focused restaurants, efficient transport)",
+    "comfort-explorer":
+      "comfort explorer style (boutique hotels, stronger dining scene, curated experiences)",
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 
@@ -178,7 +181,10 @@ export function assembleRouteOnlySingleCityPrompt(
 
   const styleDescriptions: Record<string, string> = {
     backpacker: "backpacker style (hostels, dorms, street food, budget-conscious)",
-    comfort: "comfort style (3–4 star hotels, mix of local restaurants and mid-range dining)",
+    "smart-budget":
+      "smart budget style (mid-range hotels, value-focused restaurants, efficient transport)",
+    "comfort-explorer":
+      "comfort explorer style (boutique hotels, stronger dining scene, curated experiences)",
     luxury: "luxury style (5-star hotels, fine dining, private tours, premium experiences)",
   };
 

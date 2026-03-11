@@ -223,17 +223,17 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
           </a>
         </div>
 
-        {/* Link to full summary + PDF */}
+        {/* Link back to the trip overview */}
         <Link
-          href={`/trip/${tripId}/summary`}
+          href={`/trips/${tripId}`}
           className="border-border hover:border-primary hover:bg-primary/5 group mt-3 flex items-center justify-between rounded-xl border p-4 transition-all"
         >
           <div className="flex items-center gap-3">
             <LayoutList className="text-muted-foreground group-hover:text-primary h-5 w-5 shrink-0 transition-colors" />
             <div>
-              <p className="text-foreground text-sm font-medium">Full summary & PDF export</p>
+              <p className="text-foreground text-sm font-medium">Trip overview</p>
               <p className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
-                Day-by-day plan, visas, flights →
+                Itinerary, bookings, map →
               </p>
             </div>
           </div>

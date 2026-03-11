@@ -48,22 +48,15 @@ const eslintConfig = defineConfig([
   },
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: [
-      "src/lib/logger.ts",
-      "src/lib/db/prisma.ts",
-      "src/lib/request-context.ts",
-      "src/lib/supabase/client.ts",
-      "src/lib/supabase/server.ts",
-    ],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["@/lib/core/*"],
+              group: ["@/lib/db/*", "@/lib/services/*"],
               message:
-                "Import from the public '@/lib/*' wrappers to keep one canonical import surface.",
+                "These paths were removed. Import from '@/lib/core/*' for infrastructure and '@/lib/features/*' for services.",
             },
           ],
         },

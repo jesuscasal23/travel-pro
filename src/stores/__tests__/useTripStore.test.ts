@@ -8,7 +8,7 @@ function resetTripStore() {
     useTripStore.setState({
       nationality: "",
       homeAirport: "",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
       interests: [],
       planStep: 1,
       tripType: "multi-city",

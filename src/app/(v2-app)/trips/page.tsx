@@ -107,7 +107,7 @@ export default function TripsPage() {
                 <V2GradientCard
                   gradient={regionGradient(trip.region, index)}
                   className="h-52"
-                  onClick={() => router.push(`/trip/${trip.id}`)}
+                  onClick={() => router.push(`/trips/${trip.id}`)}
                 >
                   <div className="absolute top-3 right-3">
                     <span className="bg-v2-navy/80 rounded-full px-2.5 py-1 text-[10px] font-bold text-white uppercase backdrop-blur-sm">
@@ -127,7 +127,7 @@ export default function TripsPage() {
                 </V2GradientCard>
                 <div className="flex items-center justify-end px-1 pt-2">
                   <button
-                    onClick={() => router.push(`/trip/${trip.id}`)}
+                    onClick={() => router.push(`/trips/${trip.id}`)}
                     className="text-v2-navy flex items-center gap-1 text-xs font-semibold"
                   >
                     OPEN <ArrowRight size={14} />

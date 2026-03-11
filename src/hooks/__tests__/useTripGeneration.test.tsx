@@ -54,7 +54,7 @@ const baseParams = {
   profile: {
     nationality: "German",
     homeAirport: "FRA",
-    travelStyle: "comfort",
+    travelStyle: "smart-budget",
     interests: ["culture", "food"],
   },
   promptVersion: "v1" as const,

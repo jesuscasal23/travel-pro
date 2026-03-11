@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TravelStyle, TripType, Itinerary, ActivityPace } from "@/types";
+import { normalizeInterest, normalizeInterests } from "@/lib/profile/interests";
 
 interface TripStoreState {
   // Profile inputs reused across planner and profile screen
@@ -9,11 +10,17 @@ interface TripStoreState {
   travelStyle: TravelStyle;
   interests: string[];
   pace: ActivityPace;
+  vibeAdventureComfort: number;
+  vibeSocialQuiet: number;
+  vibeLuxuryBudget: number;
+  vibeStructuredSpontaneous: number;
+  vibeWarmMixed: number;
 
   // Quick Plan questionnaire
   planStep: number;
   tripType: TripType;
   tripDescription: string;
+  planningPriority: string;
   region: string;
   destination: string;
   destinationCountry: string;
@@ -38,13 +45,24 @@ interface TripStoreActions {
   setNationality: (nationality: string) => void;
   setHomeAirport: (airport: string) => void;
   setTravelStyle: (style: TravelStyle) => void;
+  setInterests: (interests: string[]) => void;
   toggleInterest: (interest: string) => void;
   setPace: (pace: ActivityPace) => void;
+  setVibeValue: (
+    key:
+      | "vibeAdventureComfort"
+      | "vibeSocialQuiet"
+      | "vibeLuxuryBudget"
+      | "vibeStructuredSpontaneous"
+      | "vibeWarmMixed",
+    value: number
+  ) => void;
 
   // Quick Plan
   setPlanStep: (step: number) => void;
   setTripType: (tripType: TripType) => void;
   setTripDescription: (description: string) => void;
+  setPlanningPriority: (priority: string) => void;
   setRegion: (region: string) => void;
   setDestination: (
     city: string,
@@ -74,6 +92,7 @@ const initialPlanState = {
   planStep: 1,
   tripType: "single-city" as TripType,
   tripDescription: "",
+  planningPriority: "",
   region: "",
   destination: "",
   destinationCountry: "",
@@ -95,9 +114,14 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Profile defaults
       nationality: "",
       homeAirport: "",
-      travelStyle: "comfort",
+      travelStyle: "smart-budget",
       interests: [],
       pace: "moderate" as ActivityPace,
+      vibeAdventureComfort: 50,
+      vibeSocialQuiet: 50,
+      vibeLuxuryBudget: 50,
+      vibeStructuredSpontaneous: 50,
+      vibeWarmMixed: 50,
       // Plan defaults
       ...initialPlanState,
 
@@ -105,18 +129,29 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setNationality: (nationality) => set({ nationality }),
       setHomeAirport: (airport) => set({ homeAirport: airport }),
       setTravelStyle: (style) => set({ travelStyle: style }),
+      setInterests: (interests) => set({ interests: normalizeInterests(interests) }),
       setPace: (pace) => set({ pace }),
+      setVibeValue: (key, value) =>
+        set({
+          [key]: Math.max(0, Math.min(100, value)),
+        } as Pick<TripStoreState, typeof key>),
       toggleInterest: (interest) =>
-        set((state) => ({
-          interests: state.interests.includes(interest)
-            ? state.interests.filter((i) => i !== interest)
-            : [...state.interests, interest],
-        })),
+        set((state) => {
+          const normalized = normalizeInterest(interest);
+          if (!normalized) return state;
+
+          return {
+            interests: state.interests.includes(normalized)
+              ? state.interests.filter((i) => i !== normalized)
+              : [...state.interests, normalized],
+          };
+        }),
 
       // Plan actions
       setPlanStep: (step) => set({ planStep: step }),
       setTripType: (tripType) => set({ tripType }),
       setTripDescription: (description) => set({ tripDescription: description }),
+      setPlanningPriority: (planningPriority) => set({ planningPriority }),
       setRegion: (region) => set({ region }),
       setDestination: (city, country, countryCode, lat, lng) =>
         set({
@@ -163,8 +198,14 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         travelStyle: state.travelStyle,
         interests: state.interests,
         pace: state.pace,
+        vibeAdventureComfort: state.vibeAdventureComfort,
+        vibeSocialQuiet: state.vibeSocialQuiet,
+        vibeLuxuryBudget: state.vibeLuxuryBudget,
+        vibeStructuredSpontaneous: state.vibeStructuredSpontaneous,
+        vibeWarmMixed: state.vibeWarmMixed,
         tripType: state.tripType,
         tripDescription: state.tripDescription,
+        planningPriority: state.planningPriority,
         region: state.region,
         destination: state.destination,
         destinationCountry: state.destinationCountry,
@@ -177,6 +218,21 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         currentTripId: state.currentTripId,
         itinerary: state.itinerary,
       }),
+      merge: (persistedState, currentState) => {
+        const typedState = persistedState as Partial<TripStoreState>;
+        return {
+          ...currentState,
+          ...typedState,
+          interests: normalizeInterests(typedState.interests ?? currentState.interests),
+          vibeAdventureComfort:
+            typedState.vibeAdventureComfort ?? currentState.vibeAdventureComfort,
+          vibeSocialQuiet: typedState.vibeSocialQuiet ?? currentState.vibeSocialQuiet,
+          vibeLuxuryBudget: typedState.vibeLuxuryBudget ?? currentState.vibeLuxuryBudget,
+          vibeStructuredSpontaneous:
+            typedState.vibeStructuredSpontaneous ?? currentState.vibeStructuredSpontaneous,
+          vibeWarmMixed: typedState.vibeWarmMixed ?? currentState.vibeWarmMixed,
+        };
+      },
     }
   )
 );

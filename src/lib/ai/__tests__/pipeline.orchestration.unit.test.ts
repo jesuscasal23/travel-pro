@@ -66,15 +66,15 @@ vi.mock("../enrichment", () => ({
   enrichWeather: mocks.enrichWeather,
 }));
 
-vi.mock("@/lib/services/city-discovery", () => ({
+vi.mock("@/lib/features/generation/city-discovery", () => ({
   discoverNewCities: mocks.discoverNewCities,
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => mocks.logger,
 }));
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   getPrisma: () => ({
     itinerary: {
       findFirst: mocks.prismaFindFirst,
@@ -94,7 +94,7 @@ import {
 const profile: UserProfile = {
   nationality: "German",
   homeAirport: "FRA",
-  travelStyle: "comfort",
+  travelStyle: "smart-budget",
   interests: ["culture", "food"],
 };
 

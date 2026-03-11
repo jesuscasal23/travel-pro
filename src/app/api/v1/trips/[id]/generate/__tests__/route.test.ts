@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import type { Itinerary } from "@/types";
+import { ServiceMisconfiguredError } from "@/lib/api/errors";
 
 const mocks = vi.hoisted(() => ({
   generateRouteOnly: vi.fn(),
@@ -26,7 +27,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     profile: { findUnique: vi.fn() },
     trip: { findUnique: vi.fn() },
@@ -37,7 +38,7 @@ vi.mock("@/lib/ai/pipeline", () => ({
   generateRouteOnly: mocks.generateRouteOnly,
 }));
 
-vi.mock("@/lib/services/itinerary-service", () => ({
+vi.mock("@/lib/features/trips/itinerary-service", () => ({
   createGeneratingRecord: mocks.createGeneratingRecord,
   activateGeneratedItinerary: mocks.activateGeneratedItinerary,
   GenerationAlreadyInProgressError: mocks.GenerationAlreadyInProgressError,
@@ -60,7 +61,7 @@ vi.mock("@/lib/supabase/server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -69,13 +70,13 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { POST } from "../route";
 
@@ -141,7 +142,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["food"],
         },
       }),
@@ -162,7 +163,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["food"],
         },
       }),
@@ -193,7 +194,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["food"],
         },
       }),
@@ -219,7 +220,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["food"],
         },
         promptVersion: "v2",
@@ -246,7 +247,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
         profile: {
           nationality: "German",
           homeAirport: "FRA",
-          travelStyle: "comfort",
+          travelStyle: "smart-budget",
           interests: ["food"],
         },
       }),
@@ -257,6 +258,33 @@ describe("POST /api/v1/trips/:id/generate", () => {
 
     expect(res.status).toBe(200);
     expect(body).not.toContain('"stage":"error"');
+    expect(mocks.markGenerationFailed).toHaveBeenCalledWith("itin-1");
+    expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
+  });
+
+  it("streams a specific error when Anthropic is not configured", async () => {
+    mocks.generateRouteOnly.mockRejectedValue(new ServiceMisconfiguredError("anthropic"));
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        profile: {
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "smart-budget",
+          interests: ["food"],
+        },
+      }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
+    const body = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(body).toContain(
+      "AI generation is not configured. Add ANTHROPIC_API_KEY to .env.local and restart the dev server."
+    );
     expect(mocks.markGenerationFailed).toHaveBeenCalledWith("itin-1");
     expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
   });

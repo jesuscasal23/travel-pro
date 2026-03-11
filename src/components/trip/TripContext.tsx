@@ -31,6 +31,7 @@ export interface TripContextValue {
 
   // City activity generation
   generatingCityId: string | null;
+  cityActivityErrors: Record<string, string>;
   onGenerateActivities: (cityId: string, cityName: string) => void;
 }
 

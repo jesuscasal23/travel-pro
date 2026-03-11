@@ -50,5 +50,5 @@ export const EnrichAccommodationInputSchema = z.object({
     .max(20),
   dateStart: z.string().min(1).max(20),
   travelers: z.number().int().min(1).max(20),
-  travelStyle: z.enum(["backpacker", "comfort", "luxury"]),
+  travelStyle: z.enum(["backpacker", "smart-budget", "comfort-explorer", "luxury"]),
 });

@@ -1,20 +1,19 @@
 import crypto from "crypto";
-import { prisma } from "@/lib/db/prisma";
-import { createLogger } from "@/lib/logger";
+import { prisma } from "@/lib/core/prisma";
+import { createLogger } from "@/lib/core/logger";
 import { getAppUrl } from "@/lib/config/server-env";
 import { TripNotFoundError } from "@/lib/api/errors";
+import { SHARE_TOKEN_BYTES, SHARE_TOKEN_MAX_ATTEMPTS } from "@/lib/config/constants";
 import { SHARE_TOKEN_SELECT } from "./query-shapes";
 
 const log = createLogger("trip-share-service");
-const SHARE_TOKEN_BYTES = 9;
-const MAX_SHARE_TOKEN_ATTEMPTS = 3;
 
 function generateShareToken(): string {
   return crypto.randomBytes(SHARE_TOKEN_BYTES).toString("base64url");
 }
 
 export async function getOrCreateTripShareToken(tripId: string): Promise<string> {
-  for (let attempt = 1; attempt <= MAX_SHARE_TOKEN_ATTEMPTS; attempt++) {
+  for (let attempt = 1; attempt <= SHARE_TOKEN_MAX_ATTEMPTS; attempt++) {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
       select: SHARE_TOKEN_SELECT,

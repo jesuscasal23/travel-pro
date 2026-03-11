@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { getSupabaseAdminEnv } from "@/lib/config/server-env";
 import { ProfileNotFoundError } from "@/lib/api/errors";
+import { normalizeInterests } from "@/lib/profile/interests";
 import { resolvePaceInput } from "@/lib/profile/pace";
 import { z } from "zod";
 import { PROFILE_EXPORT_INCLUDE } from "./query-shapes";
@@ -24,6 +25,7 @@ export async function findProfileByUserId(userId: string) {
 
 export async function saveProfile(userId: string, data: ProfilePatchInput) {
   const pace = resolvePaceInput(data);
+  const interests = normalizeInterests(data.interests);
 
   return prisma.profile.upsert({
     where: { userId },
@@ -31,8 +33,8 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
       userId,
       nationality: data.nationality ?? "German",
       homeAirport: data.homeAirport ?? "",
-      travelStyle: data.travelStyle ?? "comfort",
-      interests: data.interests ?? [],
+      travelStyle: data.travelStyle ?? "smart-budget",
+      interests,
       activityLevel: pace,
       languagesSpoken: data.languagesSpoken ?? [],
       onboardingCompleted: data.onboardingCompleted ?? false,
@@ -41,7 +43,7 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
       ...(data.nationality && { nationality: data.nationality }),
       ...(data.homeAirport && { homeAirport: data.homeAirport }),
       ...(data.travelStyle && { travelStyle: data.travelStyle }),
-      ...(data.interests && { interests: data.interests }),
+      ...(data.interests && { interests }),
       ...(pace && { activityLevel: pace }),
       ...(data.languagesSpoken && { languagesSpoken: data.languagesSpoken }),
       ...(data.onboardingCompleted !== undefined && {

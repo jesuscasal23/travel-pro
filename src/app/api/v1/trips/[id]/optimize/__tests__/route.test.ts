@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-vi.mock("@/lib/db/prisma", () => ({
+vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     profile: { findUnique: vi.fn() },
     trip: { findUnique: vi.fn() },
@@ -25,7 +25,7 @@ vi.mock("@/lib/flights/city-iata-map", () => ({
   lookupIata: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
     info: vi.fn(),
@@ -34,13 +34,13 @@ vi.mock("@/lib/logger", () => ({
   }),
 }));
 
-vi.mock("@/lib/request-context", () => ({
+vi.mock("@/lib/core/request-context", () => ({
   requestContext: {
     run: (_ctx: unknown, fn: () => unknown) => fn(),
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { optimizeFlights } from "@/lib/flights/optimizer";
 import { parseIataCode } from "@/lib/affiliate/link-generator";

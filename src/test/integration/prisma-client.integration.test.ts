@@ -4,7 +4,7 @@
 // PrismaClient was constructed without datasourceUrl.
 // ============================================================
 import { describe, it, expect } from "vitest";
-import { getPrisma, prisma } from "@/lib/db/prisma";
+import { getPrisma, prisma } from "@/lib/core/prisma";
 
 describe("PrismaClient initialization", () => {
   it("getPrisma() returns a client that can query the database", async () => {

@@ -18,8 +18,6 @@ const config: KnipConfig = {
     "src/components/map/RouteMapFallback.tsx",
     // CollapsibleSection rendered inside trip plan-view tabs in a way knip misses
     "src/components/ui/CollapsibleSection.tsx",
-    // TripPDFDocument is lazy-imported by PDFDownloadButton via dynamic import — knip can't trace it
-    "src/lib/export/pdf-generator.tsx",
   ],
   ignoreDependencies: [
     // Server-side deps knip can't trace through Next.js API routes at build time

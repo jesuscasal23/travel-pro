@@ -1,4 +1,4 @@
-import { createLogger } from "@/lib/logger";
+import { createLogger } from "@/lib/core/logger";
 import { z } from "zod";
 import { ClientErrorReportSchema } from "./schema";
 

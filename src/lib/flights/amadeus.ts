@@ -7,10 +7,18 @@ import { Redis } from "@upstash/redis";
 import type { FlightOption, FlightSearchResult, FlightLegResults } from "./types";
 import { buildFlightLink } from "@/lib/affiliate/link-generator";
 import { getErrorMessage } from "@/lib/utils/error";
-import { createLogger } from "@/lib/logger";
+import { createLogger } from "@/lib/core/logger";
 import { getOptionalAmadeusEnv, getOptionalRedisEnv } from "@/lib/config/server-env";
+import { AMADEUS_REQUEST_TIMEOUT_MS } from "@/lib/config/constants";
 
 const log = createLogger("amadeus");
+
+/** Combine an optional caller signal with a timeout signal. */
+function withTimeout(signal?: AbortSignal): AbortSignal {
+  const timeoutSignal = AbortSignal.timeout(AMADEUS_REQUEST_TIMEOUT_MS);
+  if (!signal) return timeoutSignal;
+  return AbortSignal.any([signal, timeoutSignal]);
+}
 
 export class AmadeusRateLimitError extends Error {
   constructor() {
@@ -104,7 +112,7 @@ export async function getToken(signal?: AbortSignal): Promise<string> {
       client_id: getOptionalAmadeusEnv()?.apiKey ?? "",
       client_secret: getOptionalAmadeusEnv()?.apiSecret ?? "",
     }).toString(),
-    signal,
+    signal: withTimeout(signal),
   });
 
   if (!res.ok) {
@@ -168,7 +176,7 @@ export async function searchFlights(
   try {
     res = await fetch(`${AMADEUS_BASE}/v2/shopping/flight-offers?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
-      signal,
+      signal: withTimeout(signal),
     });
   } catch (e) {
     log.warn("Network error", { error: getErrorMessage(e) });
@@ -252,7 +260,7 @@ export async function searchFlightsMulti(
   try {
     res = await fetch(`${AMADEUS_BASE}/v2/shopping/flight-offers?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
-      signal,
+      signal: withTimeout(signal),
     });
   } catch (e) {
     log.warn("Network error", { error: getErrorMessage(e) });
