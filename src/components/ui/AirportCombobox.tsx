@@ -147,7 +147,7 @@ export function AirportCombobox({
             >
               <span
                 className={`w-9 shrink-0 font-mono font-semibold ${
-                  isV2 ? "text-v2-orange" : "text-primary"
+                  isV2 ? "text-brand-primary" : "text-primary"
                 }`}
               >
                 {a.iata}

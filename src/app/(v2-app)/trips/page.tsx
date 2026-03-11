@@ -18,7 +18,7 @@ function regionGradient(region: string, index: number): string {
     "from-rose-400 to-sky-400",
     "from-indigo-600 to-purple-500",
     "from-emerald-600 to-teal-400",
-    "from-orange-500 to-red-400",
+    "from-sky-500 to-blue-500",
   ];
   return gradients[index % gradients.length];
 }
@@ -59,7 +59,7 @@ export default function TripsPage() {
 
       {isLoading && (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="text-v2-orange h-8 w-8 animate-spin" />
+          <Loader2 className="text-brand-primary h-8 w-8 animate-spin" />
         </div>
       )}
 
@@ -70,7 +70,7 @@ export default function TripsPage() {
           action={
             <button
               onClick={() => router.push("/login?next=/trips")}
-              className="bg-v2-orange mt-4 rounded-xl px-6 py-3 text-sm font-bold text-white"
+              className="bg-brand-primary mt-4 rounded-xl px-6 py-3 text-sm font-bold text-white"
             >
               Sign In
             </button>
@@ -89,7 +89,7 @@ export default function TripsPage() {
           action={
             <button
               onClick={() => router.push("/plan")}
-              className="bg-v2-orange mt-4 rounded-xl px-6 py-3 text-sm font-bold text-white"
+              className="bg-brand-primary mt-4 rounded-xl px-6 py-3 text-sm font-bold text-white"
             >
               Plan a Trip
             </button>

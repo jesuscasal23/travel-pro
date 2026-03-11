@@ -52,7 +52,7 @@ export default function V2AdvantagePage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
 
       <div className="relative flex min-h-dvh flex-col">
         <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -68,13 +68,13 @@ export default function V2AdvantagePage() {
           </div>
 
           <header className="px-2 pt-4 text-center">
-            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+            <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               The Travel Pro Advantage
             </p>
             <h1 className="font-display mt-4 text-[2.45rem] leading-[0.98] font-bold tracking-[-0.05em] text-[#101114]">
               Everything in
               <br />
-              <span className="text-[#2563ff]">one place</span>
+              <span className="text-brand-primary">one place</span>
             </h1>
             <p className="mx-auto mt-4 max-w-[280px] text-[15px] leading-7 text-[#6d7b91]">
               We orchestrate every detail so you can focus on making memories.
@@ -91,7 +91,7 @@ export default function V2AdvantagePage() {
                   className="flex items-center gap-3 rounded-[28px] border border-white/80 bg-white/88 px-4 py-3.5 shadow-[0_16px_36px_rgba(27,43,75,0.08)] backdrop-blur-sm"
                 >
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#eff4fb]">
-                    <Icon className="h-6 w-6 text-[#2563ff]" strokeWidth={2.1} />
+                    <Icon className="text-brand-primary h-6 w-6" strokeWidth={2.1} />
                   </div>
 
                   <div className="min-w-0 flex-1">

@@ -38,6 +38,18 @@
   --cat-transport: 220 10% 50%;
   --cat-adventure: 20 85% 55%;
   --cat-wellness: 175 55% 45%;
+
+  /* Semantic app tokens */
+  --brand-primary: #2563ff;
+  --brand-primary-soft: #eef4ff;
+  --brand-primary-subtle: #f6f9ff;
+  --brand-primary-border: #d8e7ff;
+  --brand-primary-border-strong: #5b8cff;
+  --brand-primary-glow: #2563ff14;
+  --shadow-brand-sm: 0 12px 20px rgba(37, 99, 255, 0.2);
+  --shadow-brand-md: 0 16px 30px rgba(37, 99, 255, 0.22);
+  --shadow-brand-lg: 0 18px 34px rgba(37, 99, 255, 0.24);
+  --shadow-brand-xl: 0 22px 40px rgba(37, 99, 255, 0.28);
 }
 
 .dark {
@@ -74,10 +86,19 @@
   --color-ring: hsl(var(--ring));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-soft: var(--brand-primary-soft);
+  --color-brand-primary-subtle: var(--brand-primary-subtle);
+  --color-brand-primary-border: var(--brand-primary-border);
+  --color-brand-primary-border-strong: var(--brand-primary-border-strong);
 
   --shadow-card: var(--shadow-card);
   --shadow-card-hover: var(--shadow-card-hover);
   --shadow-hero: var(--shadow-hero);
+  --shadow-brand-sm: var(--shadow-brand-sm);
+  --shadow-brand-md: var(--shadow-brand-md);
+  --shadow-brand-lg: var(--shadow-brand-lg);
+  --shadow-brand-xl: var(--shadow-brand-xl);
 
   --font-sans: var(--font-inter);
   --font-display: var(--font-jakarta);
@@ -95,8 +116,6 @@
   /* V2 Design Tokens */
   --color-v2-navy: #1b2b4b;
   --color-v2-navy-light: #2d4562;
-  --color-v2-orange: #f97316;
-  --color-v2-orange-dark: #ea680c;
   --color-v2-green: #10b981;
   --color-v2-red: #ef4444;
   --color-v2-blue: #3b82f6;

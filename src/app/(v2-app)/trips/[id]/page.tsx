@@ -32,7 +32,7 @@ export default function TripOverviewPage() {
               href={`/trips/${tripId}/${item.href}`}
               className="rounded-[26px] border border-white/80 bg-white/88 px-4 py-4 shadow-[0_16px_30px_rgba(27,43,75,0.05)]"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2563ff]">
+              <div className="text-brand-primary bg-brand-primary-soft flex h-11 w-11 items-center justify-center rounded-2xl">
                 <Icon className="h-5 w-5" />
               </div>
               <p className="mt-4 text-[15px] font-semibold tracking-[-0.02em] text-[#17181c]">
@@ -47,7 +47,7 @@ export default function TripOverviewPage() {
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold tracking-[0.18em] text-[#2563ff] uppercase">
+              <p className="text-brand-primary text-[11px] font-bold tracking-[0.18em] uppercase">
                 Next Steps
               </p>
               <h2 className="mt-1 text-[1.4rem] font-bold tracking-[-0.04em] text-[#101114]">
@@ -66,7 +66,7 @@ export default function TripOverviewPage() {
                 href={`/trips/${tripId}/bookings`}
                 className="flex items-center gap-3 rounded-[24px] border border-white/80 bg-white/88 px-4 py-4 shadow-[0_16px_30px_rgba(27,43,75,0.05)]"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2563ff]">
+                <div className="text-brand-primary bg-brand-primary-soft flex h-11 w-11 items-center justify-center rounded-2xl">
                   <ChevronRight className="h-4 w-4" />
                 </div>
                 <p className="flex-1 text-[15px] font-semibold tracking-[-0.02em] text-[#17181c]">

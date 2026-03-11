@@ -174,11 +174,11 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
     <div className="space-y-7 pb-2">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+          <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Destination
           </p>
           <h2 className="text-v2-navy text-[28px] leading-tight font-bold">
-            Where to <span className="text-[#2563ff] italic">next?</span>
+            Where to <span className="text-brand-primary italic">next?</span>
           </h2>
           <p className="text-v2-text-muted mt-2 text-sm">
             Your dream trip starts with a single pin on the map.
@@ -321,7 +321,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                   }}
                   className={`rounded-2xl border px-4 py-2.5 text-[12px] font-bold tracking-[0.08em] uppercase transition-all ${
                     isSelected
-                      ? "border-[#2563ff] bg-[#eef4ff] text-[#2563ff] shadow-[0_14px_28px_rgba(37,99,255,0.12)]"
+                      ? "border-brand-primary bg-brand-primary-soft text-brand-primary shadow-[var(--shadow-brand-md)]"
                       : "border-v2-border/80 bg-white/88 text-[#59657a]"
                   }`}
                 >

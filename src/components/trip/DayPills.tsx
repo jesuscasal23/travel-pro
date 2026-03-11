@@ -50,8 +50,8 @@ export function DayPills({ days, activeDay, onDayClick }: DayPillsProps) {
             onClick={() => onDayClick(day.day)}
             className={`flex-shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
               isActive
-                ? "border-[#2563ff] bg-[#2563ff] text-white shadow-[0_12px_20px_rgba(37,99,255,0.2)]"
-                : "border-white/80 bg-white/82 text-[#6d7b91] hover:border-[#cfe0ff] hover:bg-[#eef4ff] hover:text-[#2563ff]"
+                ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-sm)]"
+                : "hover:border-brand-primary-border hover:bg-brand-primary-soft hover:text-brand-primary border-white/80 bg-white/82 text-[#6d7b91]"
             }`}
           >
             Day {day.day}

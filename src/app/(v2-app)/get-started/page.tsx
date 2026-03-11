@@ -26,7 +26,7 @@ const floatingCards: FloatingCard[] = [
     caption: "ENTRY RULES",
     icon: Globe2,
     className: "left-7 top-9 -rotate-[12deg]",
-    iconClassName: "text-[#2563ff]",
+    iconClassName: "text-brand-primary",
   },
   {
     label: "Hotels",
@@ -57,19 +57,19 @@ export default function V2LandingPage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
       <div className="relative flex min-h-dvh flex-col">
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <header className="px-2 pt-7 text-center">
-            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+            <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Welcome to Travel Pro
             </p>
             <h1 className="font-display mt-5 text-[2.85rem] leading-[0.95] font-bold tracking-[-0.05em] text-[#101114]">
               Your dream trip,
               <br />
-              <span className="text-[#2563ff]">effortlessly.</span>
+              <span className="text-brand-primary">effortlessly.</span>
             </h1>
           </header>
 
@@ -128,7 +128,7 @@ export default function V2LandingPage() {
           <button
             type="button"
             onClick={() => router.push("/get-started/advantage")}
-            className="flex w-full items-center justify-center gap-3 rounded-[24px] bg-[#2563ff] px-6 py-5 text-lg font-bold text-white shadow-[0_18px_34px_rgba(37,99,255,0.28)] transition-transform duration-200 active:scale-[0.985]"
+            className="bg-brand-primary flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white shadow-[var(--shadow-brand-xl)] transition-transform duration-200 active:scale-[0.985]"
           >
             <span>Start Planning</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

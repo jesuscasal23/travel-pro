@@ -29,7 +29,7 @@ const signupSchema = z
 type SignupFormData = z.infer<typeof signupSchema>;
 
 const inputClass =
-  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-[#1b2b4b] outline-none transition-colors placeholder:text-[#9aacbf] focus:border-[#2563ff]";
+  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-[#1b2b4b] outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
 const labelClass = "mb-2 flex items-center gap-2 text-sm font-semibold text-[#1b2b4b]";
 const errorClass = "mt-2 text-sm text-[#dc2626]";
 
@@ -77,7 +77,7 @@ function SignupForm() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-6 pt-8 pb-10">
@@ -97,12 +97,12 @@ function SignupForm() {
         </div>
 
         <div className="flex flex-1 flex-col justify-center">
-          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[#2563ff] shadow-[0_24px_48px_rgba(37,99,255,0.24)]">
+          <div className="bg-brand-primary mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[28px] shadow-[var(--shadow-brand-lg)]">
             <Sparkles className="h-10 w-10 text-white" strokeWidth={2.2} />
           </div>
 
           <div className="text-center">
-            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+            <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Travel Pro
             </p>
             <h1 className="mt-4 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
@@ -186,7 +186,7 @@ function SignupForm() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full !bg-[#2563ff] py-4 shadow-[0_18px_36px_rgba(37,99,255,0.28)] hover:brightness-105"
+                className="!bg-brand-primary w-full py-4 shadow-[var(--shadow-brand-xl)] hover:brightness-105"
               >
                 <span className="flex items-center justify-center gap-2">
                   {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -200,7 +200,7 @@ function SignupForm() {
             Already have an account?{" "}
             <Link
               href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
-              className="font-semibold text-[#2563ff] transition-colors hover:brightness-95"
+              className="text-brand-primary font-semibold transition-colors hover:brightness-95"
             >
               Sign in
             </Link>

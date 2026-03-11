@@ -108,7 +108,7 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
             {styleProfile.map((chip) => (
               <span
                 key={chip}
-                className="rounded-full bg-[#eef4ff] px-3 py-1.5 text-[11px] font-bold tracking-[0.06em] text-[#2563ff] uppercase"
+                className="text-brand-primary bg-brand-primary-soft rounded-full px-3 py-1.5 text-[11px] font-bold tracking-[0.06em] uppercase"
               >
                 {chip}
               </span>

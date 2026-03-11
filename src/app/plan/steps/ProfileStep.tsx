@@ -22,7 +22,7 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
     <div className="space-y-7 pb-2">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+          <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Details
           </p>
           <h2 className="text-v2-navy text-[28px] leading-tight font-bold">The essentials</h2>
@@ -50,9 +50,9 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
         />
       </section>
 
-      <section className="border-v2-border/80 flex items-start gap-4 rounded-[28px] border bg-[#f7fbff] px-5 py-5 shadow-[0_18px_36px_rgba(37,99,255,0.05)]">
+      <section className="border-v2-border/80 bg-brand-primary-subtle flex items-start gap-4 rounded-[28px] border px-5 py-5 shadow-[var(--shadow-brand-sm)]">
         <div className="border-v2-border flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border bg-white">
-          <Info className="h-4 w-4 text-[#2563ff]" strokeWidth={2.4} />
+          <Info className="text-brand-primary h-4 w-4" strokeWidth={2.4} />
         </div>
         <p className="text-sm leading-6 font-semibold text-[#6f86aa]">
           Your data is encrypted and used only to personalize your travel experience.

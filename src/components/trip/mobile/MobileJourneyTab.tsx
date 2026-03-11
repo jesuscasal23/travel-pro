@@ -125,7 +125,7 @@ export function MobileJourneyTab({
                   </p>
                 </div>
                 {weather ? (
-                  <div className="flex items-center gap-1 rounded-full bg-[#eef4ff] px-2.5 py-1 text-[#2563ff]">
+                  <div className="text-brand-primary bg-brand-primary-soft flex items-center gap-1 rounded-full px-2.5 py-1">
                     <span className="text-sm">{weather.icon}</span>
                     <span className="text-xs font-semibold">{weather.temp}</span>
                   </div>
@@ -149,7 +149,7 @@ export function MobileJourneyTab({
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
                       <div className="mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs text-[#6d7b91] shadow-[0_14px_28px_rgba(27,43,75,0.05)] backdrop-blur-sm">
-                        <span className="text-[#2563ff]">✈️</span>
+                        <span className="text-brand-primary">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
                           {activeDay.travelDuration && <> · {activeDay.travelDuration}</>}
@@ -183,7 +183,7 @@ export function MobileJourneyTab({
             ) : (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-[#6d7b91]">
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#2563ff] border-t-transparent" />
+                  <div className="border-brand-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
                   <span>
                     {isGeneratingThis
                       ? `Generating activities for ${cityStop.city}...`

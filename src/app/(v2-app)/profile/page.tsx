@@ -204,14 +204,6 @@ export default function ProfilePage() {
                 <DevelopmentTag label="Profile beta" />
               </div>
               {email && <p className="text-v2-text-muted text-sm">{email}</p>}
-              {!isAuth && (
-                <button
-                  onClick={() => router.push("/login?next=/profile")}
-                  className="text-v2-orange mt-1 text-sm font-semibold"
-                >
-                  Sign in to save your profile
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -250,7 +242,7 @@ export default function ProfilePage() {
               onClick={() =>
                 setProfileEditorOverride((value) => !(value ?? defaultIsEditingProfile))
               }
-              className="text-v2-orange text-sm font-semibold"
+              className="text-brand-primary text-sm font-semibold"
             >
               {isEditingProfile ? "Close" : "Edit"}
             </button>

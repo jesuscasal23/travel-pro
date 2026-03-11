@@ -21,7 +21,7 @@ export function PaceSelector({ value, onChange }: PaceSelectorProps) {
             aria-pressed={isSelected}
             className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
               isSelected
-                ? "bg-v2-orange border-v2-orange text-white"
+                ? "border-brand-primary bg-brand-primary text-white"
                 : "border-v2-border text-v2-navy bg-white"
             }`}
           >

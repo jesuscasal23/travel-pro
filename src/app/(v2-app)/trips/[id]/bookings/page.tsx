@@ -12,7 +12,7 @@ export default function TripBookingsPage() {
     <TripMobileShell showBanners>
       <div className="space-y-8 py-1">
         <section>
-          <p className="text-[11px] font-bold tracking-[0.18em] text-[#2563ff] uppercase">
+          <p className="text-brand-primary text-[11px] font-bold tracking-[0.18em] uppercase">
             Flights
           </p>
           <div className="mt-3">
@@ -21,7 +21,9 @@ export default function TripBookingsPage() {
         </section>
 
         <section>
-          <p className="text-[11px] font-bold tracking-[0.18em] text-[#2563ff] uppercase">Stays</p>
+          <p className="text-brand-primary text-[11px] font-bold tracking-[0.18em] uppercase">
+            Stays
+          </p>
           <div className="mt-3">
             <AccommodationTab itinerary={itinerary} tripId={tripId} />
           </div>

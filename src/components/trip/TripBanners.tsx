@@ -27,10 +27,10 @@ export function TripBanners({ variant }: TripBannersProps) {
     <>
       {/* Generation banner */}
       {isGenerating && (
-        <div className="border-b border-[#dbe7ff] bg-[#f6f9ff]">
+        <div className="border-brand-primary-border bg-brand-primary-subtle border-b">
           <div className={`flex items-center gap-2 ${wrapperClass} ${paddingClass}`}>
-            <Loader2 className="h-4 w-4 animate-spin text-[#2563ff]" />
-            <span className="text-sm font-semibold text-[#2563ff]">
+            <Loader2 className="text-brand-primary h-4 w-4 animate-spin" />
+            <span className="text-brand-primary text-sm font-semibold">
               Generating your itinerary...
             </span>
           </div>
@@ -53,7 +53,7 @@ export function TripBanners({ variant }: TripBannersProps) {
 
       {/* Regeneration banner */}
       {needsRegeneration && !isPartialItinerary && !generationError && (
-        <div className="border-b border-[#dbe7ff] bg-[#f6f9ff]">
+        <div className="border-brand-primary-border bg-brand-primary-subtle border-b">
           <div
             className={`flex items-center justify-between gap-3 ${wrapperClass} ${paddingClass}`}
           >

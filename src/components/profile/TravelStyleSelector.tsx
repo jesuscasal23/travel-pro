@@ -28,7 +28,7 @@ export function TravelStyleSelector({
               aria-pressed={isSelected}
               className={`relative rounded-[22px] border px-3 py-4 text-center transition-all ${
                 isSelected
-                  ? "bg-v2-orange border-v2-orange text-white shadow-[0_14px_30px_rgba(249,115,22,0.24)]"
+                  ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-md)]"
                   : "border-v2-border text-v2-navy bg-white"
               }`}
             >
@@ -59,7 +59,7 @@ export function TravelStyleSelector({
             aria-pressed={isSelected}
             className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
               isSelected
-                ? "bg-v2-orange border-v2-orange text-white"
+                ? "border-brand-primary bg-brand-primary text-white"
                 : "border-v2-border text-v2-navy bg-white"
             }`}
           >

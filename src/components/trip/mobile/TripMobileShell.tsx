@@ -55,7 +55,9 @@ export function TripMobileShell({
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <p className="text-[11px] font-bold tracking-[0.24em] text-[#2563ff] uppercase">Trip</p>
+            <p className="text-brand-primary text-[11px] font-bold tracking-[0.24em] uppercase">
+              Trip
+            </p>
             <h1 className="mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em] text-[#101114]">
               {tripTitle}
             </h1>
@@ -86,7 +88,7 @@ export function TripMobileShell({
                 onError={() => setSrc(getCityPlaceholder(tripTitle))}
               />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,19,39,0.16)_0%,rgba(9,19,39,0.74)_100%)]" />
-              <div className="absolute top-4 left-4 rounded-full bg-[#2563ff] px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-white uppercase">
+              <div className="bg-brand-primary absolute top-4 left-4 rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-white uppercase">
                 Active Trip
               </div>
               <div className="absolute top-4 right-4 rounded-full border border-white/18 bg-white/12 px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-white uppercase backdrop-blur-md">

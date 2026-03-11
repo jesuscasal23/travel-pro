@@ -20,7 +20,7 @@ export function InterestSelector({ selected, onToggle }: InterestSelectorProps) 
             aria-pressed={isSelected}
             className={`rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all ${
               isSelected
-                ? "bg-v2-orange border-v2-orange text-white"
+                ? "border-brand-primary bg-brand-primary text-white"
                 : "bg-v2-chip-bg text-v2-navy border-transparent"
             }`}
           >

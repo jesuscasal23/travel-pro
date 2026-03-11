@@ -64,7 +64,7 @@ export default function V2BudgetPage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
       <div className="relative flex min-h-dvh flex-col">
@@ -81,7 +81,7 @@ export default function V2BudgetPage() {
           </div>
 
           <header className="pt-4">
-            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+            <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Budget
             </p>
             <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
@@ -105,7 +105,7 @@ export default function V2BudgetPage() {
                   aria-pressed={isSelected}
                   className={`flex w-full items-center gap-4 rounded-[30px] px-4 py-4 text-left transition-all ${
                     isSelected
-                      ? "bg-[#2563ff] text-white shadow-[0_22px_40px_rgba(37,99,255,0.28)]"
+                      ? "bg-brand-primary text-white shadow-[var(--shadow-brand-xl)]"
                       : "border border-white/80 bg-white/88 text-[#17181c] shadow-[0_16px_36px_rgba(27,43,75,0.08)] backdrop-blur-sm"
                   }`}
                 >
@@ -128,7 +128,7 @@ export default function V2BudgetPage() {
                         {option.title}
                       </p>
                       <span
-                        className={`text-[12px] font-bold tracking-[0.02em] ${isSelected ? "text-white" : "text-[#2563ff]"}`}
+                        className={`text-[12px] font-bold tracking-[0.02em] ${isSelected ? "text-white" : "text-brand-primary"}`}
                       >
                         {option.price}
                       </span>

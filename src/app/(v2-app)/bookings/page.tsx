@@ -120,12 +120,12 @@ function FlightCard({ booking }: { booking: Booking }) {
 function BookingCard({ booking }: { booking: Booking }) {
   const iconConfig: Record<BookingType, { bg: string; icon: React.ReactNode }> = {
     stay: {
-      bg: "bg-orange-50",
-      icon: <Building2 size={20} className="text-v2-orange" />,
+      bg: "bg-brand-primary-soft",
+      icon: <Building2 size={20} className="text-brand-primary" />,
     },
     transport: {
-      bg: "bg-blue-50",
-      icon: <Car size={20} className="text-v2-blue" />,
+      bg: "bg-brand-primary-soft",
+      icon: <Car size={20} className="text-brand-primary" />,
     },
     activity: {
       bg: "bg-purple-50",
@@ -137,7 +137,7 @@ function BookingCard({ booking }: { booking: Booking }) {
   const statusColor: Record<string, string> = {
     confirmed: "bg-v2-green",
     pending: "bg-amber-400",
-    upcoming: "bg-v2-blue",
+    upcoming: "bg-brand-primary",
   };
 
   const config = iconConfig[booking.type];
@@ -153,7 +153,7 @@ function BookingCard({ booking }: { booking: Booking }) {
         <p className="text-v2-navy text-sm font-semibold">{booking.title}</p>
         {booking.subtitle && <p className="text-v2-text-muted text-xs">{booking.subtitle}</p>}
         <div className="mt-0.5 flex items-center gap-2">
-          <span className="text-v2-blue text-xs">{booking.date}</span>
+          <span className="text-brand-primary text-xs">{booking.date}</span>
           {booking.price && (
             <span className="text-v2-navy text-xs font-semibold">{booking.price}</span>
           )}
@@ -182,9 +182,7 @@ export default function BookingsPage() {
         action={
           <V2IconActionButton
             icon={<Plus size={20} className="text-white" />}
-            badge={
-              <DevelopmentTag label="Mock" className="bg-white text-v2-navy" />
-            }
+            badge={<DevelopmentTag label="Mock" className="text-v2-navy bg-white" />}
           />
         }
       />

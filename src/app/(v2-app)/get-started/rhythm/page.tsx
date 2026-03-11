@@ -47,7 +47,7 @@ export default function V2RhythmPage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,#2563ff14_0%,transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
       <div className="relative flex min-h-dvh flex-col">
@@ -64,7 +64,7 @@ export default function V2RhythmPage() {
           </div>
 
           <header className="pt-4">
-            <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+            <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Your Rhythm
             </p>
             <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
@@ -88,13 +88,13 @@ export default function V2RhythmPage() {
                   aria-pressed={isSelected}
                   className={`flex w-full items-center gap-4 rounded-[30px] px-4 py-4 text-left transition-all ${
                     isSelected
-                      ? "border border-[#5b8cff] bg-white text-[#17181c] shadow-[0_20px_40px_rgba(37,99,255,0.12)]"
+                      ? "border-brand-primary-border-strong border bg-white text-[#17181c] shadow-[var(--shadow-brand-md)]"
                       : "border border-transparent bg-white/70 text-[#17181c]"
                   }`}
                 >
                   <div
                     className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
-                      isSelected ? "bg-[#2563ff]" : "bg-[#f2f5fa]"
+                      isSelected ? "bg-brand-primary" : "bg-[#f2f5fa]"
                     }`}
                   >
                     <Icon
@@ -114,7 +114,7 @@ export default function V2RhythmPage() {
 
                   <div
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                      isSelected ? "bg-[#2563ff]" : "bg-transparent"
+                      isSelected ? "bg-brand-primary" : "bg-transparent"
                     }`}
                   >
                     {isSelected ? <Check className="h-4 w-4 text-white" strokeWidth={3} /> : null}

@@ -27,7 +27,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
     <div className="space-y-7 pb-2">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#2563ff] uppercase">
+          <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Priorities
           </p>
           <h2 className="text-v2-navy text-[28px] leading-tight font-bold">
@@ -53,7 +53,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
                 aria-pressed={isSelected}
                 className={`flex min-h-[110px] flex-col items-start justify-between rounded-[26px] border px-4 py-4 text-left transition-all ${
                   isSelected
-                    ? "border-[#d8e7ff] bg-white shadow-[0_18px_34px_rgba(37,99,255,0.08)]"
+                    ? "border-brand-primary-border bg-white shadow-[var(--shadow-brand-sm)]"
                     : "border-white/85 bg-white/70 shadow-[0_12px_24px_rgba(27,43,75,0.04)]"
                 }`}
               >
@@ -62,7 +62,9 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
                 </span>
                 <span
                   className={`h-4 w-4 rounded-full border ${
-                    isSelected ? "border-[#2563ff] bg-[#2563ff]" : "border-[#e5e7eb] bg-white/70"
+                    isSelected
+                      ? "border-brand-primary bg-brand-primary"
+                      : "border-[#e5e7eb] bg-white/70"
                   }`}
                 />
               </button>

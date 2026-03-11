@@ -84,7 +84,7 @@ export function ShareModal({
         <div className="mx-auto mb-1 h-1.5 w-12 rounded-full bg-[#d9e4f5] sm:hidden" />
 
         <div className="rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,#f8fbff_0%,#f2f6fc_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
-          <p className="text-[11px] font-bold tracking-[0.2em] text-[#2563ff] uppercase">
+          <p className="text-brand-primary text-[11px] font-bold tracking-[0.2em] uppercase">
             Share link
           </p>
           <p className="mt-2 text-[15px] font-semibold tracking-[-0.02em] text-[#17181c]">
@@ -102,7 +102,7 @@ export function ShareModal({
             <Skeleton className="h-14 w-full rounded-[22px]" />
           ) : (
             <div className="flex items-center gap-3 rounded-[22px] border border-white/80 bg-white/90 px-4 py-3 shadow-[0_16px_30px_rgba(27,43,75,0.05)]">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2563ff]">
+              <div className="text-brand-primary bg-brand-primary-soft flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl">
                 <Link2 className="h-4 w-4" />
               </div>
               <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-[#6d7b91]">
@@ -116,7 +116,7 @@ export function ShareModal({
           {canNativeShare ? (
             <Button
               variant="primary"
-              className="w-full gap-2 rounded-[22px] !bg-[#2563ff] py-3.5 text-sm font-semibold shadow-[0_18px_34px_rgba(37,99,255,0.24)]"
+              className="!bg-brand-primary w-full gap-2 rounded-[22px] py-3.5 text-sm font-semibold shadow-[var(--shadow-brand-lg)]"
               onClick={() => {
                 void handleNativeShare();
               }}
@@ -132,7 +132,7 @@ export function ShareModal({
             className={`w-full gap-2 rounded-[22px] py-3.5 text-sm font-semibold ${
               canNativeShare
                 ? "border border-white/80 bg-white/88 text-[#243247] shadow-[0_16px_30px_rgba(27,43,75,0.05)]"
-                : "!bg-[#2563ff] shadow-[0_18px_34px_rgba(37,99,255,0.24)]"
+                : "!bg-brand-primary shadow-[var(--shadow-brand-lg)]"
             }`}
             onClick={handleCopy}
             disabled={isLoading || !shareUrl}
