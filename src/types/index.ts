@@ -119,6 +119,7 @@ export interface TripSummary {
   tripType?: TripType;
   destination?: string;
   destinationCountry?: string;
+  destinationCountryCode?: string;
   dateStart: string;
   dateEnd: string;
   travelers: number;

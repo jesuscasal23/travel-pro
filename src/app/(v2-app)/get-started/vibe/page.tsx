@@ -29,8 +29,6 @@ type VibeSlider = {
   rightLabel: string;
   leftIcon: LucideIcon;
   rightIcon: LucideIcon;
-  leftColor: string;
-  rightColor: string;
 };
 
 const vibeSliders: VibeSlider[] = [
@@ -40,8 +38,6 @@ const vibeSliders: VibeSlider[] = [
     rightLabel: "Comfort",
     leftIcon: Mountain,
     rightIcon: Sofa,
-    leftColor: "#e85d4a",
-    rightColor: "#6366f1",
   },
   {
     id: "vibeSocialQuiet",
@@ -49,8 +45,6 @@ const vibeSliders: VibeSlider[] = [
     rightLabel: "Quiet",
     leftIcon: Users,
     rightIcon: BookOpen,
-    leftColor: "#f59e0b",
-    rightColor: "#8b5cf6",
   },
   {
     id: "vibeLuxuryBudget",
@@ -58,8 +52,6 @@ const vibeSliders: VibeSlider[] = [
     rightLabel: "Budget",
     leftIcon: Gem,
     rightIcon: Wallet,
-    leftColor: "#ec4899",
-    rightColor: "#10b981",
   },
   {
     id: "vibeStructuredSpontaneous",
@@ -67,8 +59,6 @@ const vibeSliders: VibeSlider[] = [
     rightLabel: "Spontaneous",
     leftIcon: CalendarCheck,
     rightIcon: Shuffle,
-    leftColor: "#3b82f6",
-    rightColor: "#f97316",
   },
   {
     id: "vibeWarmMixed",
@@ -76,8 +66,6 @@ const vibeSliders: VibeSlider[] = [
     rightLabel: "Mixed Climates",
     leftIcon: Sun,
     rightIcon: CloudSnow,
-    leftColor: "#f59e0b",
-    rightColor: "#06b6d4",
   },
 ];
 
@@ -104,8 +92,8 @@ export default function V2VibePage() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
       <div className="relative flex min-h-dvh flex-col">
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
-          <div className="pt-6">
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
+          <div className="pt-4">
             <button
               type="button"
               onClick={() => router.push("/get-started/personalization")}
@@ -116,19 +104,19 @@ export default function V2VibePage() {
             </button>
           </div>
 
-          <header className="pt-4">
+          <header className="pt-3">
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               The Vibe
             </p>
-            <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display mt-2 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
               Tell us about you
             </h1>
-            <p className="mt-3 text-[15px] leading-7 text-[#6d7b91]">
+            <p className="mt-2 text-[15px] leading-7 text-[#6d7b91]">
               Slide to share your travel philosophy.
             </p>
           </header>
 
-          <section className="space-y-7 pt-8">
+          <section className="space-y-4 pt-6">
             {vibeSliders.map((slider) => {
               const currentValue = values[slider.id];
               const LeftIcon = slider.leftIcon;
@@ -139,26 +127,19 @@ export default function V2VibePage() {
               return (
                 <div
                   key={slider.id}
-                  className="rounded-2xl bg-white/60 px-4 py-4 shadow-[0_2px_12px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+                  className="rounded-2xl bg-white/60 px-4 py-3 shadow-[0_2px_12px_rgba(27,43,75,0.06)] backdrop-blur-sm"
                 >
-                  <div className="mb-3 flex items-center justify-between gap-4">
+                  <div className="mb-2 flex items-center justify-between gap-4">
                     <span
                       className="flex items-center gap-2 transition-opacity duration-200"
                       style={{ opacity: 0.45 + 0.55 * leftOpacity }}
                     >
-                      <span
-                        className="flex h-7 w-7 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: `${slider.leftColor}18` }}
-                      >
-                        <LeftIcon
-                          className="h-3.5 w-3.5"
-                          style={{ color: slider.leftColor }}
-                          strokeWidth={2.4}
-                        />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0D737718]">
+                        <LeftIcon className="text-brand-primary h-3.5 w-3.5" strokeWidth={2.4} />
                       </span>
                       <span
                         className="text-[11px] font-bold tracking-[0.16em] uppercase"
-                        style={{ color: leftOpacity > 0.5 ? slider.leftColor : "#8ea0bb" }}
+                        style={{ color: leftOpacity > 0.5 ? "var(--brand-primary)" : "#8ea0bb" }}
                       >
                         {slider.leftLabel}
                       </span>
@@ -169,19 +150,12 @@ export default function V2VibePage() {
                     >
                       <span
                         className="text-[11px] font-bold tracking-[0.16em] uppercase"
-                        style={{ color: rightOpacity > 0.5 ? slider.rightColor : "#8ea0bb" }}
+                        style={{ color: rightOpacity > 0.5 ? "var(--brand-primary)" : "#8ea0bb" }}
                       >
                         {slider.rightLabel}
                       </span>
-                      <span
-                        className="flex h-7 w-7 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: `${slider.rightColor}18` }}
-                      >
-                        <RightIcon
-                          className="h-3.5 w-3.5"
-                          style={{ color: slider.rightColor }}
-                          strokeWidth={2.4}
-                        />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0D737718]">
+                        <RightIcon className="text-brand-primary h-3.5 w-3.5" strokeWidth={2.4} />
                       </span>
                     </span>
                   </div>
@@ -189,11 +163,8 @@ export default function V2VibePage() {
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#e7ebf2]" />
                     <div
-                      className="pointer-events-none absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-[width] duration-75"
-                      style={{
-                        width: `${currentValue}%`,
-                        background: `linear-gradient(90deg, ${slider.leftColor}, ${slider.rightColor})`,
-                      }}
+                      className="bg-brand-primary pointer-events-none absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-[width] duration-75"
+                      style={{ width: `${currentValue}%` }}
                     />
 
                     <input

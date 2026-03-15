@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Share2 } from "lucide-react";
 import { BottomNav } from "@/components/v2/ui/BottomNav";
-import { ShareModal } from "@/components/trip/ShareModal";
 import { TripBanners } from "@/components/trip/TripBanners";
-import { useTripShare } from "@/components/trip/hooks/useTripShare";
 import { useTripContext } from "@/components/trip/TripContext";
 import { getCityHeroImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import { TripSectionNav } from "./TripSectionNav";
@@ -30,15 +26,13 @@ export function TripMobileShell({
   showHero = false,
   showBanners = false,
 }: TripMobileShellProps) {
-  const { itinerary, tripId, tripTitle, isAuthenticated, totalDays } = useTripContext();
+  const { itinerary, tripId, tripTitle, totalDays } = useTripContext();
   const [src, setSrc] = useState(() => {
     const heroStop = itinerary.route[0];
     return heroStop
       ? getCityHeroImage(heroStop.city, heroStop.countryCode)
       : getCityPlaceholder(tripTitle);
   });
-  const { shareModalOpen, setShareModalOpen, shareUrl, handleShareClick, isSharePending } =
-    useTripShare(tripId, isAuthenticated);
 
   const firstDate = itinerary.days[0]?.date;
   const lastDate = itinerary.days[itinerary.days.length - 1]?.date;
@@ -46,35 +40,18 @@ export function TripMobileShell({
   return (
     <div className="flex min-h-dvh flex-col bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
       <div className="flex-1 overflow-y-auto pb-4">
-        <div className="flex items-start justify-between px-6 pt-8 pb-4">
-          <div>
-            <Link
-              href="/trips"
-              className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/80 bg-white/88 text-[#6d7b91] shadow-[0_14px_24px_rgba(27,43,75,0.05)]"
-              aria-label="Back to trips"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <p className="text-brand-primary text-[11px] font-bold tracking-[0.24em] uppercase">
-              Trip
+        <div className="px-6 pt-8 pb-4">
+          <p className="text-brand-primary text-[11px] font-bold tracking-[0.24em] uppercase">
+            Trip
+          </p>
+          <h1 className="mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em] text-[#101114]">
+            {tripTitle}
+          </h1>
+          {firstDate && lastDate ? (
+            <p className="mt-2 text-sm text-[#6d7b91]">
+              {formatDateRange(firstDate, lastDate)} · {totalDays} days
             </p>
-            <h1 className="mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em] text-[#101114]">
-              {tripTitle}
-            </h1>
-            {firstDate && lastDate ? (
-              <p className="mt-2 text-sm text-[#6d7b91]">
-                {formatDateRange(firstDate, lastDate)} · {totalDays} days
-              </p>
-            ) : null}
-          </div>
-
-          <button
-            onClick={handleShareClick}
-            className="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/80 bg-white/88 text-[#243247] shadow-[0_14px_24px_rgba(27,43,75,0.05)]"
-            aria-label="Share trip"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
+          ) : null}
         </div>
 
         {showHero ? (
@@ -117,14 +94,6 @@ export function TripMobileShell({
       </div>
 
       <BottomNav />
-
-      <ShareModal
-        open={shareModalOpen}
-        onOpenChange={setShareModalOpen}
-        shareUrl={shareUrl}
-        isLoading={isSharePending}
-        tripTitle={tripTitle}
-      />
     </div>
   );
 }

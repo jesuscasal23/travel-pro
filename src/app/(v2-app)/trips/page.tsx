@@ -1,27 +1,16 @@
 "use client";
 
-import { Plus, ArrowRight, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { V2CenteredState } from "@/components/v2/ui/V2CenteredState";
 import { useTrips } from "@/hooks/api";
 import { useAuthStatus } from "@/hooks/api";
-import { V2GradientCard } from "@/components/v2/ui/V2GradientCard";
 import { V2IconActionButton } from "@/components/v2/ui/V2IconActionButton";
 import { V2PageHeader } from "@/components/v2/ui/V2PageHeader";
 import { V2Screen } from "@/components/v2/ui/V2Screen";
+import { getCityImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import type { TripSummary } from "@/types";
-
-/** Map region to a gradient for visual variety */
-function regionGradient(region: string, index: number): string {
-  const gradients = [
-    "from-amber-800 to-amber-600",
-    "from-rose-400 to-sky-400",
-    "from-indigo-600 to-purple-500",
-    "from-emerald-600 to-teal-400",
-    "from-sky-500 to-blue-500",
-  ];
-  return gradients[index % gradients.length];
-}
 
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
@@ -99,45 +88,68 @@ export default function TripsPage() {
 
       {!isLoading && tripList.length > 0 && (
         <div className="space-y-6 px-6">
-          {tripList.map((trip: TripSummary, index: number) => {
+          {tripList.map((trip: TripSummary) => {
             const days = daysUntil(trip.dateStart);
             const label = trip.destination ?? trip.region;
             return (
-              <div key={trip.id}>
-                <V2GradientCard
-                  gradient={regionGradient(trip.region, index)}
-                  className="h-52"
-                  onClick={() => router.push(`/trips/${trip.id}`)}
-                >
-                  <div className="absolute top-3 right-3">
-                    <span className="bg-v2-navy/80 rounded-full px-2.5 py-1 text-[10px] font-bold text-white uppercase backdrop-blur-sm">
-                      {days ? `${days} DAYS AWAY` : "PLANNED"}
-                    </span>
-                  </div>
-                  <p className="absolute bottom-12 left-5 text-xl font-bold text-white">{label}</p>
-                  <div className="absolute bottom-4 left-5 flex items-center gap-2">
-                    <span className="rounded-full bg-black/40 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
-                      {formatDateRange(trip.dateStart, trip.dateEnd)}
-                    </span>
-                    <span className="text-xs text-white/60">&bull;</span>
-                    <span className="text-xs text-white/80">
-                      {trip.travelers} traveler{trip.travelers !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </V2GradientCard>
-                <div className="flex items-center justify-end px-1 pt-2">
-                  <button
-                    onClick={() => router.push(`/trips/${trip.id}`)}
-                    className="text-v2-navy flex items-center gap-1 text-xs font-semibold"
-                  >
-                    OPEN <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                label={label}
+                days={days}
+                onClick={() => router.push(`/trips/${trip.id}`)}
+              />
             );
           })}
         </div>
       )}
     </V2Screen>
+  );
+}
+
+function TripCard({
+  trip,
+  label,
+  days,
+  onClick,
+}: {
+  trip: TripSummary;
+  label: string;
+  days: number | null;
+  onClick: () => void;
+}) {
+  const cityName = trip.destination ?? label;
+  const countryCode = trip.destinationCountryCode ?? "";
+  const [src, setSrc] = useState(() =>
+    countryCode ? getCityImage(cityName, countryCode) : getCityPlaceholder(cityName)
+  );
+
+  return (
+    <div className="relative h-52 cursor-pointer overflow-hidden rounded-2xl" onClick={onClick}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={label}
+        className="absolute inset-0 h-full w-full object-cover"
+        onError={() => setSrc(getCityPlaceholder(cityName))}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+
+      <div className="absolute top-3 right-3">
+        <span className="bg-v2-navy/80 rounded-full px-2.5 py-1 text-[10px] font-bold text-white uppercase backdrop-blur-sm">
+          {days ? `${days} DAYS AWAY` : "PLANNED"}
+        </span>
+      </div>
+      <p className="absolute bottom-12 left-5 text-xl font-bold text-white">{label}</p>
+      <div className="absolute bottom-4 left-5 flex items-center gap-2">
+        <span className="rounded-full bg-black/40 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
+          {formatDateRange(trip.dateStart, trip.dateEnd)}
+        </span>
+        <span className="text-xs text-white/60">&bull;</span>
+        <span className="text-xs text-white/80">
+          {trip.travelers} traveler{trip.travelers !== 1 ? "s" : ""}
+        </span>
+      </div>
+    </div>
   );
 }

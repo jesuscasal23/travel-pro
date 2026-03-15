@@ -90,6 +90,8 @@ model Itinerary {
   edits ItineraryEdit[]
 
   @@index([tripId])
+  @@index([tripId, isActive])
+  @@index([generationStatus])
   @@map("itineraries")
 }
 

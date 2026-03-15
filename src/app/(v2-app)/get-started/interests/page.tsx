@@ -120,7 +120,7 @@ export default function V2InterestsPage() {
             </p>
           </header>
 
-          <section className="grid grid-cols-4 gap-3 pt-8">
+          <section className="grid grid-cols-3 gap-3 pt-8">
             {interestCards.map((interest) => {
               const Icon = interest.icon;
               const isSelected = interests.includes(interest.id);
@@ -131,13 +131,13 @@ export default function V2InterestsPage() {
                   type="button"
                   onClick={() => toggleInterest(interest.id)}
                   aria-pressed={isSelected}
-                  className={`group flex flex-col items-center gap-2 rounded-2xl py-4 transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] ${
+                  className={`group flex aspect-square flex-col items-center justify-center gap-3 rounded-3xl transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] ${
                     isSelected
                       ? `${interest.surfaceClassName} ring-brand-primary shadow-[var(--shadow-brand-md)] ring-2`
                       : `${interest.surfaceClassName} hover:shadow-md`
                   }`}
                 >
-                  <Icon className={`h-7 w-7 ${interest.iconClassName}`} strokeWidth={2} />
+                  <Icon className={`h-9 w-9 ${interest.iconClassName}`} strokeWidth={1.8} />
                   <span className="text-[11px] font-bold tracking-[0.06em] text-[#314158] uppercase">
                     {labels[interest.id]}
                   </span>

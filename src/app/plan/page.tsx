@@ -450,7 +450,7 @@ export default function PlanPage() {
   ]);
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
       <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
       <ProgressBar progress={progress} />

@@ -199,10 +199,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     posthog?.capture("itinerary_viewed", { trip_id: tripId, city_count: route.length });
   }, [posthog, tripId, route.length]);
 
-  if (!itinerary) {
-    return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
-  }
-
   if (!dbSyncDone) {
     const heroStop = route[0];
     const heroImage = heroStop ? getCityHeroImage(heroStop.city, heroStop.countryCode) : null;
@@ -233,6 +229,10 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         </div>
       </div>
     );
+  }
+
+  if (!itinerary) {
+    return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 
   const countries = [...new Set(route.map((r) => r.country))];

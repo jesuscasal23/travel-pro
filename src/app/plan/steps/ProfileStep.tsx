@@ -33,7 +33,7 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
-      <section className="space-y-5 rounded-[34px] border border-white/80 bg-white/88 p-5 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm">
+      <section className="space-y-5 rounded-[34px] border border-white/80 bg-white/88 p-5">
         <ProfileBasicsFields
           nationality={nationality}
           homeAirport={homeAirport}
@@ -50,7 +50,7 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
         />
       </section>
 
-      <section className="border-v2-border/80 bg-brand-primary-subtle flex items-start gap-4 rounded-[28px] border px-5 py-5 shadow-[var(--shadow-brand-sm)]">
+      <section className="border-v2-border/80 bg-brand-primary-subtle flex items-start gap-4 rounded-[28px] border px-5 py-5">
         <div className="border-v2-border flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border bg-white">
           <Info className="text-brand-primary h-4 w-4" strokeWidth={2.4} />
         </div>
