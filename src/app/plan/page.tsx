@@ -34,11 +34,6 @@ export default function PlanPage() {
   const isAuthenticated = useAuthStatus();
   const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
-  const planPath = "/plan";
-  const signupPath = `/signup?next=${encodeURIComponent(planPath)}`;
-  const loginPath = `/login?next=${encodeURIComponent(planPath)}`;
-  const requiresAuth = isAuthenticated === false;
-  const authStatusLoading = isAuthenticated === null;
 
   const {
     planStep,
@@ -286,11 +281,6 @@ export default function PlanPage() {
   );
 
   const handleGenerate = useCallback(async () => {
-    if (isAuthenticated !== true) {
-      router.push(signupPath);
-      return;
-    }
-
     if (needsProfileStep) {
       const profileErrors = validate(onboardingStep1Schema, {
         nationality: effectiveNationality,
@@ -448,7 +438,6 @@ export default function PlanPage() {
     router,
     posthog,
     isAuthenticated,
-    signupPath,
     toast,
   ]);
 
@@ -458,8 +447,8 @@ export default function PlanPage() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
       <ProgressBar progress={progress} />
 
-      <div className="relative flex-1 overflow-y-auto px-6 pt-5 pb-4">
-        <div className="mb-4 flex items-center">
+      <div className="relative flex-1 overflow-y-auto px-6 pt-4 pb-3">
+        <div className="mb-3 flex items-center">
           <button
             type="button"
             onClick={goBack}
@@ -511,13 +500,13 @@ export default function PlanPage() {
         )}
       </div>
 
-      <div className="relative shrink-0 border-t border-white/75 bg-white/86 px-6 pt-4 pb-8 backdrop-blur-sm">
+      <div className="relative shrink-0 border-t border-white/75 bg-white/86 px-6 pt-3 pb-6 backdrop-blur-sm">
         {isFinalStep ? (
           <>
             <Button
               variant="apple"
-              onClick={() => (requiresAuth ? router.push(signupPath) : handleGenerate())}
-              disabled={!canAdvance() || isGenerating || authStatusLoading}
+              onClick={handleGenerate}
+              disabled={!canAdvance() || isGenerating}
               className="!bg-brand-primary flex items-center justify-center gap-2 rounded-[24px] py-5 text-lg font-bold shadow-[var(--shadow-brand-xl)] hover:brightness-105"
             >
               {isGenerating ? (
@@ -528,23 +517,10 @@ export default function PlanPage() {
               ) : (
                 <>
                   <Sparkles className="h-5 w-5" />
-                  {authStatusLoading
-                    ? "Checking account..."
-                    : requiresAuth
-                      ? "Create Account to Continue"
-                      : "Continue to Generate My Trip"}
+                  Continue to Generate My Trip
                 </>
               )}
             </Button>
-            {requiresAuth ? (
-              <button
-                type="button"
-                onClick={() => router.push(loginPath)}
-                className="mx-auto mt-3 block text-sm font-semibold text-[#6d7b91] transition-colors hover:text-[#1b2b4b]"
-              >
-                Already have an account? Sign in
-              </button>
-            ) : null}
           </>
         ) : (
           <Button

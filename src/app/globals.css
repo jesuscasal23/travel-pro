@@ -385,3 +385,29 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-inter), system-ui, sans-serif;
 }
+
+/* ============================================================
+   Global: all buttons show pointer cursor + hover micro-animation
+   ============================================================ */
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:not(:disabled):hover,
+[role="button"]:not(:disabled):hover {
+  transform: translateY(-1px);
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background 0.2s,
+    color 0.2s,
+    opacity 0.2s,
+    border-color 0.2s;
+}
+
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: translateY(0);
+}

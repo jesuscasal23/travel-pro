@@ -1,8 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Mountain,
+  Sofa,
+  Users,
+  BookOpen,
+  Gem,
+  Wallet,
+  CalendarCheck,
+  Shuffle,
+  Sun,
+  CloudSnow,
+} from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
+import type { LucideIcon } from "lucide-react";
 
 type VibeSlider = {
   id:
@@ -13,14 +27,58 @@ type VibeSlider = {
     | "vibeWarmMixed";
   leftLabel: string;
   rightLabel: string;
+  leftIcon: LucideIcon;
+  rightIcon: LucideIcon;
+  leftColor: string;
+  rightColor: string;
 };
 
 const vibeSliders: VibeSlider[] = [
-  { id: "vibeAdventureComfort", leftLabel: "Adventure", rightLabel: "Comfort" },
-  { id: "vibeSocialQuiet", leftLabel: "Social", rightLabel: "Quiet" },
-  { id: "vibeLuxuryBudget", leftLabel: "Luxury", rightLabel: "Budget" },
-  { id: "vibeStructuredSpontaneous", leftLabel: "Structured", rightLabel: "Spontaneous" },
-  { id: "vibeWarmMixed", leftLabel: "Warm Weather", rightLabel: "Mixed Climates" },
+  {
+    id: "vibeAdventureComfort",
+    leftLabel: "Adventure",
+    rightLabel: "Comfort",
+    leftIcon: Mountain,
+    rightIcon: Sofa,
+    leftColor: "#e85d4a",
+    rightColor: "#6366f1",
+  },
+  {
+    id: "vibeSocialQuiet",
+    leftLabel: "Social",
+    rightLabel: "Quiet",
+    leftIcon: Users,
+    rightIcon: BookOpen,
+    leftColor: "#f59e0b",
+    rightColor: "#8b5cf6",
+  },
+  {
+    id: "vibeLuxuryBudget",
+    leftLabel: "Luxury",
+    rightLabel: "Budget",
+    leftIcon: Gem,
+    rightIcon: Wallet,
+    leftColor: "#ec4899",
+    rightColor: "#10b981",
+  },
+  {
+    id: "vibeStructuredSpontaneous",
+    leftLabel: "Structured",
+    rightLabel: "Spontaneous",
+    leftIcon: CalendarCheck,
+    rightIcon: Shuffle,
+    leftColor: "#3b82f6",
+    rightColor: "#f97316",
+  },
+  {
+    id: "vibeWarmMixed",
+    leftLabel: "Warm Weather",
+    rightLabel: "Mixed Climates",
+    leftIcon: Sun,
+    rightIcon: CloudSnow,
+    leftColor: "#f59e0b",
+    rightColor: "#06b6d4",
+  },
 ];
 
 export default function V2VibePage() {
@@ -70,22 +128,72 @@ export default function V2VibePage() {
             </p>
           </header>
 
-          <section className="space-y-8 pt-8">
+          <section className="space-y-7 pt-8">
             {vibeSliders.map((slider) => {
               const currentValue = values[slider.id];
+              const LeftIcon = slider.leftIcon;
+              const RightIcon = slider.rightIcon;
+              const leftOpacity = 1 - currentValue / 100;
+              const rightOpacity = currentValue / 100;
 
               return (
-                <div key={slider.id}>
-                  <div className="mb-3 flex items-center justify-between gap-4 text-[11px] font-bold tracking-[0.16em] text-[#8ea0bb] uppercase">
-                    <span>{slider.leftLabel}</span>
-                    <span>{slider.rightLabel}</span>
+                <div
+                  key={slider.id}
+                  className="rounded-2xl bg-white/60 px-4 py-4 shadow-[0_2px_12px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+                >
+                  <div className="mb-3 flex items-center justify-between gap-4">
+                    <span
+                      className="flex items-center gap-2 transition-opacity duration-200"
+                      style={{ opacity: 0.45 + 0.55 * leftOpacity }}
+                    >
+                      <span
+                        className="flex h-7 w-7 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: `${slider.leftColor}18` }}
+                      >
+                        <LeftIcon
+                          className="h-3.5 w-3.5"
+                          style={{ color: slider.leftColor }}
+                          strokeWidth={2.4}
+                        />
+                      </span>
+                      <span
+                        className="text-[11px] font-bold tracking-[0.16em] uppercase"
+                        style={{ color: leftOpacity > 0.5 ? slider.leftColor : "#8ea0bb" }}
+                      >
+                        {slider.leftLabel}
+                      </span>
+                    </span>
+                    <span
+                      className="flex items-center gap-2 transition-opacity duration-200"
+                      style={{ opacity: 0.45 + 0.55 * rightOpacity }}
+                    >
+                      <span
+                        className="text-[11px] font-bold tracking-[0.16em] uppercase"
+                        style={{ color: rightOpacity > 0.5 ? slider.rightColor : "#8ea0bb" }}
+                      >
+                        {slider.rightLabel}
+                      </span>
+                      <span
+                        className="flex h-7 w-7 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: `${slider.rightColor}18` }}
+                      >
+                        <RightIcon
+                          className="h-3.5 w-3.5"
+                          style={{ color: slider.rightColor }}
+                          strokeWidth={2.4}
+                        />
+                      </span>
+                    </span>
                   </div>
 
                   <div className="relative">
-                    <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#e7ebf2]" />
+                    <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#e7ebf2]" />
                     <div
-                      className="bg-brand-primary pointer-events-none absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full"
-                      style={{ width: `${currentValue}%` }}
+                      className="pointer-events-none absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-[width] duration-75"
+                      style={{
+                        width: `${currentValue}%`,
+                        background: `linear-gradient(90deg, ${slider.leftColor}, ${slider.rightColor})`,
+                      }}
                     />
 
                     <input
@@ -122,37 +230,47 @@ export default function V2VibePage() {
       <style jsx>{`
         .v2-vibe-slider::-webkit-slider-thumb {
           appearance: none;
-          width: 28px;
-          height: 28px;
+          width: 26px;
+          height: 26px;
           border-radius: 9999px;
           background: #ffffff;
-          border: 8px solid #ffffff;
+          border: 3px solid #ffffff;
           box-shadow:
-            0 10px 24px rgba(27, 43, 75, 0.14),
-            inset 0 0 0 5px var(--brand-primary);
-          margin-top: -12px;
+            0 2px 8px rgba(27, 43, 75, 0.18),
+            0 8px 20px rgba(27, 43, 75, 0.1),
+            inset 0 0 0 4px var(--brand-primary);
+          margin-top: -11px;
           position: relative;
           z-index: 2;
+          transition: box-shadow 0.15s ease;
+        }
+
+        .v2-vibe-slider:active::-webkit-slider-thumb {
+          box-shadow:
+            0 2px 8px rgba(27, 43, 75, 0.22),
+            0 8px 20px rgba(27, 43, 75, 0.14),
+            inset 0 0 0 6px var(--brand-primary);
         }
 
         .v2-vibe-slider::-moz-range-thumb {
-          width: 28px;
-          height: 28px;
+          width: 26px;
+          height: 26px;
           border-radius: 9999px;
           background: #ffffff;
-          border: 8px solid #ffffff;
+          border: 3px solid #ffffff;
           box-shadow:
-            0 10px 24px rgba(27, 43, 75, 0.14),
-            inset 0 0 0 5px var(--brand-primary);
+            0 2px 8px rgba(27, 43, 75, 0.18),
+            0 8px 20px rgba(27, 43, 75, 0.1),
+            inset 0 0 0 4px var(--brand-primary);
         }
 
         .v2-vibe-slider::-webkit-slider-runnable-track {
-          height: 4px;
+          height: 6px;
           background: transparent;
         }
 
         .v2-vibe-slider::-moz-range-track {
-          height: 4px;
+          height: 6px;
           background: transparent;
         }
       `}</style>

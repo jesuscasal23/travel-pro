@@ -105,6 +105,8 @@ function LoginForm() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
+            autoComplete="on"
+            method="post"
             className="mt-10 rounded-[30px] border border-white/80 bg-white/88 px-5 py-5 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm"
           >
             <div className="space-y-5">
@@ -127,7 +129,11 @@ function LoginForm() {
                   {...register("email")}
                   id="email"
                   type="email"
-                  autoComplete="email"
+                  inputMode="email"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   placeholder="you@example.com"
                   className={inputClass}
                   aria-invalid={Boolean(errors.email)}

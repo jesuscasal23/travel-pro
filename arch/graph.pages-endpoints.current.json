@@ -1,0 +1,180 @@
+{
+  "nodes": [
+    {
+      "id": "endpoint:/api/generate/select-route",
+      "type": "endpoint",
+      "label": "/api/generate/select-route",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/client-errors",
+      "type": "endpoint",
+      "label": "/api/v1/client-errors",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/enrich/accommodation",
+      "type": "endpoint",
+      "label": "/api/v1/enrich/accommodation",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/profile",
+      "type": "endpoint",
+      "label": "/api/v1/profile",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips",
+      "type": "endpoint",
+      "label": "/api/v1/trips",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "id": "page:/",
+      "type": "page",
+      "label": "/"
+    },
+    {
+      "id": "page:/_dev/routes",
+      "type": "page",
+      "label": "/_dev/routes"
+    },
+    {
+      "id": "page:/bookings",
+      "type": "page",
+      "label": "/bookings"
+    },
+    {
+      "id": "page:/forgot-password",
+      "type": "page",
+      "label": "/forgot-password"
+    },
+    {
+      "id": "page:/get-started",
+      "type": "page",
+      "label": "/get-started"
+    },
+    {
+      "id": "page:/get-started/advantage",
+      "type": "page",
+      "label": "/get-started/advantage"
+    },
+    {
+      "id": "page:/get-started/budget",
+      "type": "page",
+      "label": "/get-started/budget"
+    },
+    {
+      "id": "page:/get-started/interests",
+      "type": "page",
+      "label": "/get-started/interests"
+    },
+    {
+      "id": "page:/get-started/personalization",
+      "type": "page",
+      "label": "/get-started/personalization"
+    },
+    {
+      "id": "page:/get-started/rhythm",
+      "type": "page",
+      "label": "/get-started/rhythm"
+    },
+    {
+      "id": "page:/get-started/vibe",
+      "type": "page",
+      "label": "/get-started/vibe"
+    },
+    {
+      "id": "page:/login",
+      "type": "page",
+      "label": "/login"
+    },
+    {
+      "id": "page:/plan",
+      "type": "page",
+      "label": "/plan"
+    },
+    {
+      "id": "page:/privacy",
+      "type": "page",
+      "label": "/privacy"
+    },
+    {
+      "id": "page:/profile",
+      "type": "page",
+      "label": "/profile"
+    },
+    {
+      "id": "page:/reset-password",
+      "type": "page",
+      "label": "/reset-password"
+    },
+    {
+      "id": "page:/share/[token]",
+      "type": "page",
+      "label": "/share/[token]"
+    },
+    {
+      "id": "page:/signup",
+      "type": "page",
+      "label": "/signup"
+    },
+    {
+      "id": "page:/trip/[id]",
+      "type": "page",
+      "label": "/trip/[id]"
+    },
+    {
+      "id": "page:/trip/[id]/edit",
+      "type": "page",
+      "label": "/trip/[id]/edit"
+    },
+    {
+      "id": "page:/trip/[id]/summary",
+      "type": "page",
+      "label": "/trip/[id]/summary"
+    },
+    {
+      "id": "page:/trips",
+      "type": "page",
+      "label": "/trips"
+    },
+    {
+      "id": "page:/trips/[id]",
+      "type": "page",
+      "label": "/trips/[id]"
+    },
+    {
+      "id": "page:/trips/[id]/bookings",
+      "type": "page",
+      "label": "/trips/[id]/bookings"
+    },
+    {
+      "id": "page:/trips/[id]/budget",
+      "type": "page",
+      "label": "/trips/[id]/budget"
+    },
+    {
+      "id": "page:/trips/[id]/itinerary",
+      "type": "page",
+      "label": "/trips/[id]/itinerary"
+    },
+    {
+      "id": "page:/trips/[id]/map",
+      "type": "page",
+      "label": "/trips/[id]/map"
+    }
+  ],
+  "edges": []
+}

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
@@ -24,6 +25,12 @@
     "update-visa-data": "node scripts/generate-visa-data.js && vitest run src/data/__tests__/visa-data.test.ts",
     "download:images": "npx tsx scripts/download-city-images.ts",
     "db:sync-cities": "npx tsx scripts/sync-discovered-cities.ts",
+    "arch:graph:pages-endpoints": "node --no-warnings scripts/generate-pages-endpoints-graph.ts",
+    "arch:graph:endpoint-db": "node --no-warnings scripts/generate-endpoint-db-graph.ts",
+    "arch:graph:full": "node --no-warnings scripts/generate-pages-endpoints-graph.ts && node --no-warnings scripts/generate-endpoint-db-graph.ts && node --no-warnings scripts/generate-page-ui-graph.ts",
+    "arch:graph:pages-endpoints:baseline": "node --no-warnings scripts/generate-pages-endpoints-graph.ts --output arch/graph.pages-endpoints.baseline.json",
+    "arch:graph:pages-endpoints:current": "node --no-warnings scripts/generate-pages-endpoints-graph.ts --output arch/graph.pages-endpoints.current.json",
+    "arch:diff:pages-endpoints": "node --no-warnings scripts/diff-pages-endpoints-graph.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "knip": "knip"
@@ -49,6 +56,7 @@
     "lucide-react": "^0.574.0",
     "maplibre-gl": "^5.18.0",
     "next": "16.1.6",
+    "next-route-visualizer": "^1.1.3",
     "next-sitemap": "^4.2.3",
     "pg": "^8.18.0",
     "posthog-js": "^1.350.0",
@@ -58,6 +66,7 @@
     "react-email": "^5.2.8",
     "react-hook-form": "^7.71.1",
     "react-map-gl": "^8.1.0",
+    "reactflow": "^11.11.4",
     "resend": "^6.9.2",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"

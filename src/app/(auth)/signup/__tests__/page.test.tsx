@@ -34,7 +34,7 @@ describe("SignupPage", () => {
     vi.clearAllMocks();
   });
 
-  it("shows confirmation instructions instead of redirecting when sign-up has no session", async () => {
+  it("redirects to the next step even when sign-up requires email confirmation", async () => {
     mockSignUp.mockResolvedValue({
       data: { session: null },
       error: null,
@@ -53,11 +53,6 @@ describe("SignupPage", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
-    await waitFor(() => expect(screen.getByText(/check your email/i)).toBeInTheDocument());
-
-    expect(
-      screen.getByText(/we sent a confirmation link to traveler@example.com/i)
-    ).toBeInTheDocument();
-    expect(mockRouterReplace).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockRouterReplace).toHaveBeenCalledWith("/plan"));
   });
 });

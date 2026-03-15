@@ -3,7 +3,6 @@
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
-import { CookieConsent } from "./CookieConsent";
 import { useToastStore } from "@/stores/useToastStore";
 import { useTripStore } from "@/stores/useTripStore";
 import { ToastContainer } from "@/components/ui/Toast";
@@ -94,7 +93,6 @@ export function Providers({ children }: { children: ReactNode }) {
     <MotionConfig reducedMotion="user">
       <QueryClientProvider client={queryClient}>
         {children}
-        <CookieConsent />
         <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       </QueryClientProvider>
     </MotionConfig>

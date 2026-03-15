@@ -187,107 +187,103 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
-      <section className="border-v2-border/80 rounded-[34px] border bg-white/88 p-5 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm">
-        <div>
-          <p className="text-v2-text-light text-[11px] font-bold tracking-[0.2em] uppercase">
-            Where
-          </p>
+      <div>
+        <p className="text-v2-text-light text-[11px] font-bold tracking-[0.2em] uppercase">Where</p>
 
-          <div ref={containerRef} className="relative mt-3">
-            <div className="pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2 text-[#9aacbf]">
-              {selectedLabel && !open ? (
-                <LocateFixed className="h-4 w-4" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )}
-            </div>
-            <input
-              type="text"
-              value={open ? query : selectedLabel}
-              onFocus={() => setOpen(true)}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setOpen(true);
-              }}
-              placeholder="Search cities, countries..."
-              className={`${travelInputClass} min-h-[58px] rounded-[18px] border-white/80 bg-white/92 pl-11 text-[16px] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]`}
-            />
-
-            {open && results.length > 0 && (
-              <div className="border-v2-border absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white shadow-[0_20px_40px_rgba(27,43,75,0.12)]">
-                {results.map((result) => (
-                  <button
-                    key={result.key}
-                    type="button"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      handleSelectResult(result);
-                    }}
-                    className="border-v2-border/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 hover:bg-[#f7faff]"
-                  >
-                    <div>
-                      <p className="text-v2-navy text-sm font-semibold">{result.label}</p>
-                      <p className="text-v2-text-muted mt-0.5 text-xs">{result.detail}</p>
-                    </div>
-                    <MapPinned className="h-4 w-4 text-[#9aacbf]" />
-                  </button>
-                ))}
-              </div>
+        <div ref={containerRef} className="relative mt-3">
+          <div className="pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2 text-[#9aacbf]">
+            {selectedLabel && !open ? (
+              <LocateFixed className="h-4 w-4" />
+            ) : (
+              <Search className="h-4 w-4" />
             )}
           </div>
+          <input
+            type="text"
+            value={open ? query : selectedLabel}
+            onFocus={() => setOpen(true)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setOpen(true);
+            }}
+            placeholder="Search cities, countries..."
+            className={`${travelInputClass} min-h-[58px] rounded-[18px] pl-11 text-[16px]`}
+          />
 
-          {(errors.destination || errors.destinationCountry || errors.region) && (
-            <p className={`${travelFieldErrorClass} mt-2`}>
-              {errors.destination || errors.destinationCountry || errors.region}
-            </p>
+          {open && results.length > 0 && (
+            <div className="border-v2-border absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white shadow-[0_20px_40px_rgba(27,43,75,0.12)]">
+              {results.map((result) => (
+                <button
+                  key={result.key}
+                  type="button"
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    handleSelectResult(result);
+                  }}
+                  className="border-v2-border/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 hover:bg-[#f7faff]"
+                >
+                  <div>
+                    <p className="text-v2-navy text-sm font-semibold">{result.label}</p>
+                    <p className="text-v2-text-muted mt-0.5 text-xs">{result.detail}</p>
+                  </div>
+                  <MapPinned className="h-4 w-4 text-[#9aacbf]" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
-        <div className="mt-5">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
-                Start
-              </label>
-              <div className="relative">
-                <CalendarDays className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9aacbf]" />
-                <input
-                  type="date"
-                  value={dateStart}
-                  onChange={(event) => {
-                    setDateStart(event.target.value);
-                    clearError("dateStart");
-                  }}
-                  className={`${travelInputClass} min-h-[56px] rounded-[18px] border-white/80 bg-white/92 pl-11`}
-                  style={{ color: dateStart ? "#1b2b4b" : "#9ca3af" }}
-                />
-              </div>
-              {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
-            </div>
+        {(errors.destination || errors.destinationCountry || errors.region) && (
+          <p className={`${travelFieldErrorClass} mt-2`}>
+            {errors.destination || errors.destinationCountry || errors.region}
+          </p>
+        )}
+      </div>
 
-            <div>
-              <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
-                End
-              </label>
-              <div className="relative">
-                <CalendarDays className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9aacbf]" />
-                <input
-                  type="date"
-                  value={dateEnd}
-                  min={dateStart}
-                  onChange={(event) => {
-                    setDateEnd(event.target.value);
-                    clearError("dateEnd");
-                  }}
-                  className={`${travelInputClass} min-h-[56px] rounded-[18px] border-white/80 bg-white/92 pl-11`}
-                  style={{ color: dateEnd ? "#1b2b4b" : "#9ca3af" }}
-                />
-              </div>
-              {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
-            </div>
-          </div>
+      <div>
+        <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
+          Start
+        </label>
+        <div className="relative">
+          <CalendarDays className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9aacbf]" />
+          <input
+            type="date"
+            value={dateStart}
+            onFocus={(e) => e.target.showPicker?.()}
+            onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+            onChange={(event) => {
+              setDateStart(event.target.value);
+              clearError("dateStart");
+            }}
+            className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
+            style={{ color: dateStart ? "#1b2b4b" : "#9ca3af" }}
+          />
         </div>
-      </section>
+        {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
+      </div>
+
+      <div>
+        <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
+          End
+        </label>
+        <div className="relative">
+          <CalendarDays className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9aacbf]" />
+          <input
+            type="date"
+            value={dateEnd}
+            min={dateStart}
+            onFocus={(e) => e.target.showPicker?.()}
+            onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+            onChange={(event) => {
+              setDateEnd(event.target.value);
+              clearError("dateEnd");
+            }}
+            className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
+            style={{ color: dateEnd ? "#1b2b4b" : "#9ca3af" }}
+          />
+        </div>
+        {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
+      </div>
 
       <section>
         <p className="text-v2-text-light mb-3 text-[11px] font-bold tracking-[0.2em] uppercase">

@@ -1,0 +1,4269 @@
+{
+  "nodes": [
+    {
+      "id": "action:/plan:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/plan:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/profile:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:AccommodationTab",
+      "type": "action",
+      "label": "AccommodationTab",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "AccommodationTab",
+        "handlerName": "AccommodationTab",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/bookings:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/budget:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/itinerary:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:fetchAccommodation",
+      "type": "action",
+      "label": "fetchAccommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "fetchAccommodation",
+        "handlerName": "fetchAccommodation",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:fetchProfile",
+      "type": "action",
+      "label": "fetchProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "fetchProfile",
+        "handlerName": "fetchProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:fetchRouteSelection",
+      "type": "action",
+      "label": "fetchRouteSelection",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "fetchRouteSelection",
+        "handlerName": "fetchRouteSelection",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:fetchTrips",
+      "type": "action",
+      "label": "fetchTrips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "fetchTrips",
+        "handlerName": "fetchTrips",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:fetchVisa",
+      "type": "action",
+      "label": "fetchVisa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "fetchVisa",
+        "handlerName": "fetchVisa",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:fetchWeather",
+      "type": "action",
+      "label": "fetchWeather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "fetchWeather",
+        "handlerName": "fetchWeather",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:reportApiError",
+      "type": "action",
+      "label": "reportApiError",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "reportApiError",
+        "handlerName": "reportApiError",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:useCreateTrip",
+      "type": "action",
+      "label": "useCreateTrip",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "useCreateTrip",
+        "handlerName": "useCreateTrip",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:useDeleteAccount",
+      "type": "action",
+      "label": "useDeleteAccount",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "useDeleteAccount",
+        "handlerName": "useDeleteAccount",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:useExportData",
+      "type": "action",
+      "label": "useExportData",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "useExportData",
+        "handlerName": "useExportData",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "action:/trips/[id]/map:useSaveProfile",
+      "type": "action",
+      "label": "useSaveProfile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map",
+        "actionId": "useSaveProfile",
+        "handlerName": "useSaveProfile",
+        "callTarget": "fetch"
+      }
+    },
+    {
+      "id": "db:affiliateClick",
+      "type": "db",
+      "label": "AffiliateClick",
+      "meta": {
+        "filePath": "prisma/schema.prisma",
+        "model": "AffiliateClick",
+        "columns": [
+          {
+            "name": "id",
+            "type": "String",
+            "isId": true,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "uuid("
+          },
+          {
+            "name": "tripId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "trip_id"
+          },
+          {
+            "name": "provider",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "clickType",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "click_type"
+          },
+          {
+            "name": "city",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false
+          },
+          {
+            "name": "destination",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false
+          },
+          {
+            "name": "url",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "userId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "user_id"
+          },
+          {
+            "name": "sessionId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "session_id"
+          },
+          {
+            "name": "ipHash",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "ip_hash"
+          },
+          {
+            "name": "createdAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "now(",
+            "map": "created_at"
+          }
+        ]
+      }
+    },
+    {
+      "id": "db:discoveredCity",
+      "type": "db",
+      "label": "DiscoveredCity",
+      "meta": {
+        "filePath": "prisma/schema.prisma",
+        "model": "DiscoveredCity",
+        "columns": [
+          {
+            "name": "id",
+            "type": "String",
+            "isId": true,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "uuid("
+          },
+          {
+            "name": "city",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "country",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "countryCode",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "country_code"
+          },
+          {
+            "name": "lat",
+            "type": "Float",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "lng",
+            "type": "Float",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "timesProposed",
+            "type": "Int",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "1",
+            "map": "times_proposed"
+          },
+          {
+            "name": "firstTripId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "first_trip_id"
+          },
+          {
+            "name": "approved",
+            "type": "Boolean",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "false"
+          },
+          {
+            "name": "createdAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "now(",
+            "map": "created_at"
+          },
+          {
+            "name": "updatedAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "updated_at"
+          }
+        ]
+      }
+    },
+    {
+      "id": "db:itinerary",
+      "type": "db",
+      "label": "Itinerary",
+      "meta": {
+        "filePath": "prisma/schema.prisma",
+        "model": "Itinerary",
+        "columns": [
+          {
+            "name": "id",
+            "type": "String",
+            "isId": true,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "uuid("
+          },
+          {
+            "name": "tripId",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "trip_id"
+          },
+          {
+            "name": "data",
+            "type": "Json",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "version",
+            "type": "Int",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "1"
+          },
+          {
+            "name": "isActive",
+            "type": "Boolean",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "true",
+            "map": "is_active"
+          },
+          {
+            "name": "promptVersion",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "\"v1\"",
+            "map": "prompt_version"
+          },
+          {
+            "name": "generationStatus",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "\"pending\"",
+            "map": "generation_status"
+          },
+          {
+            "name": "generationJobId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "generation_job_id"
+          },
+          {
+            "name": "createdAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "now(",
+            "map": "created_at"
+          },
+          {
+            "name": "updatedAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "updated_at"
+          }
+        ]
+      }
+    },
+    {
+      "id": "db:itineraryEdit",
+      "type": "db",
+      "label": "ItineraryEdit",
+      "meta": {
+        "filePath": "prisma/schema.prisma",
+        "model": "ItineraryEdit",
+        "columns": [
+          {
+            "name": "id",
+            "type": "String",
+            "isId": true,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "uuid("
+          },
+          {
+            "name": "itineraryId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "itinerary_id"
+          },
+          {
+            "name": "editType",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "edit_type"
+          },
+          {
+            "name": "editPayload",
+            "type": "Json",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "edit_payload"
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false
+          },
+          {
+            "name": "createdAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "now(",
+            "map": "created_at"
+          }
+        ]
+      }
+    },
+    {
+      "id": "db:profile",
+      "type": "db",
+      "label": "Profile",
+      "meta": {
+        "filePath": "prisma/schema.prisma",
+        "model": "Profile",
+        "columns": [
+          {
+            "name": "id",
+            "type": "String",
+            "isId": true,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "uuid("
+          },
+          {
+            "name": "userId",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": true,
+            "map": "user_id"
+          },
+          {
+            "name": "nationality",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false
+          },
+          {
+            "name": "homeAirport",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "home_airport"
+          },
+          {
+            "name": "travelStyle",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "travel_style"
+          },
+          {
+            "name": "interests",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false
+          },
+          {
+            "name": "activityLevel",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "activity_level"
+          },
+          {
+            "name": "languagesSpoken",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "languages_spoken"
+          },
+          {
+            "name": "onboardingCompleted",
+            "type": "Boolean",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "false",
+            "map": "onboarding_completed"
+          },
+          {
+            "name": "createdAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "now(",
+            "map": "created_at"
+          },
+          {
+            "name": "updatedAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "updated_at"
+          }
+        ]
+      }
+    },
+    {
+      "id": "db:trip",
+      "type": "db",
+      "label": "Trip",
+      "meta": {
+        "filePath": "prisma/schema.prisma",
+        "model": "Trip",
+        "columns": [
+          {
+            "name": "id",
+            "type": "String",
+            "isId": true,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "uuid("
+          },
+          {
+            "name": "profileId",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "profile_id"
+          },
+          {
+            "name": "tripType",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "\"multi-city\"",
+            "map": "trip_type"
+          },
+          {
+            "name": "region",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "\"\""
+          },
+          {
+            "name": "destination",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false
+          },
+          {
+            "name": "destinationCountry",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "destination_country"
+          },
+          {
+            "name": "destinationCountryCode",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false,
+            "map": "destination_country_code"
+          },
+          {
+            "name": "dateStart",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "date_start"
+          },
+          {
+            "name": "dateEnd",
+            "type": "String",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "date_end"
+          },
+          {
+            "name": "flexibleDates",
+            "type": "Boolean",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "false",
+            "map": "flexible_dates"
+          },
+          {
+            "name": "travelers",
+            "type": "Int",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "2"
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": false
+          },
+          {
+            "name": "shareToken",
+            "type": "String",
+            "isId": false,
+            "isRequired": false,
+            "isUnique": true,
+            "map": "share_token"
+          },
+          {
+            "name": "createdAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "default": "now(",
+            "map": "created_at"
+          },
+          {
+            "name": "updatedAt",
+            "type": "DateTime",
+            "isId": false,
+            "isRequired": true,
+            "isUnique": false,
+            "map": "updated_at"
+          }
+        ]
+      }
+    },
+    {
+      "id": "endpoint:/api/cron/cleanup-stale-generations",
+      "type": "endpoint",
+      "label": "/api/cron/cleanup-stale-generations",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/cron/cleanup-stale-generations/route.ts",
+        "route": "/api/cron/cleanup-stale-generations"
+      }
+    },
+    {
+      "id": "endpoint:/api/generate/select-route",
+      "type": "endpoint",
+      "label": "/api/generate/select-route",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/generate/select-route/route.ts",
+        "route": "/api/generate/select-route"
+      }
+    },
+    {
+      "id": "endpoint:/api/health",
+      "type": "endpoint",
+      "label": "/api/health",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/health/route.ts",
+        "route": "/api/health"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/affiliate/redirect",
+      "type": "endpoint",
+      "label": "/api/v1/affiliate/redirect",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/affiliate/redirect/route.ts",
+        "route": "/api/v1/affiliate/redirect"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/client-errors",
+      "type": "endpoint",
+      "label": "/api/v1/client-errors",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/client-errors/route.ts",
+        "route": "/api/v1/client-errors"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/enrich/accommodation",
+      "type": "endpoint",
+      "label": "/api/v1/enrich/accommodation",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/enrich/accommodation/route.ts",
+        "route": "/api/v1/enrich/accommodation"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/enrich/visa",
+      "type": "endpoint",
+      "label": "/api/v1/enrich/visa",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/enrich/visa/route.ts",
+        "route": "/api/v1/enrich/visa"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/enrich/weather",
+      "type": "endpoint",
+      "label": "/api/v1/enrich/weather",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/enrich/weather/route.ts",
+        "route": "/api/v1/enrich/weather"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/profile",
+      "type": "endpoint",
+      "label": "/api/v1/profile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/profile/route.ts",
+        "route": "/api/v1/profile"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/profile/export",
+      "type": "endpoint",
+      "label": "/api/v1/profile/export",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/profile/export/route.ts",
+        "route": "/api/v1/profile/export"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips",
+      "type": "endpoint",
+      "label": "/api/v1/trips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/route.ts",
+        "route": "/api/v1/trips"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/[id]",
+      "type": "endpoint",
+      "label": "/api/v1/trips/[id]",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/route.ts",
+        "route": "/api/v1/trips/[id]"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/[id]/flights",
+      "type": "endpoint",
+      "label": "/api/v1/trips/[id]/flights",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/flights/route.ts",
+        "route": "/api/v1/trips/[id]/flights"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/[id]/generate",
+      "type": "endpoint",
+      "label": "/api/v1/trips/[id]/generate",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/generate/route.ts",
+        "route": "/api/v1/trips/[id]/generate"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/[id]/generate-activities",
+      "type": "endpoint",
+      "label": "/api/v1/trips/[id]/generate-activities",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/generate-activities/route.ts",
+        "route": "/api/v1/trips/[id]/generate-activities"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/[id]/optimize",
+      "type": "endpoint",
+      "label": "/api/v1/trips/[id]/optimize",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/optimize/route.ts",
+        "route": "/api/v1/trips/[id]/optimize"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/[id]/share",
+      "type": "endpoint",
+      "label": "/api/v1/trips/[id]/share",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/share/route.ts",
+        "route": "/api/v1/trips/[id]/share"
+      }
+    },
+    {
+      "id": "endpoint:/api/v1/trips/shared/[token]",
+      "type": "endpoint",
+      "label": "/api/v1/trips/shared/[token]",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/shared/[token]/route.ts",
+        "route": "/api/v1/trips/shared/[token]"
+      }
+    },
+    {
+      "id": "endpoint:/auth/callback",
+      "type": "endpoint",
+      "label": "/auth/callback",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/auth/callback/route.ts",
+        "route": "/auth/callback"
+      }
+    },
+    {
+      "id": "endpoint:supabase",
+      "type": "endpoint",
+      "label": "supabase",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/lib/core/supabase-server.ts",
+        "route": "supabase"
+      }
+    },
+    {
+      "id": "handler:/api/cron/cleanup-stale-generations:GET",
+      "type": "handler",
+      "label": "/api/cron/cleanup-stale-generations#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/cron/cleanup-stale-generations/route.ts",
+        "route": "/api/cron/cleanup-stale-generations",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/generate/select-route:POST",
+      "type": "handler",
+      "label": "/api/generate/select-route#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/generate/select-route/route.ts",
+        "route": "/api/generate/select-route",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/health:GET",
+      "type": "handler",
+      "label": "/api/health#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/health/route.ts",
+        "route": "/api/health",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/affiliate/redirect:GET",
+      "type": "handler",
+      "label": "/api/v1/affiliate/redirect#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/affiliate/redirect/route.ts",
+        "route": "/api/v1/affiliate/redirect",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/client-errors:POST",
+      "type": "handler",
+      "label": "/api/v1/client-errors#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/client-errors/route.ts",
+        "route": "/api/v1/client-errors",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/enrich/accommodation:POST",
+      "type": "handler",
+      "label": "/api/v1/enrich/accommodation#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/enrich/accommodation/route.ts",
+        "route": "/api/v1/enrich/accommodation",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/enrich/visa:POST",
+      "type": "handler",
+      "label": "/api/v1/enrich/visa#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/enrich/visa/route.ts",
+        "route": "/api/v1/enrich/visa",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/enrich/weather:POST",
+      "type": "handler",
+      "label": "/api/v1/enrich/weather#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/enrich/weather/route.ts",
+        "route": "/api/v1/enrich/weather",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/profile:DELETE",
+      "type": "handler",
+      "label": "/api/v1/profile#DELETE",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/profile/route.ts",
+        "route": "/api/v1/profile",
+        "method": "DELETE"
+      }
+    },
+    {
+      "id": "handler:/api/v1/profile:GET",
+      "type": "handler",
+      "label": "/api/v1/profile#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/profile/route.ts",
+        "route": "/api/v1/profile",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/profile:PATCH",
+      "type": "handler",
+      "label": "/api/v1/profile#PATCH",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/profile/route.ts",
+        "route": "/api/v1/profile",
+        "method": "PATCH"
+      }
+    },
+    {
+      "id": "handler:/api/v1/profile/export:GET",
+      "type": "handler",
+      "label": "/api/v1/profile/export#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/profile/export/route.ts",
+        "route": "/api/v1/profile/export",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips:GET",
+      "type": "handler",
+      "label": "/api/v1/trips#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/route.ts",
+        "route": "/api/v1/trips",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips:POST",
+      "type": "handler",
+      "label": "/api/v1/trips#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/route.ts",
+        "route": "/api/v1/trips",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]:DELETE",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]#DELETE",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/route.ts",
+        "route": "/api/v1/trips/[id]",
+        "method": "DELETE"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]:GET",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/route.ts",
+        "route": "/api/v1/trips/[id]",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]:PATCH",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]#PATCH",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/route.ts",
+        "route": "/api/v1/trips/[id]",
+        "method": "PATCH"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]/flights:POST",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]/flights#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/flights/route.ts",
+        "route": "/api/v1/trips/[id]/flights",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]/generate-activities:POST",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]/generate-activities#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/generate-activities/route.ts",
+        "route": "/api/v1/trips/[id]/generate-activities",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]/generate:POST",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]/generate#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/generate/route.ts",
+        "route": "/api/v1/trips/[id]/generate",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]/optimize:POST",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]/optimize#POST",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/optimize/route.ts",
+        "route": "/api/v1/trips/[id]/optimize",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/[id]/share:GET",
+      "type": "handler",
+      "label": "/api/v1/trips/[id]/share#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/[id]/share/route.ts",
+        "route": "/api/v1/trips/[id]/share",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/api/v1/trips/shared/[token]:GET",
+      "type": "handler",
+      "label": "/api/v1/trips/shared/[token]#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/api/v1/trips/shared/[token]/route.ts",
+        "route": "/api/v1/trips/shared/[token]",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "handler:/auth/callback:GET",
+      "type": "handler",
+      "label": "/auth/callback#GET",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/auth/callback/route.ts",
+        "route": "/auth/callback",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "page:/",
+      "type": "page",
+      "label": "/",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/page.tsx",
+        "route": "/"
+      }
+    },
+    {
+      "id": "page:/_dev/routes",
+      "type": "page",
+      "label": "/_dev/routes",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/_dev/routes/page.tsx",
+        "route": "/_dev/routes"
+      }
+    },
+    {
+      "id": "page:/bookings",
+      "type": "page",
+      "label": "/bookings",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/bookings/page.tsx",
+        "route": "/bookings"
+      }
+    },
+    {
+      "id": "page:/forgot-password",
+      "type": "page",
+      "label": "/forgot-password",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(auth)/forgot-password/page.tsx",
+        "route": "/forgot-password"
+      }
+    },
+    {
+      "id": "page:/get-started",
+      "type": "page",
+      "label": "/get-started",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/page.tsx",
+        "route": "/get-started"
+      }
+    },
+    {
+      "id": "page:/get-started/advantage",
+      "type": "page",
+      "label": "/get-started/advantage",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/advantage/page.tsx",
+        "route": "/get-started/advantage"
+      }
+    },
+    {
+      "id": "page:/get-started/budget",
+      "type": "page",
+      "label": "/get-started/budget",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/budget/page.tsx",
+        "route": "/get-started/budget"
+      }
+    },
+    {
+      "id": "page:/get-started/interests",
+      "type": "page",
+      "label": "/get-started/interests",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/interests/page.tsx",
+        "route": "/get-started/interests"
+      }
+    },
+    {
+      "id": "page:/get-started/personalization",
+      "type": "page",
+      "label": "/get-started/personalization",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/personalization/page.tsx",
+        "route": "/get-started/personalization"
+      }
+    },
+    {
+      "id": "page:/get-started/rhythm",
+      "type": "page",
+      "label": "/get-started/rhythm",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/rhythm/page.tsx",
+        "route": "/get-started/rhythm"
+      }
+    },
+    {
+      "id": "page:/get-started/vibe",
+      "type": "page",
+      "label": "/get-started/vibe",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/get-started/vibe/page.tsx",
+        "route": "/get-started/vibe"
+      }
+    },
+    {
+      "id": "page:/login",
+      "type": "page",
+      "label": "/login",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(auth)/login/page.tsx",
+        "route": "/login"
+      }
+    },
+    {
+      "id": "page:/plan",
+      "type": "page",
+      "label": "/plan",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/plan/page.tsx",
+        "route": "/plan"
+      }
+    },
+    {
+      "id": "page:/privacy",
+      "type": "page",
+      "label": "/privacy",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(marketing)/privacy/page.tsx",
+        "route": "/privacy"
+      }
+    },
+    {
+      "id": "page:/profile",
+      "type": "page",
+      "label": "/profile",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "route": "/profile"
+      }
+    },
+    {
+      "id": "page:/reset-password",
+      "type": "page",
+      "label": "/reset-password",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(auth)/reset-password/page.tsx",
+        "route": "/reset-password"
+      }
+    },
+    {
+      "id": "page:/share/[token]",
+      "type": "page",
+      "label": "/share/[token]",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/share/[token]/page.tsx",
+        "route": "/share/[token]"
+      }
+    },
+    {
+      "id": "page:/signup",
+      "type": "page",
+      "label": "/signup",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(auth)/signup/page.tsx",
+        "route": "/signup"
+      }
+    },
+    {
+      "id": "page:/trip/[id]",
+      "type": "page",
+      "label": "/trip/[id]",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/trip/[id]/page.tsx",
+        "route": "/trip/[id]"
+      }
+    },
+    {
+      "id": "page:/trip/[id]/edit",
+      "type": "page",
+      "label": "/trip/[id]/edit",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/trip/[id]/edit/page.tsx",
+        "route": "/trip/[id]/edit"
+      }
+    },
+    {
+      "id": "page:/trip/[id]/summary",
+      "type": "page",
+      "label": "/trip/[id]/summary",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/trip/[id]/summary/page.tsx",
+        "route": "/trip/[id]/summary"
+      }
+    },
+    {
+      "id": "page:/trips",
+      "type": "page",
+      "label": "/trips",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/page.tsx",
+        "route": "/trips"
+      }
+    },
+    {
+      "id": "page:/trips/[id]",
+      "type": "page",
+      "label": "/trips/[id]",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/page.tsx",
+        "route": "/trips/[id]"
+      }
+    },
+    {
+      "id": "page:/trips/[id]/bookings",
+      "type": "page",
+      "label": "/trips/[id]/bookings",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/bookings/page.tsx",
+        "route": "/trips/[id]/bookings"
+      }
+    },
+    {
+      "id": "page:/trips/[id]/budget",
+      "type": "page",
+      "label": "/trips/[id]/budget",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/budget/page.tsx",
+        "route": "/trips/[id]/budget"
+      }
+    },
+    {
+      "id": "page:/trips/[id]/itinerary",
+      "type": "page",
+      "label": "/trips/[id]/itinerary",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/itinerary/page.tsx",
+        "route": "/trips/[id]/itinerary"
+      }
+    },
+    {
+      "id": "page:/trips/[id]/map",
+      "type": "page",
+      "label": "/trips/[id]/map",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/trips/[id]/map/page.tsx",
+        "route": "/trips/[id]/map"
+      }
+    },
+    {
+      "id": "service:supabase",
+      "type": "service",
+      "label": "supabase",
+      "meta": {
+        "filePath": "/home/jesus-casal/Desktop/travel-pro/src/app/(v2-app)/profile/page.tsx",
+        "service": "supabase"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "action:/plan:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/plan:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/profile:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:AccommodationTab",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/bookings:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/budget:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/itinerary:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:fetchAccommodation",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:fetchProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:fetchRouteSelection",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:fetchTrips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:fetchVisa",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:fetchWeather",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:reportApiError",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:useCreateTrip",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:useDeleteAccount",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:useExportData",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "action:/trips/[id]/map:useSaveProfile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "action-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "db:affiliateClick",
+      "to": "db:trip",
+      "kind": "db-relation",
+      "meta": {
+        "field": "tripId",
+        "foreignKey": "id"
+      }
+    },
+    {
+      "from": "db:itinerary",
+      "to": "db:trip",
+      "kind": "db-relation",
+      "meta": {
+        "field": "tripId",
+        "foreignKey": "id"
+      }
+    },
+    {
+      "from": "db:itineraryEdit",
+      "to": "db:itinerary",
+      "kind": "db-relation",
+      "meta": {
+        "field": "itineraryId",
+        "foreignKey": "id"
+      }
+    },
+    {
+      "from": "db:trip",
+      "to": "db:profile",
+      "kind": "db-relation",
+      "meta": {
+        "field": "profileId",
+        "foreignKey": "id"
+      }
+    },
+    {
+      "from": "endpoint:/api/cron/cleanup-stale-generations",
+      "to": "db:itinerary",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "updateMany"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/affiliate/redirect",
+      "to": "db:affiliateClick",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "create"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/affiliate/redirect",
+      "to": "db:itinerary",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findFirst"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile",
+      "to": "db:affiliateClick",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "deleteMany"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findMany"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile/export",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findMany"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "db:itinerary",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findFirst"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "db:itineraryEdit",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "create"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/flights",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/flights",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate",
+      "to": "db:discoveredCity",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "upsert"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate",
+      "to": "db:itinerary",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findFirst"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate-activities",
+      "to": "db:itinerary",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findFirst"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate-activities",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate-activities",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/optimize",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/optimize",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/share",
+      "to": "db:profile",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/share",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findUnique"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/shared/[token]",
+      "to": "db:trip",
+      "kind": "endpoint-db",
+      "meta": {
+        "action": "findFirst"
+      }
+    },
+    {
+      "from": "endpoint:/api/cron/cleanup-stale-generations",
+      "to": "handler:/api/cron/cleanup-stale-generations:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/generate/select-route",
+      "to": "handler:/api/generate/select-route:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/health",
+      "to": "handler:/api/health:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/affiliate/redirect",
+      "to": "handler:/api/v1/affiliate/redirect:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/client-errors",
+      "to": "handler:/api/v1/client-errors:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/enrich/accommodation",
+      "to": "handler:/api/v1/enrich/accommodation:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/enrich/visa",
+      "to": "handler:/api/v1/enrich/visa:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/enrich/weather",
+      "to": "handler:/api/v1/enrich/weather:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile",
+      "to": "handler:/api/v1/profile:DELETE",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "DELETE"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile",
+      "to": "handler:/api/v1/profile:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile",
+      "to": "handler:/api/v1/profile:PATCH",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "PATCH"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/profile/export",
+      "to": "handler:/api/v1/profile/export:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips",
+      "to": "handler:/api/v1/trips:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips",
+      "to": "handler:/api/v1/trips:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "handler:/api/v1/trips/[id]:DELETE",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "DELETE"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "handler:/api/v1/trips/[id]:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]",
+      "to": "handler:/api/v1/trips/[id]:PATCH",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "PATCH"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/flights",
+      "to": "handler:/api/v1/trips/[id]/flights:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate",
+      "to": "handler:/api/v1/trips/[id]/generate:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/generate-activities",
+      "to": "handler:/api/v1/trips/[id]/generate-activities:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/optimize",
+      "to": "handler:/api/v1/trips/[id]/optimize:POST",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "POST"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/[id]/share",
+      "to": "handler:/api/v1/trips/[id]/share:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/api/v1/trips/shared/[token]",
+      "to": "handler:/api/v1/trips/shared/[token]:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "endpoint:/auth/callback",
+      "to": "handler:/auth/callback:GET",
+      "kind": "endpoint-handler",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "action:/plan:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/profile",
+      "to": "action:/profile:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips",
+      "to": "action:/trips:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "action:/trips/[id]:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:AccommodationTab",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "action:/trips/[id]/bookings:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "action:/trips/[id]/budget:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "action:/trips/[id]/itinerary:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:fetchAccommodation",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:fetchProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:fetchRouteSelection",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:fetchTrips",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:fetchVisa",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:fetchWeather",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:reportApiError",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:useCreateTrip",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:useDeleteAccount",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:useExportData",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "action:/trips/[id]/map:useSaveProfile",
+      "kind": "page-action"
+    },
+    {
+      "from": "page:/plan",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/plan",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/plan",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/plan",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/plan",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/profile",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/profile",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/profile",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/profile",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/profile",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/bookings",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/budget",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/itinerary",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "endpoint:/api/generate/select-route",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "endpoint:/api/v1/client-errors",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "endpoint:/api/v1/enrich/accommodation",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "endpoint:/api/v1/profile",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/trips/[id]/map",
+      "to": "endpoint:/api/v1/trips",
+      "kind": "page-endpoint",
+      "meta": {
+        "method": "GET"
+      }
+    },
+    {
+      "from": "page:/forgot-password",
+      "to": "service:supabase",
+      "kind": "page-service"
+    },
+    {
+      "from": "page:/login",
+      "to": "service:supabase",
+      "kind": "page-service"
+    },
+    {
+      "from": "page:/profile",
+      "to": "service:supabase",
+      "kind": "page-service"
+    },
+    {
+      "from": "page:/reset-password",
+      "to": "service:supabase",
+      "kind": "page-service"
+    },
+    {
+      "from": "page:/signup",
+      "to": "service:supabase",
+      "kind": "page-service"
+    }
+  ]
+}

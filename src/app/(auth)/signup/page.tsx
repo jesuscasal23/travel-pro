@@ -42,7 +42,6 @@ function SignupForm() {
   const next = searchParams.get("next") ?? "/trips";
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingEmailConfirmation, setPendingEmailConfirmation] = useState<string | null>(null);
 
   const {
     register,
@@ -55,7 +54,6 @@ function SignupForm() {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     setServerError(null);
-    setPendingEmailConfirmation(null);
 
     const supabase = createClient();
     if (!supabase) {
@@ -84,8 +82,7 @@ function SignupForm() {
       return;
     }
 
-    setPendingEmailConfirmation(data.email);
-    setIsLoading(false);
+    router.replace(next);
   };
 
   return (
@@ -116,123 +113,116 @@ function SignupForm() {
               Travel Pro
             </p>
             <h1 className="mt-3 text-[2.15rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
-              {pendingEmailConfirmation ? "Check your email" : "Create your account"}
+              Create your account
             </h1>
             <p className="mt-2 text-sm leading-6 text-[#6d7b91]">
-              {pendingEmailConfirmation
-                ? `We sent a confirmation link to ${pendingEmailConfirmation}. Confirm your account to continue to your plan.`
-                : "Start planning smarter trips in minutes."}
+              Start planning smarter trips in minutes.
             </p>
           </div>
 
-          {pendingEmailConfirmation ? (
-            <div className="mt-8 rounded-[30px] border border-white/80 bg-white/88 px-5 py-5 text-center shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm">
-              <p className="text-sm leading-7 text-[#6d7b91]">
-                Once you confirm your email, you&apos;ll be returned to continue planning.
-              </p>
+          <>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              autoComplete="on"
+              method="post"
+              className="mt-7 rounded-[30px] border border-white/80 bg-white/88 px-5 py-4 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+            >
+              <div className="space-y-4">
+                <GoogleAuthButton next={next} disabled={isLoading} onError={setServerError} />
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-[#dbe4f2]" />
+                  <span className="text-[11px] font-bold tracking-[0.22em] text-[#9aacbf] uppercase">
+                    Or with email
+                  </span>
+                  <div className="h-px flex-1 bg-[#dbe4f2]" />
+                </div>
+
+                <div>
+                  <label htmlFor="signup-email" className={labelClass}>
+                    <Mail className="h-4 w-4 text-[#8ea0bb]" />
+                    Email address
+                  </label>
+                  <input
+                    {...register("email")}
+                    id="signup-email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder="you@example.com"
+                    className={inputClass}
+                  />
+                  {errors.email?.message && <p className={errorClass}>{errors.email.message}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="signup-password" className={labelClass}>
+                    <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
+                    Password
+                  </label>
+                  <input
+                    {...register("password")}
+                    id="signup-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="At least 8 characters"
+                    className={inputClass}
+                  />
+                  {errors.password?.message && (
+                    <p className={errorClass}>{errors.password.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="signup-confirm-password" className={labelClass}>
+                    <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
+                    Confirm password
+                  </label>
+                  <input
+                    {...register("confirmPassword")}
+                    id="signup-confirm-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Repeat your password"
+                    className={inputClass}
+                  />
+                  {errors.confirmPassword?.message && (
+                    <p className={errorClass}>{errors.confirmPassword.message}</p>
+                  )}
+                </div>
+
+                {serverError ? (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                    <p className="text-sm text-[#dc2626]">{serverError}</p>
+                  </div>
+                ) : null}
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="!bg-brand-primary w-full py-3.5 shadow-[var(--shadow-brand-xl)] hover:brightness-105"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {isLoading ? "Creating account..." : "Create Account"}
+                  </span>
+                </Button>
+              </div>
+            </form>
+
+            <p className="pt-4 text-center text-sm text-[#6d7b91]">
+              Already have an account?{" "}
               <Link
                 href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
-                className="text-brand-primary mt-5 inline-flex text-sm font-semibold transition-colors hover:brightness-95"
+                className="text-brand-primary font-semibold transition-colors hover:brightness-95"
               >
-                Back to sign in
+                Sign in
               </Link>
-            </div>
-          ) : (
-            <>
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="mt-7 rounded-[30px] border border-white/80 bg-white/88 px-5 py-4 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm"
-              >
-                <div className="space-y-4">
-                  <GoogleAuthButton next={next} disabled={isLoading} onError={setServerError} />
-
-                  <div className="flex items-center gap-3">
-                    <div className="h-px flex-1 bg-[#dbe4f2]" />
-                    <span className="text-[11px] font-bold tracking-[0.22em] text-[#9aacbf] uppercase">
-                      Or with email
-                    </span>
-                    <div className="h-px flex-1 bg-[#dbe4f2]" />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>
-                      <Mail className="h-4 w-4 text-[#8ea0bb]" />
-                      Email address
-                    </label>
-                    <input
-                      {...register("email")}
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@example.com"
-                      className={inputClass}
-                    />
-                    {errors.email?.message && <p className={errorClass}>{errors.email.message}</p>}
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>
-                      <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
-                      Password
-                    </label>
-                    <input
-                      {...register("password")}
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="At least 8 characters"
-                      className={inputClass}
-                    />
-                    {errors.password?.message && (
-                      <p className={errorClass}>{errors.password.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>
-                      <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
-                      Confirm password
-                    </label>
-                    <input
-                      {...register("confirmPassword")}
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="Repeat your password"
-                      className={inputClass}
-                    />
-                    {errors.confirmPassword?.message && (
-                      <p className={errorClass}>{errors.confirmPassword.message}</p>
-                    )}
-                  </div>
-
-                  {serverError ? (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-                      <p className="text-sm text-[#dc2626]">{serverError}</p>
-                    </div>
-                  ) : null}
-
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="!bg-brand-primary w-full py-3.5 shadow-[var(--shadow-brand-xl)] hover:brightness-105"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                      {isLoading ? "Creating account..." : "Create Account"}
-                    </span>
-                  </Button>
-                </div>
-              </form>
-
-              <p className="pt-4 text-center text-sm text-[#6d7b91]">
-                Already have an account?{" "}
-                <Link
-                  href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
-                  className="text-brand-primary font-semibold transition-colors hover:brightness-95"
-                >
-                  Sign in
-                </Link>
-              </p>
-            </>
-          )}
+            </p>
+          </>
         </div>
       </div>
     </div>

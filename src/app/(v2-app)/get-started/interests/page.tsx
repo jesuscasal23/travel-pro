@@ -120,7 +120,7 @@ export default function V2InterestsPage() {
             </p>
           </header>
 
-          <section className="grid grid-cols-2 gap-x-6 gap-y-6 pt-8">
+          <section className="grid grid-cols-4 gap-3 pt-8">
             {interestCards.map((interest) => {
               const Icon = interest.icon;
               const isSelected = interests.includes(interest.id);
@@ -131,18 +131,14 @@ export default function V2InterestsPage() {
                   type="button"
                   onClick={() => toggleInterest(interest.id)}
                   aria-pressed={isSelected}
-                  className="group flex flex-col items-center text-center"
+                  className={`group flex flex-col items-center gap-2 rounded-2xl py-4 transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] ${
+                    isSelected
+                      ? `${interest.surfaceClassName} ring-brand-primary shadow-[var(--shadow-brand-md)] ring-2`
+                      : `${interest.surfaceClassName} hover:shadow-md`
+                  }`}
                 >
-                  <div
-                    className={`flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-[18px] border transition-all ${
-                      isSelected
-                        ? "border-brand-primary bg-white shadow-[var(--shadow-brand-md)]"
-                        : `border-transparent ${interest.surfaceClassName}`
-                    }`}
-                  >
-                    <Icon className={`h-7 w-7 ${interest.iconClassName}`} strokeWidth={2} />
-                  </div>
-                  <span className="mt-3 text-[13px] font-bold tracking-[0.08em] text-[#314158] uppercase">
+                  <Icon className={`h-7 w-7 ${interest.iconClassName}`} strokeWidth={2} />
+                  <span className="text-[11px] font-bold tracking-[0.06em] text-[#314158] uppercase">
                     {labels[interest.id]}
                   </span>
                 </button>

@@ -13,6 +13,18 @@ vi.mock("@/lib/supabase/server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
+vi.mock("@/lib/api/guest-trip-ownership", () => ({
+  createGuestTripOwnerCookie: vi.fn((tripId: string) => ({
+    name: `travelpro_guest_trip_${tripId}`,
+    value: "signed-cookie",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+    path: "/",
+    maxAge: 60,
+  })),
+}));
+
 vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
@@ -29,6 +41,7 @@ vi.mock("@/lib/core/request-context", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import { GET, POST } from "../route";
 
@@ -37,6 +50,7 @@ const mockPrisma = prisma as unknown as {
   trip: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
 };
 const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
+const mockCreateGuestTripOwnerCookie = createGuestTripOwnerCookie as ReturnType<typeof vi.fn>;
 
 describe("/api/v1/trips", () => {
   beforeEach(() => {
@@ -93,7 +107,7 @@ describe("/api/v1/trips", () => {
     expect(json.error).toBe("Validation failed");
   });
 
-  it("POST returns 401 when unauthenticated", async () => {
+  it("POST creates a guest trip when unauthenticated", async () => {
     mockAuth.mockResolvedValue(null);
 
     const req = new NextRequest("http://localhost:3000/api/v1/trips", {
@@ -111,9 +125,12 @@ describe("/api/v1/trips", () => {
     const res = await POST(req);
     const json = await res.json();
 
-    expect(res.status).toBe(401);
-    expect(json.error).toBe("Unauthorized");
-    expect(mockPrisma.trip.create).not.toHaveBeenCalled();
+    expect(res.status).toBe(201);
+    expect(json.trip.id).toBe("trip-new");
+    expect(mockPrisma.profile.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.trip.create).toHaveBeenCalled();
+    expect(mockCreateGuestTripOwnerCookie).toHaveBeenCalledWith("trip-new");
+    expect(res.headers.get("set-cookie")).toContain("travelpro_guest_trip_trip-new=signed-cookie");
   });
 
   it("POST creates trip", async () => {

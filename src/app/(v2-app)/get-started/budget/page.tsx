@@ -103,10 +103,10 @@ export default function V2BudgetPage() {
                   type="button"
                   onClick={() => setTravelStyle(option.id)}
                   aria-pressed={isSelected}
-                  className={`flex w-full items-center gap-4 rounded-[30px] px-4 py-4 text-left transition-all ${
+                  className={`flex w-full items-center gap-4 rounded-[30px] border px-4 py-4 text-left transition-all ${
                     isSelected
-                      ? "bg-brand-primary text-white shadow-[var(--shadow-brand-xl)]"
-                      : "border border-white/80 bg-white/88 text-[#17181c] shadow-[0_16px_36px_rgba(27,43,75,0.08)] backdrop-blur-sm"
+                      ? "bg-brand-primary border-transparent text-white shadow-[var(--shadow-brand-xl)]"
+                      : "border-white/80 bg-white/88 text-[#17181c] shadow-[0_16px_36px_rgba(27,43,75,0.08)] backdrop-blur-sm"
                   }`}
                 >
                   <div

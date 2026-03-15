@@ -1,0 +1,167 @@
+{
+  "nodeChanges": [
+    {
+      "id": "page:/",
+      "type": "page",
+      "label": "/",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/_dev/routes",
+      "type": "page",
+      "label": "/_dev/routes",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/bookings",
+      "type": "page",
+      "label": "/bookings",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/forgot-password",
+      "type": "page",
+      "label": "/forgot-password",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started",
+      "type": "page",
+      "label": "/get-started",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started/advantage",
+      "type": "page",
+      "label": "/get-started/advantage",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started/budget",
+      "type": "page",
+      "label": "/get-started/budget",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started/interests",
+      "type": "page",
+      "label": "/get-started/interests",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started/personalization",
+      "type": "page",
+      "label": "/get-started/personalization",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started/rhythm",
+      "type": "page",
+      "label": "/get-started/rhythm",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/get-started/vibe",
+      "type": "page",
+      "label": "/get-started/vibe",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/login",
+      "type": "page",
+      "label": "/login",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/plan",
+      "type": "page",
+      "label": "/plan",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/privacy",
+      "type": "page",
+      "label": "/privacy",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/profile",
+      "type": "page",
+      "label": "/profile",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/reset-password",
+      "type": "page",
+      "label": "/reset-password",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/share/[token]",
+      "type": "page",
+      "label": "/share/[token]",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/signup",
+      "type": "page",
+      "label": "/signup",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trip/[id]",
+      "type": "page",
+      "label": "/trip/[id]",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trip/[id]/edit",
+      "type": "page",
+      "label": "/trip/[id]/edit",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trip/[id]/summary",
+      "type": "page",
+      "label": "/trip/[id]/summary",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trips",
+      "type": "page",
+      "label": "/trips",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trips/[id]",
+      "type": "page",
+      "label": "/trips/[id]",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trips/[id]/bookings",
+      "type": "page",
+      "label": "/trips/[id]/bookings",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trips/[id]/budget",
+      "type": "page",
+      "label": "/trips/[id]/budget",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trips/[id]/itinerary",
+      "type": "page",
+      "label": "/trips/[id]/itinerary",
+      "change": "unchanged"
+    },
+    {
+      "id": "page:/trips/[id]/map",
+      "type": "page",
+      "label": "/trips/[id]/map",
+      "change": "unchanged"
+    }
+  ],
+  "edgeChanges": []
+}
