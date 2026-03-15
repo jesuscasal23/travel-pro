@@ -34,6 +34,7 @@ export default function PlanPage() {
   const isAuthenticated = useAuthStatus();
   const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const {
     planStep,
@@ -305,6 +306,7 @@ export default function PlanPage() {
       return;
     }
     setErrors({});
+    setGenerateError(null);
 
     posthog?.capture("questionnaire_completed", {
       tripType,
@@ -357,16 +359,16 @@ export default function PlanPage() {
       }
     }
 
-    try {
-      const combinedDescription = [
-        tripDescription.trim(),
-        planningPriority ? `Primary challenge: ${planningPriority}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n\n")
-        .trim();
+    const combinedDescription = [
+      tripDescription.trim(),
+      planningPriority ? `Primary challenge: ${planningPriority}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
 
-      if (isAuthenticated === true) {
+    if (isAuthenticated === true) {
+      try {
         await saveProfileMutation.mutateAsync({
           nationality: effectiveNationality,
           homeAirport: effectiveHomeAirport,
@@ -375,8 +377,18 @@ export default function PlanPage() {
           pace,
           onboardingCompleted: true,
         });
+      } catch {
+        setIsGenerating(false);
+        toast({
+          title: "Profile save failed",
+          description: "We couldn't save your profile, so trip creation was stopped.",
+          variant: "error",
+        });
+        return;
       }
+    }
 
+    try {
       const { trip } = await createTripMutation.mutateAsync({
         tripType,
         region: isMultiCountry ? region : "",
@@ -395,15 +407,11 @@ export default function PlanPage() {
       setCurrentTripId(trip.id);
       posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
       router.push(`/trips/${trip.id}`);
-    } catch {
+    } catch (err) {
       setIsGenerating(false);
-      if (isAuthenticated === true) {
-        toast({
-          title: "Profile save failed",
-          description: "We couldn't save your profile, so trip creation was stopped.",
-          variant: "error",
-        });
-      }
+      setGenerateError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
     }
   }, [
     needsProfileStep,
@@ -493,11 +501,7 @@ export default function PlanPage() {
           </AnimatePresence>
         </div>
 
-        {createTripMutation.error && (
-          <p className="text-v2-red mt-5 text-center text-sm">
-            {createTripMutation.error.message || "Something went wrong. Please try again."}
-          </p>
-        )}
+        {generateError && <p className="text-v2-red mt-5 text-center text-sm">{generateError}</p>}
       </div>
 
       <div className="relative shrink-0 border-t border-white/75 bg-white/86 px-6 pt-3 pb-6 backdrop-blur-sm">
