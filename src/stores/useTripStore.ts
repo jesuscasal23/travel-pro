@@ -86,6 +86,7 @@ interface TripStoreActions {
 
   // Reset
   resetPlan: () => void;
+  resetAll: () => void;
 }
 
 const initialPlanState = {
@@ -183,6 +184,21 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
 
       // Reset plan to defaults
       resetPlan: () => set(initialPlanState),
+      // Full reset on sign-out — clears profile + plan + results
+      resetAll: () =>
+        set({
+          nationality: "",
+          homeAirport: "",
+          travelStyle: "smart-budget",
+          interests: [],
+          pace: "moderate" as ActivityPace,
+          vibeAdventureComfort: 50,
+          vibeSocialQuiet: 50,
+          vibeLuxuryBudget: 50,
+          vibeStructuredSpontaneous: 50,
+          vibeWarmMixed: 50,
+          ...initialPlanState,
+        }),
     }),
     {
       name: "travel-pro-store",

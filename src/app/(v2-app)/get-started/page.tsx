@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -133,6 +134,13 @@ export default function V2LandingPage() {
             <span>Start Planning</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
           </button>
+
+          <p className="mt-4 text-center text-sm text-[#6d7b91]">
+            Already have an account?{" "}
+            <Link href="/login" className="text-brand-primary font-semibold hover:underline">
+              Sign in
+            </Link>
+          </p>
 
           {canInstall ? (
             <button

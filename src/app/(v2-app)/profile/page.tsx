@@ -187,6 +187,7 @@ export default function ProfilePage() {
     if (supabase) {
       await supabase.auth.signOut();
     }
+    useTripStore.getState().resetAll();
     router.push("/get-started");
   }
 

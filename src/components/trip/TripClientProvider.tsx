@@ -14,7 +14,6 @@ import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
 import { useItinerary } from "@/hooks/useItinerary";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
-import { getCityHeroImage } from "@/lib/utils/city-images";
 import type { Itinerary } from "@/types";
 
 interface TripClientProviderProps {
@@ -217,33 +216,9 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   }, [posthog, tripId, route.length]);
 
   if (!storeReady || !dbSyncDone) {
-    const heroStop = storeReady ? route[0] : undefined;
-    const heroImage = heroStop ? getCityHeroImage(heroStop.city, heroStop.countryCode) : null;
-
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
-        <div className="relative h-56 w-full overflow-hidden">
-          {heroImage ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={heroImage}
-                alt=""
-                loading="eager"
-                fetchPriority="high"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,19,39,0.14)_0%,rgba(9,19,39,0.28)_36%,rgba(9,19,39,0.72)_100%)]" />
-            </>
-          ) : (
-            <div className="h-full w-full animate-pulse bg-[#eef4fb]" />
-          )}
-        </div>
-        <div className="space-y-4 px-6 py-6">
-          <div className="h-24 animate-pulse rounded-[28px] bg-white/70" />
-          <div className="h-16 animate-pulse rounded-[24px] bg-white/70" />
-          <div className="h-52 animate-pulse rounded-[30px] bg-white/70" />
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
+        <div className="border-brand-primary h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent" />
       </div>
     );
   }

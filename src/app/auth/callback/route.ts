@@ -27,12 +27,20 @@ export async function GET(request: NextRequest) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {}
+          } catch {
+            // Cookie setting can fail in middleware context — non-fatal
+          }
         },
       },
     });
 
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      const loginUrl = new URL("/login", requestUrl.origin);
+      loginUrl.searchParams.set("error", error.message);
+      loginUrl.searchParams.set("next", next);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));

@@ -30,7 +30,8 @@ function LoginForm() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/trips";
-  const [serverError, setServerError] = useState<string | null>(null);
+  const callbackError = searchParams.get("error");
+  const [serverError, setServerError] = useState<string | null>(callbackError);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
