@@ -1,10 +1,11 @@
 "use client";
 
-import { Map, PlusCircle, User } from "lucide-react";
+import { Home, Map, PlusCircle, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const tabs = [
+  { label: "Home", icon: Home, href: "/home" },
   { label: "Trips", icon: Map, href: "/trips" },
   { label: "Plan", icon: PlusCircle, href: "/plan" },
   { label: "Profile", icon: User, href: "/profile" },

@@ -55,6 +55,11 @@ const baseLeg: FlightLegResults = {
   fetchedAt: Date.now(),
 };
 
+/** Count visible flight rows by the ✈️ emoji each row renders */
+function getFlightRows() {
+  return screen.getAllByText("✈️");
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockHookState = {
@@ -76,8 +81,7 @@ describe("FlightOptionsPanel", () => {
   it("shows first 5 results by default", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(5);
+    expect(getFlightRows()).toHaveLength(5);
   });
 
   it("expands to show all results when clicking 'Show more'", () => {
@@ -86,8 +90,7 @@ describe("FlightOptionsPanel", () => {
     const showMore = screen.getByText(/Show 3 more/);
     fireEvent.click(showMore);
 
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(8);
+    expect(getFlightRows()).toHaveLength(8);
   });
 
   it("collapses back when clicking 'Show less'", () => {
@@ -96,23 +99,22 @@ describe("FlightOptionsPanel", () => {
     fireEvent.click(screen.getByText(/Show 3 more/));
     fireEvent.click(screen.getByText(/Show less/));
 
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(5);
+    expect(getFlightRows()).toHaveLength(5);
   });
 
   it("toggles sort between price and duration", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
     // Default sort is price — cheapest first
-    const firstLink = screen.getAllByRole("link")[0];
-    expect(firstLink).toHaveTextContent("TK");
-    expect(firstLink).toHaveTextContent("€320");
+    const firstRow = getFlightRows()[0].closest("div[class*='border']")!;
+    expect(firstRow).toHaveTextContent("TK");
+    expect(firstRow).toHaveTextContent("€320");
 
     // Click duration sort
     fireEvent.click(screen.getByText("Duration"));
 
     // JL (11h 45m) should now be first (shortest duration)
-    const firstAfterSort = screen.getAllByRole("link")[0];
+    const firstAfterSort = getFlightRows()[0].closest("div[class*='border']")!;
     expect(firstAfterSort).toHaveTextContent("JL");
   });
 
@@ -160,10 +162,11 @@ describe("FlightOptionsPanel", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
     // Should show live results, not prefetched
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(2);
-    expect(links[0]).toHaveTextContent("QR");
-    expect(links[0]).toHaveTextContent("€200");
+    const rows = getFlightRows();
+    expect(rows).toHaveLength(2);
+    const firstRow = rows[0].closest("div[class*='border']")!;
+    expect(firstRow).toHaveTextContent("QR");
+    expect(firstRow).toHaveTextContent("€200");
   });
 
   it("displays nonstop label for 0 stops", () => {
@@ -228,8 +231,7 @@ describe("FlightOptionsPanel", () => {
     fireEvent.click(nonstopBtn);
 
     // Only nonstop flights should be visible (LH, SQ, JL)
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(3);
+    expect(getFlightRows()).toHaveLength(3);
   });
 
   it("shows 'no matches' message when all results are filtered out", () => {
@@ -264,12 +266,12 @@ describe("FlightOptionsPanel", () => {
     fireEvent.click(nonstopBtn);
 
     // Only 3 nonstop results
-    expect(screen.getAllByRole("link")).toHaveLength(3);
+    expect(getFlightRows()).toHaveLength(3);
 
     // Clear
     fireEvent.click(screen.getByText("Clear filters"));
 
     // Back to 5 (default visible)
-    expect(screen.getAllByRole("link")).toHaveLength(5);
+    expect(getFlightRows()).toHaveLength(5);
   });
 });
