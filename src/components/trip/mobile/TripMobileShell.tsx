@@ -38,7 +38,7 @@ export function TripMobileShell({
   const lastDate = itinerary.days[itinerary.days.length - 1]?.date;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
+    <div className="flex h-full flex-col bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
       <div className="flex-1 overflow-y-auto pb-4">
         <div className="px-6 pt-8 pb-4">
           <p className="text-brand-primary text-[11px] font-bold tracking-[0.24em] uppercase">

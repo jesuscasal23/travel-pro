@@ -10,7 +10,7 @@ import {
   useAccommodationEnrichment,
   useAuthStatus,
 } from "@/hooks/api";
-import { useTripStore } from "@/stores/useTripStore";
+import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
 import { useItinerary } from "@/hooks/useItinerary";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
@@ -40,6 +40,11 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const needsRegeneration = useTripStore((s) => s.needsRegeneration);
   const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
   const travelers = useTripStore((s) => s.travelers);
+
+  const [storeReady, setStoreReady] = useState(false);
+  useEffect(() => {
+    void storeHydrationPromise.then(() => setStoreReady(true));
+  }, []);
 
   const [dbSyncDone, setDbSyncDone] = useState(tripId === "guest");
   const syncFiredRef = useRef(false);
@@ -128,15 +133,27 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   const cityActivityMutation = useCityActivityGeneration();
   const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);
+  const [cityActivityErrors, setCityActivityErrors] = useState<Record<string, string>>({});
 
   const handleGenerateActivities = (cityId: string, cityName: string) => {
     setGeneratingCityId(cityId);
+    setCityActivityErrors((prev) => {
+      const next = { ...prev };
+      delete next[cityId];
+      return next;
+    });
     const profile = { nationality, homeAirport, travelStyle, interests };
     cityActivityMutation.mutate(
       { tripId, cityId, cityName, profile },
       {
         onSuccess: (mergedItinerary) => {
           setItinerary(mergedItinerary);
+        },
+        onError: (error) => {
+          setCityActivityErrors((prev) => ({
+            ...prev,
+            [cityId]: error instanceof Error ? error.message : "Activity generation failed",
+          }));
         },
         onSettled: () => setGeneratingCityId(null),
       }
@@ -199,8 +216,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     posthog?.capture("itinerary_viewed", { trip_id: tripId, city_count: route.length });
   }, [posthog, tripId, route.length]);
 
-  if (!dbSyncDone) {
-    const heroStop = route[0];
+  if (!storeReady || !dbSyncDone) {
+    const heroStop = storeReady ? route[0] : undefined;
     const heroImage = heroStop ? getCityHeroImage(heroStop.city, heroStop.countryCode) : null;
 
     return (
@@ -303,7 +320,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     accommodationLoading: accommodationLoading && shouldEnrichAccommodation,
     accommodationError: !!accommodationError,
     generatingCityId,
-    cityActivityErrors: {},
+    cityActivityErrors,
     onGenerateActivities: handleGenerateActivities,
   };
 

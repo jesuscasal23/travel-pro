@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback } from "react";
-import { ChevronDown, ChevronUp, Search, AlertTriangle, Filter } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, AlertTriangle, Filter, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useFlightSearch } from "@/hooks/useFlightSearch";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
@@ -313,7 +313,7 @@ export function FlightOptionsPanel({
       ) : (
         <div className="space-y-2">
           {visible.map((result, i) => (
-            <FlightRow key={i} result={result} itineraryId={itineraryId} />
+            <FlightRow key={i} result={result} />
           ))}
         </div>
       )}
@@ -326,6 +326,24 @@ export function FlightOptionsPanel({
             <p className="text-muted-foreground mt-0.5 text-xs">{error}</p>
           </div>
         </div>
+      )}
+
+      {/* Affiliate booking link — one per leg */}
+      {!loading && sorted.length > 0 && (
+        <a
+          href={buildTrackedLink({
+            provider: "skyscanner",
+            type: "flight",
+            itineraryId,
+            dest: sorted[0].bookingUrl,
+          })}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="border-primary/30 bg-primary/5 hover:bg-primary/10 mt-3 flex items-center justify-center gap-2 rounded-lg border p-2.5 transition-colors"
+        >
+          <span className="text-primary text-sm font-medium">Book on Skyscanner</span>
+          <ExternalLink className="text-primary h-3.5 w-3.5" />
+        </a>
       )}
 
       {/* Footer controls */}

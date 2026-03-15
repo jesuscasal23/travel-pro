@@ -236,3 +236,22 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
     }
   )
 );
+
+/**
+ * Resolves once the persisted Zustand store has finished hydrating from
+ * localStorage.  Components that depend on persisted state (e.g. itinerary)
+ * can `use()` this or `await` it to avoid a flash of default/empty state.
+ */
+export const storeHydrationPromise = new Promise<void>((resolve) => {
+  // If already hydrated (e.g. SSR with no persistence), resolve immediately.
+  if (
+    (useTripStore as unknown as { persist: { hasHydrated: () => boolean } }).persist.hasHydrated()
+  ) {
+    resolve();
+    return;
+  }
+  const unsub = useTripStore.persist.onFinishHydration(() => {
+    unsub();
+    resolve();
+  });
+});

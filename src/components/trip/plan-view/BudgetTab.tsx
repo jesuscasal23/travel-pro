@@ -132,7 +132,13 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
         )}
 
         {(hasFlights || hasAccommodation || hasActivityCosts) && (
-          <div className="card-travel bg-primary/5 border-primary/20 col-span-2 p-4 sm:col-span-1">
+          <div
+            className={`card-travel bg-primary/5 border-primary/20 p-4 ${
+              [hasFlights, hasAccommodation, hasActivityCosts].filter(Boolean).length >= 3
+                ? "col-span-2 sm:col-span-1"
+                : ""
+            }`}
+          >
             <div className="mb-1 flex items-center gap-2">
               <DollarSign className="text-primary h-4 w-4" />
               <span className="text-primary text-xs font-medium tracking-wide uppercase">

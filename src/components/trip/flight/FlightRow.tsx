@@ -1,8 +1,6 @@
 "use client";
 
 import { memo } from "react";
-import { ExternalLink } from "lucide-react";
-import { buildTrackedLink } from "@/lib/affiliate/link-generator";
 import type { FlightSearchResult } from "@/lib/flights/types";
 
 /** Format ISO time -> "08:30" */
@@ -24,27 +22,9 @@ function StopsLabel({ stops }: { stops: number }) {
   );
 }
 
-export const FlightRow = memo(function FlightRow({
-  result,
-  itineraryId,
-}: {
-  result: FlightSearchResult;
-  itineraryId?: string;
-}) {
-  const trackedUrl = buildTrackedLink({
-    provider: "skyscanner",
-    type: "flight",
-    itineraryId,
-    dest: result.bookingUrl,
-  });
-
+export const FlightRow = memo(function FlightRow({ result }: { result: FlightSearchResult }) {
   return (
-    <a
-      href={trackedUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="border-border hover:border-primary hover:bg-primary/5 group flex items-center justify-between rounded-lg border p-3 transition-all duration-200"
-    >
+    <div className="border-border flex items-center justify-between rounded-lg border p-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="shrink-0 text-base">✈️</span>
         <div className="min-w-0">
@@ -61,16 +41,9 @@ export const FlightRow = memo(function FlightRow({
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 text-right">
-        <div>
-          <div className="text-foreground text-sm font-bold">
-            €{Math.round(result.price).toLocaleString()}
-          </div>
-          <div className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
-            Book <ExternalLink className="mb-0.5 inline h-3 w-3" />
-          </div>
-        </div>
+      <div className="text-foreground text-sm font-bold">
+        €{Math.round(result.price).toLocaleString()}
       </div>
-    </a>
+    </div>
   );
 });
