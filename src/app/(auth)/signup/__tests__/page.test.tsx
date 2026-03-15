@@ -34,7 +34,7 @@ describe("SignupPage", () => {
     vi.clearAllMocks();
   });
 
-  it("redirects to the next step even when sign-up requires email confirmation", async () => {
+  it("shows check-inbox message when sign-up requires email confirmation", async () => {
     mockSignUp.mockResolvedValue({
       data: { session: null },
       error: null,
@@ -53,6 +53,7 @@ describe("SignupPage", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
-    await waitFor(() => expect(mockRouterReplace).toHaveBeenCalledWith("/plan"));
+    await waitFor(() => expect(screen.getByText(/check your inbox/i)).toBeInTheDocument());
+    expect(mockRouterReplace).not.toHaveBeenCalled();
   });
 });
