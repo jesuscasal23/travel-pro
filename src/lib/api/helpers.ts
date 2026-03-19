@@ -7,6 +7,7 @@ import { requestContext } from "@/lib/core/request-context";
 import { hasGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import {
   ApiError,
+  ForbiddenError,
   InvalidJsonError,
   ProfileNotFoundError,
   TripNotFoundError,
@@ -32,6 +33,14 @@ export async function requireProfile(userId: string) {
   const profile = await prisma.profile.findUnique({ where: { userId } });
   if (!profile) throw new ProfileNotFoundError({ userId });
   return profile;
+}
+
+/** Returns profile with isSuperUser=true, or throws 401/403. */
+export async function requireSuperUser(): Promise<{ userId: string; profileId: string }> {
+  const userId = await requireAuth();
+  const profile = await requireProfile(userId);
+  if (!profile.isSuperUser) throw new ForbiddenError("Forbidden");
+  return { userId, profileId: profile.id };
 }
 
 /** Returns trip after verifying ownership, or throws 403/404. */

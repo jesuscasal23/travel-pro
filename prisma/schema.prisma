@@ -25,6 +25,7 @@ model Profile {
   activityLevel       String?  @map("activity_level") // legacy column name; stores pace values ("relaxed" | "moderate" | "active")
   languagesSpoken     String[] @map("languages_spoken")
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  isSuperUser         Boolean  @default(false) @map("is_super_user")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
