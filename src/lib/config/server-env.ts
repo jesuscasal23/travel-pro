@@ -158,6 +158,23 @@ export function getOptionalAmadeusEnv(): {
   );
 }
 
+export function getOptionalSerpApiEnv(): { apiKey: string } | null {
+  if (!hasEnvValue("SERPAPI_API_KEY")) {
+    return null;
+  }
+
+  return parseRequiredEnv(
+    "serpapi",
+    z.object({
+      apiKey: nonEmptyString,
+    }),
+    {
+      apiKey: process.env.SERPAPI_API_KEY,
+    },
+    ["SERPAPI_API_KEY"]
+  );
+}
+
 export function getAppUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://travelpro.app";
 }
