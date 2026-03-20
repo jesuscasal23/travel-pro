@@ -19,7 +19,25 @@ export const GET = apiHandler("GET /api/v1/trips", async () => {
     return NextResponse.json({ trips: [] });
   }
   const trips = await listTripsForProfile(profile.id);
-  return NextResponse.json({ trips });
+
+  // Derive destination info from itinerary route for trips missing it (e.g. multi-city)
+  const enrichedTrips = trips.map((trip) => {
+    const itineraryData = trip.itineraries[0]?.data as Record<string, unknown> | undefined;
+    const route = Array.isArray(itineraryData?.route) ? itineraryData.route : [];
+    const firstCity = route[0] as
+      | { city?: string; country?: string; countryCode?: string }
+      | undefined;
+
+    return {
+      ...trip,
+      destination: trip.destination ?? firstCity?.city ?? null,
+      destinationCountry: trip.destinationCountry ?? firstCity?.country ?? null,
+      destinationCountryCode: trip.destinationCountryCode ?? firstCity?.countryCode ?? null,
+      itineraries: trip.itineraries.map(({ data: _data, ...rest }) => rest),
+    };
+  });
+
+  return NextResponse.json({ trips: enrichedTrips });
 });
 
 export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) => {

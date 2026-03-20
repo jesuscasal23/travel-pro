@@ -18,11 +18,12 @@ export const TRIP_INTENT_SELECT = {
   description: true,
 } satisfies Prisma.TripSelect;
 
-export const ACTIVE_ITINERARY_SUMMARY_SELECT = {
+const ACTIVE_ITINERARY_SUMMARY_SELECT = {
   id: true,
   version: true,
   generationStatus: true,
   createdAt: true,
+  data: true,
 } satisfies Prisma.ItinerarySelect;
 
 export const TRIP_WITH_ACTIVE_ITINERARY_INCLUDE = {

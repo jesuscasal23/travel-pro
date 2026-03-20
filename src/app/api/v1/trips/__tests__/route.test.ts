@@ -57,7 +57,7 @@ describe("/api/v1/trips", () => {
     vi.clearAllMocks();
     mockAuth.mockResolvedValue("user-1");
     mockPrisma.profile.findUnique.mockResolvedValue({ id: "profile-1", userId: "user-1" });
-    mockPrisma.trip.findMany.mockResolvedValue([{ id: "trip-1" }]);
+    mockPrisma.trip.findMany.mockResolvedValue([{ id: "trip-1", itineraries: [] }]);
     mockPrisma.trip.create.mockResolvedValue({ id: "trip-new" });
   });
 
