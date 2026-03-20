@@ -107,7 +107,7 @@ describe("useTripGeneration", () => {
       "/api/v1/trips/trip-1/generate",
       expect.objectContaining({ method: "POST" })
     );
-    expect(global.fetch).toHaveBeenNthCalledWith(2, "/api/v1/trips/trip-1");
+    expect(global.fetch).toHaveBeenNthCalledWith(2, "/api/v1/trips/trip-1", expect.any(Object));
     expect(mockParseItineraryData).toHaveBeenCalledWith({ route: [], days: [] });
     expect(output).toEqual({ route: [], days: [] });
   });

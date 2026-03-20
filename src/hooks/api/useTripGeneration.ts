@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./keys";
 import { parseItineraryData } from "@/lib/utils/trip-metadata";
-import { parseApiErrorResponse, reportApiError } from "@/lib/client/api-error-reporting";
+import { apiFetch, apiFetchRaw } from "@/lib/client/api-fetch";
+import { reportApiError } from "@/lib/client/api-error-reporting";
 import type { Itinerary } from "@/types";
 
 interface GenerateParams {
@@ -39,40 +40,20 @@ export function useTripGeneration() {
       onStage,
     }: GenerateParams): Promise<Itinerary | null> => {
       const endpoint = `/api/v1/trips/${tripId}/generate`;
-      let res: Response;
-      try {
-        res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            profile,
-            promptVersion,
-            ...(cities ? { cities } : {}),
-          }),
-        });
-      } catch (error) {
-        await reportApiError({
-          source: "useTripGeneration",
-          endpoint,
-          method: "POST",
-          message:
-            error instanceof Error ? error.message : "Network error while starting trip generation",
-        });
-        throw new Error("Generation failed");
-      }
 
-      if (!res.ok || !res.body) {
-        const parsed = await parseApiErrorResponse(res, "Generation failed");
-        await reportApiError({
-          source: "useTripGeneration",
-          endpoint,
-          method: "POST",
-          message: parsed.message,
-          status: parsed.status,
-          requestId: parsed.requestId,
-          responseBody: parsed.responseBody,
-        });
-        throw new Error(parsed.message);
+      const res = await apiFetchRaw(endpoint, {
+        source: "useTripGeneration",
+        method: "POST",
+        body: {
+          profile,
+          promptVersion,
+          ...(cities ? { cities } : {}),
+        },
+        fallbackMessage: "Generation failed",
+      });
+
+      if (!res.body) {
+        throw new Error("Generation failed: no response stream");
       }
 
       const reader = res.body.getReader();
@@ -131,23 +112,13 @@ export function useTripGeneration() {
         }
 
         // Fetch the completed trip data
-        const tripEndpoint = `/api/v1/trips/${resultTripId}`;
-        const tripRes = await fetch(tripEndpoint);
-        if (!tripRes.ok) {
-          const parsed = await parseApiErrorResponse(tripRes, "Generated trip could not be loaded");
-          await reportApiError({
-            source: "useTripGeneration",
-            endpoint: tripEndpoint,
-            method: "GET",
-            message: parsed.message,
-            status: parsed.status,
-            requestId: parsed.requestId,
-            responseBody: parsed.responseBody,
-          });
-          throw new Error(parsed.message);
-        }
+        const tripData = await apiFetch<{
+          trip?: { itineraries?: Array<{ data: unknown }> };
+        }>(`/api/v1/trips/${resultTripId}`, {
+          source: "useTripGeneration",
+          fallbackMessage: "Generated trip could not be loaded",
+        });
 
-        const tripData = await tripRes.json();
         const raw = tripData.trip?.itineraries?.[0]?.data;
         return raw ? parseItineraryData(raw) : null;
       } catch (error) {

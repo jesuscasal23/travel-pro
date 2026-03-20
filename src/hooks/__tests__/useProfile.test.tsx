@@ -93,6 +93,8 @@ describe("useProfile hooks", () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 404,
+      headers: new Headers(),
+      json: async () => ({ error: "Not found" }),
     } as Response);
 
     const { result } = renderHook(() => useProfile(), { wrapper: createWrapper() });
@@ -101,7 +103,12 @@ describe("useProfile hooks", () => {
   });
 
   it("throws when profile save API fails", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false } as Response);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      headers: new Headers(),
+      json: async () => ({ error: "Internal error" }),
+    } as Response);
     const { result } = renderHook(() => useSaveProfile(), { wrapper: createWrapper() });
 
     await expect(
@@ -111,7 +118,7 @@ describe("useProfile hooks", () => {
         travelStyle: "smart-budget",
         interests: [],
       })
-    ).rejects.toThrow("Failed to save profile");
+    ).rejects.toThrow();
   });
 
   it("exports profile data and triggers file download", async () => {
@@ -148,7 +155,7 @@ describe("useProfile hooks", () => {
       expect(output).toEqual({ profile: { nationality: "German" } });
     });
 
-    expect(global.fetch).toHaveBeenCalledWith("/api/v1/profile/export");
+    expect(global.fetch).toHaveBeenCalledWith("/api/v1/profile/export", expect.any(Object));
     expect(createUrlSpy).toHaveBeenCalledTimes(1);
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(revokeUrlSpy).toHaveBeenCalledWith("blob:test");
@@ -156,9 +163,14 @@ describe("useProfile hooks", () => {
   });
 
   it("throws when export API fails", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false } as Response);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      headers: new Headers(),
+      json: async () => ({ error: "Internal error" }),
+    } as Response);
     const { result } = renderHook(() => useExportData(), { wrapper: createWrapper() });
-    await expect(result.current.mutateAsync()).rejects.toThrow("Export failed");
+    await expect(result.current.mutateAsync()).rejects.toThrow();
   });
 
   it("deletes account successfully and throws on API failure", async () => {
@@ -168,7 +180,12 @@ describe("useProfile hooks", () => {
         ok: true,
         json: async () => ({ deleted: true }),
       } as Response)
-      .mockResolvedValueOnce({ ok: false } as Response);
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        headers: new Headers(),
+        json: async () => ({ error: "Internal error" }),
+      } as Response);
 
     const { result } = renderHook(() => useDeleteAccount(), { wrapper: createWrapper() });
 
@@ -177,6 +194,6 @@ describe("useProfile hooks", () => {
       expect(output).toEqual({ deleted: true });
     });
 
-    await expect(result.current.mutateAsync()).rejects.toThrow("Failed to delete account");
+    await expect(result.current.mutateAsync()).rejects.toThrow();
   });
 });

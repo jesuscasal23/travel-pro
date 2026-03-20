@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { queryKeys } from "./keys";
+import { apiFetch } from "@/lib/client/api-fetch";
 import type { CityWithDays } from "@/lib/flights/types";
 
 interface RouteSelectionParams {
@@ -23,14 +24,17 @@ interface RouteSelectionParams {
 }
 
 async function fetchRouteSelection(params: RouteSelectionParams): Promise<CityWithDays[] | null> {
-  const res = await fetch("/api/generate/select-route", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return (data?.cities as CityWithDays[]) ?? null;
+  try {
+    const data = await apiFetch<{ cities?: CityWithDays[] }>("/api/generate/select-route", {
+      source: "useRouteSelection",
+      method: "POST",
+      body: params,
+      fallbackMessage: "Route selection failed",
+    });
+    return data.cities ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function buildCacheKey(params: {

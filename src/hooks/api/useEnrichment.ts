@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "./keys";
-import { parseApiErrorResponse, reportApiError } from "@/lib/client/api-error-reporting";
+import { apiFetch } from "@/lib/client/api-fetch";
 import type { VisaInfo, CityWeather, CityStop, CityAccommodation, TravelStyle } from "@/types";
 
 interface RoutePayload {
@@ -27,38 +27,13 @@ function routeKey(route: CityStop[]): string {
 
 // ── Visa enrichment ─────────────────────────────────────────────
 async function fetchVisa(nationality: string, route: CityStop[]): Promise<VisaInfo[]> {
-  const endpoint = "/api/v1/enrich/visa";
-  let res: Response;
-  try {
-    res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nationality, route: buildRoutePayload(route) }),
-    });
-  } catch (error) {
-    await reportApiError({
-      source: "useVisaEnrichment",
-      endpoint,
-      method: "POST",
-      message: error instanceof Error ? error.message : "Network error while loading visa data",
-    });
-    throw new Error("Failed to load visa data");
-  }
-  if (!res.ok) {
-    const parsed = await parseApiErrorResponse(res, "Failed to load visa data");
-    await reportApiError({
-      source: "useVisaEnrichment",
-      endpoint,
-      method: "POST",
-      message: parsed.message,
-      status: parsed.status,
-      requestId: parsed.requestId,
-      responseBody: parsed.responseBody,
-    });
-    throw new Error(parsed.message);
-  }
-  const { visaData } = await res.json();
-  return visaData ?? [];
+  const data = await apiFetch<{ visaData?: VisaInfo[] }>("/api/v1/enrich/visa", {
+    source: "useVisaEnrichment",
+    method: "POST",
+    body: { nationality, route: buildRoutePayload(route) },
+    fallbackMessage: "Failed to load visa data",
+  });
+  return data.visaData ?? [];
 }
 
 export function useVisaEnrichment(nationality: string, route: CityStop[], enabled: boolean) {
@@ -73,38 +48,13 @@ export function useVisaEnrichment(nationality: string, route: CityStop[], enable
 
 // ── Weather enrichment ──────────────────────────────────────────
 async function fetchWeather(route: CityStop[], dateStart: string): Promise<CityWeather[]> {
-  const endpoint = "/api/v1/enrich/weather";
-  let res: Response;
-  try {
-    res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ route: buildRoutePayload(route), dateStart }),
-    });
-  } catch (error) {
-    await reportApiError({
-      source: "useWeatherEnrichment",
-      endpoint,
-      method: "POST",
-      message: error instanceof Error ? error.message : "Network error while loading weather data",
-    });
-    throw new Error("Failed to load weather data");
-  }
-  if (!res.ok) {
-    const parsed = await parseApiErrorResponse(res, "Failed to load weather data");
-    await reportApiError({
-      source: "useWeatherEnrichment",
-      endpoint,
-      method: "POST",
-      message: parsed.message,
-      status: parsed.status,
-      requestId: parsed.requestId,
-      responseBody: parsed.responseBody,
-    });
-    throw new Error(parsed.message);
-  }
-  const { weatherData } = await res.json();
-  return weatherData ?? [];
+  const data = await apiFetch<{ weatherData?: CityWeather[] }>("/api/v1/enrich/weather", {
+    source: "useWeatherEnrichment",
+    method: "POST",
+    body: { route: buildRoutePayload(route), dateStart },
+    fallbackMessage: "Failed to load weather data",
+  });
+  return data.weatherData ?? [];
 }
 
 export function useWeatherEnrichment(route: CityStop[], dateStart: string, enabled: boolean) {
@@ -124,55 +74,30 @@ async function fetchAccommodation(
   travelers: number,
   travelStyle: TravelStyle
 ): Promise<CityAccommodation[]> {
-  const endpoint = "/api/v1/enrich/accommodation";
-  const payload = {
-    route: route.map((r) => ({
-      id: r.id,
-      city: r.city,
-      country: r.country,
-      countryCode: r.countryCode,
-      lat: r.lat,
-      lng: r.lng,
-      days: r.days,
-      iataCode: r.iataCode,
-    })),
-    dateStart,
-    travelers,
-    travelStyle,
-  };
-
-  let res: Response;
-  try {
-    res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (error) {
-    await reportApiError({
+  const data = await apiFetch<{ accommodationData?: CityAccommodation[] }>(
+    "/api/v1/enrich/accommodation",
+    {
       source: "useAccommodationEnrichment",
-      endpoint,
       method: "POST",
-      message:
-        error instanceof Error ? error.message : "Network error while loading accommodation data",
-    });
-    throw new Error("Failed to load accommodation data");
-  }
-  if (!res.ok) {
-    const parsed = await parseApiErrorResponse(res, "Failed to load accommodation data");
-    await reportApiError({
-      source: "useAccommodationEnrichment",
-      endpoint,
-      method: "POST",
-      message: parsed.message,
-      status: parsed.status,
-      requestId: parsed.requestId,
-      responseBody: parsed.responseBody,
-    });
-    throw new Error(parsed.message);
-  }
-  const { accommodationData } = await res.json();
-  return accommodationData ?? [];
+      body: {
+        route: route.map((r) => ({
+          id: r.id,
+          city: r.city,
+          country: r.country,
+          countryCode: r.countryCode,
+          lat: r.lat,
+          lng: r.lng,
+          days: r.days,
+          iataCode: r.iataCode,
+        })),
+        dateStart,
+        travelers,
+        travelStyle,
+      },
+      fallbackMessage: "Failed to load accommodation data",
+    }
+  );
+  return data.accommodationData ?? [];
 }
 
 export function useAccommodationEnrichment(
