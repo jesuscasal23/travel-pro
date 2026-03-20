@@ -40,7 +40,10 @@ Backend contributor/agent guide:
 npm run db:generate
 npm run db:migrate
 npm run db:seed
+npm run db:set-superuser -- --email you@example.com
 ```
+
+Superuser command notes: [docs/superuser-access.md](docs/superuser-access.md)
 
 ## Notes
 

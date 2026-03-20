@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { CalendarDays, Map, ReceiptText, Wallet } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -18,29 +19,44 @@ interface TripSectionNavProps {
 
 export function TripSectionNav({ tripId }: TripSectionNavProps) {
   const pathname = usePathname();
+  const activeSectionRef = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    activeSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [pathname]);
 
   return (
-    <div className="scrollbar-hide flex gap-2 overflow-x-auto px-6 py-4">
-      {sections.map((section) => {
-        const href = `/trips/${tripId}${section.href}`;
-        const isActive = pathname === href;
-        const Icon = section.icon;
+    <div className="px-6 py-4">
+      <div
+        aria-label="Trip sections"
+        className="scrollbar-thin flex touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-2"
+      >
+        {sections.map((section) => {
+          const href = `/trips/${tripId}${section.href}`;
+          const isActive = pathname === href;
+          const Icon = section.icon;
 
-        return (
-          <Link
-            key={section.id}
-            href={href}
-            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
-              isActive
-                ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-md)]"
-                : "border-white/80 bg-white/88 text-[#6d7b91] shadow-[0_14px_26px_rgba(27,43,75,0.05)]"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            <span>{section.label}</span>
-          </Link>
-        );
-      })}
+          return (
+            <Link
+              key={section.id}
+              href={href}
+              ref={isActive ? activeSectionRef : undefined}
+              className={`flex shrink-0 snap-start items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
+                isActive
+                  ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-md)]"
+                  : "border-white/80 bg-white/88 text-[#6d7b91] shadow-[0_14px_26px_rgba(27,43,75,0.05)]"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{section.label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }

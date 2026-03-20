@@ -22,6 +22,7 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
+    "db:set-superuser": "npx tsx scripts/set-superuser.ts",
     "update-visa-data": "node scripts/generate-visa-data.js && vitest run src/data/__tests__/visa-data.test.ts",
     "download:images": "npx tsx scripts/download-city-images.ts",
     "db:sync-cities": "npx tsx scripts/sync-discovered-cities.ts",
