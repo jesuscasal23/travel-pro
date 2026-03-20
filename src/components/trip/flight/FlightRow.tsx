@@ -22,9 +22,20 @@ function StopsLabel({ stops }: { stops: number }) {
   );
 }
 
-export const FlightRow = memo(function FlightRow({ result }: { result: FlightSearchResult }) {
+export const FlightRow = memo(function FlightRow({
+  result,
+  bookingHref,
+}: {
+  result: FlightSearchResult;
+  bookingHref: string;
+}) {
   return (
-    <div className="border-border flex items-center justify-between rounded-lg border p-3">
+    <a
+      href={bookingHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="border-border hover:border-primary hover:bg-primary/5 flex items-center justify-between rounded-lg border p-3 transition-colors"
+    >
       <div className="flex min-w-0 items-center gap-3">
         <span className="shrink-0 text-base">✈️</span>
         <div className="min-w-0">
@@ -44,6 +55,6 @@ export const FlightRow = memo(function FlightRow({ result }: { result: FlightSea
       <div className="text-foreground text-sm font-bold">
         €{Math.round(result.price).toLocaleString()}
       </div>
-    </div>
+    </a>
   );
 });

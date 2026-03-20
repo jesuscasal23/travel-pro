@@ -313,7 +313,16 @@ export function FlightOptionsPanel({
       ) : (
         <div className="space-y-2">
           {visible.map((result, i) => (
-            <FlightRow key={i} result={result} />
+            <FlightRow
+              key={i}
+              result={result}
+              bookingHref={buildTrackedLink({
+                provider: "skyscanner",
+                type: "flight",
+                itineraryId,
+                dest: result.bookingUrl,
+              })}
+            />
           ))}
         </div>
       )}

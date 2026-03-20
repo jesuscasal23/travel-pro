@@ -106,7 +106,7 @@ describe("FlightOptionsPanel", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
     // Default sort is price — cheapest first
-    const firstRow = getFlightRows()[0].closest("div[class*='border']")!;
+    const firstRow = getFlightRows()[0].closest("[class*='border']")!;
     expect(firstRow).toHaveTextContent("TK");
     expect(firstRow).toHaveTextContent("€320");
 
@@ -114,7 +114,7 @@ describe("FlightOptionsPanel", () => {
     fireEvent.click(screen.getByText("Duration"));
 
     // JL (11h 45m) should now be first (shortest duration)
-    const firstAfterSort = getFlightRows()[0].closest("div[class*='border']")!;
+    const firstAfterSort = getFlightRows()[0].closest("[class*='border']")!;
     expect(firstAfterSort).toHaveTextContent("JL");
   });
 
@@ -164,7 +164,7 @@ describe("FlightOptionsPanel", () => {
     // Should show live results, not prefetched
     const rows = getFlightRows();
     expect(rows).toHaveLength(2);
-    const firstRow = rows[0].closest("div[class*='border']")!;
+    const firstRow = rows[0].closest("[class*='border']")!;
     expect(firstRow).toHaveTextContent("QR");
     expect(firstRow).toHaveTextContent("€200");
   });
@@ -212,9 +212,12 @@ describe("FlightOptionsPanel", () => {
       <FlightOptionsPanel leg={singleLeg} tripId="trip-1" travelers={2} itineraryId="itin-1" />
     );
 
-    const link = screen.getByRole("link");
-    expect(link.getAttribute("href")).toContain("/api/v1/affiliate/redirect");
-    expect(link.getAttribute("target")).toBe("_blank");
+    const links = screen.getAllByRole("link");
+    // Every link (flight rows + "Book on Skyscanner") should be tracked
+    for (const link of links) {
+      expect(link.getAttribute("href")).toContain("/api/v1/affiliate/redirect");
+      expect(link.getAttribute("target")).toBe("_blank");
+    }
   });
 
   it("filters by nonstop when stops filter is selected", () => {
