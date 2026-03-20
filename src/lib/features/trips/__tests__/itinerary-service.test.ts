@@ -33,7 +33,6 @@ import {
   activateGeneratedItinerary,
   GenerationAlreadyInProgressError,
   markGenerationFailed,
-  cleanupStaleGenerations,
 } from "../itinerary-service";
 
 const mockPrisma = prisma as unknown as {
@@ -264,61 +263,5 @@ describe("markGenerationFailed", () => {
       where: { id: "itin-1" },
       data: { generationStatus: "failed" },
     });
-  });
-});
-
-// ── cleanupStaleGenerations ─────────────────────────────────
-
-describe("cleanupStaleGenerations", () => {
-  it("marks stale generating records as failed", async () => {
-    mockPrisma.itinerary.updateMany.mockResolvedValue({ count: 3 });
-
-    const result = await cleanupStaleGenerations();
-
-    expect(result).toBe(3);
-    expect(mockPrisma.itinerary.updateMany).toHaveBeenCalledWith({
-      where: {
-        generationStatus: "generating",
-        createdAt: { lt: expect.any(Date) },
-      },
-      data: { generationStatus: "failed" },
-    });
-  });
-
-  it("returns 0 when no stale records exist", async () => {
-    mockPrisma.itinerary.updateMany.mockResolvedValue({ count: 0 });
-
-    const result = await cleanupStaleGenerations();
-
-    expect(result).toBe(0);
-  });
-
-  it("uses the provided maxAgeMs for the cutoff", async () => {
-    mockPrisma.itinerary.updateMany.mockResolvedValue({ count: 1 });
-
-    const before = Date.now();
-    await cleanupStaleGenerations(5 * 60 * 1000); // 5 minutes
-    const after = Date.now();
-
-    const callArgs = mockPrisma.itinerary.updateMany.mock.calls[0][0];
-    const cutoff = callArgs.where.createdAt.lt as Date;
-
-    // Cutoff should be ~5 minutes before now (within a small tolerance)
-    expect(cutoff.getTime()).toBeGreaterThanOrEqual(before - 5 * 60 * 1000 - 100);
-    expect(cutoff.getTime()).toBeLessThanOrEqual(after - 5 * 60 * 1000 + 100);
-  });
-
-  it("defaults to 2 minute maxAge", async () => {
-    mockPrisma.itinerary.updateMany.mockResolvedValue({ count: 0 });
-
-    const before = Date.now();
-    await cleanupStaleGenerations();
-    const after = Date.now();
-
-    const callArgs = mockPrisma.itinerary.updateMany.mock.calls[0][0];
-    const cutoff = callArgs.where.createdAt.lt as Date;
-
-    expect(cutoff.getTime()).toBeGreaterThanOrEqual(before - 2 * 60 * 1000 - 100);
-    expect(cutoff.getTime()).toBeLessThanOrEqual(after - 2 * 60 * 1000 + 100);
   });
 });

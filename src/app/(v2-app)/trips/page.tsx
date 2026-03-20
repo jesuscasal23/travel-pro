@@ -5,7 +5,6 @@ import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { V2CenteredState } from "@/components/v2/ui/V2CenteredState";
 import { useTrips } from "@/hooks/api";
-import { useAuthStatus } from "@/hooks/api";
 import { V2IconActionButton } from "@/components/v2/ui/V2IconActionButton";
 import { V2PageHeader } from "@/components/v2/ui/V2PageHeader";
 import { V2Screen } from "@/components/v2/ui/V2Screen";
@@ -26,7 +25,6 @@ function daysUntil(dateStr: string): number | null {
 
 export default function TripsPage() {
   const router = useRouter();
-  const isAuth = useAuthStatus();
   const { data: trips, isLoading, error } = useTrips();
 
   const tripList = trips ?? [];
@@ -52,26 +50,11 @@ export default function TripsPage() {
         </div>
       )}
 
-      {!isLoading && isAuth === false && (
-        <V2CenteredState
-          title="Sign in to see your trips"
-          description="Your trips will appear here after you log in."
-          action={
-            <button
-              onClick={() => router.push("/login?next=/trips")}
-              className="bg-brand-primary mt-4 rounded-xl px-6 py-3 text-sm font-bold text-white"
-            >
-              Sign In
-            </button>
-          }
-        />
-      )}
-
       {!isLoading && error && (
         <V2CenteredState title="Failed to load trips. Please try again." tone="error" />
       )}
 
-      {!isLoading && isAuth && tripList.length === 0 && !error && (
+      {!isLoading && tripList.length === 0 && !error && (
         <V2CenteredState
           title="No trips yet"
           description="Plan your first adventure!"

@@ -17,7 +17,7 @@ import {
   Map,
   Wallet,
 } from "lucide-react";
-import { useTrips, useAuthStatus } from "@/hooks/api";
+import { useTrips } from "@/hooks/api";
 import { getCityImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import { V2Screen } from "@/components/v2/ui/V2Screen";
 import type { TripSummary } from "@/types";
@@ -43,7 +43,6 @@ function getNextTrip(trips: TripSummary[]): TripSummary | null {
 
 export default function HomePage() {
   const router = useRouter();
-  const isAuth = useAuthStatus();
   const { data: trips } = useTrips();
   const tripList = trips ?? [];
   const nextTrip = getNextTrip(tripList);
@@ -64,7 +63,7 @@ export default function HomePage() {
           onClick={() => router.push("/profile")}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eef2f7]"
         >
-          <span className="text-sm font-bold text-[#6d7b91]">{isAuth ? "👤" : "?"}</span>
+          <span className="text-sm font-bold text-[#6d7b91]">👤</span>
         </button>
       </div>
 

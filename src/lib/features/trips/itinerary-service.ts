@@ -175,38 +175,3 @@ export async function markGenerationFailed(itineraryId: string) {
     data: { generationStatus: "failed" },
   });
 }
-
-/**
- * Find and mark stale "generating" itineraries as failed.
- * A record is considered stale if it has been in "generating" state
- * longer than `maxAgeMs` (default: 2 minutes).
- *
- * This handles edge cases where the Vercel function timed out or
- * crashed before the catch/finally block could update the record.
- *
- * Returns the number of records cleaned up.
- */
-export async function cleanupStaleGenerations(
-  maxAgeMs: number = STALE_GENERATION_MAX_AGE_MS
-): Promise<number> {
-  const cutoff = new Date(Date.now() - maxAgeMs);
-
-  const result = await prisma.itinerary.updateMany({
-    where: {
-      generationStatus: "generating",
-      createdAt: { lt: cutoff },
-    },
-    data: { generationStatus: "failed" },
-  });
-
-  if (result.count > 0) {
-    log.warn("Cleaned up stale generating records", {
-      count: result.count,
-      cutoff: cutoff.toISOString(),
-    });
-  } else {
-    log.debug("No stale generating records found");
-  }
-
-  return result.count;
-}

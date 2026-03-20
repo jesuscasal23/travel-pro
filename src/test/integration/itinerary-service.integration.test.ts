@@ -22,7 +22,6 @@ import {
   activateGeneratedItinerary,
   GenerationAlreadyInProgressError,
   markGenerationFailed,
-  cleanupStaleGenerations,
 } from "@/lib/features/trips/itinerary-service";
 
 describe("itinerary-service", () => {
@@ -158,30 +157,6 @@ describe("itinerary-service", () => {
 
     const updated = await prisma.itinerary.findUnique({
       where: { id: itin.id },
-    });
-    expect(updated?.generationStatus).toBe("failed");
-  });
-
-  it("cleanupStaleGenerations marks old generating records as failed", async () => {
-    const trip = await createTestTrip(prisma);
-
-    // Create a generating record
-    const record = await createTestItinerary(prisma, trip.id, {
-      generationStatus: "generating",
-      isActive: false,
-    });
-
-    // Backdate it to simulate a stale record (10 minutes ago)
-    await prisma.$executeRaw`
-      UPDATE itineraries SET created_at = NOW() - INTERVAL '10 minutes'
-      WHERE id = ${record.id}
-    `;
-
-    const count = await cleanupStaleGenerations(2 * 60 * 1000); // 2-min cutoff
-    expect(count).toBe(1);
-
-    const updated = await prisma.itinerary.findUnique({
-      where: { id: record.id },
     });
     expect(updated?.generationStatus).toBe("failed");
   });
