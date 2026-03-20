@@ -73,7 +73,7 @@ export default function TripsPage() {
         <div className="space-y-6 px-6">
           {tripList.map((trip: TripSummary) => {
             const days = daysUntil(trip.dateStart);
-            const label = trip.destination ?? trip.region;
+            const label = trip.destination || trip.region;
             return (
               <TripCard
                 key={trip.id}
@@ -101,7 +101,7 @@ function TripCard({
   days: number | null;
   onClick: () => void;
 }) {
-  const cityName = trip.destination ?? label;
+  const cityName = trip.destination || label;
   const countryCode = trip.destinationCountryCode ?? "";
   const [src, setSrc] = useState(() =>
     countryCode ? getCityImage(cityName, countryCode) : getCityPlaceholder(cityName)
