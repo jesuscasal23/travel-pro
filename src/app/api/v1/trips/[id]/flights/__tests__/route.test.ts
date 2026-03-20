@@ -9,8 +9,8 @@ vi.mock("@/lib/core/prisma", () => ({
   },
 }));
 
-vi.mock("@/lib/flights/amadeus", () => ({
-  searchFlightsMulti: vi.fn(),
+vi.mock("@/lib/features/trips/flight-search-service", () => ({
+  searchTripFlights: vi.fn(),
 }));
 
 vi.mock("@/lib/core/logger", () => ({
@@ -29,13 +29,13 @@ vi.mock("@/lib/core/request-context", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
-import { searchFlightsMulti } from "@/lib/flights/amadeus";
+import { searchTripFlights } from "@/lib/features/trips/flight-search-service";
 import { POST } from "../route";
 
 const mockPrisma = prisma as unknown as {
   trip: { findUnique: ReturnType<typeof vi.fn> };
 };
-const mockSearch = searchFlightsMulti as ReturnType<typeof vi.fn>;
+const mockSearch = searchTripFlights as ReturnType<typeof vi.fn>;
 
 const tripId = "trip-123";
 
@@ -59,28 +59,34 @@ const validBody = {
   travelers: 2,
 };
 
-const mockResults = [
-  {
-    price: 320,
-    duration: "16h",
-    airline: "TK",
-    stops: 1,
-    departureTime: "2026-06-01T06:00:00",
-    arrivalTime: "2026-06-01T22:00:00",
-    cabin: "ECONOMY",
-    bookingUrl: "https://skyscanner.net/flights/CDG/NRT",
-  },
-  {
-    price: 450,
-    duration: "12h 30m",
-    airline: "LH",
-    stops: 0,
-    departureTime: "2026-06-01T08:30:00",
-    arrivalTime: "2026-06-01T20:00:00",
-    cabin: "ECONOMY",
-    bookingUrl: "https://skyscanner.net/flights/CDG/NRT",
-  },
-];
+const mockResults = {
+  fromIata: "CDG",
+  toIata: "NRT",
+  departureDate: "2026-06-01",
+  fetchedAt: Date.now(),
+  results: [
+    {
+      price: 320,
+      duration: "16h",
+      airline: "TK",
+      stops: 1,
+      departureTime: "2026-06-01T06:00:00",
+      arrivalTime: "2026-06-01T22:00:00",
+      cabin: "ECONOMY",
+      bookingUrl: "https://skyscanner.net/flights/CDG/NRT",
+    },
+    {
+      price: 450,
+      duration: "12h 30m",
+      airline: "LH",
+      stops: 0,
+      departureTime: "2026-06-01T08:30:00",
+      arrivalTime: "2026-06-01T20:00:00",
+      cabin: "ECONOMY",
+      bookingUrl: "https://skyscanner.net/flights/CDG/NRT",
+    },
+  ],
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -102,11 +108,18 @@ describe("POST /api/v1/trips/:id/flights", () => {
     expect(json.fetchedAt).toBeGreaterThan(0);
   });
 
-  it("calls searchFlightsMulti with correct params", async () => {
+  it("calls searchTripFlights with correct params", async () => {
     const req = makeRequest(validBody);
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
+    expect(mockSearch).toHaveBeenCalledWith({
+      fromIata: "CDG",
+      toIata: "NRT",
+      departureDate: "2026-06-01",
+      travelers: 2,
+      nonStop: undefined,
+      maxPrice: undefined,
+    });
   });
 
   it("returns 404 when trip not found", async () => {
@@ -147,8 +160,14 @@ describe("POST /api/v1/trips/:id/flights", () => {
     expect(res.status).toBe(400);
   });
 
-  it("returns empty results when Amadeus is unconfigured", async () => {
-    mockSearch.mockResolvedValue([]);
+  it("returns empty results when flight provider is unconfigured", async () => {
+    mockSearch.mockResolvedValue({
+      fromIata: "CDG",
+      toIata: "NRT",
+      departureDate: "2026-06-01",
+      results: [],
+      fetchedAt: Date.now(),
+    });
     const req = makeRequest(validBody);
     const res = await POST(req, { params: Promise.resolve({ id: tripId }) });
     const json = await res.json();
@@ -161,23 +180,26 @@ describe("POST /api/v1/trips/:id/flights", () => {
     const req = makeRequest({ ...validBody, fromIata: "cdg", toIata: "nrt" });
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
+    expect(mockSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ fromIata: "CDG", toIata: "NRT" })
+    );
   });
 
-  it("passes nonStop and maxPrice filters to searchFlightsMulti", async () => {
+  it("passes nonStop and maxPrice filters", async () => {
     const req = makeRequest({ ...validBody, nonStop: true, maxPrice: 500 });
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, {
-      nonStop: true,
-      maxPrice: 500,
-    });
+    expect(mockSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ nonStop: true, maxPrice: 500 })
+    );
   });
 
   it("passes undefined filters when none provided", async () => {
     const req = makeRequest(validBody);
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
+    expect(mockSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ nonStop: undefined, maxPrice: undefined })
+    );
   });
 });

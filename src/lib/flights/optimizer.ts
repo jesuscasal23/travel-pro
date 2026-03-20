@@ -12,13 +12,11 @@
 // Target city-days = totalDays - 1 - N  (N = number of cities)
 // ============================================================
 
-import { searchFlights as amadeusSearchFlights } from "./amadeus";
 import { searchFlights as serpApiSearchFlights } from "./serpapi";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import type { CityWithDays, OptimizedLeg, FlightSkeleton, FlightOption } from "./types";
 import { addDays } from "@/lib/utils/date";
 
-/** Use SerpApi when configured, fall back to Amadeus. */
 function searchFlights(
   origin: string,
   destination: string,
@@ -27,10 +25,8 @@ function searchFlights(
   signal?: AbortSignal
 ): Promise<FlightOption | null> {
   const serpApi = getOptionalSerpApiEnv();
-  if (serpApi) {
-    return serpApiSearchFlights(serpApi.apiKey, origin, destination, date, travelers, signal);
-  }
-  return amadeusSearchFlights(origin, destination, date, travelers, signal);
+  if (!serpApi) return Promise.resolve(null);
+  return serpApiSearchFlights(serpApi.apiKey, origin, destination, date, travelers, signal);
 }
 
 /** Enumerate all feasible day assignments where the sum equals target. */

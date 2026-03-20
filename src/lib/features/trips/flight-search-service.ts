@@ -1,9 +1,5 @@
 import { ApiError } from "@/lib/api/errors";
 import {
-  AmadeusRateLimitError,
-  searchFlightsMulti as amadeusSearchMulti,
-} from "@/lib/flights/amadeus";
-import {
   SerpApiRateLimitError,
   searchFlightsMulti as serpApiSearchMulti,
 } from "@/lib/flights/serpapi";
@@ -24,32 +20,35 @@ export async function searchTripFlights(input: FlightSearchInput) {
 
   const serpApi = getOptionalSerpApiEnv();
 
-  try {
-    let results;
+  if (!serpApi) {
+    log.warn("SerpApi not configured — returning empty flight results", {
+      from: input.fromIata,
+      to: input.toIata,
+      date: input.departureDate,
+    });
+    return {
+      fromIata: input.fromIata,
+      toIata: input.toIata,
+      departureDate: input.departureDate,
+      results: [],
+      fetchedAt: Date.now(),
+    };
+  }
 
-    if (serpApi) {
-      log.info("Using SerpApi Google Flights", {
-        from: input.fromIata,
-        to: input.toIata,
-        date: input.departureDate,
-      });
-      results = await serpApiSearchMulti(
-        serpApi.apiKey,
-        input.fromIata,
-        input.toIata,
-        input.departureDate,
-        input.travelers,
-        filters
-      );
-    } else {
-      results = await amadeusSearchMulti(
-        input.fromIata,
-        input.toIata,
-        input.departureDate,
-        input.travelers,
-        filters
-      );
-    }
+  try {
+    log.info("Using SerpApi Google Flights", {
+      from: input.fromIata,
+      to: input.toIata,
+      date: input.departureDate,
+    });
+    const results = await serpApiSearchMulti(
+      serpApi.apiKey,
+      input.fromIata,
+      input.toIata,
+      input.departureDate,
+      input.travelers,
+      filters
+    );
 
     return {
       fromIata: input.fromIata,
@@ -59,9 +58,8 @@ export async function searchTripFlights(input: FlightSearchInput) {
       fetchedAt: Date.now(),
     };
   } catch (error) {
-    if (error instanceof AmadeusRateLimitError || error instanceof SerpApiRateLimitError) {
-      const provider = error instanceof SerpApiRateLimitError ? "serpapi" : "amadeus";
-      throw new ApiError(429, error.message, { provider }, `${provider}_rate_limit`);
+    if (error instanceof SerpApiRateLimitError) {
+      throw new ApiError(429, error.message, { provider: "serpapi" }, "serpapi_rate_limit");
     }
     throw error;
   }

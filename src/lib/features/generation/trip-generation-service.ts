@@ -3,7 +3,6 @@ import { generateRouteOnly } from "@/lib/ai/pipeline";
 import { ApiError, ServiceMisconfiguredError } from "@/lib/api/errors";
 import { abortableDelay, isAbortError, throwIfAborted } from "@/lib/core/abort";
 import { buildFlightLegsFromRoute } from "@/lib/flights/route-utils";
-import { prefetchFlightOptions as amadeusPrefetch } from "@/lib/flights/amadeus";
 import { prefetchFlightOptions as serpApiPrefetch } from "@/lib/flights/serpapi";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import type { CityWithDays } from "@/lib/flights/types";
@@ -103,16 +102,13 @@ export async function createTripGenerationStreamResponse(
           if (legs.length > 0) {
             send({ stage: "flights", message: "Searching flights...", pct: 70 });
 
-            const flightOptions = await Promise.race([
-              (() => {
-                const serpApi = getOptionalSerpApiEnv();
-                if (serpApi) {
-                  return serpApiPrefetch(serpApi.apiKey, legs, input.trip.travelers, input.signal);
-                }
-                return amadeusPrefetch(legs, input.trip.travelers, input.signal);
-              })(),
-              abortableDelay(FLIGHT_PREFETCH_TIMEOUT_MS, input.signal).then(() => null),
-            ]);
+            const serpApi = getOptionalSerpApiEnv();
+            const flightOptions = serpApi
+              ? await Promise.race([
+                  serpApiPrefetch(serpApi.apiKey, legs, input.trip.travelers, input.signal),
+                  abortableDelay(FLIGHT_PREFETCH_TIMEOUT_MS, input.signal).then(() => null),
+                ])
+              : null;
 
             if (flightOptions && flightOptions.some((leg) => leg.results.length > 0)) {
               itinerary.flightOptions = flightOptions;

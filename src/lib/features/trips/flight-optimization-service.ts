@@ -45,7 +45,7 @@ export async function optimizeTripFlights(
     );
   } catch {
     throw new UpstreamServiceError(
-      "Flight optimization failed — Amadeus may not be configured or available"
+      "Flight optimization failed — SerpApi may not be configured or available"
     );
   }
 }
