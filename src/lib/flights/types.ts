@@ -43,7 +43,8 @@ export interface FlightSearchResult {
   departureTime: string; // ISO 8601
   arrivalTime: string; // ISO 8601
   cabin: string; // "ECONOMY" etc.
-  bookingUrl: string; // Google Flights booking link (falls back to Skyscanner)
+  bookingUrl: string; // Skyscanner affiliate fallback link
+  bookingToken?: string; // SerpApi booking_token for resolving direct booking URL
 }
 
 /** Multiple flight results for a single leg */

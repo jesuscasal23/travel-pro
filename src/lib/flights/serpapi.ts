@@ -284,11 +284,6 @@ export async function searchFlightsMulti(
     const lastSeg = segments[segments.length - 1];
     const cabin = normalizeCabin(firstSeg?.travel_class ?? "Economy");
 
-    // Prefer Google Flights direct booking link when token is available
-    const bookingUrl = itinerary.booking_token
-      ? `https://www.google.com/travel/flights/booking?token=${encodeURIComponent(itinerary.booking_token)}`
-      : fallbackUrl;
-
     return {
       price: itinerary.price * adults, // SerpApi returns per-person price
       duration: formatDuration(itinerary.total_duration),
@@ -297,7 +292,8 @@ export async function searchFlightsMulti(
       departureTime: firstSeg?.departure_airport?.time ?? "",
       arrivalTime: lastSeg?.arrival_airport?.time ?? "",
       cabin,
-      bookingUrl,
+      bookingUrl: fallbackUrl,
+      bookingToken: itinerary.booking_token,
     };
   });
 
@@ -342,4 +338,116 @@ export async function prefetchFlightOptions(
     results: settled[i].status === "fulfilled" ? settled[i].value : [],
     fetchedAt: Date.now(),
   }));
+}
+
+// ── Booking URL Resolution ──────────────────────────────────
+
+interface SerpApiBookingOption {
+  together?: {
+    book_with?: string;
+    price?: number;
+    booking_request?: {
+      url: string;
+      post_data?: string;
+    };
+  };
+}
+
+interface SerpApiBookingResponse {
+  booking_options?: SerpApiBookingOption[];
+  error?: string;
+}
+
+/**
+ * Resolve a booking_token into an actual airline/OTA booking URL.
+ *
+ * 1. Calls SerpApi with the booking_token to get booking_options
+ * 2. Picks the first option's booking_request
+ * 3. POSTs to Google's click-tracking endpoint to resolve the final URL
+ * 4. Returns the redirect location (the real booking page)
+ */
+export async function resolveBookingUrl(
+  apiKey: string,
+  bookingToken: string
+): Promise<string | null> {
+  // Step 1: Get booking options from SerpApi
+  const params = new URLSearchParams({
+    engine: "google_flights",
+    api_key: apiKey,
+    booking_token: bookingToken,
+    hl: "en",
+    currency: "EUR",
+  });
+
+  let res: Response;
+  try {
+    res = await fetch(`${SERPAPI_BASE}?${params}`, {
+      signal: AbortSignal.timeout(SERPAPI_REQUEST_TIMEOUT_MS),
+    });
+  } catch (e) {
+    log.warn("Booking options network error", { error: getErrorMessage(e) });
+    return null;
+  }
+
+  if (res.status === 429) {
+    log.warn("SerpApi rate limit hit during booking resolution");
+    throw new SerpApiRateLimitError();
+  }
+
+  if (!res.ok) {
+    log.warn("SerpApi booking options failed", { status: res.status });
+    return null;
+  }
+
+  const body = (await res.json()) as SerpApiBookingResponse;
+  if (body.error) {
+    log.warn("SerpApi booking options error", { error: body.error });
+    return null;
+  }
+
+  const options = body.booking_options ?? [];
+  if (options.length === 0) {
+    log.warn("No booking options returned");
+    return null;
+  }
+
+  // Pick the first booking option
+  const bookingRequest = options[0].together?.booking_request;
+  if (!bookingRequest?.url) {
+    log.warn("No booking_request in first option");
+    return null;
+  }
+
+  // Step 2: POST to Google's click-tracking endpoint to get the final redirect
+  try {
+    const postRes = await fetch(bookingRequest.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: bookingRequest.post_data ?? "",
+      redirect: "manual", // Don't follow — we want the Location header
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    const location = postRes.headers.get("location");
+    if (location) {
+      return location;
+    }
+
+    // Some responses use meta-refresh or JS redirect — try reading body
+    if (postRes.status >= 200 && postRes.status < 400) {
+      const html = await postRes.text();
+      const metaMatch = html.match(/url=["']?([^"'\s>]+)/i);
+      if (metaMatch?.[1]) {
+        return metaMatch[1];
+      }
+    }
+
+    log.warn("No redirect location from Google click endpoint", {
+      status: postRes.status,
+    });
+    return null;
+  } catch (e) {
+    log.warn("Failed to resolve booking redirect", { error: getErrorMessage(e) });
+    return null;
+  }
 }
