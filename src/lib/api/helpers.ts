@@ -165,6 +165,10 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
         }
         log.error("Unhandled route error", {
           route: routeName,
+          requestId,
+          method: req.method,
+          path: req.nextUrl?.pathname,
+          errorName: err instanceof Error ? err.name : "unknown",
           error: err instanceof Error ? (err.stack ?? err.message) : String(err),
         });
         const response = NextResponse.json({ error: "Internal server error" }, { status: 500 });

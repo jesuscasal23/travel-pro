@@ -79,6 +79,8 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     return null;
   }
 
+  const isGenerateRoute = limitKey.startsWith("rl:generate:");
+
   try {
     // Upstash Redis REST API — works at the edge without ioredis
     const now = Math.floor(Date.now() / 1000);
@@ -92,6 +94,11 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       ["EXPIRE", limitKey, String(windowSeconds * 2)],
     ];
 
+    // Abort after 2s so a slow Redis can't starve the route handler
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+
+    const fetchStart = Date.now();
     const res = await fetch(`${url}/pipeline`, {
       method: "POST",
       headers: {
@@ -99,12 +106,19 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
         "Content-Type": "application/json",
       },
       body: JSON.stringify(pipeline),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
+
+    const fetchMs = Date.now() - fetchStart;
 
     if (!res.ok) {
-      console.error(`[rate-limit] Redis returned ${res.status} for ${limitKey}`);
+      console.error(
+        `[rate-limit] Redis error: status=${res.status}, key=${limitKey}, latency=${fetchMs}ms, ` +
+          `path=${pathname}, ip=${ip}, action=${isGenerateRoute ? "fail-closed" : "fail-open"}`
+      );
       // Fail closed for expensive LLM endpoints, open for others
-      if (limitKey.startsWith("rl:generate:")) {
+      if (isGenerateRoute) {
         return new NextResponse(
           JSON.stringify({
             error: "Service unavailable",
@@ -116,15 +130,25 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       return null;
     }
 
+    if (fetchMs > 500) {
+      console.warn(
+        `[rate-limit] Slow Redis: latency=${fetchMs}ms, key=${limitKey}, path=${pathname}`
+      );
+    }
+
     const results = (await res.json()) as { result: unknown }[];
     const count = (results[2]?.result as number) ?? 0;
 
     if (count > limit) {
+      console.warn(
+        `[rate-limit] Rate limit exceeded: key=${limitKey}, count=${count}/${limit}, ` +
+          `window=${windowSeconds}s, path=${pathname}, ip=${ip}`
+      );
       const retryAfter = windowSeconds;
       return new NextResponse(
         JSON.stringify({
           error: "Too many requests",
-          message: limitKey.startsWith("rl:generate:")
+          message: isGenerateRoute
             ? `You've reached the generation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
             : "Too many requests. Please slow down.",
           retryAfter,
@@ -141,9 +165,14 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       );
     }
   } catch (err) {
-    console.error("[rate-limit] Redis error:", err);
+    const reason =
+      err instanceof DOMException && err.name === "AbortError" ? "timeout (2s)" : String(err);
+    console.error(
+      `[rate-limit] Redis failure: reason=${reason}, key=${limitKey}, ` +
+        `path=${pathname}, ip=${ip}, action=${isGenerateRoute ? "fail-closed" : "fail-open"}`
+    );
     // Fail closed for expensive LLM endpoints, open for others
-    if (limitKey.startsWith("rl:generate:")) {
+    if (isGenerateRoute) {
       return new NextResponse(
         JSON.stringify({
           error: "Service unavailable",
