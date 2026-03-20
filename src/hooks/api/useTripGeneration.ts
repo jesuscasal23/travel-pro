@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./keys";
+import { fetchTrip } from "./useTrips";
 import { parseItineraryData } from "@/lib/utils/trip-metadata";
-import { apiFetch, apiFetchRaw } from "@/lib/client/api-fetch";
+import { apiFetchRaw } from "@/lib/client/api-fetch";
 import { reportApiError } from "@/lib/client/api-error-reporting";
 import type { Itinerary } from "@/types";
 
@@ -112,14 +113,10 @@ export function useTripGeneration() {
         }
 
         // Fetch the completed trip data
-        const tripData = await apiFetch<{
-          trip?: { itineraries?: Array<{ data: unknown }> };
-        }>(`/api/v1/trips/${resultTripId}`, {
-          source: "useTripGeneration",
-          fallbackMessage: "Generated trip could not be loaded",
-        });
+        const trip = await fetchTrip(resultTripId);
+        queryClient.setQueryData(queryKeys.trips.detail(resultTripId), trip);
 
-        const raw = tripData.trip?.itineraries?.[0]?.data;
+        const raw = trip?.itineraries?.[0]?.data;
         return raw ? parseItineraryData(raw) : null;
       } catch (error) {
         await reportApiError({
@@ -132,9 +129,9 @@ export function useTripGeneration() {
         throw error instanceof Error ? error : new Error("Generation failed");
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.trips.detail(variables.tripId),
+        queryKey: queryKeys.trips.all,
       });
     },
   });

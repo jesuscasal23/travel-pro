@@ -119,7 +119,6 @@ export default function PlanPage() {
     if (isSingleCountry && !destinationCountry) return;
     if (isMultiCountry && !region) return;
 
-    const cacheKey = buildCacheKey({ region, destinationCountry, dateStart, dateEnd, travelStyle });
     const params = {
       profile: {
         nationality: effectiveNationality,
@@ -139,8 +138,8 @@ export default function PlanPage() {
         travelers,
       },
     };
+    const cacheKey = buildCacheKey(params);
     prefetchRoute(params, cacheKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     step,
     isSingleCity,
@@ -148,9 +147,16 @@ export default function PlanPage() {
     isMultiCountry,
     region,
     destinationCountry,
+    destinationCountryCode,
     dateStart,
     dateEnd,
+    travelers,
+    effectiveNationality,
+    effectiveHomeAirport,
     travelStyle,
+    interests,
+    pace,
+    tripType,
   ]);
 
   const dayCount = (() => {
@@ -329,13 +335,6 @@ export default function PlanPage() {
     if (isSingleCity) {
       route = singleCityRoute();
     } else {
-      const cacheKey = buildCacheKey({
-        region,
-        destinationCountry,
-        dateStart,
-        dateEnd,
-        travelStyle,
-      });
       const params = {
         profile: {
           nationality: effectiveNationality,
@@ -355,6 +354,7 @@ export default function PlanPage() {
           travelers,
         },
       };
+      const cacheKey = buildCacheKey(params);
 
       try {
         const cities = await fetchRoute(params, cacheKey);

@@ -3,13 +3,15 @@ import { useCallback } from "react";
 import { queryKeys } from "./keys";
 import { apiFetch } from "@/lib/client/api-fetch";
 import type { CityWithDays } from "@/lib/flights/types";
+import type { ActivityPace } from "@/types";
 
-interface RouteSelectionParams {
+export interface RouteSelectionParams {
   profile: {
     nationality: string;
     homeAirport: string;
     travelStyle: string;
     interests: string[];
+    pace?: ActivityPace;
   };
   tripIntent: {
     id: string;
@@ -37,13 +39,7 @@ async function fetchRouteSelection(params: RouteSelectionParams): Promise<CityWi
   }
 }
 
-function buildCacheKey(params: {
-  region: string;
-  destinationCountry?: string;
-  dateStart: string;
-  dateEnd: string;
-  travelStyle: string;
-}): string {
+function buildCacheKey(params: RouteSelectionParams): string {
   return JSON.stringify(params);
 }
 

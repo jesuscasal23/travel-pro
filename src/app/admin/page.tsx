@@ -1,54 +1,21 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
-
-interface Stats {
-  totalUsers: number;
-  totalTrips: number;
-  totalItineraries: number;
-  recentUsers: number;
-  recentTrips: number;
-  generationsByStatus: Record<string, number>;
-}
-
-interface AdminUser {
-  id: string;
-  userId: string;
-  nationality: string;
-  homeAirport: string;
-  travelStyle: string;
-  interests: string[];
-  isSuperUser: boolean;
-  onboardingCompleted: boolean;
-  tripCount: number;
-  createdAt: string;
-}
-
-interface AdminTrip {
-  id: string;
-  tripType: string;
-  region: string;
-  destination: string | null;
-  dateStart: string;
-  dateEnd: string;
-  travelers: number;
-  itineraryCount: number;
-  hasProfile: boolean;
-  profileNationality: string | null;
-  profileAirport: string | null;
-  createdAt: string;
-}
+import { useAdminStats, useAdminUsers, useAdminTrips, useDeleteAdminTrip } from "@/hooks/api";
+import type { AdminStats as Stats, AdminUser, AdminTrip } from "@/hooks/api/useAdmin";
+import { ApiError } from "@/lib/client/api-fetch";
 
 type Tab = "overview" | "users" | "trips";
 
-async function adminFetcher(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("__redirect__");
-  if (res.status === 403) throw new Error("Access denied. You need superuser privileges.");
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+function getErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  if (error instanceof ApiError) {
+    if (error.status === 401) return null;
+    if (error.status === 403) return "Access denied. You need superuser privileges.";
+    return error.message;
+  }
+  return error instanceof Error ? error.message : "Request failed";
 }
 
 export default function AdminDashboard() {
@@ -64,67 +31,53 @@ export default function AdminDashboard() {
   const tripSearchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
   const [debouncedTripSearch, setDebouncedTripSearch] = useState("");
+  const deleteTripMutation = useDeleteAdminTrip();
 
-  const handleError = useCallback(
-    (err: Error) => {
-      if (err.message === "__redirect__") router.push("/login?next=/admin");
-    },
-    [router]
-  );
+  const statsQuery = useAdminStats();
+  const usersQuery = useAdminUsers({
+    page: usersPage,
+    limit: 20,
+    search: debouncedUserSearch,
+    enabled: tab === "users",
+  });
+  const tripsQuery = useAdminTrips({
+    page: tripsPage,
+    limit: 20,
+    search: debouncedTripSearch,
+    enabled: tab === "trips",
+  });
 
-  const {
-    data: stats,
-    error: statsError,
-    isLoading: statsLoading,
-    mutate: mutateStats,
-  } = useSWR<Stats>("/api/v1/admin/stats", adminFetcher, { onError: handleError });
+  useEffect(() => {
+    const authError = [
+      statsQuery.error,
+      usersQuery.error,
+      tripsQuery.error,
+      deleteTripMutation.error,
+    ].find((error) => error instanceof ApiError && error.status === 401);
 
-  const usersKey =
-    tab === "users"
-      ? `/api/v1/admin/users?page=${usersPage}&limit=20${debouncedUserSearch ? `&search=${encodeURIComponent(debouncedUserSearch)}` : ""}`
-      : null;
-  const {
-    data: usersData,
-    error: usersError,
-    isLoading: usersLoading,
-  } = useSWR<{
-    users: AdminUser[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }>(usersKey, adminFetcher, { onError: handleError });
-
-  const tripsKey =
-    tab === "trips"
-      ? `/api/v1/admin/trips?page=${tripsPage}&limit=20${debouncedTripSearch ? `&search=${encodeURIComponent(debouncedTripSearch)}` : ""}`
-      : null;
-  const {
-    data: tripsData,
-    error: tripsError,
-    isLoading: tripsLoading,
-    mutate: mutateTrips,
-  } = useSWR<{
-    trips: AdminTrip[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }>(tripsKey, adminFetcher, { onError: handleError });
+    if (authError) {
+      router.push("/login?next=/admin");
+    }
+  }, [deleteTripMutation.error, router, statsQuery.error, tripsQuery.error, usersQuery.error]);
 
   const error =
-    statsError?.message !== "__redirect__"
-      ? statsError?.message
-      : usersError?.message !== "__redirect__"
-        ? usersError?.message
-        : tripsError?.message !== "__redirect__"
-          ? tripsError?.message
-          : null;
-  const loading = tab === "overview" ? statsLoading : tab === "users" ? usersLoading : tripsLoading;
-  const users = usersData?.users ?? [];
-  const usersTotal = usersData?.total ?? 0;
-  const usersTotalPages = usersData?.totalPages ?? 1;
-  const trips = tripsData?.trips ?? [];
-  const tripsTotal = tripsData?.total ?? 0;
-  const tripsTotalPages = tripsData?.totalPages ?? 1;
+    deleteError ??
+    getErrorMessage(statsQuery.error) ??
+    getErrorMessage(usersQuery.error) ??
+    getErrorMessage(tripsQuery.error);
+  const loading =
+    tab === "overview"
+      ? statsQuery.isLoading
+      : tab === "users"
+        ? usersQuery.isLoading
+        : tripsQuery.isLoading;
+  const stats: Stats | undefined = statsQuery.data;
+  const users = usersQuery.data?.users ?? [];
+  const usersTotal = usersQuery.data?.total ?? 0;
+  const usersTotalPages = usersQuery.data?.totalPages ?? 1;
+  const trips = tripsQuery.data?.trips ?? [];
+  const tripsTotal = tripsQuery.data?.total ?? 0;
+  const tripsTotalPages = tripsQuery.data?.totalPages ?? 1;
 
   const handleUserSearch = (value: string) => {
     setUserSearch(value);
@@ -159,36 +112,22 @@ export default function AdminDashboard() {
       setDeletingTripId(trip.id);
 
       try {
-        const res = await fetch(`/api/v1/admin/trips/${trip.id}`, { method: "DELETE" });
-        const body = await res.json().catch(() => null);
-
-        if (res.status === 401) {
-          router.push("/login?next=/admin");
-          return;
-        }
-
-        if (res.status === 403) {
-          throw new Error("Access denied. You need superuser privileges.");
-        }
-
-        if (!res.ok) {
-          throw new Error(body?.error ?? `API error: ${res.status}`);
-        }
+        await deleteTripMutation.mutateAsync(trip.id);
 
         if (trips.length === 1 && tripsPage > 1) {
           setTripsPage((page) => Math.max(1, page - 1));
-        } else {
-          await mutateTrips();
         }
-
-        void mutateStats();
       } catch (err) {
-        setDeleteError(err instanceof Error ? err.message : "Failed to delete trip.");
+        if (err instanceof ApiError && err.status === 401) {
+          router.push("/login?next=/admin");
+          return;
+        }
+        setDeleteError(getErrorMessage(err) ?? "Failed to delete trip.");
       } finally {
         setDeletingTripId(null);
       }
     },
-    [mutateStats, mutateTrips, router, trips.length, tripsPage]
+    [deleteTripMutation, router, trips.length, tripsPage]
   );
 
   if (error) {

@@ -59,20 +59,8 @@ describe("useRouteSelection hooks", () => {
   });
 
   it("buildCacheKey is deterministic for identical inputs", () => {
-    const a = buildCacheKey({
-      region: "east-asia",
-      destinationCountry: "Japan",
-      dateStart: "2026-04-01",
-      dateEnd: "2026-04-08",
-      travelStyle: "smart-budget",
-    });
-    const b = buildCacheKey({
-      region: "east-asia",
-      destinationCountry: "Japan",
-      dateStart: "2026-04-01",
-      dateEnd: "2026-04-08",
-      travelStyle: "smart-budget",
-    });
+    const a = buildCacheKey(params);
+    const b = buildCacheKey(params);
 
     expect(a).toBe(b);
   });
@@ -88,12 +76,7 @@ describe("useRouteSelection hooks", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    const cacheKey = buildCacheKey({
-      region: "east-asia",
-      dateStart: "2026-04-01",
-      dateEnd: "2026-04-08",
-      travelStyle: "smart-budget",
-    });
+    const cacheKey = buildCacheKey(params);
 
     let output: unknown;
     await act(async () => {
@@ -162,5 +145,20 @@ describe("useRouteSelection hooks", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("buildCacheKey changes when query inputs change", () => {
+    const base = buildCacheKey(params);
+    const changedTravelers = buildCacheKey({
+      ...params,
+      tripIntent: { ...params.tripIntent, travelers: 3 },
+    });
+    const changedInterests = buildCacheKey({
+      ...params,
+      profile: { ...params.profile, interests: ["nightlife"] },
+    });
+
+    expect(changedTravelers).not.toBe(base);
+    expect(changedInterests).not.toBe(base);
   });
 });

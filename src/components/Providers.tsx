@@ -77,7 +77,10 @@ export function Providers({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        useTripStore.getState().resetAll();
+      }
       void queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });

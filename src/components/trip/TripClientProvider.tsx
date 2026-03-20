@@ -9,6 +9,7 @@ import {
   useWeatherEnrichment,
   useAccommodationEnrichment,
   useAuthStatus,
+  useTrip,
 } from "@/hooks/api";
 import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
 import { useItinerary } from "@/hooks/useItinerary";
@@ -45,42 +46,61 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     void storeHydrationPromise.then(() => setStoreReady(true));
   }, []);
 
-  const [dbSyncDone, setDbSyncDone] = useState(tripId === "guest");
-  const syncFiredRef = useRef(false);
+  const tripQueryEnabled = storeReady && tripId !== "guest";
+  const tripQuery = useTrip(tripId, { enabled: tripQueryEnabled });
+
   useEffect(() => {
-    if (tripId === "guest" || syncFiredRef.current) return;
-    syncFiredRef.current = true;
+    if (!tripQueryEnabled || tripQuery.isPending) return;
 
-    fetch(`/api/v1/trips/${tripId}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data?.trip?.itineraries?.[0]?.data) return;
-        const dbItinerary = data.trip.itineraries[0].data as Itinerary;
-        const local = useTripStore.getState().itinerary;
-        const localTripId = useTripStore.getState().currentTripId;
-        const dbHasActivities = dbItinerary.days?.some(
-          (d: { activities?: unknown[] }) => d.activities && d.activities.length > 0
-        );
-        const localHasActivities = local?.days?.some(
-          (d) => d.activities && d.activities.length > 0
-        );
-        const shouldSync =
-          localTripId !== tripId ||
-          !local ||
-          local.route.length === 0 ||
-          (local.days.length === 0 && dbItinerary.route.length > 0) ||
-          (dbHasActivities && !localHasActivities);
+    if (tripQuery.data === null) {
+      setCurrentTripId("");
+      setItinerary(null);
+      return;
+    }
 
-        if (shouldSync) {
-          setCurrentTripId(tripId);
-          setItinerary(dbItinerary);
-        }
-      })
-      .catch(() => {
-        /* best-effort sync */
-      })
-      .finally(() => setDbSyncDone(true));
-  }, [tripId, currentTripId, setCurrentTripId, setItinerary]);
+    const dbItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
+    if (!dbItinerary) {
+      if (useTripStore.getState().currentTripId !== tripId) {
+        setCurrentTripId(tripId);
+        setItinerary(null);
+      }
+      return;
+    }
+
+    const local = useTripStore.getState().itinerary;
+    const localTripId = useTripStore.getState().currentTripId;
+    const dbHasActivities = dbItinerary.days?.some(
+      (d: { activities?: unknown[] }) => d.activities && d.activities.length > 0
+    );
+    const localHasActivities = local?.days?.some((d) => d.activities && d.activities.length > 0);
+    const shouldSync =
+      localTripId !== tripId ||
+      !local ||
+      local.route.length === 0 ||
+      (local.days.length === 0 && dbItinerary.route.length > 0) ||
+      (dbHasActivities && !localHasActivities);
+
+    if (shouldSync) {
+      setCurrentTripId(tripId);
+      setItinerary(dbItinerary);
+    }
+  }, [
+    tripId,
+    tripQuery.data,
+    tripQuery.isPending,
+    tripQueryEnabled,
+    setCurrentTripId,
+    setItinerary,
+  ]);
+
+  const tripServerItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
+  const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
+  const tripHydrationPending =
+    tripId !== "guest" && Boolean(tripServerItinerary) && (currentTripId !== tripId || !itinerary);
+  const tripUnavailable =
+    tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
+  const tripLoadFailedWithoutLocal =
+    tripId !== "guest" && tripQuery.isError && (!itinerary || currentTripId !== tripId);
 
   const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && tripId !== "guest");
   const generateMutation = useTripGeneration();
@@ -88,7 +108,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const genAttemptsRef = useRef(0);
 
   useEffect(() => {
-    if (!isPartialItinerary || !dbSyncDone || genFiredRef.current || !itinerary) return;
+    if (!isPartialItinerary || tripSyncPending || genFiredRef.current || !itinerary) return;
     if (genAttemptsRef.current >= 2) return; // Max 2 auto-retries
     genFiredRef.current = true;
     genAttemptsRef.current += 1;
@@ -121,7 +141,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPartialItinerary, dbSyncDone, tripId]);
+  }, [isPartialItinerary, tripSyncPending, tripId]);
 
   const cityActivityMutation = useCityActivityGeneration();
   const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);
@@ -208,12 +228,16 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     posthog?.capture("itinerary_viewed", { trip_id: tripId, city_count: route.length });
   }, [posthog, tripId, route.length]);
 
-  if (!storeReady || !dbSyncDone) {
+  if (!storeReady || tripSyncPending || tripHydrationPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
         <div className="border-brand-primary h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent" />
       </div>
     );
+  }
+
+  if (tripUnavailable || tripLoadFailedWithoutLocal) {
+    return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 
   if (!itinerary) {
@@ -231,7 +255,13 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     setNeedsRegeneration(false);
     genFiredRef.current = false;
     generateMutation.reset();
-    setItinerary({ ...itinerary, days: [], visaData: undefined, weatherData: undefined });
+    setItinerary({
+      ...itinerary,
+      days: [],
+      visaData: undefined,
+      weatherData: undefined,
+      accommodationData: undefined,
+    });
   };
 
   const handleRetry = () => {

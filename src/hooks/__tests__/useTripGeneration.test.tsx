@@ -195,7 +195,7 @@ describe("useTripGeneration", () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
-  it("invalidates trip detail query on success", async () => {
+  it("stores trip detail in cache and invalidates trip queries on success", async () => {
     global.fetch = vi
       .fn()
       .mockResolvedValueOnce(makeSseResponse(['data: {"stage":"done","trip_id":"trip-1"}\n\n']))
@@ -221,7 +221,10 @@ describe("useTripGeneration", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trips", "detail", "trip-1"],
+      queryKey: ["trips"],
+    });
+    expect(queryClient.getQueryData(["trips", "detail", "trip-1"])).toEqual({
+      itineraries: [{ data: { route: [], days: [] } }],
     });
   });
 });

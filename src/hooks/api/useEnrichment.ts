@@ -21,8 +21,12 @@ function buildRoutePayload(route: CityStop[]): RoutePayload[] {
   }));
 }
 
-function routeKey(route: CityStop[]): string {
-  return route.map((r) => r.id).join(",");
+function routeKey(route: CityStop[], options?: { includeStayData?: boolean }): string {
+  return route
+    .map((r) =>
+      options?.includeStayData ? `${r.id}:${r.days}:${r.iataCode ?? ""}:${r.countryCode}` : r.id
+    )
+    .join(",");
 }
 
 // ── Visa enrichment ─────────────────────────────────────────────
@@ -68,17 +72,19 @@ export function useWeatherEnrichment(route: CityStop[], dateStart: string, enabl
 }
 
 // ── Accommodation enrichment ────────────────────────────────
-async function fetchAccommodation(
+export async function fetchAccommodationEnrichment(
   route: CityStop[],
   dateStart: string,
   travelers: number,
-  travelStyle: TravelStyle
+  travelStyle: TravelStyle,
+  signal?: AbortSignal
 ): Promise<CityAccommodation[]> {
   const data = await apiFetch<{ accommodationData?: CityAccommodation[] }>(
     "/api/v1/enrich/accommodation",
     {
       source: "useAccommodationEnrichment",
       method: "POST",
+      signal,
       body: {
         route: route.map((r) => ({
           id: r.id,
@@ -100,6 +106,20 @@ async function fetchAccommodation(
   return data.accommodationData ?? [];
 }
 
+export function getAccommodationQueryKey(
+  route: CityStop[],
+  dateStart: string,
+  travelers: number,
+  travelStyle: TravelStyle
+) {
+  return queryKeys.enrichment.accommodation(
+    routeKey(route, { includeStayData: true }),
+    dateStart,
+    travelStyle,
+    travelers
+  );
+}
+
 export function useAccommodationEnrichment(
   route: CityStop[],
   dateStart: string,
@@ -108,8 +128,9 @@ export function useAccommodationEnrichment(
   enabled: boolean
 ) {
   return useQuery({
-    queryKey: queryKeys.enrichment.accommodation(routeKey(route), dateStart, travelStyle),
-    queryFn: () => fetchAccommodation(route, dateStart, travelers, travelStyle),
+    queryKey: getAccommodationQueryKey(route, dateStart, travelers, travelStyle),
+    queryFn: ({ signal }) =>
+      fetchAccommodationEnrichment(route, dateStart, travelers, travelStyle, signal),
     enabled: enabled && route.length > 0 && !!dateStart && travelers > 0,
     staleTime: 30 * 60 * 1000, // 30 minutes
     retry: 1,

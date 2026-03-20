@@ -1,23 +1,53 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/api/keys";
+import { apiFetch } from "@/lib/client/api-fetch";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
 
-interface FlightSearchState {
+interface FlightSearchRequest {
+  fromIata: string;
+  toIata: string;
+  departureDate: string;
+  travelers: number;
+  nonStop?: boolean;
+  maxPrice?: number;
+}
+
+interface FlightSearchResponse {
   results: FlightSearchResult[];
-  loading: boolean;
-  error: string | null;
-  fetchedAt: number | null;
+  fetchedAt: number;
+}
+
+async function fetchFlightSearch(
+  tripId: string,
+  request: FlightSearchRequest,
+  signal?: AbortSignal
+): Promise<FlightSearchResponse> {
+  return apiFetch<FlightSearchResponse>(`/api/v1/trips/${tripId}/flights`, {
+    source: "useFlightSearch",
+    method: "POST",
+    signal,
+    body: request,
+    fallbackMessage: "Search failed",
+  });
 }
 
 export function useFlightSearch(tripId: string) {
-  const [state, setState] = useState<FlightSearchState>({
-    results: [],
-    loading: false,
-    error: null,
-    fetchedAt: null,
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (request: FlightSearchRequest) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.flights.trip(tripId) });
+
+      return queryClient.fetchQuery({
+        queryKey: queryKeys.flights.search(tripId, request),
+        queryFn: ({ signal }) => fetchFlightSearch(tripId, request, signal),
+        staleTime: 5 * 60 * 1000,
+      });
+    },
   });
-  const controllerRef = useRef<AbortController | null>(null);
 
   const search = useCallback(
     async (
@@ -27,73 +57,28 @@ export function useFlightSearch(tripId: string) {
       travelers: number,
       filters?: { nonStop?: boolean; maxPrice?: number }
     ) => {
-      // Abort any in-flight request
-      controllerRef.current?.abort();
-      const controller = new AbortController();
-      controllerRef.current = controller;
-
-      setState((s) => ({ ...s, loading: true, error: null }));
-
       try {
-        const res = await fetch(`/api/v1/trips/${tripId}/flights`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fromIata, toIata, departureDate, travelers, ...filters }),
-          signal: controller.signal,
+        await mutation.mutateAsync({
+          fromIata,
+          toIata,
+          departureDate,
+          travelers,
+          ...filters,
         });
-
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error((body as { error?: string }).error ?? `Search failed (${res.status})`);
-        }
-
-        const data = (await res.json()) as {
-          results: FlightSearchResult[];
-          fetchedAt: number;
-        };
-
-        if (!controller.signal.aborted) {
-          setState({
-            results: data.results,
-            loading: false,
-            error: null,
-            fetchedAt: data.fetchedAt,
-          });
-        }
-      } catch (e) {
-        if (e instanceof DOMException && e.name === "AbortError") return;
-        if (!controller.signal.aborted) {
-          setState((s) => ({
-            ...s,
-            loading: false,
-            error: e instanceof Error ? e.message : "Search failed",
-          }));
-        }
+      } catch {
+        // Consumers read the exposed `error` state instead of handling thrown errors.
       }
     },
-    [tripId]
+    [mutation]
   );
 
-  // Abort on unmount
-  useEffect(() => {
-    return () => controllerRef.current?.abort();
-  }, []);
-
-  return { ...state, search };
-}
-
-// ── Batch flight search ─────────────────────────────────────────
-// Fetches all legs in parallel on mount, returns per-leg results map.
-
-function legKey(fromIata: string, toIata: string, date: string): string {
-  return `${fromIata}-${toIata}-${date}`;
-}
-
-interface BatchState {
-  resultsByLeg: Record<string, FlightSearchResult[]>;
-  errorsByLeg: Record<string, string>;
-  pendingCount: number;
-  fetchedAt: number | null;
+  return {
+    results: mutation.data?.results ?? [],
+    loading: mutation.isPending,
+    error: mutation.error instanceof Error ? mutation.error.message : null,
+    fetchedAt: mutation.data?.fetchedAt ?? null,
+    search,
+  };
 }
 
 export function useBatchFlightSearch(
@@ -102,93 +87,44 @@ export function useBatchFlightSearch(
   travelers: number,
   enabled: boolean
 ) {
-  const [state, setState] = useState<BatchState>({
-    resultsByLeg: {},
-    errorsByLeg: {},
-    pendingCount: 0,
-    fetchedAt: null,
+  const queries = useQueries({
+    queries: legs.map((leg) => {
+      const request = {
+        fromIata: leg.fromIata,
+        toIata: leg.toIata,
+        departureDate: leg.departureDate,
+        travelers,
+      };
+
+      return {
+        queryKey: queryKeys.flights.search(tripId, request),
+        queryFn: ({ signal }) => fetchFlightSearch(tripId, request, signal),
+        enabled: enabled && leg.results.length === 0 && !!leg.departureDate && travelers > 0,
+        staleTime: 5 * 60 * 1000,
+        retry: 1,
+      };
+    }),
   });
-  const [started, setStarted] = useState(false);
-  const controllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!enabled || started || legs.length === 0 || travelers < 1) return;
-
-    const toFetch = legs.filter((l) => l.results.length === 0 && l.departureDate);
-    if (toFetch.length === 0) return;
-
-    const controller = new AbortController();
-    controllerRef.current = controller;
-
-    setStarted(true);
-    setState((s) => ({ ...s, pendingCount: toFetch.length }));
-
-    for (const leg of toFetch) {
-      const key = legKey(leg.fromIata, leg.toIata, leg.departureDate);
-
-      fetch(`/api/v1/trips/${tripId}/flights`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fromIata: leg.fromIata,
-          toIata: leg.toIata,
-          departureDate: leg.departureDate,
-          travelers,
-        }),
-        signal: controller.signal,
-      })
-        .then(async (res) => {
-          if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            throw new Error((body as { error?: string }).error ?? `Search failed (${res.status})`);
-          }
-          const data = (await res.json()) as {
-            results: FlightSearchResult[];
-            fetchedAt: number;
-          };
-          if (!controller.signal.aborted) {
-            setState((s) => ({
-              ...s,
-              resultsByLeg: { ...s.resultsByLeg, [key]: data.results },
-              pendingCount: s.pendingCount - 1,
-              fetchedAt: data.fetchedAt,
-            }));
-          }
-        })
-        .catch((e) => {
-          if (e instanceof DOMException && e.name === "AbortError") return;
-          if (!controller.signal.aborted) {
-            setState((s) => ({
-              ...s,
-              errorsByLeg: {
-                ...s.errorsByLeg,
-                [key]: e instanceof Error ? e.message : "Search failed",
-              },
-              pendingCount: s.pendingCount - 1,
-            }));
-          }
-        });
-    }
-
-    // Abort all in-flight requests on cleanup
-    return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, started]);
 
   const getResultsForLeg = useCallback(
     (fromIata: string, toIata: string, date: string) => {
-      const key = legKey(fromIata, toIata, date);
-      const hasResult = key in state.resultsByLeg;
-      const hasError = key in state.errorsByLeg;
+      const index = legs.findIndex(
+        (leg) => leg.fromIata === fromIata && leg.toIata === toIata && leg.departureDate === date
+      );
+      const query = index >= 0 ? queries[index] : undefined;
+
       return {
-        results: state.resultsByLeg[key] ?? [],
-        loading: started && !hasResult && !hasError,
-        error: state.errorsByLeg[key] ?? null,
-        fetchedAt: hasResult ? state.fetchedAt : null,
+        results: query?.data?.results ?? [],
+        loading: Boolean(query?.isPending || query?.isFetching),
+        error: query?.error instanceof Error ? query.error.message : null,
+        fetchedAt: query?.data?.fetchedAt ?? null,
       };
     },
-    [state, started]
+    [legs, queries]
   );
 
-  return { getResultsForLeg, isLoading: state.pendingCount > 0 };
+  return {
+    getResultsForLeg,
+    isLoading: queries.some((query) => query.isPending || query.isFetching),
+  };
 }

@@ -12,8 +12,8 @@ export const queryKeys = {
       ["enrichment", "visa", nationality, routeKey] as const,
     weather: (routeKey: string, dateStart: string) =>
       ["enrichment", "weather", routeKey, dateStart] as const,
-    accommodation: (routeKey: string, dateStart: string, travelStyle: string) =>
-      ["enrichment", "accommodation", routeKey, dateStart, travelStyle] as const,
+    accommodation: (routeKey: string, dateStart: string, travelStyle: string, travelers: number) =>
+      ["enrichment", "accommodation", routeKey, dateStart, travelStyle, travelers] as const,
   },
   profile: {
     all: ["profile"] as const,
@@ -23,5 +23,44 @@ export const queryKeys = {
   routeSelection: {
     all: ["route-selection"] as const,
     byParams: (key: string) => [...queryKeys.routeSelection.all, key] as const,
+  },
+  admin: {
+    all: ["admin"] as const,
+    stats: () => [...queryKeys.admin.all, "stats"] as const,
+    users: {
+      all: () => [...queryKeys.admin.all, "users"] as const,
+      list: (page: number, limit: number, search: string) =>
+        [...queryKeys.admin.users.all(), page, limit, search] as const,
+    },
+    trips: {
+      all: () => [...queryKeys.admin.all, "trips"] as const,
+      list: (page: number, limit: number, search: string) =>
+        [...queryKeys.admin.trips.all(), page, limit, search] as const,
+    },
+  },
+  flights: {
+    all: ["flights"] as const,
+    trip: (tripId: string) => [...queryKeys.flights.all, tripId] as const,
+    search: (
+      tripId: string,
+      params: {
+        fromIata: string;
+        toIata: string;
+        departureDate: string;
+        travelers: number;
+        nonStop?: boolean;
+        maxPrice?: number;
+      }
+    ) =>
+      [
+        ...queryKeys.flights.trip(tripId),
+        "search",
+        params.fromIata,
+        params.toIata,
+        params.departureDate,
+        params.travelers,
+        params.nonStop ?? false,
+        params.maxPrice ?? null,
+      ] as const,
   },
 } as const;

@@ -1,6 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useFlightSearch } from "../useFlightSearch";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement, type ReactNode } from "react";
+import { useBatchFlightSearch, useFlightSearch } from "../useFlightSearch";
+
+vi.mock("@/lib/client/api-error-reporting", () => ({
+  parseApiErrorResponse: vi.fn(async (res: Response, fallback: string) => ({
+    message: `${fallback} (${res.status ?? 0})`,
+    status: res.status ?? 0,
+    requestId: "req-test",
+    responseBody: undefined,
+  })),
+  reportApiError: vi.fn(async () => undefined),
+}));
 
 const mockResults = [
   {
@@ -19,9 +31,21 @@ beforeEach(() => {
   vi.restoreAllMocks();
 });
 
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+
+  function Wrapper({ children }: { children: ReactNode }) {
+    return createElement(QueryClientProvider, { client: queryClient }, children);
+  }
+
+  return Wrapper;
+}
+
 describe("useFlightSearch", () => {
   it("starts with empty state", () => {
-    const { result } = renderHook(() => useFlightSearch("trip-1"));
+    const { result } = renderHook(() => useFlightSearch("trip-1"), { wrapper: createWrapper() });
 
     expect(result.current.results).toEqual([]);
     expect(result.current.loading).toBe(false);
@@ -37,10 +61,10 @@ describe("useFlightSearch", () => {
       })
     );
 
-    const { result } = renderHook(() => useFlightSearch("trip-1"));
-
+    const wrapper = createWrapper();
+    const hook = renderHook(() => useFlightSearch("trip-1"), { wrapper });
     await act(async () => {
-      await result.current.search("CDG", "NRT", "2026-06-01", 2);
+      await hook.result.current.search("CDG", "NRT", "2026-06-01", 2);
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(
@@ -57,9 +81,9 @@ describe("useFlightSearch", () => {
         signal: expect.any(AbortSignal),
       })
     );
-    expect(result.current.results).toEqual(mockResults);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.fetchedAt).toBe(1000);
+    await waitFor(() => expect(hook.result.current.results).toEqual(mockResults));
+    expect(hook.result.current.loading).toBe(false);
+    expect(hook.result.current.fetchedAt).toBe(1000);
   });
 
   it("sets loading to true during fetch", async () => {
@@ -70,7 +94,7 @@ describe("useFlightSearch", () => {
 
     vi.spyOn(globalThis, "fetch").mockReturnValueOnce(fetchPromise);
 
-    const { result } = renderHook(() => useFlightSearch("trip-1"));
+    const { result } = renderHook(() => useFlightSearch("trip-1"), { wrapper: createWrapper() });
 
     act(() => {
       void result.current.search("CDG", "NRT", "2026-06-01", 1);
@@ -89,7 +113,9 @@ describe("useFlightSearch", () => {
       );
     });
 
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("handles error responses", async () => {
@@ -100,13 +126,13 @@ describe("useFlightSearch", () => {
       })
     );
 
-    const { result } = renderHook(() => useFlightSearch("trip-1"));
+    const { result } = renderHook(() => useFlightSearch("trip-1"), { wrapper: createWrapper() });
 
     await act(async () => {
       await result.current.search("CDG", "NRT", "2026-06-01", 1);
     });
 
-    expect(result.current.error).toBe("Trip not found");
+    await waitFor(() => expect(result.current.error).toBe("Search failed (404)"));
     expect(result.current.results).toEqual([]);
     expect(result.current.loading).toBe(false);
   });
@@ -114,13 +140,57 @@ describe("useFlightSearch", () => {
   it("handles network failures", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("Network error"));
 
-    const { result } = renderHook(() => useFlightSearch("trip-1"));
+    const { result } = renderHook(() => useFlightSearch("trip-1"), { wrapper: createWrapper() });
 
     await act(async () => {
       await result.current.search("CDG", "NRT", "2026-06-01", 1);
     });
 
-    expect(result.current.error).toBe("Network error");
+    await waitFor(() => expect(result.current.error).toBe("Search failed"));
     expect(result.current.loading).toBe(false);
+  });
+
+  it("batch search refetches when travelers change", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ results: mockResults, fetchedAt: 1000 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ results: mockResults, fetchedAt: 2000 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+
+    const legs = [
+      {
+        fromIata: "CDG",
+        toIata: "NRT",
+        departureDate: "2026-06-01",
+        results: [],
+        fetchedAt: 0,
+      },
+    ];
+
+    const { result, rerender } = renderHook(
+      ({ travelers }) => useBatchFlightSearch("trip-1", legs, travelers, true),
+      {
+        initialProps: { travelers: 1 },
+        wrapper: createWrapper(),
+      }
+    );
+
+    await waitFor(() =>
+      expect(result.current.getResultsForLeg("CDG", "NRT", "2026-06-01").fetchedAt).toBe(1000)
+    );
+
+    rerender({ travelers: 2 });
+
+    await waitFor(() =>
+      expect(result.current.getResultsForLeg("CDG", "NRT", "2026-06-01").fetchedAt).toBe(2000)
+    );
   });
 });

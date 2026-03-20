@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Hotel,
@@ -14,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { getAccommodationQueryKey, fetchAccommodationEnrichment } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { useTripContext } from "../TripContext";
 import type { Itinerary, CityAccommodation } from "@/types";
@@ -57,6 +59,7 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
   const travelers = useTripStore((s) => s.travelers) || 1;
   const travelStyle = useTripStore((s) => s.travelStyle) || "smart-budget";
   const setItinerary = useTripStore((s) => s.setItinerary);
+  const queryClient = useQueryClient();
 
   const [refetching, setRefetching] = useState(false);
   const [debugResponse, setDebugResponse] = useState<string | null>(null);
@@ -66,38 +69,22 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
     setRefetching(true);
     setDebugResponse(null);
     try {
-      const payload = {
-        route: route.map((r) => ({
-          id: r.id,
-          city: r.city,
-          country: r.country,
-          countryCode: r.countryCode,
-          lat: r.lat,
-          lng: r.lng,
-          days: r.days,
-          iataCode: r.iataCode,
-        })),
-        dateStart,
-        travelers,
-        travelStyle,
-      };
-      const res = await fetch("/api/v1/enrich/accommodation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const queryKey = getAccommodationQueryKey(route, dateStart, travelers, travelStyle);
+      const data = await queryClient.fetchQuery({
+        queryKey,
+        queryFn: ({ signal }) =>
+          fetchAccommodationEnrichment(route, dateStart, travelers, travelStyle, signal),
+        staleTime: 0,
       });
-      const json = await res.json();
-      setDebugResponse(JSON.stringify({ status: res.status, ...json }, null, 2));
+      setDebugResponse(JSON.stringify({ status: 200, accommodationData: data }, null, 2));
       setDebugOpen(true);
 
-      if (res.ok && json.accommodationData) {
-        const current = useTripStore.getState().itinerary;
-        if (current) {
-          setItinerary({
-            ...current,
-            accommodationData: json.accommodationData as CityAccommodation[],
-          });
-        }
+      const current = useTripStore.getState().itinerary;
+      if (current) {
+        setItinerary({
+          ...current,
+          accommodationData: data as CityAccommodation[],
+        });
       }
     } catch (e) {
       setDebugResponse(JSON.stringify({ error: String(e) }, null, 2));
@@ -105,7 +92,7 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
     } finally {
       setRefetching(false);
     }
-  }, [route, dateStart, travelers, travelStyle, setItinerary]);
+  }, [dateStart, queryClient, route, setItinerary, travelers, travelStyle]);
 
   const RefetchButton = () => (
     <button
