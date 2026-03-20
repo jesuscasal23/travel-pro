@@ -285,12 +285,21 @@ function normalizePlanningPriorities(priorities: string[] | string | undefined):
  * can `use()` this or `await` it to avoid a flash of default/empty state.
  */
 export const storeHydrationPromise = new Promise<void>((resolve) => {
-  // If already hydrated (e.g. SSR with no persistence), resolve immediately.
-  if (
-    (useTripStore as unknown as { persist: { hasHydrated: () => boolean } }).persist.hasHydrated()
-  ) {
+  // During SSR / static build there is no persist middleware — resolve immediately.
+  if (typeof window === "undefined") {
     resolve();
     return;
+  }
+  // If already hydrated, resolve immediately.
+  try {
+    if (
+      (useTripStore as unknown as { persist: { hasHydrated: () => boolean } }).persist.hasHydrated()
+    ) {
+      resolve();
+      return;
+    }
+  } catch {
+    // persist middleware not yet initialized — fall through to listener
   }
   const unsub = useTripStore.persist.onFinishHydration(() => {
     unsub();
