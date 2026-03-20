@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useCreateTrip, useSaveTripEdit } from "@/hooks/api/useTripMutations";
+import { useCreateTrip, useSaveTripEdit } from "@/hooks/api";
 
 const originalFetch = global.fetch;
 

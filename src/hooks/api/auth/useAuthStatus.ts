@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/hooks/api/keys";
 import { createClient } from "@/lib/supabase/client";
-import { queryKeys } from "./keys";
 
 async function fetchAuthStatus(): Promise<boolean> {
   const client = createClient();
@@ -13,7 +13,6 @@ async function fetchAuthStatus(): Promise<boolean> {
   return !!user;
 }
 
-/** Returns true/false once resolved, null while loading. */
 export function useAuthStatus(): boolean | null {
   const { data } = useQuery({
     queryKey: queryKeys.auth.status,

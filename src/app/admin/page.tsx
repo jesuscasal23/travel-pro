@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminStats, useAdminUsers, useAdminTrips, useDeleteAdminTrip } from "@/hooks/api";
-import type { AdminStats as Stats, AdminUser, AdminTrip } from "@/hooks/api/useAdmin";
+import type { AdminStats as Stats, AdminUser, AdminTrip } from "@/hooks/api";
 import { ApiError } from "@/lib/client/api-fetch";
 
 type Tab = "overview" | "users" | "trips";

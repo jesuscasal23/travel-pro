@@ -11,7 +11,7 @@ let mockHookState = {
   fetchedAt: null as number | null,
 };
 
-vi.mock("@/hooks/useFlightSearch", () => ({
+vi.mock("@/hooks/api/flights/useFlightSearch", () => ({
   useFlightSearch: () => ({
     ...mockHookState,
     search: mockSearch,

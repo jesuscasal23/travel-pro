@@ -1,5 +1,3 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "./keys";
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
 
 export interface AdminStats {
@@ -47,28 +45,28 @@ interface AdminListResponse<T> {
   trips?: T[];
 }
 
-interface AdminListParams {
+export interface AdminListParams {
   page: number;
   limit: number;
   search: string;
   enabled?: boolean;
 }
 
-function shouldRetry(failureCount: number, error: unknown) {
+export function shouldRetry(failureCount: number, error: unknown) {
   return (
     failureCount < 2 &&
     !(error instanceof ApiError && (error.status === 401 || error.status === 403))
   );
 }
 
-async function fetchAdminStats(): Promise<AdminStats> {
+export async function fetchAdminStats(): Promise<AdminStats> {
   return apiFetch<AdminStats>("/api/v1/admin/stats", {
     source: "useAdminStats",
     fallbackMessage: "Failed to load admin stats",
   });
 }
 
-async function fetchAdminUsers(params: Omit<AdminListParams, "enabled">): Promise<{
+export async function fetchAdminUsers(params: Omit<AdminListParams, "enabled">): Promise<{
   users: AdminUser[];
   total: number;
   page: number;
@@ -96,7 +94,7 @@ async function fetchAdminUsers(params: Omit<AdminListParams, "enabled">): Promis
   };
 }
 
-async function fetchAdminTrips(params: Omit<AdminListParams, "enabled">): Promise<{
+export async function fetchAdminTrips(params: Omit<AdminListParams, "enabled">): Promise<{
   trips: AdminTrip[];
   total: number;
   page: number;
@@ -122,51 +120,4 @@ async function fetchAdminTrips(params: Omit<AdminListParams, "enabled">): Promis
     page: data.page,
     totalPages: data.totalPages,
   };
-}
-
-export function useAdminStats(options?: { enabled?: boolean }) {
-  return useQuery({
-    queryKey: queryKeys.admin.stats(),
-    queryFn: fetchAdminStats,
-    enabled: options?.enabled ?? true,
-    retry: (failureCount, error) => shouldRetry(failureCount, error),
-  });
-}
-
-export function useAdminUsers(params: AdminListParams) {
-  return useQuery({
-    queryKey: queryKeys.admin.users.list(params.page, params.limit, params.search),
-    queryFn: () => fetchAdminUsers(params),
-    enabled: params.enabled ?? true,
-    retry: (failureCount, error) => shouldRetry(failureCount, error),
-    placeholderData: keepPreviousData,
-  });
-}
-
-export function useAdminTrips(params: AdminListParams) {
-  return useQuery({
-    queryKey: queryKeys.admin.trips.list(params.page, params.limit, params.search),
-    queryFn: () => fetchAdminTrips(params),
-    enabled: params.enabled ?? true,
-    retry: (failureCount, error) => shouldRetry(failureCount, error),
-    placeholderData: keepPreviousData,
-  });
-}
-
-export function useDeleteAdminTrip() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (tripId: string) => {
-      return apiFetch<Record<string, unknown>>(`/api/v1/admin/trips/${tripId}`, {
-        source: "useDeleteAdminTrip",
-        method: "DELETE",
-        fallbackMessage: "Failed to delete trip.",
-      });
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips.all() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats() });
-    },
-  });
 }

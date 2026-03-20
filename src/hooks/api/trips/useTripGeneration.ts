@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "./keys";
-import { fetchTrip } from "./useTrips";
+import { queryKeys } from "@/hooks/api/keys";
 import { parseItineraryData } from "@/lib/utils/trip-metadata";
 import { apiFetchRaw } from "@/lib/client/api-fetch";
 import { reportApiError } from "@/lib/client/api-error-reporting";
 import type { Itinerary } from "@/types";
+import { fetchTrip } from "./shared";
 
 interface GenerateParams {
   tripId: string;
@@ -112,7 +112,6 @@ export function useTripGeneration() {
           throw new Error("Generation failed: stream ended before completion");
         }
 
-        // Fetch the completed trip data
         const trip = await fetchTrip(resultTripId);
         queryClient.setQueryData(queryKeys.trips.detail(resultTripId), trip);
 

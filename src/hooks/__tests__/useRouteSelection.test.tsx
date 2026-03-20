@@ -3,11 +3,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { queryKeys } from "@/hooks/api/keys";
-import {
-  usePrefetchRouteSelection,
-  useFetchRouteSelection,
-  buildCacheKey,
-} from "@/hooks/api/useRouteSelection";
+import { usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey } from "@/hooks/api";
 
 const originalFetch = global.fetch;
 

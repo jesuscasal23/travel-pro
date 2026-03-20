@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "./keys";
+import { queryKeys } from "@/hooks/api/keys";
 import { apiFetch } from "@/lib/client/api-fetch";
 import type { Itinerary } from "@/types";
 

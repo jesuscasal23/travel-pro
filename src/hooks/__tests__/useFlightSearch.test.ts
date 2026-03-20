@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createElement, type ReactNode } from "react";
-import { useBatchFlightSearch, useFlightSearch } from "../useFlightSearch";
+import { useBatchFlightSearch, useFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 
 vi.mock("@/lib/client/api-error-reporting", () => ({
   parseApiErrorResponse: vi.fn(async (res: Response, fallback: string) => ({

@@ -98,7 +98,7 @@ src/
 ├── stores/useTripStore.ts     # Zustand store (persisted + transient fields)
 ├── types/index.ts             # All TypeScript types
 ├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps, v2-mock-data
-├── hooks/                     # useItinerary, useAuthStatus, useToast, useScrollSync
+├── hooks/                     # api/ (React Query server-state hooks by feature), useItinerary, useToast, useScrollSync
 └── proxy.ts                   # Auth (protects /profile) + rate limiting (Upstash Redis)
 ```
 
@@ -130,6 +130,18 @@ import { validate, destinationStepSchema } from "@/lib/forms/schemas";
 import { GenerateTripInputSchema } from "@/lib/features/generation/schemas";
 import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
 ```
+
+### Frontend Data Hooks
+
+- Treat React Query as the default owner for frontend server state.
+- Keep server-state hooks under `src/hooks/api/`.
+- Organize `src/hooks/api/` by feature folder, for example `trips/`, `profile/`, `admin/`, `enrichment/`, `flights/`, `auth/`, `route-selection/`.
+- Prefer one hook file per query or mutation use case, for example `src/hooks/api/trips/useTrip.ts` or `src/hooks/api/profile/useSaveProfile.ts`.
+- Keep feature-local shared helpers near the hooks that use them, for example `shared.ts` files for request helpers or shared types.
+- Keep cross-feature query keys centralized in `src/hooks/api/keys.ts`.
+- Do not add new flat server-state hook files directly under `src/hooks/api/` other than shared entry points such as `index.ts` and `keys.ts`.
+- Use React Query hooks for reads and writes whenever possible: `useQuery`, `useMutation`, `useQueries`, `fetchQuery`, `prefetchQuery`.
+- Keep Zustand for local UI or draft state, not as the primary source of truth for server data.
 
 ### Next.js 16 Dynamic Params
 

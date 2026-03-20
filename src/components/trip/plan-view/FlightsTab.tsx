@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Plane, Loader2 } from "lucide-react";
 import { FlightOptionsPanel } from "@/components/trip/FlightOptionsPanel";
-import { useBatchFlightSearch } from "@/hooks/useFlightSearch";
+import { useBatchFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { useTripStore } from "@/stores/useTripStore";
 import type { Itinerary } from "@/types";
 import type { FlightLegResults } from "@/lib/flights/types";

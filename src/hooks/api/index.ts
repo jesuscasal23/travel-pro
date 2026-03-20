@@ -1,28 +1,39 @@
 // Auth
-export { useAuthStatus } from "./useAuth";
+export { useAuthStatus } from "./auth/useAuthStatus";
 
 // Trips
-export { useTrips, useTrip } from "./useTrips";
-export { useCreateTrip } from "./useTripMutations";
-export { useTripGeneration } from "./useTripGeneration";
-export { useCityActivityGeneration } from "./useCityActivityGeneration";
-export {
-  usePrefetchRouteSelection,
-  useFetchRouteSelection,
-  buildCacheKey,
-} from "./useRouteSelection";
+export { useTrips } from "./trips/useTrips";
+export { useTrip } from "./trips/useTrip";
+export { useCreateTrip } from "./trips/useCreateTrip";
+export { useSaveTripEdit } from "./trips/useSaveTripEdit";
+export { useTripGeneration } from "./trips/useTripGeneration";
+export { useCityActivityGeneration } from "./trips/useCityActivityGeneration";
+export type { TripDetail } from "./trips/shared";
+
+// Route Selection
+export { usePrefetchRouteSelection } from "./route-selection/usePrefetchRouteSelection";
+export { useFetchRouteSelection } from "./route-selection/useFetchRouteSelection";
+export { buildCacheKey } from "./route-selection/shared";
 
 // Enrichment
-export {
-  useVisaEnrichment,
-  useWeatherEnrichment,
-  useAccommodationEnrichment,
-  fetchAccommodationEnrichment,
-  getAccommodationQueryKey,
-} from "./useEnrichment";
+export { useVisaEnrichment } from "./enrichment/useVisaEnrichment";
+export { useWeatherEnrichment } from "./enrichment/useWeatherEnrichment";
+export { useAccommodationEnrichment } from "./enrichment/useAccommodationEnrichment";
+export { fetchAccommodationEnrichment, getAccommodationQueryKey } from "./enrichment/shared";
 
 // Profile
-export { useProfile, useSaveProfile, useExportData, useDeleteAccount } from "./useProfile";
+export { useProfile } from "./profile/useProfile";
+export { useSaveProfile } from "./profile/useSaveProfile";
+export { useExportData } from "./profile/useExportData";
+export { useDeleteAccount } from "./profile/useDeleteAccount";
+export type { PersistedProfile, ProfileData } from "./profile/shared";
 
 // Admin
-export { useAdminStats, useAdminUsers, useAdminTrips, useDeleteAdminTrip } from "./useAdmin";
+export { useAdminStats } from "./admin/useAdminStats";
+export { useAdminUsers } from "./admin/useAdminUsers";
+export { useAdminTrips } from "./admin/useAdminTrips";
+export { useDeleteAdminTrip } from "./admin/useDeleteAdminTrip";
+export type { AdminStats, AdminUser, AdminTrip } from "./admin/shared";
+
+// Flights
+export { useFlightSearch, useBatchFlightSearch } from "./flights/useFlightSearch";

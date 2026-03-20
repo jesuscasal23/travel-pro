@@ -10,7 +10,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useCityActivityGeneration } from "@/hooks/api/useCityActivityGeneration";
+import { useCityActivityGeneration } from "@/hooks/api";
 import type { Itinerary } from "@/types";
 import type { ReactNode } from "react";
 

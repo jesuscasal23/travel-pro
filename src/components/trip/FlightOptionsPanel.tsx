@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { ChevronDown, ChevronUp, Search, AlertTriangle, Filter, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui";
-import { useFlightSearch } from "@/hooks/useFlightSearch";
+import { useFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
 import { FlightRow } from "./flight/FlightRow";
 import { FlightFilterPanel, matchesStopsFilter } from "./flight/FlightFilterPanel";

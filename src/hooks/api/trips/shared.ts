@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "./keys";
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
 import type { Itinerary, TripSummary, TripType } from "@/types";
 
@@ -23,19 +21,12 @@ export interface TripDetail {
   itineraries: TripDetailItinerary[];
 }
 
-async function fetchTrips(): Promise<TripSummary[]> {
+export async function fetchTrips(): Promise<TripSummary[]> {
   const data = await apiFetch<{ trips?: TripSummary[] }>("/api/v1/trips", {
     source: "useTrips",
     fallbackMessage: "Failed to load trips",
   });
   return data.trips ?? [];
-}
-
-export function useTrips() {
-  return useQuery({
-    queryKey: queryKeys.trips.list(),
-    queryFn: fetchTrips,
-  });
 }
 
 export async function fetchTrip(tripId: string): Promise<TripDetail | null> {
@@ -54,12 +45,4 @@ export async function fetchTrip(tripId: string): Promise<TripDetail | null> {
     }
     throw error;
   }
-}
-
-export function useTrip(tripId: string, options?: { enabled?: boolean }) {
-  return useQuery({
-    queryKey: queryKeys.trips.detail(tripId),
-    queryFn: () => fetchTrip(tripId),
-    enabled: options?.enabled ?? true,
-  });
 }
