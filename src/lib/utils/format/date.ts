@@ -33,6 +33,8 @@ export function formatDateRange(start?: string, end?: string): string {
 
 /** Number of days from now until the given date, or null if the date is in the past. */
 export function daysUntil(dateStr: string): number | null {
-  const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const targetUtc = new Date(dateStr + "T00:00:00Z").getTime();
+  const nowUtc = Date.now();
+  const diff = Math.ceil((targetUtc - nowUtc) / (1000 * 60 * 60 * 24));
   return diff >= 0 ? diff : null;
 }
