@@ -3,13 +3,13 @@ import type { CityWithDays } from "@/lib/flights/types";
 import { addDays } from "@/lib/utils/date";
 import type { CityStop } from "@/types";
 
-export interface FlightRouteLeg {
+interface FlightRouteLeg {
   fromIata: string;
   toIata: string;
   departureDate: string;
 }
 
-export type RouteStopWithIata = CityStop & { iataCode: string };
+type RouteStopWithIata = CityStop & { iataCode: string };
 
 function resolveStopIata(stop: CityStop): string | undefined {
   return stop.iataCode ?? lookupIata(stop.city);

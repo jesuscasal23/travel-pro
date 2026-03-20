@@ -10,7 +10,7 @@ import { SelectRouteInputSchema } from "./schemas";
 
 const log = createLogger("route-selection-service");
 
-export type SelectRouteInput = z.infer<typeof SelectRouteInputSchema>;
+type SelectRouteInput = z.infer<typeof SelectRouteInputSchema>;
 
 export async function selectRouteCandidates(
   input: SelectRouteInput,

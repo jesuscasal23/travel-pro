@@ -3,7 +3,7 @@ export { useAuthStatus } from "./useAuth";
 
 // Trips
 export { useTrips } from "./useTrips";
-export { useCreateTrip, useShareTrip } from "./useTripMutations";
+export { useCreateTrip } from "./useTripMutations";
 export { useTripGeneration } from "./useTripGeneration";
 export { useCityActivityGeneration } from "./useCityActivityGeneration";
 export {

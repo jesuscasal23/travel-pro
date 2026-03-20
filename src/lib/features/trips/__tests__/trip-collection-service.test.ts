@@ -83,7 +83,6 @@ beforeEach(() => {
   mockGetOptionalRedisEnv.mockReturnValue(null);
   mockPrisma.trip.findUnique.mockResolvedValue({
     id: "trip-1",
-    shareToken: "share-token-1",
   });
   tx.$executeRaw.mockResolvedValue(undefined);
   tx.itinerary.findMany.mockResolvedValue([{ id: "itin-1" }, { id: "itin-2" }]);

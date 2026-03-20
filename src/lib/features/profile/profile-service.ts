@@ -9,7 +9,7 @@ import { z } from "zod";
 import { PROFILE_EXPORT_INCLUDE } from "./query-shapes";
 import { ProfilePatchInputSchema } from "./schemas";
 
-export type ProfilePatchInput = z.infer<typeof ProfilePatchInputSchema>;
+type ProfilePatchInput = z.infer<typeof ProfilePatchInputSchema>;
 
 export async function getProfileByUserId(userId: string) {
   const profile = await findProfileByUserId(userId);

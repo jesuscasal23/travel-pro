@@ -40,7 +40,7 @@ export class ForbiddenError extends ApiError {
   }
 }
 
-export class NotFoundError extends ApiError {
+class NotFoundError extends ApiError {
   constructor(message: string = "Not found", details?: unknown, code = "not_found") {
     super(404, message, details, code);
   }

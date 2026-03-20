@@ -1,4 +1,4 @@
-export class RequestAbortedError extends Error {
+class RequestAbortedError extends Error {
   constructor(message: string = "Request aborted") {
     super(message);
     this.name = "AbortError";

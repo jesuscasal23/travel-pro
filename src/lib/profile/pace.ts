@@ -8,7 +8,7 @@ const LEGACY_TO_PACE: Record<LegacyActivityLevel, ActivityPace> = {
   high: "active",
 };
 
-export function normalizeStoredPace(value: string | null | undefined): ActivityPace | undefined {
+function normalizeStoredPace(value: string | null | undefined): ActivityPace | undefined {
   if (!value) return undefined;
   if (value === "relaxed" || value === "moderate" || value === "active") {
     return value;

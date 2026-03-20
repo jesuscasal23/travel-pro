@@ -91,7 +91,7 @@ export async function assertTripAccess(
 // ── Request helpers ─────────────────────────────────────────────
 
 /** Parse JSON body or throw 400. */
-export async function parseJsonBody(req: NextRequest | Request): Promise<unknown> {
+async function parseJsonBody(req: NextRequest | Request): Promise<unknown> {
   try {
     return await req.json();
   } catch {
@@ -174,15 +174,3 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
     });
   };
 }
-
-export {
-  ApiError,
-  ActiveItineraryNotFoundError,
-  BadRequestError,
-  ForbiddenError,
-  NotFoundError,
-  ServiceMisconfiguredError,
-  UnauthorizedError,
-  UpstreamServiceError,
-  ValidationError,
-} from "@/lib/api/errors";

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { SelectRouteInputSchema } from "./schemas";
 
-export type SelectRouteInput = z.infer<typeof SelectRouteInputSchema>;
+type SelectRouteInput = z.infer<typeof SelectRouteInputSchema>;
 
 export function buildSingleCitySelection(tripIntent: SelectRouteInput["tripIntent"]) {
   if (tripIntent.tripType !== "single-city" || !tripIntent.destination) {

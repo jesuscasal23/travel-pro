@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { TripIntent } from "@/types";
 import { TRIP_INTENT_SELECT } from "./query-shapes";
 
-export type TripIntentRecord = Prisma.TripGetPayload<{ select: typeof TRIP_INTENT_SELECT }>;
+type TripIntentRecord = Prisma.TripGetPayload<{ select: typeof TRIP_INTENT_SELECT }>;
 
 export function tripToIntent(trip: TripIntentRecord): TripIntent {
   return {

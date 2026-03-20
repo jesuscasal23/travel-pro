@@ -163,7 +163,6 @@ async function main() {
       flexibleDates: false,
       budget: 10000,
       travelers: 2,
-      shareToken: "demo-share-token-001",
     },
   });
 

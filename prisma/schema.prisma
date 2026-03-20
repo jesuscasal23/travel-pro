@@ -53,7 +53,6 @@ model Trip {
   flexibleDates Boolean  @default(false) @map("flexible_dates")
   travelers     Int      @default(2)
   description   String?
-  shareToken    String?  @unique @map("share_token")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

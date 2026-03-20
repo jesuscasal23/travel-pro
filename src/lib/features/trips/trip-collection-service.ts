@@ -7,7 +7,7 @@ import { z } from "zod";
 import { CreateTripInputSchema } from "./schemas";
 import { TRIP_LIST_INCLUDE } from "./query-shapes";
 
-export type CreateTripInput = z.infer<typeof CreateTripInputSchema>;
+type CreateTripInput = z.infer<typeof CreateTripInputSchema>;
 
 const log = createLogger("trip-collection-service");
 const REDIS_SCAN_BATCH_SIZE = 100;
@@ -35,7 +35,7 @@ function getRedis(): Redis | null {
   return new Redis(redisEnv);
 }
 
-async function deleteTripRedisData(input: { tripId: string; shareToken: string | null }) {
+async function deleteTripRedisData(input: { tripId: string }) {
   const redis = getRedis();
   if (!redis) {
     return;
@@ -49,9 +49,6 @@ async function deleteTripRedisData(input: { tripId: string; shareToken: string |
     `trips:${input.tripId}:*`,
     `trip-generation:${input.tripId}`,
     `trip-generation:${input.tripId}:*`,
-    ...(input.shareToken
-      ? [`trip-share:${input.shareToken}`, `trip-share:${input.shareToken}:*`]
-      : []),
   ];
 
   for (const pattern of patterns) {
@@ -88,7 +85,6 @@ export async function deleteTripById(tripId: string) {
     where: { id: tripId },
     select: {
       id: true,
-      shareToken: true,
     },
   });
 
@@ -98,7 +94,6 @@ export async function deleteTripById(tripId: string) {
 
   await deleteTripRedisData({
     tripId: trip.id,
-    shareToken: trip.shareToken,
   });
 
   await prisma.$transaction(async (tx) => {

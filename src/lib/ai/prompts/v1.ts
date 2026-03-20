@@ -1,6 +1,6 @@
 // ============================================================
 // Travel Pro — Prompt Template v1
-// Quality bar: match sampleItinerary depth (src/data/sampleData.ts)
+// Quality bar: match the detail level expected by the itinerary schema.
 // Every activity must include: name, category, why, duration
 // Optional: tip, food
 // ============================================================

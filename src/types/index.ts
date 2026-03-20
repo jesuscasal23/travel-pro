@@ -103,15 +103,6 @@ export interface CityWeather {
   icon: string; // emoji
 }
 
-/** A saved trip on the dashboard */
-export interface SavedTrip {
-  id: string;
-  name: string;
-  countries: number;
-  dates: string;
-  status: "Planning" | "Ready" | "Completed";
-}
-
 /** Trip summary returned by GET /api/v1/trips (dashboard list) */
 export interface TripSummary {
   id: string;
@@ -176,14 +167,6 @@ export interface UserProfile {
   travelStyle: TravelStyle;
   interests: string[];
   pace?: ActivityPace;
-}
-
-/** Home dashboard — departure preparation task */
-export interface DepartureTask {
-  id: string;
-  title: string;
-  subtitle: string;
-  type: "packing" | "checkin" | "document" | "insurance";
 }
 
 /** Trip planning intent from questionnaire */

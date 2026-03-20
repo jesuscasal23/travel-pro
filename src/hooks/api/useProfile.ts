@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { parseApiErrorResponse, reportApiError } from "@/lib/client/api-error-reporting";
 import { queryKeys } from "./keys";
+import { apiFetch, ApiError } from "@/lib/client/api-fetch";
 import type { TravelStyle, ActivityPace, UserProfile } from "@/types";
 
 interface ProfileData {
@@ -12,7 +12,7 @@ interface ProfileData {
   onboardingCompleted?: boolean;
 }
 
-export interface PersistedProfile extends UserProfile {
+interface PersistedProfile extends UserProfile {
   id: string;
   userId: string;
   onboardingCompleted?: boolean;
@@ -20,40 +20,16 @@ export interface PersistedProfile extends UserProfile {
 }
 
 async function fetchProfile(): Promise<PersistedProfile | null> {
-  const endpoint = "/api/v1/profile";
-  let res: Response;
   try {
-    res = await fetch(endpoint);
+    const data = await apiFetch<{ profile?: PersistedProfile }>("/api/v1/profile", {
+      source: "useProfile",
+      fallbackMessage: "Failed to load profile",
+    });
+    return data.profile ?? null;
   } catch (error) {
-    await reportApiError({
-      source: "useProfile",
-      endpoint,
-      method: "GET",
-      message: error instanceof Error ? error.message : "Network error while loading profile",
-    });
-    throw new Error("Failed to load profile");
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
   }
-
-  if (res.status === 404) {
-    return null;
-  }
-
-  if (!res.ok) {
-    const parsed = await parseApiErrorResponse(res, "Failed to load profile");
-    await reportApiError({
-      source: "useProfile",
-      endpoint,
-      method: "GET",
-      message: parsed.message,
-      status: parsed.status,
-      requestId: parsed.requestId,
-      responseBody: parsed.responseBody,
-    });
-    throw new Error(parsed.message);
-  }
-
-  const data = await res.json();
-  return data.profile ?? null;
 }
 
 export function useProfile(options?: { enabled?: boolean }) {
@@ -69,37 +45,13 @@ export function useSaveProfile() {
 
   return useMutation({
     mutationFn: async (data: ProfileData) => {
-      const endpoint = "/api/v1/profile";
-      let res: Response;
-      try {
-        res = await fetch(endpoint, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-      } catch (error) {
-        await reportApiError({
-          source: "useSaveProfile",
-          endpoint,
-          method: "PATCH",
-          message: error instanceof Error ? error.message : "Network error while saving profile",
-        });
-        throw new Error("Failed to save profile");
-      }
-      if (!res.ok) {
-        const parsed = await parseApiErrorResponse(res, "Failed to save profile");
-        await reportApiError({
-          source: "useSaveProfile",
-          endpoint,
-          method: "PATCH",
-          message: parsed.message,
-          status: parsed.status,
-          requestId: parsed.requestId,
-          responseBody: parsed.responseBody,
-        });
-        throw new Error(parsed.message);
-      }
-      return res.json();
+      const result = await apiFetch<{ profile?: PersistedProfile }>("/api/v1/profile", {
+        source: "useSaveProfile",
+        method: "PATCH",
+        body: data,
+        fallbackMessage: "Failed to save profile",
+      });
+      return result;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.profile.detail(), data.profile ?? null);
@@ -110,34 +62,10 @@ export function useSaveProfile() {
 export function useExportData() {
   return useMutation({
     mutationFn: async () => {
-      const endpoint = "/api/v1/profile/export";
-      let res: Response;
-      try {
-        res = await fetch(endpoint);
-      } catch (error) {
-        await reportApiError({
-          source: "useExportData",
-          endpoint,
-          method: "GET",
-          message:
-            error instanceof Error ? error.message : "Network error while exporting profile data",
-        });
-        throw new Error("Export failed");
-      }
-      if (!res.ok) {
-        const parsed = await parseApiErrorResponse(res, "Export failed");
-        await reportApiError({
-          source: "useExportData",
-          endpoint,
-          method: "GET",
-          message: parsed.message,
-          status: parsed.status,
-          requestId: parsed.requestId,
-          responseBody: parsed.responseBody,
-        });
-        throw new Error(parsed.message);
-      }
-      const data = await res.json();
+      const data = await apiFetch<Record<string, unknown>>("/api/v1/profile/export", {
+        source: "useExportData",
+        fallbackMessage: "Export failed",
+      });
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -155,33 +83,11 @@ export function useDeleteAccount() {
 
   return useMutation({
     mutationFn: async () => {
-      const endpoint = "/api/v1/profile";
-      let res: Response;
-      try {
-        res = await fetch(endpoint, { method: "DELETE" });
-      } catch (error) {
-        await reportApiError({
-          source: "useDeleteAccount",
-          endpoint,
-          method: "DELETE",
-          message: error instanceof Error ? error.message : "Network error while deleting account",
-        });
-        throw new Error("Failed to delete account");
-      }
-      if (!res.ok) {
-        const parsed = await parseApiErrorResponse(res, "Failed to delete account");
-        await reportApiError({
-          source: "useDeleteAccount",
-          endpoint,
-          method: "DELETE",
-          message: parsed.message,
-          status: parsed.status,
-          requestId: parsed.requestId,
-          responseBody: parsed.responseBody,
-        });
-        throw new Error(parsed.message);
-      }
-      return res.json();
+      return apiFetch<Record<string, unknown>>("/api/v1/profile", {
+        source: "useDeleteAccount",
+        method: "DELETE",
+        fallbackMessage: "Failed to delete account",
+      });
     },
     onSuccess: () => {
       queryClient.setQueryData(queryKeys.profile.detail(), null);

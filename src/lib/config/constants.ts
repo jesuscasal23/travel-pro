@@ -54,11 +54,3 @@ export const AMADEUS_REQUEST_TIMEOUT_MS = 10_000;
 
 /** Timeout for SerpApi requests. Slightly longer than Amadeus since it scrapes Google. */
 export const SERPAPI_REQUEST_TIMEOUT_MS = 15_000;
-
-// ── Sharing ─────────────────────────────────────────────────
-
-/** Number of random bytes for share token generation (base64url encoded). */
-export const SHARE_TOKEN_BYTES = 9;
-
-/** Max attempts to generate a unique share token before throwing. */
-export const SHARE_TOKEN_MAX_ATTEMPTS = 3;

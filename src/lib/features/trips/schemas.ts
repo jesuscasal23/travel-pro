@@ -13,7 +13,7 @@ export const CreateTripInputSchema = z.object({
   description: z.string().max(2000).optional(),
 });
 
-export const RouteStopInputSchema = z.object({
+const RouteStopInputSchema = z.object({
   id: z.string(),
   city: z.string(),
   country: z.string(),

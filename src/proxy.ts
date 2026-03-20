@@ -18,7 +18,6 @@ const PUBLIC_PREFIXES = [
   "/forgot-password",
   "/reset-password",
   "/privacy",
-  "/share",
   "/api/health",
   "/auth/callback",
   "/get-started",
@@ -33,7 +32,6 @@ function isProtected(pathname: string): boolean {
 // All API rate limiting is centralized here. Limits:
 //   - /api/v1/trips/*/generate : 5 per hour per IP (LLM cost protection)
 //   - /api/generate/select-route: 10 per minute per IP (speculative route selection)
-//   - /api/v1/trips/shared/*   : 60 req/min per IP
 //   - /api/v1/* (general)      : 30 req/min per IP
 
 async function checkRateLimit(request: NextRequest): Promise<NextResponse | null> {
@@ -71,11 +69,6 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     // On-demand flight search: 20 per minute per IP
     limitKey = `rl:flights:${ip}`;
     limit = 20;
-    windowSeconds = 60;
-  } else if (pathname.startsWith("/api/v1/trips/shared/")) {
-    // Public share views: 60 per minute
-    limitKey = `rl:shared:${ip}`;
-    limit = 60;
     windowSeconds = 60;
   } else if (pathname.startsWith("/api/v1/")) {
     // General API: 30/min unauthenticated (authenticated users get 100/min)

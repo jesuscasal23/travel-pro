@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useCreateTrip, useSaveTripEdit, useShareTrip } from "@/hooks/api/useTripMutations";
+import { useCreateTrip, useSaveTripEdit } from "@/hooks/api/useTripMutations";
 
 const originalFetch = global.fetch;
 
@@ -149,32 +149,5 @@ describe("useTripMutations", () => {
         data: { route: [], days: [] },
       })
     ).rejects.toThrow("Save failed");
-  });
-
-  it("generates share links and surfaces share endpoint failures", async () => {
-    global.fetch = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          shareToken: "token-1",
-          shareUrl: "https://example.com/share/token-1",
-        }),
-      } as Response)
-      .mockResolvedValueOnce({ ok: false } as Response);
-
-    const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-    const { result } = renderHook(() => useShareTrip(), {
-      wrapper: createWrapper(queryClient),
-    });
-
-    await act(async () => {
-      const output = await result.current.mutateAsync("trip-1");
-      expect(output.shareToken).toBe("token-1");
-    });
-
-    await expect(result.current.mutateAsync("trip-1")).rejects.toThrow(
-      "Failed to generate share link"
-    );
   });
 });

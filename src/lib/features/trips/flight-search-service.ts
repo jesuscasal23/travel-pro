@@ -14,7 +14,7 @@ import { FlightSearchInputSchema } from "./schemas";
 
 const log = createLogger("flight-search");
 
-export type FlightSearchInput = z.infer<typeof FlightSearchInputSchema>;
+type FlightSearchInput = z.infer<typeof FlightSearchInputSchema>;
 
 export async function searchTripFlights(input: FlightSearchInput) {
   const filters =

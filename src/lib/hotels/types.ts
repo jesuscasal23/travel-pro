@@ -16,7 +16,7 @@ export interface AmadeusHotelEntry {
 }
 
 /** Price info from Hotel Offers API */
-export interface AmadeusHotelPrice {
+interface AmadeusHotelPrice {
   currency: string;
   total: string;
   base?: string;

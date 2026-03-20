@@ -7,9 +7,9 @@ import {
 } from "./schemas";
 import { buildSyntheticCityStops } from "./transforms";
 
-export type EnrichWeatherInput = z.infer<typeof EnrichWeatherInputSchema>;
-export type EnrichVisaInput = z.infer<typeof EnrichVisaInputSchema>;
-export type EnrichAccommodationInput = z.infer<typeof EnrichAccommodationInputSchema>;
+type EnrichWeatherInput = z.infer<typeof EnrichWeatherInputSchema>;
+type EnrichVisaInput = z.infer<typeof EnrichVisaInputSchema>;
+type EnrichAccommodationInput = z.infer<typeof EnrichAccommodationInputSchema>;
 
 export async function getWeatherEnrichment(input: EnrichWeatherInput) {
   return enrichWeather(buildSyntheticCityStops(input.route), input.dateStart);

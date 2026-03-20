@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const cityStopSchema = z.object({
+const cityStopSchema = z.object({
   id: z.string(),
   city: z.string(),
   country: z.string(),
@@ -11,7 +11,7 @@ export const cityStopSchema = z.object({
   iataCode: z.string().optional(),
 });
 
-export const itineraryFlightLegSchema = z.object({
+const itineraryFlightLegSchema = z.object({
   fromCity: z.string(),
   toCity: z.string(),
   fromIata: z.string(),
@@ -33,7 +33,7 @@ export const dayActivitySchema = z.object({
   cost: z.string().optional(),
 });
 
-export const tripDaySchema = z.object({
+const tripDaySchema = z.object({
   day: z.number(),
   date: z.string(),
   city: z.string(),
@@ -44,7 +44,7 @@ export const tripDaySchema = z.object({
   travelDuration: z.string().optional(),
 });
 
-export const visaInfoSchema = z.object({
+const visaInfoSchema = z.object({
   country: z.string(),
   countryCode: z.string(),
   requirement: z.enum([
@@ -64,14 +64,14 @@ export const visaInfoSchema = z.object({
   sourceLabel: z.string(),
 });
 
-export const cityWeatherSchema = z.object({
+const cityWeatherSchema = z.object({
   city: z.string(),
   temp: z.string(),
   condition: z.string(),
   icon: z.string(),
 });
 
-export const cityHotelSchema = z.object({
+const cityHotelSchema = z.object({
   hotelId: z.string(),
   name: z.string(),
   city: z.string(),
@@ -85,7 +85,7 @@ export const cityHotelSchema = z.object({
   why: z.string(),
 });
 
-export const cityAccommodationSchema = z.object({
+const cityAccommodationSchema = z.object({
   city: z.string(),
   countryCode: z.string(),
   checkIn: z.string(),
@@ -94,7 +94,7 @@ export const cityAccommodationSchema = z.object({
   fallbackSearchUrl: z.string(),
 });
 
-export const flightSearchResultSchema = z.object({
+const flightSearchResultSchema = z.object({
   price: z.number(),
   duration: z.string(),
   airline: z.string(),
@@ -105,7 +105,7 @@ export const flightSearchResultSchema = z.object({
   bookingUrl: z.string(),
 });
 
-export const flightLegResultsSchema = z.object({
+const flightLegResultsSchema = z.object({
   fromIata: z.string(),
   toIata: z.string(),
   departureDate: z.string(),

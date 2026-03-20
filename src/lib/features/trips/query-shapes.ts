@@ -42,10 +42,6 @@ export const TRIP_LIST_INCLUDE = {
   },
 } satisfies Prisma.TripInclude;
 
-export const SHARE_TOKEN_SELECT = {
-  shareToken: true,
-} satisfies Prisma.TripSelect;
-
 export const ITINERARY_TRIP_ID_SELECT = {
   tripId: true,
 } satisfies Prisma.ItinerarySelect;

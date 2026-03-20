@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ServiceMisconfiguredError } from "@/lib/api/errors";
 
-export type EnvCheckStatus = "ok" | "missing" | "unreachable";
+type EnvCheckStatus = "ok" | "missing" | "unreachable";
 
 const nonEmptyString = z.string().trim().min(1);
 const urlString = z.string().trim().url();
@@ -39,10 +39,6 @@ export function getAnthropicApiKey(): string {
   return parseRequiredEnv("anthropic", nonEmptyString, process.env.ANTHROPIC_API_KEY, [
     "ANTHROPIC_API_KEY",
   ]);
-}
-
-export function getCronSecret(): string {
-  return parseRequiredEnv("cron", nonEmptyString, process.env.CRON_SECRET, ["CRON_SECRET"]);
 }
 
 export function getOptionalSupabaseSessionEnv(): { url: string; anonKey: string } | null {
@@ -173,10 +169,6 @@ export function getOptionalSerpApiEnv(): { apiKey: string } | null {
     },
     ["SERPAPI_API_KEY"]
   );
-}
-
-export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://travelpro.app";
 }
 
 export function getServerEnvChecks(): Record<string, EnvCheckStatus> {

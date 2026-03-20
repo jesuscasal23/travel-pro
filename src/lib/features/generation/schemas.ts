@@ -53,7 +53,7 @@ export const CityWithDaysInputSchema = z.object({
   maxDays: z.number(),
 });
 
-export const PromptVersionSchema = z.literal("v1").default("v1");
+const PromptVersionSchema = z.literal("v1").default("v1");
 
 export const GenerateTripInputSchema = z.object({
   profile: ProfileInputSchema,

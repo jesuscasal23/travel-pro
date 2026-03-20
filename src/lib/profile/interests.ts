@@ -45,7 +45,3 @@ export function normalizeInterests(values: string[] | undefined | null): string[
 export function hasInterest(interests: string[], interestId: string) {
   return normalizeInterests(interests).includes(interestId);
 }
-
-export function getInterestLabel(interestId: string) {
-  return interestOptionsById.get(interestId)?.label ?? interestId;
-}

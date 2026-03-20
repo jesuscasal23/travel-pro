@@ -20,24 +20,6 @@ export async function createTestTrip(
   });
 }
 
-/** Create a minimal valid Profile row. */
-export async function createTestProfile(
-  prisma: PrismaClient,
-  userId: string,
-  overrides: Record<string, unknown> = {}
-) {
-  return prisma.profile.create({
-    data: {
-      userId,
-      nationality: "German",
-      homeAirport: "FRA",
-      travelStyle: "smart-budget",
-      interests: ["culture", "food"],
-      ...overrides,
-    },
-  });
-}
-
 /** Create a minimal valid Itinerary row for a trip. */
 export async function createTestItinerary(
   prisma: PrismaClient,

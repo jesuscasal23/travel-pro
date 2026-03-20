@@ -12,19 +12,12 @@ const config: KnipConfig = {
     "next-sitemap.config.js",
   ],
   ignore: [
-    // Email templates are rendered server-side by reference string — knip can't trace them
-    "src/lib/email/**",
     // Map fallback rendered conditionally by react-map-gl internals
     "src/components/map/RouteMapFallback.tsx",
     // CollapsibleSection rendered inside trip plan-view tabs in a way knip misses
     "src/components/ui/CollapsibleSection.tsx",
   ],
   ignoreDependencies: [
-    // Server-side deps knip can't trace through Next.js API routes at build time
-    "resend",
-    "react-email",
-    "@react-email/components",
-    "@react-email/render",
     // pg used via Prisma adapter at runtime, not imported in app code directly
     "pg",
     "@types/pg",

@@ -12,7 +12,7 @@ function signGuestTripId(tripId: string): string {
     .digest("base64url");
 }
 
-export function getGuestTripOwnerCookieName(tripId: string): string {
+function getGuestTripOwnerCookieName(tripId: string): string {
   return `${GUEST_TRIP_OWNER_COOKIE_PREFIX}${tripId}`;
 }
 

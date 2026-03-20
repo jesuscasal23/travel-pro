@@ -45,11 +45,6 @@ export const destinationStepSchema = z
     { message: "End date must be after start date", path: ["dateEnd"] }
   );
 
-/** Plan step 2: traveler count. */
-export const detailsStepSchema = z.object({
-  travelers: z.number().int().min(1, "At least 1 traveler").max(10, "Maximum 10 travelers"),
-});
-
 /** Planner profile step: nationality + home airport. */
 export const onboardingStep1Schema = z.object({
   nationality: z.string().min(1, "Please select your nationality"),
