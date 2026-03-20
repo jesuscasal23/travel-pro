@@ -18,7 +18,7 @@ export const MAX_TOKENS_MULTI_CITY = 10_000;
 export const MAX_TOKENS_SINGLE_CITY = 8_000;
 
 /** Max tokens for route-only generation (no activities). */
-export const MAX_TOKENS_ROUTE_ONLY = 2_000;
+export const MAX_TOKENS_ROUTE_ONLY = 4_000;
 
 /** Max tokens for per-city activity generation. */
 export const MAX_TOKENS_CITY_ACTIVITIES = 8_000;

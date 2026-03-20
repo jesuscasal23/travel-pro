@@ -85,10 +85,13 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && tripId !== "guest");
   const generateMutation = useTripGeneration();
   const genFiredRef = useRef(false);
+  const genAttemptsRef = useRef(0);
 
   useEffect(() => {
     if (!isPartialItinerary || !dbSyncDone || genFiredRef.current || !itinerary) return;
+    if (genAttemptsRef.current >= 2) return; // Max 2 auto-retries
     genFiredRef.current = true;
+    genAttemptsRef.current += 1;
 
     const profile = { nationality, homeAirport, travelStyle, interests };
     const cities =
@@ -117,18 +120,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         },
       }
     );
-  }, [
-    isPartialItinerary,
-    dbSyncDone,
-    itinerary,
-    nationality,
-    homeAirport,
-    travelStyle,
-    interests,
-    tripId,
-    setItinerary,
-    generateMutation,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPartialItinerary, dbSyncDone, tripId]);
 
   const cityActivityMutation = useCityActivityGeneration();
   const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);

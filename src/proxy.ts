@@ -109,7 +109,20 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       body: JSON.stringify(pipeline),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`[rate-limit] Redis returned ${res.status} for ${limitKey}`);
+      // Fail closed for expensive LLM endpoints, open for others
+      if (limitKey.startsWith("rl:generate:")) {
+        return new NextResponse(
+          JSON.stringify({
+            error: "Service unavailable",
+            message: "Rate limiter unavailable. Please try again shortly.",
+          }),
+          { status: 503, headers: { "Content-Type": "application/json", "Retry-After": "30" } }
+        );
+      }
+      return null;
+    }
 
     const results = (await res.json()) as { result: unknown }[];
     const count = (results[2]?.result as number) ?? 0;
@@ -135,8 +148,18 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
         }
       );
     }
-  } catch {
-    // If Redis call fails, let the request through (fail open)
+  } catch (err) {
+    console.error("[rate-limit] Redis error:", err);
+    // Fail closed for expensive LLM endpoints, open for others
+    if (limitKey.startsWith("rl:generate:")) {
+      return new NextResponse(
+        JSON.stringify({
+          error: "Service unavailable",
+          message: "Rate limiter unavailable. Please try again shortly.",
+        }),
+        { status: 503, headers: { "Content-Type": "application/json", "Retry-After": "30" } }
+      );
+    }
   }
 
   return null;
