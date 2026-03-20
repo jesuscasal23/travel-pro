@@ -58,6 +58,8 @@ export default function AdminDashboard() {
   const [tripsPage, setTripsPage] = useState(1);
   const [userSearch, setUserSearch] = useState("");
   const [tripSearch, setTripSearch] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
   const userSearchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const tripSearchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
@@ -74,6 +76,7 @@ export default function AdminDashboard() {
     data: stats,
     error: statsError,
     isLoading: statsLoading,
+    mutate: mutateStats,
   } = useSWR<Stats>("/api/v1/admin/stats", adminFetcher, { onError: handleError });
 
   const usersKey =
@@ -99,6 +102,7 @@ export default function AdminDashboard() {
     data: tripsData,
     error: tripsError,
     isLoading: tripsLoading,
+    mutate: mutateTrips,
   } = useSWR<{
     trips: AdminTrip[];
     total: number;
@@ -139,6 +143,53 @@ export default function AdminDashboard() {
       setTripsPage(1);
     }, 300);
   };
+
+  const handleDeleteTrip = useCallback(
+    async (trip: AdminTrip) => {
+      const tripLabel = trip.destination ?? trip.region ?? trip.id;
+      const confirmed = window.confirm(
+        `Delete trip ${tripLabel}? This permanently removes the trip, its itineraries, and related data.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setDeleteError(null);
+      setDeletingTripId(trip.id);
+
+      try {
+        const res = await fetch(`/api/v1/admin/trips/${trip.id}`, { method: "DELETE" });
+        const body = await res.json().catch(() => null);
+
+        if (res.status === 401) {
+          router.push("/login?next=/admin");
+          return;
+        }
+
+        if (res.status === 403) {
+          throw new Error("Access denied. You need superuser privileges.");
+        }
+
+        if (!res.ok) {
+          throw new Error(body?.error ?? `API error: ${res.status}`);
+        }
+
+        if (trips.length === 1 && tripsPage > 1) {
+          setTripsPage((page) => Math.max(1, page - 1));
+        } else {
+          await mutateTrips();
+        }
+
+        void mutateStats();
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : "Failed to delete trip.");
+      } finally {
+        setDeletingTripId(null);
+      }
+    },
+    [mutateStats, mutateTrips, router, trips.length, tripsPage]
+  );
 
   if (error) {
     return (
@@ -346,8 +397,13 @@ export default function AdminDashboard() {
               className="rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
+          {deleteError && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+              {deleteError}
+            </div>
+          )}
           {loading ? (
-            <TableSkeleton rows={5} cols={7} />
+            <TableSkeleton rows={5} cols={8} />
           ) : (
             <>
               <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
@@ -374,6 +430,9 @@ export default function AdminDashboard() {
                       </th>
                       <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
                         Created
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -411,11 +470,21 @@ export default function AdminDashboard() {
                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                           {new Date(trip.createdAt).toLocaleDateString()}
                         </td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteTrip(trip)}
+                            disabled={deletingTripId !== null}
+                            className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20"
+                          >
+                            {deletingTripId === trip.id ? "Deleting..." : "Delete"}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                     {trips.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                           No trips found.
                         </td>
                       </tr>

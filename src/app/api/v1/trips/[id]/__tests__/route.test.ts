@@ -16,6 +16,10 @@ vi.mock("@/lib/features/trips/itinerary-service", () => ({
   createItineraryVersion: vi.fn(),
 }));
 
+vi.mock("@/lib/features/trips/trip-collection-service", () => ({
+  deleteTripById: vi.fn(),
+}));
+
 vi.mock("@/lib/supabase/server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
@@ -41,6 +45,7 @@ import {
   findActiveItinerary,
   createItineraryVersion,
 } from "@/lib/features/trips/itinerary-service";
+import { deleteTripById } from "@/lib/features/trips/trip-collection-service";
 import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import { GET, PATCH, DELETE } from "../route";
 
@@ -55,6 +60,7 @@ const mockPrisma = prisma as unknown as {
 const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
 const mockFindActiveItinerary = findActiveItinerary as ReturnType<typeof vi.fn>;
 const mockCreateItineraryVersion = createItineraryVersion as ReturnType<typeof vi.fn>;
+const mockDeleteTripById = deleteTripById as ReturnType<typeof vi.fn>;
 
 const tripId = "trip-1";
 const profileId = "profile-1";
@@ -103,8 +109,8 @@ beforeEach(() => {
     promptVersion: "v1",
   });
   mockCreateItineraryVersion.mockResolvedValue({ id: "itin-2", version: 2 });
+  mockDeleteTripById.mockResolvedValue({ success: true });
   mockPrisma.itineraryEdit.create.mockResolvedValue({});
-  mockPrisma.trip.delete.mockResolvedValue({ id: tripId });
 });
 
 describe("PATCH /api/v1/trips/:id", () => {
@@ -292,6 +298,6 @@ describe("DELETE /api/v1/trips/:id", () => {
 
     expect(res.status).toBe(200);
     expect(json).toEqual({ success: true });
-    expect(mockPrisma.trip.delete).toHaveBeenCalledWith({ where: { id: tripId } });
+    expect(mockDeleteTripById).toHaveBeenCalledWith(tripId);
   });
 });
