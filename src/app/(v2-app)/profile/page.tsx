@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ChevronRight,
   Clock,
   CreditCard,
   FileText,
@@ -24,6 +23,7 @@ import { ProfileBasicsFields } from "@/components/profile/ProfileBasicsFields";
 import { TravelStyleSelector } from "@/components/profile/TravelStyleSelector";
 import { BottomNav } from "@/components/v2/ui/BottomNav";
 import { DevelopmentTag } from "@/components/v2/ui/DevelopmentTag";
+import { MenuSection } from "@/components/v2/profile/MenuSection";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   useAuthStatus,
@@ -46,32 +46,6 @@ const accountItems: { icon: LucideIcon; label: string; isMock?: boolean }[] = [
 const prefItems: { icon: LucideIcon; label: string; isMock?: boolean }[] = [
   { icon: Settings, label: "App Settings", isMock: true },
 ];
-
-function MenuSection({
-  title,
-  items,
-}: {
-  title: string;
-  items: { icon: LucideIcon; label: string; isMock?: boolean }[];
-}) {
-  return (
-    <div className="mt-6 px-6">
-      <p className="text-v2-text-muted mb-3 text-xs font-bold tracking-wider uppercase">{title}</p>
-      <div className="border-v2-border divide-v2-border divide-y rounded-xl border bg-white">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-4 px-4 py-4">
-            <item.icon size={20} className="text-v2-text-muted shrink-0" />
-            <div className="flex flex-1 items-center gap-2">
-              <span className="text-v2-navy text-sm font-medium">{item.label}</span>
-              {item.isMock && <DevelopmentTag label="Mock" />}
-            </div>
-            <ChevronRight size={16} className="text-v2-text-light shrink-0" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function ProfilePage() {
   const router = useRouter();

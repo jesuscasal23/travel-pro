@@ -7,7 +7,7 @@
 
 import type { UserProfile, TripIntent } from "@/types";
 import type { CityWithDays, FlightSkeleton } from "@/lib/flights/types";
-import { formatDateShort, daysBetween } from "@/lib/utils/date";
+import { formatDateShort, daysBetween } from "@/lib/utils/format/date";
 
 // ============================================================
 // System Prompt

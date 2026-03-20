@@ -466,7 +466,7 @@ export default function PlanPage() {
             type="button"
             onClick={goBack}
             aria-label="Go back"
-            className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors hover:text-[#1b2b4b] ${
+            className={`hover:text-v2-navy flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors ${
               step === 1 ? "pointer-events-none opacity-0" : ""
             }`}
           >

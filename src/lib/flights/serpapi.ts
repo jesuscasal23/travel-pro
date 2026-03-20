@@ -13,6 +13,7 @@ import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
 import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { SERPAPI_REQUEST_TIMEOUT_MS } from "@/lib/config/constants";
+import { formatDuration } from "@/lib/utils/format/duration";
 
 const log = createLogger("serpapi");
 
@@ -87,15 +88,6 @@ interface SerpApiResponse {
 }
 
 // ── Helpers ─────────────────────────────────────────────────
-
-/** Format minutes → human-readable ("12h 30m"). */
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h && m) return `${h}h ${m}m`;
-  if (h) return `${h}h`;
-  return `${m}m`;
-}
 
 /** Extract IATA airline code from flight number like "DL 123" → "DL". */
 function extractAirlineCode(flightNumber: string): string {

@@ -31,8 +31,8 @@ const signupSchema = z
 type SignupFormData = z.infer<typeof signupSchema>;
 
 const inputClass =
-  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-[#1b2b4b] outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
-const labelClass = "mb-2 flex items-center gap-2 text-sm font-semibold text-[#1b2b4b]";
+  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-v2-navy outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
+const labelClass = "mb-2 flex items-center gap-2 text-sm font-semibold text-v2-navy";
 const errorClass = "mt-2 text-sm text-[#dc2626]";
 
 function SignupForm() {
@@ -98,7 +98,7 @@ function SignupForm() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm">
             <Link
               href={next}
-              className="inline-flex items-center justify-center text-[#8aa0c0] transition-colors hover:text-[#1b2b4b]"
+              className="hover:text-v2-navy inline-flex items-center justify-center text-[#8aa0c0] transition-colors"
               aria-label="Go back"
             >
               <ArrowLeft size={20} />
@@ -141,7 +141,7 @@ function SignupForm() {
                 <h1 className="mt-3 text-[2.15rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
                   Create your account
                 </h1>
-                <p className="mt-2 text-sm leading-6 text-[#6d7b91]">
+                <p className="text-v2-text-muted mt-2 text-sm leading-6">
                   Start planning smarter trips in minutes.
                 </p>
               </div>
@@ -241,7 +241,7 @@ function SignupForm() {
                   </div>
                 </form>
 
-                <p className="pt-4 text-center text-sm text-[#6d7b91]">
+                <p className="text-v2-text-muted pt-4 text-center text-sm">
                   Already have an account?{" "}
                   <Link
                     href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}

@@ -3,8 +3,12 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminStats, useAdminUsers, useAdminTrips, useDeleteAdminTrip } from "@/hooks/api";
-import type { AdminStats as Stats, AdminUser, AdminTrip } from "@/hooks/api";
+import type { AdminStats as Stats, AdminTrip } from "@/hooks/api";
 import { ApiError } from "@/lib/client/api-fetch";
+import { StatCard } from "@/components/admin/StatCard";
+import { StatusDot } from "@/components/admin/StatusDot";
+import { Pagination } from "@/components/admin/Pagination";
+import { TableSkeleton } from "@/components/admin/TableSkeleton";
 
 type Tab = "overview" | "users" | "trips";
 
@@ -440,92 +444,6 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub }: { label: string; value: number; sub?: string }) {
-  return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-      <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
-        {value.toLocaleString()}
-      </p>
-      {sub && <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{sub}</p>}
-    </div>
-  );
-}
-
-function StatusDot({ status }: { status: string }) {
-  const color =
-    status === "complete"
-      ? "bg-green-400"
-      : status === "failed"
-        ? "bg-red-400"
-        : status === "generating"
-          ? "bg-blue-400"
-          : "bg-gray-400";
-  return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />;
-}
-
-function Pagination({
-  page,
-  totalPages,
-  onPageChange,
-}: {
-  page: number;
-  totalPages: number;
-  onPageChange: (p: number) => void;
-}) {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="mt-4 flex items-center justify-between">
-      <button
-        onClick={() => onPageChange(page - 1)}
-        disabled={page <= 1}
-        className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-600"
-      >
-        Previous
-      </button>
-      <span className="text-sm text-gray-500 dark:text-gray-400">
-        Page {page} of {totalPages}
-      </span>
-      <button
-        onClick={() => onPageChange(page + 1)}
-        disabled={page >= totalPages}
-        className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-gray-600"
-      >
-        Next
-      </button>
-    </div>
-  );
-}
-
-function TableSkeleton({ rows, cols }: { rows: number; cols: number }) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="bg-gray-50 px-4 py-3 dark:bg-gray-800">
-        <div className="flex gap-4">
-          {Array.from({ length: cols }).map((_, i) => (
-            <div
-              key={i}
-              className="h-4 flex-1 animate-pulse rounded bg-gray-200 dark:bg-gray-600"
-            />
-          ))}
-        </div>
-      </div>
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
-          <div className="flex gap-4">
-            {Array.from({ length: cols }).map((_, j) => (
-              <div
-                key={j}
-                className="h-4 flex-1 animate-pulse rounded bg-gray-100 dark:bg-gray-700"
-              />
-            ))}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

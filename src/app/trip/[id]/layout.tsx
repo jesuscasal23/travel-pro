@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/core/prisma";
-import { parseItineraryData, getTripTitle } from "@/lib/utils/trip-metadata";
+import { parseItineraryData, getTripTitle } from "@/lib/utils/trip/trip-metadata";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://travelpro.app";
 

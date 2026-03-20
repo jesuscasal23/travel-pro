@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback } from "react";
-import { ChevronDown, ChevronUp, Search, AlertTriangle, Filter, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui";
+import { ChevronDown, ChevronUp, Search, Filter, ExternalLink } from "lucide-react";
+import { AlertBox, Button } from "@/components/ui";
 import { useFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { buildTrackedLink } from "@/lib/affiliate/link-generator";
 import { FlightRow } from "./flight/FlightRow";
@@ -179,13 +179,12 @@ export function FlightOptionsPanel({
           {leg.fromIata} → {leg.toIata} · {leg.departureDate}
         </div>
         {error && (
-          <div className="border-border bg-background mb-3 flex items-start gap-2.5 rounded-lg border p-3">
-            <AlertTriangle className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
-            <div>
-              <p className="text-foreground text-sm font-medium">Flight search failed</p>
-              <p className="text-muted-foreground mt-0.5 text-xs">{error}</p>
-            </div>
-          </div>
+          <AlertBox
+            variant="warning"
+            title="Flight search failed"
+            description={error}
+            className="mb-3"
+          />
         )}
         {searchDone && !error && (
           <div className="border-border bg-background mb-3 rounded-lg border p-3">
@@ -328,13 +327,12 @@ export function FlightOptionsPanel({
       )}
 
       {error && (
-        <div className="border-border bg-background mt-3 flex items-start gap-2.5 rounded-lg border p-3">
-          <AlertTriangle className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
-          <div>
-            <p className="text-foreground text-sm font-medium">Flight search failed</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">{error}</p>
-          </div>
-        </div>
+        <AlertBox
+          variant="warning"
+          title="Flight search failed"
+          description={error}
+          className="mt-3"
+        />
       )}
 
       {/* Affiliate booking link — one per leg */}

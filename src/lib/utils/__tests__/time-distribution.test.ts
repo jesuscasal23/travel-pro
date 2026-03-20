@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { distributeActivities, getDayTimeRange, getHourMarkers } from "../time-distribution";
+import { distributeActivities, getDayTimeRange, getHourMarkers } from "../trip/time-distribution";
 import type { TripDay } from "@/types";
 
 describe("time-distribution", () => {

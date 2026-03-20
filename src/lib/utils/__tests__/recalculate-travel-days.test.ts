@@ -12,7 +12,7 @@
 // ============================================================
 
 import { describe, it, expect } from "vitest";
-import { recalculateTravelDays } from "@/lib/utils/recalculate-travel-days";
+import { recalculateTravelDays } from "@/lib/utils/trip/recalculate-travel-days";
 import type { TripDay, CityStop } from "@/types";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────

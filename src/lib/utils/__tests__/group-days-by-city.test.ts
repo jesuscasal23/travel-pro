@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { groupDaysByCity } from "../group-days-by-city";
+import { groupDaysByCity } from "../trip/group-days-by-city";
 import type { TripDay, CityStop } from "@/types";
 
 function makeDay(day: number, city: string): TripDay {

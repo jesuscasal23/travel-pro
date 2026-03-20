@@ -21,7 +21,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const inputClass =
-  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-[#1b2b4b] outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
+  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-v2-navy outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
 const labelClass = "text-v2-navy mb-2 flex items-center gap-2 text-sm font-semibold";
 const errorClass = "text-v2-red mt-2 text-sm";
 
@@ -79,7 +79,7 @@ function LoginForm() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm">
             <Link
               href={next}
-              className="inline-flex items-center justify-center text-[#8aa0c0] transition-colors hover:text-[#1b2b4b]"
+              className="hover:text-v2-navy inline-flex items-center justify-center text-[#8aa0c0] transition-colors"
               aria-label="Go back"
             >
               <ArrowLeft size={20} />
@@ -99,7 +99,7 @@ function LoginForm() {
             <h1 className="mt-4 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
               Welcome back
             </h1>
-            <p className="mt-3 text-sm leading-7 text-[#6d7b91]">
+            <p className="text-v2-text-muted mt-3 text-sm leading-7">
               Sign in to pick up your saved trips, plans, and checklists.
             </p>
           </div>

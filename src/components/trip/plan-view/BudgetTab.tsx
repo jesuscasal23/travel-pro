@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { LayoutList, Plane, Hotel, Zap, DollarSign } from "lucide-react";
 import type { Itinerary } from "@/types";
@@ -51,7 +52,7 @@ function formatEur(amount: number) {
 }
 
 export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
-  const cityBudgets = deriveCityBudgets(itinerary);
+  const cityBudgets = useMemo(() => deriveCityBudgets(itinerary), [itinerary]);
   const totalActivityCost = cityBudgets.reduce((sum, c) => sum + c.activityTotal, 0);
   const hasActivityCosts = totalActivityCost > 0;
 

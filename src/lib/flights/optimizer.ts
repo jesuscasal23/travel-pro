@@ -15,7 +15,7 @@
 import { searchFlights as serpApiSearchFlights } from "./serpapi";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import type { CityWithDays, OptimizedLeg, FlightSkeleton, FlightOption } from "./types";
-import { addDays } from "@/lib/utils/date";
+import { addDays } from "@/lib/utils/format/date";
 
 function searchFlights(
   origin: string,

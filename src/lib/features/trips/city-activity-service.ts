@@ -6,7 +6,7 @@ import { loadTripContext } from "./trip-query-service";
 import { createLogger } from "@/lib/core/logger";
 import { findActiveItinerary } from "./itinerary-service";
 import { mergeGeneratedCityDays } from "@/lib/utils/trip/merge-generated-city-days";
-import { parseItineraryData } from "@/lib/utils/trip-metadata";
+import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import type { Itinerary, UserProfile } from "@/types";
 
 const log = createLogger("city-activity-service");

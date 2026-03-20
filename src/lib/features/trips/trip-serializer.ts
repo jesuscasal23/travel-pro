@@ -1,4 +1,4 @@
-import { parseItineraryData } from "@/lib/utils/trip-metadata";
+import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import type { TripWithActiveItinerary } from "./trip-query-service";
 
 function serializeStoredItinerary<T extends { data: unknown }>(itinerary: T) {
