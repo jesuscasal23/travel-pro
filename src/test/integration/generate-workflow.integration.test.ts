@@ -7,7 +7,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/core/prisma";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 import { createTestTrip } from "./helpers";
+
+process.env.ANTHROPIC_API_KEY = "test-anthropic-key";
 
 // ── Mocks ────────────────────────────────────────────────────
 
@@ -183,6 +186,15 @@ async function readSSEEvents(response: Response): Promise<Array<Record<string, u
   return events;
 }
 
+function createTripOwnerHeaders(tripId: string) {
+  const ownerCookie = createGuestTripOwnerCookie(tripId);
+
+  return {
+    "content-type": "application/json",
+    cookie: `${ownerCookie.name}=${ownerCookie.value}`,
+  };
+}
+
 // ── Tests ────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -206,7 +218,7 @@ describe("POST /api/v1/trips/[id]/generate — single-city", () => {
     // 2. Call the generate endpoint
     const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: createTripOwnerHeaders(trip.id),
       body: JSON.stringify({
         profile: {
           nationality: "German",
@@ -273,7 +285,7 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
     // 2. Call with pre-selected cities (skips route selection API call)
     const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: createTripOwnerHeaders(trip.id),
       body: JSON.stringify({
         profile: {
           nationality: "German",
@@ -354,7 +366,7 @@ describe("POST /api/v1/trips/[id]/generate — multi-city with pre-selected citi
     // Generate a new one
     const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: createTripOwnerHeaders(trip.id),
       body: JSON.stringify({
         profile: {
           nationality: "German",
@@ -436,7 +448,7 @@ describe("POST /api/v1/trips/[id]/generate — error handling", () => {
 
     const req = new NextRequest(`http://localhost:3000/api/v1/trips/${trip.id}/generate`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: createTripOwnerHeaders(trip.id),
       body: JSON.stringify({
         profile: { nationality: "" }, // missing required fields
       }),
