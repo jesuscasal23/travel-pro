@@ -20,7 +20,7 @@ interface TripStoreState {
   planStep: number;
   tripType: TripType;
   tripDescription: string;
-  planningPriority: string;
+  planningPriorities: string[];
   region: string;
   destination: string;
   destinationCountry: string;
@@ -62,7 +62,8 @@ interface TripStoreActions {
   setPlanStep: (step: number) => void;
   setTripType: (tripType: TripType) => void;
   setTripDescription: (description: string) => void;
-  setPlanningPriority: (priority: string) => void;
+  setPlanningPriorities: (priorities: string[]) => void;
+  togglePlanningPriority: (priority: string) => void;
   setRegion: (region: string) => void;
   setDestination: (
     city: string,
@@ -93,7 +94,7 @@ const initialPlanState = {
   planStep: 1,
   tripType: "single-city" as TripType,
   tripDescription: "",
-  planningPriority: "",
+  planningPriorities: [],
   region: "",
   destination: "",
   destinationCountry: "",
@@ -152,7 +153,14 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setPlanStep: (step) => set({ planStep: step }),
       setTripType: (tripType) => set({ tripType }),
       setTripDescription: (description) => set({ tripDescription: description }),
-      setPlanningPriority: (planningPriority) => set({ planningPriority }),
+      setPlanningPriorities: (planningPriorities) =>
+        set({ planningPriorities: normalizePlanningPriorities(planningPriorities) }),
+      togglePlanningPriority: (planningPriority) =>
+        set((state) => ({
+          planningPriorities: state.planningPriorities.includes(planningPriority)
+            ? state.planningPriorities.filter((priority) => priority !== planningPriority)
+            : [...state.planningPriorities, planningPriority],
+        })),
       setRegion: (region) => set({ region }),
       setDestination: (city, country, countryCode, lat, lng) =>
         set({
@@ -221,7 +229,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         vibeWarmMixed: state.vibeWarmMixed,
         tripType: state.tripType,
         tripDescription: state.tripDescription,
-        planningPriority: state.planningPriority,
+        planningPriorities: state.planningPriorities,
         region: state.region,
         destination: state.destination,
         destinationCountry: state.destinationCountry,
@@ -235,11 +243,17 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         itinerary: state.itinerary,
       }),
       merge: (persistedState, currentState) => {
-        const typedState = persistedState as Partial<TripStoreState>;
+        const typedState = persistedState as Partial<TripStoreState> & {
+          planningPriority?: string;
+          planningPriorities?: string[] | string;
+        };
         return {
           ...currentState,
           ...typedState,
           interests: normalizeInterests(typedState.interests ?? currentState.interests),
+          planningPriorities: normalizePlanningPriorities(
+            typedState.planningPriorities ?? typedState.planningPriority
+          ),
           vibeAdventureComfort:
             typedState.vibeAdventureComfort ?? currentState.vibeAdventureComfort,
           vibeSocialQuiet: typedState.vibeSocialQuiet ?? currentState.vibeSocialQuiet,
@@ -252,6 +266,18 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
     }
   )
 );
+
+function normalizePlanningPriorities(priorities: string[] | string | undefined): string[] {
+  if (typeof priorities === "string") {
+    return priorities.trim() ? [priorities] : [];
+  }
+
+  if (!Array.isArray(priorities)) {
+    return [];
+  }
+
+  return Array.from(new Set(priorities.map((priority) => priority.trim()).filter(Boolean)));
+}
 
 /**
  * Resolves once the persisted Zustand store has finished hydrating from

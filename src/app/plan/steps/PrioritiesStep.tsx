@@ -37,8 +37,8 @@ interface PrioritiesStepProps {
 }
 
 export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
-  const planningPriority = useTripStore((s) => s.planningPriority);
-  const setPlanningPriority = useTripStore((s) => s.setPlanningPriority);
+  const planningPriorities = useTripStore((s) => s.planningPriorities);
+  const togglePlanningPriority = useTripStore((s) => s.togglePlanningPriority);
 
   return (
     <div className="space-y-6 pb-1">
@@ -51,7 +51,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
             What&apos;s the hardest part?
           </h2>
           <p className="text-v2-text-muted mt-2 text-sm">
-            We&apos;ll focus our AI on solving these specific challenges.
+            Select all that apply. We&apos;ll focus our AI on solving these specific challenges.
           </p>
         </div>
         <StepBadge step={step} totalSteps={totalSteps} />
@@ -59,14 +59,14 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
 
       <section className="space-y-2.5 pt-1">
         {priorityOptions.map((option) => {
-          const isSelected = planningPriority === option.label;
+          const isSelected = planningPriorities.includes(option.label);
           const Icon = option.icon;
 
           return (
             <button
               key={option.label}
               type="button"
-              onClick={() => setPlanningPriority(option.label)}
+              onClick={() => togglePlanningPriority(option.label)}
               aria-pressed={isSelected}
               className={`flex w-full items-center gap-3.5 rounded-2xl border px-4 py-3.5 text-left transition-all ${
                 isSelected

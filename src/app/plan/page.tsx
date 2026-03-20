@@ -46,7 +46,7 @@ export default function PlanPage() {
     pace,
     tripType,
     tripDescription,
-    planningPriority,
+    planningPriorities,
     region,
     destination,
     destinationCountry,
@@ -174,7 +174,7 @@ export default function PlanPage() {
       return !!effectiveNationality && !!effectiveHomeAirport;
     }
     if (showPriorities) {
-      return !!planningPriority;
+      return planningPriorities.length > 0;
     }
     if (showOverview) {
       return true;
@@ -281,6 +281,13 @@ export default function PlanPage() {
     []
   );
 
+  const prioritySummary =
+    planningPriorities.length === 0
+      ? ""
+      : planningPriorities.length === 1
+        ? `Primary challenge: ${planningPriorities[0]}`
+        : `Top challenges: ${planningPriorities.join(", ")}`;
+
   const handleGenerate = useCallback(async () => {
     if (needsProfileStep) {
       const profileErrors = validate(onboardingStep1Schema, {
@@ -359,10 +366,7 @@ export default function PlanPage() {
       }
     }
 
-    const combinedDescription = [
-      tripDescription.trim(),
-      planningPriority ? `Primary challenge: ${planningPriority}` : "",
-    ]
+    const combinedDescription = [tripDescription.trim(), prioritySummary]
       .filter(Boolean)
       .join("\n\n")
       .trim();
@@ -421,7 +425,8 @@ export default function PlanPage() {
     tripType,
     region,
     tripDescription,
-    planningPriority,
+    planningPriorities,
+    prioritySummary,
     destination,
     destinationCountry,
     destinationCountryCode,
