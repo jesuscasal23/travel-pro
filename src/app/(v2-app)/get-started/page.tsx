@@ -57,11 +57,11 @@ export default function V2LandingPage() {
   const { canInstall, install } = useInstallPrompt();
 
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
+    <div className="relative h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
       <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
 
-      <div className="relative flex min-h-dvh flex-col">
+      <div className="relative flex h-dvh flex-col">
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <header className="px-2 pt-7 text-center">
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
