@@ -4,7 +4,7 @@ import {
   getTripTitle,
   getUniqueCountries,
   parseItineraryData,
-} from "../trip-metadata";
+} from "../trip/trip-metadata";
 import type { CityStop, Itinerary } from "@/types";
 
 // ── Fixtures ────────────────────────────────────────────────────

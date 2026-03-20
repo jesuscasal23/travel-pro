@@ -5,10 +5,6 @@ import { regions } from "@/data/sampleData";
 import { useTripStore } from "@/stores/useTripStore";
 import { StepBadge } from "./StepBadge";
 
-function pickVibeLabel(value: number, left: string, right: string) {
-  return value >= 50 ? right : left;
-}
-
 interface OverviewStepProps {
   step: number;
   totalSteps: number;
@@ -22,11 +18,6 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
   const travelStyle = useTripStore((s) => s.travelStyle);
   const interests = useTripStore((s) => s.interests);
   const pace = useTripStore((s) => s.pace);
-  const vibeAdventureComfort = useTripStore((s) => s.vibeAdventureComfort);
-  const vibeSocialQuiet = useTripStore((s) => s.vibeSocialQuiet);
-  const vibeLuxuryBudget = useTripStore((s) => s.vibeLuxuryBudget);
-  const vibeStructuredSpontaneous = useTripStore((s) => s.vibeStructuredSpontaneous);
-  const vibeWarmMixed = useTripStore((s) => s.vibeWarmMixed);
 
   const regionLabel = regions.find((item) => item.id === region)?.name ?? region;
   const destinationLabel =
@@ -39,14 +30,6 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
     travelStyles.find((style) => style.id === travelStyle)?.label ?? "Smart Budget";
   const paceLabel =
     pace === "active" ? "The Sprinter" : pace === "relaxed" ? "The Soul Searcher" : "The Wanderer";
-
-  const styleProfile = [
-    pickVibeLabel(vibeAdventureComfort, "Adventure", "Comfort"),
-    pickVibeLabel(vibeSocialQuiet, "Social", "Quiet"),
-    pickVibeLabel(vibeLuxuryBudget, "Luxury", "Budget"),
-    pickVibeLabel(vibeStructuredSpontaneous, "Structured", "Spontaneous"),
-    pickVibeLabel(vibeWarmMixed, "Warm Weather", "Mixed Climates"),
-  ];
 
   return (
     <div className="space-y-5 pb-2 text-center">
@@ -97,22 +80,6 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
             <p className="text-v2-navy mt-1 text-[14px] leading-tight font-semibold">
               {interests.length} Selected
             </p>
-          </div>
-        </div>
-
-        <div className="border-v2-border mt-5 border-t pt-5">
-          <p className="text-v2-text-light text-[11px] font-bold tracking-[0.18em] uppercase">
-            Your Style Profile
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {styleProfile.map((chip) => (
-              <span
-                key={chip}
-                className="text-brand-primary bg-brand-primary-soft rounded-full px-3 py-1.5 text-[11px] font-bold tracking-[0.06em] uppercase"
-              >
-                {chip}
-              </span>
-            ))}
           </div>
         </div>
       </section>

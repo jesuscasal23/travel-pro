@@ -6,7 +6,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { UserProfile, TripIntent } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
-import { daysBetween } from "@/lib/utils/date";
+import { daysBetween } from "@/lib/utils/format/date";
 
 const SYSTEM = `You are a travel route planning expert. Your only job is to select the best cities for a multi-city trip and return a JSON array — nothing else. No markdown, no explanation, just raw JSON starting with [`;
 

@@ -6,9 +6,9 @@ import { BoardingPassCard } from "../BoardingPassCard";
 import { CityHeader } from "../CityHeader";
 import { DayPills } from "../DayPills";
 import { ActivityCard } from "../ActivityCard";
-import { distributeActivities } from "@/lib/utils/time-distribution";
-import { groupDaysByCity } from "@/lib/utils/group-days-by-city";
-import { cityHasActivities } from "@/lib/utils/city-activities";
+import { distributeActivities } from "@/lib/utils/trip/time-distribution";
+import { groupDaysByCity } from "@/lib/utils/trip/group-days-by-city";
+import { cityHasActivities } from "@/lib/utils/trip/city-activities";
 import type { Itinerary, CityWeather } from "@/types";
 
 interface MobileJourneyTabProps {
@@ -117,10 +117,10 @@ export function MobileJourneyTab({
             ) : (
               <div className="mb-3 flex items-start justify-between gap-3 rounded-[22px] border border-white/80 bg-white/82 px-4 py-3 shadow-[0_16px_30px_rgba(27,43,75,0.05)]">
                 <div>
-                  <h3 className="text-[1.05rem] font-semibold tracking-[-0.02em] text-[#1b2435]">
+                  <h3 className="text-v2-navy text-[1.05rem] font-semibold tracking-[-0.02em]">
                     {cityStop.city}
                   </h3>
-                  <p className="mt-1 text-[13px] text-[#6d7b91]">
+                  <p className="text-v2-text-muted mt-1 text-[13px]">
                     {cityStop.country} · {cityStop.days} days
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export function MobileJourneyTab({
                   <div>
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                      <div className="mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs text-[#6d7b91] shadow-[0_14px_28px_rgba(27,43,75,0.05)] backdrop-blur-sm">
+                      <div className="text-v2-text-muted mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs shadow-[0_14px_28px_rgba(27,43,75,0.05)] backdrop-blur-sm">
                         <span className="text-brand-primary">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
@@ -182,7 +182,7 @@ export function MobileJourneyTab({
               </div>
             ) : (
               <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-[#6d7b91]">
+                <div className="text-v2-text-muted flex items-center gap-2 text-xs">
                   <div className="border-brand-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
                   <span>
                     {isGeneratingThis

@@ -10,11 +10,6 @@ interface TripStoreState {
   travelStyle: TravelStyle;
   interests: string[];
   pace: ActivityPace;
-  vibeAdventureComfort: number;
-  vibeSocialQuiet: number;
-  vibeLuxuryBudget: number;
-  vibeStructuredSpontaneous: number;
-  vibeWarmMixed: number;
 
   // Quick Plan questionnaire
   planStep: number;
@@ -48,15 +43,6 @@ interface TripStoreActions {
   setInterests: (interests: string[]) => void;
   toggleInterest: (interest: string) => void;
   setPace: (pace: ActivityPace) => void;
-  setVibeValue: (
-    key:
-      | "vibeAdventureComfort"
-      | "vibeSocialQuiet"
-      | "vibeLuxuryBudget"
-      | "vibeStructuredSpontaneous"
-      | "vibeWarmMixed",
-    value: number
-  ) => void;
 
   // Quick Plan
   setPlanStep: (step: number) => void;
@@ -119,11 +105,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       travelStyle: "smart-budget",
       interests: [],
       pace: "moderate" as ActivityPace,
-      vibeAdventureComfort: 50,
-      vibeSocialQuiet: 50,
-      vibeLuxuryBudget: 50,
-      vibeStructuredSpontaneous: 50,
-      vibeWarmMixed: 50,
       // Plan defaults
       ...initialPlanState,
 
@@ -133,10 +114,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       setTravelStyle: (style) => set({ travelStyle: style }),
       setInterests: (interests) => set({ interests: normalizeInterests(interests) }),
       setPace: (pace) => set({ pace }),
-      setVibeValue: (key, value) =>
-        set({
-          [key]: Math.max(0, Math.min(100, value)),
-        } as Pick<TripStoreState, typeof key>),
       toggleInterest: (interest) =>
         set((state) => {
           const normalized = normalizeInterest(interest);
@@ -200,11 +177,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
           travelStyle: "smart-budget",
           interests: [],
           pace: "moderate" as ActivityPace,
-          vibeAdventureComfort: 50,
-          vibeSocialQuiet: 50,
-          vibeLuxuryBudget: 50,
-          vibeStructuredSpontaneous: 50,
-          vibeWarmMixed: 50,
           ...initialPlanState,
         }),
     }),
@@ -222,11 +194,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         travelStyle: state.travelStyle,
         interests: state.interests,
         pace: state.pace,
-        vibeAdventureComfort: state.vibeAdventureComfort,
-        vibeSocialQuiet: state.vibeSocialQuiet,
-        vibeLuxuryBudget: state.vibeLuxuryBudget,
-        vibeStructuredSpontaneous: state.vibeStructuredSpontaneous,
-        vibeWarmMixed: state.vibeWarmMixed,
         tripType: state.tripType,
         tripDescription: state.tripDescription,
         planningPriorities: state.planningPriorities,
@@ -254,13 +221,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
           planningPriorities: normalizePlanningPriorities(
             typedState.planningPriorities ?? typedState.planningPriority
           ),
-          vibeAdventureComfort:
-            typedState.vibeAdventureComfort ?? currentState.vibeAdventureComfort,
-          vibeSocialQuiet: typedState.vibeSocialQuiet ?? currentState.vibeSocialQuiet,
-          vibeLuxuryBudget: typedState.vibeLuxuryBudget ?? currentState.vibeLuxuryBudget,
-          vibeStructuredSpontaneous:
-            typedState.vibeStructuredSpontaneous ?? currentState.vibeStructuredSpontaneous,
-          vibeWarmMixed: typedState.vibeWarmMixed ?? currentState.vibeWarmMixed,
         };
       },
     }

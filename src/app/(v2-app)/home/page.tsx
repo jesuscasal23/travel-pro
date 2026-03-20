@@ -20,19 +20,8 @@ import {
 import { useTrips } from "@/hooks/api";
 import { getCityImage, getCityPlaceholder } from "@/lib/utils/city-images";
 import { V2Screen } from "@/components/v2/ui/V2Screen";
+import { formatDateRange, daysUntil } from "@/lib/utils/format/date";
 import type { TripSummary } from "@/types";
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-  return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", opts)}`;
-}
-
-function daysUntil(dateStr: string): number | null {
-  const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  return diff >= 0 ? diff : null;
-}
 
 function getNextTrip(trips: TripSummary[]): TripSummary | null {
   const upcoming = trips
@@ -63,7 +52,7 @@ export default function HomePage() {
           onClick={() => router.push("/profile")}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eef2f7]"
         >
-          <span className="text-sm font-bold text-[#6d7b91]">👤</span>
+          <span className="text-v2-text-muted text-sm font-bold">👤</span>
         </button>
       </div>
 

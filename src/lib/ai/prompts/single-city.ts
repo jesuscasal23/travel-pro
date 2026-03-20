@@ -4,7 +4,7 @@
 // ============================================================
 
 import type { UserProfile, TripIntent } from "@/types";
-import { daysBetween } from "@/lib/utils/date";
+import { daysBetween } from "@/lib/utils/format/date";
 
 // ============================================================
 // System Prompt

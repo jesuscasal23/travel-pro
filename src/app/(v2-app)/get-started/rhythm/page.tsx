@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Compass, CupSoda, Zap, type LucideIcon } from "lucide-react";
+import { ArrowRight, Check, Compass, CupSoda, Zap, type LucideIcon } from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
+import { GradientBackground } from "@/components/v2/ui/GradientBackground";
+import { BackButton } from "@/components/v2/ui/BackButton";
 import type { ActivityPace } from "@/types";
 
 type RhythmOption = {
@@ -39,21 +41,11 @@ export default function V2RhythmPage() {
   const setPace = useTripStore((s) => s.setPace);
 
   return (
-    <div className="relative h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
-
+    <GradientBackground>
       <div className="relative flex h-dvh flex-col">
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="pt-6">
-            <button
-              type="button"
-              onClick={() => router.push("/get-started/budget")}
-              aria-label="Go back"
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors hover:text-[#1b2b4b]"
-            >
-              <ArrowLeft className="h-5 w-5" strokeWidth={2.2} />
-            </button>
+            <BackButton href="/get-started/budget" />
           </div>
 
           <header className="pt-4">
@@ -63,7 +55,7 @@ export default function V2RhythmPage() {
             <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
               What&apos;s your rhythm?
             </h1>
-            <p className="mt-3 max-w-[320px] text-[15px] leading-7 text-[#6d7b91]">
+            <p className="text-v2-text-muted mt-3 max-w-[320px] text-[15px] leading-7">
               Every traveler has a beat. Let&apos;s find yours to craft the perfect flow.
             </p>
           </header>
@@ -129,6 +121,6 @@ export default function V2RhythmPage() {
           </button>
         </div>
       </div>
-    </div>
+    </GradientBackground>
   );
 }

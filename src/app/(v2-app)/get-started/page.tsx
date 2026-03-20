@@ -119,7 +119,7 @@ export default function V2LandingPage() {
           </section>
 
           <div className="pt-6">
-            <p className="mx-auto max-w-[320px] text-center text-[15px] leading-7 text-[#6d7b91]">
+            <p className="text-v2-text-muted mx-auto max-w-[320px] text-center text-[15px] leading-7">
               Stop researching, start traveling. We handle the complexity, you enjoy the journey.
             </p>
           </div>
@@ -135,7 +135,7 @@ export default function V2LandingPage() {
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
           </button>
 
-          <p className="mt-4 text-center text-sm text-[#6d7b91]">
+          <p className="text-v2-text-muted mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link href="/login" className="text-brand-primary font-semibold hover:underline">
               Sign in
@@ -148,7 +148,7 @@ export default function V2LandingPage() {
               onClick={() => {
                 void install();
               }}
-              className="mx-auto mt-3 block text-sm font-semibold text-[#6d7b91] transition-colors hover:text-[#1b2b4b]"
+              className="text-v2-text-muted hover:text-v2-navy mx-auto mt-3 block text-sm font-semibold transition-colors"
             >
               Install app
             </button>

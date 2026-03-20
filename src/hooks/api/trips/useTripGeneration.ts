@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
-import { parseItineraryData } from "@/lib/utils/trip-metadata";
+import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import { apiFetchRaw } from "@/lib/client/api-fetch";
 import { reportApiError } from "@/lib/client/api-error-reporting";
 import type { Itinerary } from "@/types";

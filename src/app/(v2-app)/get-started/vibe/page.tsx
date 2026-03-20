@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowRight,
   Mountain,
   Sofa,
@@ -15,16 +15,19 @@ import {
   Sun,
   CloudSnow,
 } from "lucide-react";
-import { useTripStore } from "@/stores/useTripStore";
+import { GradientBackground } from "@/components/v2/ui/GradientBackground";
+import { BackButton } from "@/components/v2/ui/BackButton";
 import type { LucideIcon } from "lucide-react";
 
+type VibeKey =
+  | "adventureComfort"
+  | "socialQuiet"
+  | "luxuryBudget"
+  | "structuredSpontaneous"
+  | "warmMixed";
+
 type VibeSlider = {
-  id:
-    | "vibeAdventureComfort"
-    | "vibeSocialQuiet"
-    | "vibeLuxuryBudget"
-    | "vibeStructuredSpontaneous"
-    | "vibeWarmMixed";
+  id: VibeKey;
   leftLabel: string;
   rightLabel: string;
   leftIcon: LucideIcon;
@@ -33,35 +36,35 @@ type VibeSlider = {
 
 const vibeSliders: VibeSlider[] = [
   {
-    id: "vibeAdventureComfort",
+    id: "adventureComfort",
     leftLabel: "Adventure",
     rightLabel: "Comfort",
     leftIcon: Mountain,
     rightIcon: Sofa,
   },
   {
-    id: "vibeSocialQuiet",
+    id: "socialQuiet",
     leftLabel: "Social",
     rightLabel: "Quiet",
     leftIcon: Users,
     rightIcon: BookOpen,
   },
   {
-    id: "vibeLuxuryBudget",
+    id: "luxuryBudget",
     leftLabel: "Luxury",
     rightLabel: "Budget",
     leftIcon: Gem,
     rightIcon: Wallet,
   },
   {
-    id: "vibeStructuredSpontaneous",
+    id: "structuredSpontaneous",
     leftLabel: "Structured",
     rightLabel: "Spontaneous",
     leftIcon: CalendarCheck,
     rightIcon: Shuffle,
   },
   {
-    id: "vibeWarmMixed",
+    id: "warmMixed",
     leftLabel: "Warm Weather",
     rightLabel: "Mixed Climates",
     leftIcon: Sun,
@@ -71,37 +74,20 @@ const vibeSliders: VibeSlider[] = [
 
 export default function V2VibePage() {
   const router = useRouter();
-  const vibeAdventureComfort = useTripStore((s) => s.vibeAdventureComfort);
-  const vibeSocialQuiet = useTripStore((s) => s.vibeSocialQuiet);
-  const vibeLuxuryBudget = useTripStore((s) => s.vibeLuxuryBudget);
-  const vibeStructuredSpontaneous = useTripStore((s) => s.vibeStructuredSpontaneous);
-  const vibeWarmMixed = useTripStore((s) => s.vibeWarmMixed);
-  const setVibeValue = useTripStore((s) => s.setVibeValue);
-
-  const values = {
-    vibeAdventureComfort,
-    vibeSocialQuiet,
-    vibeLuxuryBudget,
-    vibeStructuredSpontaneous,
-    vibeWarmMixed,
-  };
+  const [vibes, setVibes] = useState<Record<VibeKey, number>>({
+    adventureComfort: 50,
+    socialQuiet: 50,
+    luxuryBudget: 50,
+    structuredSpontaneous: 50,
+    warmMixed: 50,
+  });
 
   return (
-    <div className="relative h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
-
+    <GradientBackground>
       <div className="relative flex h-dvh flex-col">
         <div className="flex-1 overflow-y-auto px-6 pb-4">
           <div className="pt-4">
-            <button
-              type="button"
-              onClick={() => router.push("/get-started/personalization")}
-              aria-label="Go back"
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors hover:text-[#1b2b4b]"
-            >
-              <ArrowLeft className="h-5 w-5" strokeWidth={2.2} />
-            </button>
+            <BackButton href="/get-started/personalization" />
           </div>
 
           <header className="pt-3">
@@ -111,14 +97,14 @@ export default function V2VibePage() {
             <h1 className="font-display mt-2 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
               Tell us about you
             </h1>
-            <p className="mt-2 text-[15px] leading-7 text-[#6d7b91]">
+            <p className="text-v2-text-muted mt-2 text-[15px] leading-7">
               Slide to share your travel philosophy.
             </p>
           </header>
 
           <section className="space-y-4 pt-6">
             {vibeSliders.map((slider) => {
-              const currentValue = values[slider.id];
+              const currentValue = vibes[slider.id];
               const LeftIcon = slider.leftIcon;
               const RightIcon = slider.rightIcon;
               const leftOpacity = 1 - currentValue / 100;
@@ -174,8 +160,8 @@ export default function V2VibePage() {
                       max="100"
                       value={currentValue}
                       onChange={(event) => {
-                        const nextValue = Number(event.target.value);
-                        setVibeValue(slider.id, nextValue);
+                        const nextValue = Math.max(0, Math.min(100, Number(event.target.value)));
+                        setVibes((prev) => ({ ...prev, [slider.id]: nextValue }));
                       }}
                       className="v2-vibe-slider relative h-8 w-full cursor-pointer appearance-none bg-transparent"
                     />
@@ -245,6 +231,6 @@ export default function V2VibePage() {
           background: transparent;
         }
       `}</style>
-    </div>
+    </GradientBackground>
   );
 }

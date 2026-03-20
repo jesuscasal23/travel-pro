@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCategoryStyle, getCategoryEmoji } from "../category-colors";
+import { getCategoryStyle, getCategoryEmoji } from "../format/category-colors";
 
 describe("getCategoryStyle", () => {
   it("returns style for known categories", () => {

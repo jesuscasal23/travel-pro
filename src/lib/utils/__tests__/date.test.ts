@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { daysBetween, addDays, formatDateShort } from "../date";
+import { daysBetween, addDays, formatDateShort } from "../format/date";
 
 describe("daysBetween", () => {
   it("returns correct days between two dates", () => {

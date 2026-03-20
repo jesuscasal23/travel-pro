@@ -21,3 +21,20 @@ export function formatDateShort(iso: string): string {
   const d = new Date(iso + "T00:00:00Z");
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
+
+/** Format a start–end date pair as a short range (e.g. "Mar 15 – Mar 22"). */
+export function formatDateRange(start?: string, end?: string): string {
+  if (!start || !end) return "";
+  const s = new Date(start);
+  const e = new Date(end);
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", opts)}`;
+}
+
+/** Number of days from now until the given date, or null if the date is in the past. */
+export function daysUntil(dateStr: string): number | null {
+  const targetUtc = new Date(dateStr + "T00:00:00Z").getTime();
+  const nowUtc = Date.now();
+  const diff = Math.ceil((targetUtc - nowUtc) / (1000 * 60 * 60 * 24));
+  return diff >= 0 ? diff : null;
+}

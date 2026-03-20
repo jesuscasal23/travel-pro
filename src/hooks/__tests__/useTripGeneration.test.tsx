@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useTripGeneration } from "@/hooks/api";
 
-vi.mock("@/lib/utils/trip-metadata", () => ({
+vi.mock("@/lib/utils/trip/trip-metadata", () => ({
   parseItineraryData: vi.fn((raw) => raw),
 }));
 
@@ -18,7 +18,7 @@ vi.mock("@/lib/client/api-error-reporting", () => ({
   reportApiError: vi.fn(async () => undefined),
 }));
 
-import { parseItineraryData } from "@/lib/utils/trip-metadata";
+import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import { reportApiError } from "@/lib/client/api-error-reporting";
 
 const mockParseItineraryData = parseItineraryData as ReturnType<typeof vi.fn>;

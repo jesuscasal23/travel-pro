@@ -1,6 +1,6 @@
 import { lookupIata } from "@/lib/flights/city-iata-map";
 import type { CityWithDays } from "@/lib/flights/types";
-import { addDays } from "@/lib/utils/date";
+import { addDays } from "@/lib/utils/format/date";
 import type { CityStop } from "@/types";
 
 interface FlightRouteLeg {

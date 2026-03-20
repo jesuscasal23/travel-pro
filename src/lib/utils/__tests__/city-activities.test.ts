@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { citiesWithActivities, cityHasActivities } from "@/lib/utils/city-activities";
+import { citiesWithActivities, cityHasActivities } from "@/lib/utils/trip/city-activities";
 import type { Itinerary } from "@/types";
 
 const baseItinerary: Itinerary = {

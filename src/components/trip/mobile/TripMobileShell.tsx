@@ -5,15 +5,8 @@ import { BottomNav } from "@/components/v2/ui/BottomNav";
 import { TripBanners } from "@/components/trip/TripBanners";
 import { useTripContext } from "@/components/trip/TripContext";
 import { getCityHeroImage, getCityPlaceholder } from "@/lib/utils/city-images";
+import { formatDateRange } from "@/lib/utils/format/date";
 import { TripSectionNav } from "./TripSectionNav";
-
-function formatDateRange(start?: string, end?: string): string {
-  if (!start || !end) return "";
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-  return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", opts)}`;
-}
 
 interface TripMobileShellProps {
   children: React.ReactNode;
@@ -48,7 +41,7 @@ export function TripMobileShell({
             {tripTitle}
           </h1>
           {firstDate && lastDate ? (
-            <p className="mt-2 text-sm text-[#6d7b91]">
+            <p className="text-v2-text-muted mt-2 text-sm">
               {formatDateRange(firstDate, lastDate)} · {totalDays} days
             </p>
           ) : null}
