@@ -5,6 +5,7 @@ const ALLOWED_REDIRECT_DOMAINS = [
   "skyscanner.com",
   "booking.com",
   "getyourguide.com",
+  "google.com",
 ] as const;
 
 export function isAllowedAffiliateDestination(url: string): boolean {
