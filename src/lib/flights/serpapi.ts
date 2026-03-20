@@ -272,8 +272,8 @@ export async function searchFlightsMulti(
   const allFlights = [...(body.best_flights ?? []), ...(body.other_flights ?? [])];
   if (allFlights.length === 0) return [];
 
-  // Build Skyscanner affiliate link (same for all results on this leg)
-  const bookingUrl = buildFlightLink(
+  // Skyscanner affiliate link as fallback when no booking_token
+  const fallbackUrl = buildFlightLink(
     { fromIata: origin, toIata: destination, departureDate: date },
     adults
   );
@@ -283,6 +283,11 @@ export async function searchFlightsMulti(
     const firstSeg = segments[0];
     const lastSeg = segments[segments.length - 1];
     const cabin = normalizeCabin(firstSeg?.travel_class ?? "Economy");
+
+    // Prefer Google Flights direct booking link when token is available
+    const bookingUrl = itinerary.booking_token
+      ? `https://www.google.com/travel/flights/booking?token=${encodeURIComponent(itinerary.booking_token)}`
+      : fallbackUrl;
 
     return {
       price: itinerary.price * adults, // SerpApi returns per-person price
