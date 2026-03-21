@@ -7,7 +7,7 @@
 
 :root {
   /* Core palette */
-  --primary: 181 80% 25%; /* deep teal #0D7377 */
+  --primary: 225 100% 57%; /* blue #2563ff */
   --primary-foreground: 0 0% 100%;
   --accent: 7 78% 60%; /* warm coral #E85D4A */
   --accent-foreground: 0 0% 100%;
@@ -19,17 +19,17 @@
   --secondary-foreground: 0 0% 10%;
   --border: 0 0% 90%;
   --input: 0 0% 90%;
-  --ring: 181 80% 25%;
+  --ring: 225 100% 57%;
   --card: 0 0% 100%;
   --card-foreground: 0 0% 10%;
 
   /* Shadows */
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-hero: 0 8px 32px rgba(13, 115, 119, 0.25);
+  --shadow-hero: 0 8px 32px rgba(37, 99, 255, 0.25);
 
   /* Activity category colors */
-  --cat-culture: 181 80% 25%;
+  --cat-culture: 225 100% 57%;
   --cat-explore: 210 70% 45%;
   --cat-food: 38 92% 50%;
   --cat-art: 280 60% 55%;
@@ -161,7 +161,7 @@
   /* Shadows */
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-hero: 0 8px 32px rgba(13, 115, 119, 0.4);
+  --shadow-hero: 0 8px 32px rgba(37, 99, 255, 0.4);
 }
 
 @theme inline {

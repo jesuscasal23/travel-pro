@@ -1,9 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { getAirlineName } from "@/lib/flights/airlines";
-import { Badge } from "@/components/ui/Badge";
 import type { FlightSearchResult } from "@/lib/flights/types";
 
 /** Format ISO time -> "08:30" */
@@ -54,20 +53,20 @@ export const FlightRow = memo(function FlightRow({
   const arrTime = formatTime(result.arrivalTime);
 
   const stopsLabel =
-    result.stops === 0 ? "Non-stop" : `${result.stops} stop${result.stops > 1 ? "s" : ""}`;
+    result.stops === 0 ? "Non-stop" : `${result.stops} Stop${result.stops > 1 ? "s" : ""}`;
 
   return (
-    <div className="bg-card shadow-card hover:shadow-card-hover rounded-xl p-4 transition-shadow">
+    <div className="group hover:ring-primary/10 dark:bg-card rounded-xl bg-white p-4 shadow-sm transition-all hover:ring-1">
       {/* Top section: airline badge + times + price */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           {/* Airline IATA badge */}
-          <div className="bg-secondary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+          <div className="bg-secondary flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg p-2">
             <span className="text-foreground text-xs font-bold">{result.airline}</span>
           </div>
           {/* Times + route info */}
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {depTime || arrTime ? (
                 <>
                   {depTime && (
@@ -76,7 +75,7 @@ export const FlightRow = memo(function FlightRow({
                     </span>
                   )}
                   {depTime && arrTime && (
-                    <ArrowRight className="text-muted-foreground h-3.5 w-3.5" />
+                    <ArrowRight className="text-muted-foreground/50 h-3.5 w-3.5" />
                   )}
                   {arrTime && (
                     <span className="font-display text-foreground text-lg font-bold">
@@ -91,7 +90,7 @@ export const FlightRow = memo(function FlightRow({
               )}
             </div>
             <span className="text-muted-foreground text-[11px] font-medium">
-              {airlineName} &middot; {stopsLabel}
+              {fromIata} - {toIata} &middot; {stopsLabel}
             </span>
           </div>
         </div>
@@ -100,34 +99,36 @@ export const FlightRow = memo(function FlightRow({
           <p className="font-display text-foreground text-xl font-bold" data-testid="flight-price">
             &euro;{Math.round(result.price).toLocaleString()}
           </p>
-          <span className="text-muted-foreground text-[10px] font-bold tracking-tight uppercase">
+          <span className="text-muted-foreground text-[10px] font-bold tracking-tighter uppercase">
             Per person
           </span>
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="border-border mt-3 border-t pt-3">
-        {/* Bottom section: badges + select button */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <Badge variant={result.stops === 0 ? "success" : "warning"}>{stopsLabel}</Badge>
-            <Badge variant="neutral">{result.duration}</Badge>
-          </div>
-          {canBook ? (
-            <a
-              href={buildBookUrl(result.bookingToken!, fromIata, toIata, departureDate, tripId)}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-primary hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold text-white transition-all active:scale-95"
-            >
-              Select
-              <ArrowRight className="h-3 w-3" />
-            </a>
-          ) : (
-            <span className="text-muted-foreground text-[10px] font-medium">No booking link</span>
+      {/* Divider + bottom section */}
+      <div className="border-secondary mt-4 flex items-center justify-between border-t pt-3">
+        <div className="flex gap-4">
+          <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+            <Clock className="h-3.5 w-3.5" /> {result.duration}
+          </span>
+          {result.stops === 0 && (
+            <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+              Direct
+            </span>
           )}
         </div>
+        {canBook ? (
+          <a
+            href={buildBookUrl(result.bookingToken!, fromIata, toIata, departureDate, tripId)}
+            target="_blank"
+            rel="noreferrer"
+            className="from-primary to-primary/70 hover:shadow-primary/20 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br px-5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-lg active:scale-95"
+          >
+            Select
+          </a>
+        ) : (
+          <span className="text-muted-foreground text-[10px] font-medium">No booking link</span>
+        )}
       </div>
     </div>
   );

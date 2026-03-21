@@ -96,18 +96,22 @@ export function FlightOptionsPanel({
     });
 
     return (
-      <div className="bg-card shadow-card rounded-2xl p-5">
+      <div>
         {/* Context pills */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="bg-surface-soft text-foreground inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium">
-            <span className="text-[10px] font-bold tracking-widest uppercase">{leg.fromIata}</span>
-            <Plane className="text-muted-foreground h-3 w-3" />
-            <span className="text-[10px] font-bold tracking-widest uppercase">{leg.toIata}</span>
-          </span>
-          {formattedDate && (
-            <span className="bg-surface-soft text-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium">
-              {formattedDate}
+          <div className="dark:bg-card inline-flex shrink-0 items-center gap-3 rounded-xl bg-white px-4 py-2 shadow-sm">
+            <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+              {leg.fromIata}
             </span>
+            <Plane className="text-muted-foreground/50 h-3.5 w-3.5" />
+            <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+              {leg.toIata}
+            </span>
+          </div>
+          {formattedDate && (
+            <div className="dark:bg-card inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white px-4 py-2 shadow-sm">
+              <span className="text-[12px] font-medium">{formattedDate}</span>
+            </div>
           )}
         </div>
 
@@ -121,7 +125,7 @@ export function FlightOptionsPanel({
         )}
 
         {searchDone && !error && (
-          <div className="bg-surface-soft mb-4 rounded-xl p-4 text-center">
+          <div className="dark:bg-card mb-4 rounded-xl bg-white p-4 text-center shadow-sm">
             <p className="text-foreground text-sm font-medium">No flights found for this route</p>
             <p className="text-muted-foreground mt-1 text-xs">
               Try searching on Skyscanner instead.
@@ -133,7 +137,7 @@ export function FlightOptionsPanel({
           href={fallbackUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-surface-soft hover:bg-surface-hover group block rounded-xl p-5 text-center transition-all"
+          className="group dark:bg-card block rounded-xl bg-white p-5 text-center shadow-sm transition-all hover:shadow-md"
         >
           <Plane className="text-primary/30 mx-auto mb-2 h-8 w-8" />
           <div className="text-foreground text-sm font-semibold">Search on Skyscanner</div>
@@ -155,22 +159,58 @@ export function FlightOptionsPanel({
 
   // ── Main results view ──
   return (
-    <div className="bg-card shadow-card rounded-2xl p-5">
+    <div>
       {/* Context pills row */}
-      <div className="mb-4 flex items-center gap-2 overflow-x-auto">
-        <span className="bg-surface-soft text-foreground inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm">
-          <span className="text-[10px] font-bold tracking-widest uppercase">{leg.fromIata}</span>
-          <Plane className="text-muted-foreground h-3 w-3" />
-          <span className="text-[10px] font-bold tracking-widest uppercase">{leg.toIata}</span>
-        </span>
-        {formattedDate && (
-          <span className="bg-surface-soft text-foreground inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm">
-            {formattedDate}
+      <div className="scrollbar-hide mb-4 flex items-center gap-2 overflow-x-auto py-1">
+        <div className="dark:bg-card inline-flex shrink-0 items-center gap-3 rounded-xl bg-white px-4 py-2 shadow-sm">
+          <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+            {leg.fromIata}
           </span>
+          <Plane className="text-muted-foreground/50 h-3.5 w-3.5" />
+          <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+            {leg.toIata}
+          </span>
+        </div>
+        {formattedDate && (
+          <div className="dark:bg-card inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm">
+            <span className="text-primary h-3.5 w-3.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5"
+              >
+                <rect width="18" height="18" x="3" y="4" rx="2" />
+                <path d="M16 2v4" />
+                <path d="M8 2v4" />
+                <path d="M3 10h18" />
+              </svg>
+            </span>
+            <span className="text-[12px] font-medium">{formattedDate}</span>
+          </div>
         )}
-        <span className="bg-surface-soft text-foreground inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm">
-          {travelersLabel}
-        </span>
+        <div className="dark:bg-card inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm">
+          <span className="text-primary h-3.5 w-3.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </span>
+          <span className="text-[12px] font-medium">{travelers}</span>
+        </div>
         {/* Filter icon button */}
         <button
           onClick={() => setShowFilters(!showFilters)}
@@ -190,11 +230,11 @@ export function FlightOptionsPanel({
       </div>
 
       {/* Results summary + sort tabs */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <p className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase">
           {sorted.length} result{sorted.length !== 1 ? "s" : ""} found
         </p>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={() => setSortMode("price")}
             className={`text-[11px] font-bold tracking-widest uppercase transition-colors ${
@@ -241,26 +281,26 @@ export function FlightOptionsPanel({
       {/* Results */}
       {loading ? (
         /* Skeleton loading cards */
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="bg-secondary animate-pulse rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-muted h-10 w-10 rounded-lg" />
+            <div key={i} className="dark:bg-card animate-pulse rounded-xl bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="bg-secondary h-10 w-10 rounded-lg" />
                 <div className="flex-1 space-y-2">
-                  <div className="bg-muted h-5 w-32 rounded" />
-                  <div className="bg-muted h-3 w-24 rounded" />
+                  <div className="bg-secondary h-5 w-32 rounded" />
+                  <div className="bg-secondary h-3 w-24 rounded" />
                 </div>
                 <div className="space-y-2 text-right">
-                  <div className="bg-muted ml-auto h-6 w-16 rounded" />
-                  <div className="bg-muted ml-auto h-3 w-12 rounded" />
+                  <div className="bg-secondary ml-auto h-6 w-16 rounded" />
+                  <div className="bg-secondary ml-auto h-3 w-12 rounded" />
                 </div>
               </div>
-              <div className="border-muted mt-3 flex items-center justify-between border-t pt-3">
-                <div className="flex gap-2">
-                  <div className="bg-muted h-5 w-16 rounded-full" />
-                  <div className="bg-muted h-5 w-14 rounded-full" />
+              <div className="border-secondary mt-4 flex items-center justify-between border-t pt-3">
+                <div className="flex gap-4">
+                  <div className="bg-secondary h-4 w-16 rounded" />
+                  <div className="bg-secondary h-4 w-12 rounded" />
                 </div>
-                <div className="bg-muted h-8 w-20 rounded-full" />
+                <div className="bg-secondary h-8 w-20 rounded-full" />
               </div>
             </div>
           ))}
@@ -280,7 +320,7 @@ export function FlightOptionsPanel({
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {visible.map((result, i) => (
             <FlightRow
               key={i}
@@ -320,7 +360,7 @@ export function FlightOptionsPanel({
           })}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-surface-soft hover:bg-surface-hover mt-4 flex items-center justify-center gap-2 rounded-xl p-3 transition-colors"
+          className="dark:bg-card mt-4 flex items-center justify-center gap-2 rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-md"
         >
           <span className="text-primary text-sm font-medium">Book on Skyscanner</span>
           <ExternalLink className="text-primary h-3.5 w-3.5" />

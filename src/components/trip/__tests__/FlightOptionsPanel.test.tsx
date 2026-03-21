@@ -111,9 +111,9 @@ describe("FlightOptionsPanel", () => {
   it("toggles sort between cheapest and quickest", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    // Default sort is price — cheapest first
+    // Default sort is price — cheapest first (TK = Turkish Airlines)
     const firstCard = getFlightCard(getFlightRows()[0]);
-    expect(firstCard).toHaveTextContent("Turkish Airlines");
+    expect(firstCard).toHaveTextContent("TK");
     expect(firstCard).toHaveTextContent("€320");
 
     // Click quickest sort
@@ -121,7 +121,7 @@ describe("FlightOptionsPanel", () => {
 
     // JL (11h 45m) should now be first (shortest duration)
     const firstAfterSort = getFlightCard(getFlightRows()[0]);
-    expect(firstAfterSort).toHaveTextContent("Japan Airlines");
+    expect(firstAfterSort).toHaveTextContent("JL");
   });
 
   it("shows Skyscanner fallback when no results", () => {
@@ -175,7 +175,7 @@ describe("FlightOptionsPanel", () => {
     const rows = getFlightRows();
     expect(rows).toHaveLength(2);
     const firstCard = getFlightCard(rows[0]);
-    expect(firstCard).toHaveTextContent("Qatar Airways");
+    expect(firstCard).toHaveTextContent("QR");
     expect(firstCard).toHaveTextContent("€200");
   });
 
@@ -187,7 +187,7 @@ describe("FlightOptionsPanel", () => {
 
     render(<FlightOptionsPanel leg={nonstopLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText("Non-stop")).toBeInTheDocument();
+    expect(screen.getByText("Direct")).toBeInTheDocument();
   });
 
   it("displays stop count for 1+ stops", () => {
@@ -198,7 +198,7 @@ describe("FlightOptionsPanel", () => {
 
     render(<FlightOptionsPanel leg={multiStopLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText("2 stops")).toBeInTheDocument();
+    expect(screen.getByText(/2 Stops/)).toBeInTheDocument();
   });
 
   it("does not show 'Show more' when 5 or fewer results", () => {
