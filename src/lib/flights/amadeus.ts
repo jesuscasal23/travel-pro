@@ -9,7 +9,8 @@
 import { Redis } from "@upstash/redis";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
-import { getOptionalAmadeusEnv, getOptionalRedisEnv } from "@/lib/config/server-env";
+import { getOptionalAmadeusEnv } from "@/lib/config/server-env";
+import { getRedis } from "@/lib/core/redis";
 import { AMADEUS_REQUEST_TIMEOUT_MS } from "@/lib/config/constants";
 
 const log = createLogger("amadeus");
@@ -19,19 +20,6 @@ function withTimeout(signal?: AbortSignal): AbortSignal {
   const timeoutSignal = AbortSignal.timeout(AMADEUS_REQUEST_TIMEOUT_MS);
   if (!signal) return timeoutSignal;
   return AbortSignal.any([signal, timeoutSignal]);
-}
-
-let _redis: Redis | null | undefined;
-
-function getRedis(): Redis | null {
-  if (_redis !== undefined) return _redis;
-  const redisEnv = getOptionalRedisEnv();
-  if (!redisEnv) {
-    _redis = null;
-    return null;
-  }
-  _redis = new Redis(redisEnv);
-  return _redis;
 }
 
 export const AMADEUS_BASE =

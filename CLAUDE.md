@@ -78,24 +78,22 @@ src/
 │   ├── features/              # Domain services (canonical location for all business logic)
 │   │   ├── trips/             # itinerary-service, trip-query, trip-collection, trip-edit, trip-share, city-activity, flight-optimization, flight-search, query-shapes, schemas, serializer
 │   │   ├── generation/        # trip-generation-service, route-selection, city-discovery, schemas
-│   │   ├── profile/           # profile-service, schemas, query-shapes, serializer
-│   │   ├── enrichment/        # visa, weather, accommodation enrichment service
-│   │   ├── affiliate/         # redirect-service, redirect-utils, schema
+│   │   ├── profile/           # profile-service, schemas, query-shapes, serializer, interests, pace
+│   │   ├── enrichment/        # schemas, transforms (routes call lib/ai/enrich-* directly)
+│   │   ├── affiliate/         # redirect-service, redirect-utils, link-generator, schema
 │   │   ├── health/            # health-service
-│   │   ├── cron/              # cleanup-service
 │   │   └── client-errors/     # service, schema
 │   ├── forms/                 # Form validation schemas (plan, onboarding, profile)
-│   ├── supabase/              # client.ts (browser) + server.ts (SSR cookies)
 │   ├── flights/               # amadeus.ts, optimizer.ts, city-iata-map, types
-│   ├── affiliate/             # link-generator (Skyscanner/Booking.com/GetYourGuide)
-│   ├── email/                 # Resend client + templates (welcome, itinerary-ready, shared)
-│   ├── export/                # pdf-generator.tsx (@react-pdf/renderer)
+│   ├── hotels/                # amadeus hotel search + types
+│   ├── itinerary/             # Shared Zod schemas for itinerary data (cityGeoSchema, itinerarySchema)
+│   ├── client/                # Client-side fetch wrapper (apiFetch, SSE parser, error reporting)
 │   ├── utils/                 # date, error, country-flags, trip-metadata, derive-city-budget, etc.
-│   └── animations.ts          # slideVariants, fadeUp, simpleFadeUp (Framer Motion)
+│   └── animations.ts          # slideVariants (Framer Motion)
 ├── stores/useTripStore.ts     # Zustand store (persisted + transient fields)
 ├── types/index.ts             # All TypeScript types
-├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps
-├── hooks/                     # api/ (React Query server-state hooks by feature), useItinerary, useToast, useScrollSync
+├── data/                      # cities, nationalities, airports-full, visa-index, travelStyles
+├── hooks/                     # api/ (React Query server-state hooks by feature), useCityImage, useInstallPrompt
 └── proxy.ts                   # Auth (protects /profile) + rate limiting (Upstash Redis)
 ```
 

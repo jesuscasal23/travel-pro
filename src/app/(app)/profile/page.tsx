@@ -35,7 +35,7 @@ import {
 import { useTripStore } from "@/stores/useTripStore";
 import { createClient } from "@/lib/core/supabase-client";
 import { travelStyles } from "@/data/travelStyles";
-import { hasInterest, normalizeInterests } from "@/lib/profile/interests";
+import { hasInterest, normalizeInterests } from "@/lib/features/profile/interests";
 
 const accountItems: { icon: LucideIcon; label: string; isMock?: boolean }[] = [
   { icon: FileText, label: "Travel Documents", isMock: true },

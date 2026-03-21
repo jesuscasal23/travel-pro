@@ -17,7 +17,7 @@ vi.mock("@/lib/flights/optimizer", () => ({
   optimizeFlights: vi.fn(),
 }));
 
-vi.mock("@/lib/affiliate/link-generator", () => ({
+vi.mock("@/lib/features/affiliate/link-generator", () => ({
   parseIataCode: vi.fn(),
 }));
 
@@ -43,7 +43,7 @@ vi.mock("@/lib/core/request-context", () => ({
 import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { optimizeFlights } from "@/lib/flights/optimizer";
-import { parseIataCode } from "@/lib/affiliate/link-generator";
+import { parseIataCode } from "@/lib/features/affiliate/link-generator";
 import { lookupIata } from "@/lib/flights/city-iata-map";
 import { POST } from "../route";
 

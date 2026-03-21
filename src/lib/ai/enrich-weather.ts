@@ -2,19 +2,12 @@
 // Weather Enrichment — Open-Meteo archive API + Upstash Redis cache (7-day TTL)
 // ============================================================
 
-import { Redis } from "@upstash/redis";
 import type { CityStop, CityWeather } from "@/types";
-import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { WEATHER_CACHE_TTL_SECONDS, WEATHER_API_TIMEOUT_MS } from "@/lib/config/constants";
 import { createLogger } from "@/lib/core/logger";
+import { getRedis } from "@/lib/core/redis";
 
 const log = createLogger("enrichment:weather");
-
-function getRedis(): Redis | null {
-  const redisEnv = getOptionalRedisEnv();
-  if (!redisEnv) return null;
-  return new Redis(redisEnv);
-}
 
 function avg(arr: number[]): number {
   if (!arr || arr.length === 0) return 0;

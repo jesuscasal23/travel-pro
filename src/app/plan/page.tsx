@@ -19,14 +19,15 @@ import {
   useSaveProfile,
 } from "@/hooks/api";
 import { slideVariants } from "@/lib/animations";
-import { normalizeInterests } from "@/lib/profile/interests";
+import { normalizeInterests } from "@/lib/features/profile/interests";
 import { DestinationStep } from "./steps/DestinationStep";
 import { ProfileStep } from "./steps/ProfileStep";
 import { PrioritiesStep } from "./steps/PrioritiesStep";
 import { OverviewStep } from "./steps/OverviewStep";
 import type { CityStop, Itinerary } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
-import { citiesToRoute, calculateDayCount } from "@/lib/utils/trip/cities-to-route";
+import { citiesToRoute } from "@/lib/utils/trip/cities-to-route";
+import { daysBetween } from "@/lib/utils/format/date";
 
 export default function PlanPage() {
   const router = useRouter();
@@ -159,7 +160,7 @@ export default function PlanPage() {
     tripType,
   ]);
 
-  const dayCount = calculateDayCount(dateStart, dateEnd);
+  const dayCount = dateStart && dateEnd ? Math.max(0, daysBetween(dateStart, dateEnd)) : 0;
 
   const canAdvance = () => {
     if (showDestination) {

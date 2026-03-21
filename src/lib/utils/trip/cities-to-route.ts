@@ -33,12 +33,3 @@ export function citiesToRoute(cities: CityWithDays[], totalDays: number): CitySt
 
   return raw;
 }
-
-/** Calculate the number of days between two date strings. */
-export function calculateDayCount(dateStart: string, dateEnd: string): number {
-  if (!dateStart || !dateEnd) return 0;
-  return Math.max(
-    0,
-    Math.round((new Date(dateEnd).getTime() - new Date(dateStart).getTime()) / 86400000)
-  );
-}

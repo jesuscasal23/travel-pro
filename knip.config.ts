@@ -8,8 +8,6 @@ const config: KnipConfig = {
     "e2e/**/*.spec.ts",
     // Sentry side-effect configs
     "sentry.*.config.ts",
-    // Sitemap config
-    "next-sitemap.config.js",
   ],
   ignore: [
     // Map fallback rendered conditionally by react-map-gl internals

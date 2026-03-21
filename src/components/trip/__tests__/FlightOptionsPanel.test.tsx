@@ -18,7 +18,7 @@ vi.mock("@/hooks/api/flights/useFlightSearch", () => ({
   }),
 }));
 
-vi.mock("@/lib/affiliate/link-generator", () => ({
+vi.mock("@/lib/features/affiliate/link-generator", () => ({
   buildTrackedLink: vi.fn(
     (p: { dest: string }) => `/api/v1/affiliate/redirect?dest=${encodeURIComponent(p.dest)}`
   ),

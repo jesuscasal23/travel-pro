@@ -1,5 +1,3 @@
-import { interestOptionsById } from "@/data/interests";
-
 const interestAliases: Record<string, string> = {
   surfing: "surfing",
   beach: "surfing",

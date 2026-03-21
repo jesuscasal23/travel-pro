@@ -49,7 +49,7 @@ vi.mock("@/lib/flights/amadeus", () => ({
   prefetchFlightOptions: mocks.prefetchFlightOptions,
 }));
 
-vi.mock("@/lib/affiliate/link-generator", () => ({
+vi.mock("@/lib/features/affiliate/link-generator", () => ({
   parseIataCode: mocks.parseIataCode,
 }));
 

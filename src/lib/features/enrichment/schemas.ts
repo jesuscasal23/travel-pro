@@ -1,47 +1,21 @@
 import { z } from "zod";
+import { cityGeoSchema } from "@/lib/itinerary/schema";
 
 export const EnrichWeatherInputSchema = z.object({
-  route: z
-    .array(
-      z.object({
-        city: z.string(),
-        country: z.string(),
-        countryCode: z.string(),
-        lat: z.number(),
-        lng: z.number(),
-      })
-    )
-    .min(1)
-    .max(20),
+  route: z.array(cityGeoSchema).min(1).max(20),
   dateStart: z.string().min(1).max(20),
 });
 
 export const EnrichVisaInputSchema = z.object({
   nationality: z.string().min(1).max(100),
-  route: z
-    .array(
-      z.object({
-        city: z.string(),
-        country: z.string(),
-        countryCode: z.string(),
-        lat: z.number(),
-        lng: z.number(),
-      })
-    )
-    .min(1)
-    .max(20),
+  route: z.array(cityGeoSchema).min(1).max(20),
 });
 
 export const EnrichAccommodationInputSchema = z.object({
   route: z
     .array(
-      z.object({
+      cityGeoSchema.extend({
         id: z.string(),
-        city: z.string(),
-        country: z.string(),
-        countryCode: z.string(),
-        lat: z.number(),
-        lng: z.number(),
         days: z.number(),
         iataCode: z.string().optional(),
       })

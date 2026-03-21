@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cityGeoSchema } from "@/lib/itinerary/schema";
 
 export const CreateTripInputSchema = z.object({
   tripType: z.enum(["single-city", "single-country", "multi-city"]).default("multi-city"),
@@ -13,13 +14,8 @@ export const CreateTripInputSchema = z.object({
   description: z.string().max(2000).optional(),
 });
 
-const RouteStopInputSchema = z.object({
+const RouteStopInputSchema = cityGeoSchema.extend({
   id: z.string(),
-  city: z.string(),
-  country: z.string(),
-  countryCode: z.string(),
-  lat: z.number(),
-  lng: z.number(),
   days: z.number().optional(),
   iataCode: z.string().optional(),
 });

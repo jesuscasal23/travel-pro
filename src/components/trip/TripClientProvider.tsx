@@ -12,7 +12,6 @@ import {
   useTrip,
 } from "@/hooks/api";
 import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
-import { useItinerary } from "@/hooks/useItinerary";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import type { Itinerary } from "@/types";
@@ -23,7 +22,7 @@ interface TripClientProviderProps {
 }
 
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
-  const itinerary = useItinerary();
+  const itinerary = useTripStore((s) => s.itinerary);
   const route = itinerary?.route ?? [];
   const days = itinerary?.days ?? [];
   const posthog = usePostHog();
