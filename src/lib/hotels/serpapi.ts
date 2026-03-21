@@ -34,6 +34,14 @@ function generateHotelId(name: string, index: number): string {
   return `serp-${slug}-${index}`;
 }
 
+/** Parse hotel_class which can be a number or string like "3-star tourist hotel". */
+function parseHotelClass(hotelClass?: number | string): number | undefined {
+  if (hotelClass === undefined || hotelClass === null) return undefined;
+  if (typeof hotelClass === "number") return hotelClass;
+  const match = String(hotelClass).match(/(\d)/);
+  return match ? parseInt(match[1], 10) : undefined;
+}
+
 /** Extract nearest landmark distance from nearby_places. */
 function extractDistance(property: SerpApiHotelProperty): string | undefined {
   const place = property.nearby_places?.[0];
@@ -200,7 +208,7 @@ function mapPropertyToCandidate(
   return {
     hotelId: generateHotelId(p.name, index),
     name: p.name,
-    rating: p.hotel_class,
+    rating: parseHotelClass(p.hotel_class),
     pricePerNight,
     totalPrice: computedTotal,
     currency,

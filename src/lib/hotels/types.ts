@@ -28,7 +28,7 @@ export interface SerpApiHotelProperty {
     name: string;
     transportations?: Array<{ type: string; duration: string }>;
   }>;
-  hotel_class?: number; // star rating (1-5)
+  hotel_class?: number | string; // SerpApi returns e.g. "3-star tourist hotel" or a number
   overall_rating?: number; // e.g. 4.2
   reviews?: number; // review count
   amenities?: string[];
