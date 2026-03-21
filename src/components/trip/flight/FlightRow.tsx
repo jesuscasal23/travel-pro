@@ -87,45 +87,49 @@ export const FlightRow = memo(function FlightRow({
     [result.bookingToken, resolving, toast]
   );
 
+  const canBook = !!result.bookingToken;
+
   return (
-    <a
-      href={bookingHref}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={handleClick}
-      className={`border-border hover:border-primary hover:bg-primary/5 flex items-center justify-between rounded-lg border p-3 transition-colors ${
-        resolving ? "pointer-events-none opacity-70" : ""
-      }`}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        {resolving ? (
-          <Loader2 className="text-primary h-4 w-4 shrink-0 animate-spin" />
-        ) : (
+    <div className="border-border rounded-lg border p-3 transition-colors">
+      <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="shrink-0 text-base">✈️</span>
-        )}
-        <div className="min-w-0">
-          <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-            <span>{result.airline}</span>
-            <span className="text-muted-foreground">·</span>
-            <StopsLabel stops={result.stops} />
-            <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{result.duration}</span>
-          </div>
-          <div className="text-muted-foreground text-xs">
-            {resolving ? (
-              "Finding best booking link…"
-            ) : (
-              <>
-                {formatTime(result.departureTime)}
-                {result.arrivalTime && ` → ${formatTime(result.arrivalTime)}`}
-              </>
-            )}
+          <div className="min-w-0">
+            <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+              <span>{result.airline}</span>
+              <span className="text-muted-foreground">·</span>
+              <StopsLabel stops={result.stops} />
+              <span className="text-muted-foreground">·</span>
+              <span className="text-muted-foreground">{result.duration}</span>
+            </div>
+            <div className="text-muted-foreground text-xs">
+              {formatTime(result.departureTime)}
+              {result.arrivalTime && ` → ${formatTime(result.arrivalTime)}`}
+            </div>
           </div>
         </div>
+        <div className="text-foreground text-sm font-bold">
+          €{Math.round(result.price).toLocaleString()}
+        </div>
       </div>
-      <div className="text-foreground text-sm font-bold">
-        €{Math.round(result.price).toLocaleString()}
-      </div>
-    </a>
+
+      {canBook && (
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={resolving}
+          className="bg-primary hover:bg-primary/90 mt-2 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold text-white transition-colors disabled:opacity-70"
+        >
+          {resolving ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Finding best booking link…
+            </>
+          ) : (
+            "Book now →"
+          )}
+        </button>
+      )}
+    </div>
   );
 });
