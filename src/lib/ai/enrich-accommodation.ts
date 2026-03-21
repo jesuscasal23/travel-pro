@@ -176,11 +176,21 @@ export async function enrichAccommodation(
         );
 
         if (candidates.length === 0) {
-          log.warn("No hotels returned from SerpApi for city", { city: city.city });
+          log.warn("No hotels returned from SerpApi for city", {
+            city: city.city,
+            checkIn,
+            checkOut,
+          });
           return emptyCityResult(city, checkIn, checkOut, fallbackSearchUrl);
         }
 
-        log.info("Hotel candidates fetched", { city: city.city, count: candidates.length });
+        const withLink = candidates.filter((c) => !!c.link).length;
+        log.info("Hotel candidates fetched", {
+          city: city.city,
+          count: candidates.length,
+          withDirectLink: withLink,
+          withoutDirectLink: candidates.length - withLink,
+        });
 
         // AI rank the candidates
         const ranked = await rankHotelsWithAI(candidates, city.city, travelStyle);
@@ -223,6 +233,20 @@ export async function enrichAccommodation(
             distance: c.distance,
             bookingUrl: c.link ?? bookingUrl,
             why: "Well-rated hotel in a convenient location.",
+          });
+        }
+
+        // Log final hotel booking URL sources
+        for (const h of hotels) {
+          const candidate = candidates.find((c) => c.hotelId === h.hotelId);
+          const usedSerpApiLink = !!candidate?.link;
+          log.info("Hotel booking URL assigned", {
+            city: city.city,
+            hotel: h.name,
+            hotelId: h.hotelId,
+            usedSerpApiLink,
+            bookingUrl: h.bookingUrl.slice(0, 150),
+            serpApiLink: candidate?.link?.slice(0, 150) ?? null,
           });
         }
 

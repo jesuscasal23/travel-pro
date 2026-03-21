@@ -20,7 +20,20 @@ interface LogAffiliateRedirectInput {
 }
 
 export async function logAffiliateRedirect(input: LogAffiliateRedirectInput) {
+  log.info("Affiliate redirect requested", {
+    provider: input.provider,
+    type: input.type,
+    city: input.city ?? null,
+    destHost: getAffiliateDestinationHostname(input.dest),
+    destPrefix: input.dest.slice(0, 150),
+    hasItineraryId: !!input.itinerary_id,
+  });
+
   if (!isAllowedAffiliateDestination(input.dest)) {
+    log.warn("Redirect destination blocked by allowlist", {
+      dest: input.dest.slice(0, 200),
+      hostname: getAffiliateDestinationHostname(input.dest),
+    });
     throw new BadRequestError("Redirect destination not allowed", {
       dest: [input.dest],
     });

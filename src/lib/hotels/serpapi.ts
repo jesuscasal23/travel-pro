@@ -101,18 +101,51 @@ export async function searchHotels(
   }
 
   if (!res.ok) {
-    log.warn("SerpApi hotel search failed", { city, status: res.status });
+    const errorBody = await res.text().catch(() => "(unreadable)");
+    log.warn("SerpApi hotel search failed", {
+      city,
+      status: res.status,
+      body: errorBody.slice(0, 500),
+    });
     return [];
   }
 
   const body = (await res.json()) as SerpApiHotelsResponse;
+
+  // Log full response shape for diagnostics
+  log.info("SerpApi hotels response", {
+    city,
+    hasError: !!body.error,
+    error: body.error ?? null,
+    propertiesCount: body.properties?.length ?? 0,
+    topLevelKeys: Object.keys(body).join(", "),
+  });
+
   if (body.error) {
     log.warn("SerpApi returned error", { error: body.error, city });
     return [];
   }
 
   const properties = body.properties ?? [];
-  if (properties.length === 0) return [];
+  if (properties.length === 0) {
+    log.warn("No hotel properties returned", { city, responseKeys: Object.keys(body).join(", ") });
+    return [];
+  }
+
+  // Track how many properties have direct booking links
+  const withLink = properties.filter((p) => !!p.link).length;
+  const withPrice = properties.filter(
+    (p) => p.rate_per_night?.extracted_lowest || p.total_rate?.extracted_lowest
+  ).length;
+  log.info("Hotel properties breakdown", {
+    city,
+    total: properties.length,
+    withDirectLink: withLink,
+    withoutDirectLink: properties.length - withLink,
+    withPrice,
+    sampleLink: properties.find((p) => p.link)?.link?.slice(0, 150) ?? null,
+    sampleWithoutLink: properties.find((p) => !p.link)?.name ?? null,
+  });
 
   // Compute nights for per-night price calculation
   const nights = Math.max(
