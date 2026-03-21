@@ -229,6 +229,20 @@ export async function searchFlightsMulti(
     };
   });
 
+  // Track booking token availability
+  const withToken = results.filter((r) => r.bookingToken).length;
+  const without = results.length - withToken;
+  if (without > 0) {
+    log.warn("Missing booking_token from SerpApi", {
+      origin,
+      destination,
+      date,
+      total: results.length,
+      withToken,
+      withoutToken: without,
+    });
+  }
+
   // Sort by price ascending
   results.sort((a, b) => a.price - b.price);
 
