@@ -322,6 +322,11 @@ export async function resolveBookingUrl(
     currency: "EUR",
   });
 
+  log.info("Resolving booking URL", {
+    tokenPrefix: bookingToken.slice(0, 40) + "…",
+    tokenLength: bookingToken.length,
+  });
+
   let res: Response;
   try {
     res = await fetch(`${SERPAPI_BASE}?${params}`, {
@@ -338,11 +343,36 @@ export async function resolveBookingUrl(
   }
 
   if (!res.ok) {
-    log.warn("SerpApi booking options failed", { status: res.status });
+    const errorBody = await res.text().catch(() => "(unreadable)");
+    log.warn("SerpApi booking options failed", {
+      status: res.status,
+      body: errorBody.slice(0, 500),
+    });
     return null;
   }
 
   const body = (await res.json()) as SerpApiBookingResponse;
+
+  // Log the full response shape to diagnose missing fields
+  log.info("SerpApi booking response", {
+    hasError: !!body.error,
+    error: body.error ?? null,
+    optionsCount: body.booking_options?.length ?? 0,
+    topLevelKeys: Object.keys(body).join(", "),
+    firstOption: body.booking_options?.[0]
+      ? {
+          hasTogetherKey: !!body.booking_options[0].together,
+          togetherKeys: body.booking_options[0].together
+            ? Object.keys(body.booking_options[0].together).join(", ")
+            : null,
+          hasBookingRequest: !!body.booking_options[0].together?.booking_request,
+          bookWith: body.booking_options[0].together?.book_with ?? null,
+          requestUrl: body.booking_options[0].together?.booking_request?.url?.slice(0, 120) ?? null,
+          hasPostData: !!body.booking_options[0].together?.booking_request?.post_data,
+        }
+      : null,
+  });
+
   if (body.error) {
     log.warn("SerpApi booking options error", { error: body.error });
     return null;
@@ -350,18 +380,28 @@ export async function resolveBookingUrl(
 
   const options = body.booking_options ?? [];
   if (options.length === 0) {
-    log.warn("No booking options returned");
+    log.warn("No booking options returned", { responseKeys: Object.keys(body).join(", ") });
     return null;
   }
 
   // Pick the first booking option
   const bookingRequest = options[0].together?.booking_request;
   if (!bookingRequest?.url) {
-    log.warn("No booking_request in first option");
+    log.warn("No booking_request in first option", {
+      optionKeys: Object.keys(options[0]).join(", "),
+      togetherKeys: options[0].together ? Object.keys(options[0].together).join(", ") : "N/A",
+      rawFirstOption: JSON.stringify(options[0]).slice(0, 500),
+    });
     return null;
   }
 
   // Step 2: POST to Google's click-tracking endpoint to get the final redirect
+  log.info("POSTing to Google click endpoint", {
+    url: bookingRequest.url.slice(0, 120),
+    hasPostData: !!bookingRequest.post_data,
+    postDataLength: bookingRequest.post_data?.length ?? 0,
+  });
+
   try {
     const postRes = await fetch(bookingRequest.url, {
       method: "POST",
@@ -372,15 +412,34 @@ export async function resolveBookingUrl(
     });
 
     const location = postRes.headers.get("location");
+    log.info("Google click endpoint response", {
+      status: postRes.status,
+      hasLocation: !!location,
+      locationPrefix: location?.slice(0, 120) ?? null,
+      headers: Object.fromEntries(
+        [...postRes.headers.entries()].filter(([k]) =>
+          ["location", "content-type", "set-cookie"].includes(k.toLowerCase())
+        )
+      ),
+    });
+
     if (location && /^https?:\/\//i.test(location)) {
+      log.info("Resolved booking URL successfully", { url: location.slice(0, 120) });
       return location;
     }
 
     // Some responses use meta-refresh or JS redirect — try reading body
     if (postRes.status >= 200 && postRes.status < 400) {
       const html = await postRes.text();
+      log.info("Google click endpoint body (no Location header)", {
+        status: postRes.status,
+        bodyLength: html.length,
+        bodySnippet: html.slice(0, 300),
+      });
+
       const metaMatch = html.match(/url=["']?([^"'\s>]+)/i);
       if (metaMatch?.[1] && /^https?:\/\//i.test(metaMatch[1])) {
+        log.info("Resolved booking URL via meta-refresh", { url: metaMatch[1].slice(0, 120) });
         return metaMatch[1];
       }
     }
