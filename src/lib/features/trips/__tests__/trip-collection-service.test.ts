@@ -8,14 +8,8 @@ const mockRedis = {
   del: mockRedisDel,
 };
 
-vi.mock("@upstash/redis", () => ({
-  Redis: vi.fn(
-    class MockRedis {
-      constructor() {
-        return mockRedis;
-      }
-    }
-  ),
+vi.mock("@/lib/core/redis", () => ({
+  getRedis: vi.fn(),
 }));
 
 vi.mock("@/lib/config/server-env", () => ({
@@ -42,12 +36,11 @@ vi.mock("@/lib/core/logger", () => ({
   }),
 }));
 
-import { Redis } from "@upstash/redis";
-import { getOptionalRedisEnv } from "@/lib/config/server-env";
+import { getRedis } from "@/lib/core/redis";
 import { prisma } from "@/lib/core/prisma";
 import { deleteTripById } from "../trip-collection-service";
 
-const mockGetOptionalRedisEnv = getOptionalRedisEnv as ReturnType<typeof vi.fn>;
+const mockGetRedis = getRedis as ReturnType<typeof vi.fn>;
 const mockPrisma = prisma as unknown as {
   trip: {
     create: ReturnType<typeof vi.fn>;
@@ -80,7 +73,7 @@ const tx = {
 beforeEach(() => {
   vi.clearAllMocks();
 
-  mockGetOptionalRedisEnv.mockReturnValue(null);
+  mockGetRedis.mockReturnValue(null);
   mockPrisma.trip.findUnique.mockResolvedValue({
     id: "trip-1",
   });
@@ -125,20 +118,14 @@ describe("deleteTripById", () => {
   });
 
   it("scans and deletes trip-scoped Redis keys when Redis is configured", async () => {
-    mockGetOptionalRedisEnv.mockReturnValue({
-      url: "https://redis.test",
-      token: "token-1",
-    });
+    mockGetRedis.mockReturnValue(mockRedis);
     mockRedisScan
       .mockResolvedValueOnce(["0", ["trip:trip-1", "trip:trip-1:summary"]])
       .mockResolvedValue(["0", []]);
 
     await deleteTripById("trip-1");
 
-    expect(Redis).toHaveBeenCalledWith({
-      url: "https://redis.test",
-      token: "token-1",
-    });
+    expect(mockGetRedis).toHaveBeenCalled();
     expect(mockRedisScan).toHaveBeenCalledWith("0", {
       match: "trip:trip-1",
       count: 100,

@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp, Search, Filter, ExternalLink } from "lucide-react";
 import { AlertBox } from "@/components/ui/AlertBox";
 import { Button } from "@/components/ui/Button";
-import { buildTrackedLink } from "@/lib/affiliate/link-generator";
+import { buildTrackedLink } from "@/lib/features/affiliate/link-generator";
 import { FlightRow } from "./flight/FlightRow";
 import { FlightFilterPanel } from "./flight/FlightFilterPanel";
 import { useFlightOptions } from "./flight/useFlightOptions";

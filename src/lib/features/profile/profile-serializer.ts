@@ -1,5 +1,5 @@
-import { serializeProfileWithPace } from "@/lib/profile/pace";
-import { normalizeInterests } from "@/lib/profile/interests";
+import { serializeProfileWithPace } from "@/lib/features/profile/pace";
+import { normalizeInterests } from "@/lib/features/profile/interests";
 
 export function serializeProfile<T extends { activityLevel?: string | null; interests?: string[] }>(
   profile: T

@@ -1,4 +1,4 @@
-import { parseIataCode } from "@/lib/affiliate/link-generator";
+import { parseIataCode } from "@/lib/features/affiliate/link-generator";
 import { BadRequestError, UpstreamServiceError } from "@/lib/api/errors";
 import { optimizeFlights } from "@/lib/flights/optimizer";
 import { buildOptimizerCities, resolveRouteIataCodes } from "@/lib/flights/route-utils";

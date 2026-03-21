@@ -1,8 +1,7 @@
-import { Redis } from "@upstash/redis";
 import { TripNotFoundError } from "@/lib/api/errors";
-import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { createLogger } from "@/lib/core/logger";
 import { prisma } from "@/lib/core/prisma";
+import { getRedis } from "@/lib/core/redis";
 import { withTripLock } from "@/lib/core/with-trip-lock";
 import { z } from "zod";
 import { CreateTripInputSchema } from "./schemas";
@@ -25,15 +24,6 @@ export async function createTrip(input: CreateTripInput, profileId: string | nul
   return prisma.trip.create({
     data: { ...input, profileId },
   });
-}
-
-function getRedis(): Redis | null {
-  const redisEnv = getOptionalRedisEnv();
-  if (!redisEnv) {
-    return null;
-  }
-
-  return new Redis(redisEnv);
 }
 
 async function deleteTripRedisData(input: { tripId: string }) {

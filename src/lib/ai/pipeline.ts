@@ -108,6 +108,165 @@ async function resolveMultiCityRoute(
   }
 }
 
+// ── Shared generation helper ──────────────────────────────────
+
+interface PromptConfig {
+  singleCity: {
+    assemblePrompt: (profile: UserProfile, tripIntent: TripIntent) => string;
+    systemPrompt: string;
+    maxTokens: number;
+  };
+  multiCity: {
+    assemblePrompt: (
+      profile: UserProfile,
+      tripIntent: TripIntent,
+      flightSkeleton: undefined,
+      cities: CityWithDays[] | undefined
+    ) => string;
+    systemPrompt: string;
+    maxTokens: number;
+  };
+  logPrefix: string;
+}
+
+/**
+ * Common generation flow: resolve route → assemble prompt → call Claude →
+ * parse/validate → discover cities. Used by both core and route-only generation.
+ */
+async function generateWithConfig(
+  config: PromptConfig,
+  profile: UserProfile,
+  tripIntent: TripIntent,
+  preSelectedCities: CityWithDays[] | undefined,
+  signal: AbortSignal | undefined
+): Promise<Itinerary> {
+  const t0 = Date.now();
+  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+  const prefix = config.logPrefix;
+  const isSingleCityTrip = tripIntent.tripType === "single-city";
+  throwIfAborted(signal);
+
+  let userPrompt: string;
+  let systemPrompt: string;
+  let maxTokens: number;
+
+  if (isSingleCityTrip) {
+    log.info(`${prefix}Single-city mode`, {
+      tripId: tripIntent.id,
+      destination: tripIntent.destination,
+      country: tripIntent.destinationCountry,
+      dateStart: tripIntent.dateStart,
+      dateEnd: tripIntent.dateEnd,
+      elapsed: elapsed(),
+    });
+    userPrompt = config.singleCity.assemblePrompt(profile, tripIntent);
+    systemPrompt = config.singleCity.systemPrompt;
+    maxTokens = config.singleCity.maxTokens;
+  } else {
+    log.info(`${prefix}Multi-city mode — resolving route`, {
+      tripId: tripIntent.id,
+      region: tripIntent.region,
+      dateStart: tripIntent.dateStart,
+      dateEnd: tripIntent.dateEnd,
+      elapsed: elapsed(),
+    });
+    const cities = await resolveMultiCityRoute(
+      profile,
+      tripIntent,
+      preSelectedCities,
+      signal,
+      prefix,
+      elapsed
+    );
+    userPrompt = config.multiCity.assemblePrompt(profile, tripIntent, undefined, cities);
+    systemPrompt = config.multiCity.systemPrompt;
+    maxTokens = config.multiCity.maxTokens;
+  }
+
+  log.info(`${prefix}Prompt assembled`, {
+    tripId: tripIntent.id,
+    promptLength: userPrompt.length,
+    systemPromptLength: systemPrompt.length,
+    maxTokens,
+    elapsed: elapsed(),
+  });
+
+  // Call Claude
+  const t2 = Date.now();
+  log.info(`${prefix}Calling Claude Haiku`, {
+    tripId: tripIntent.id,
+    maxTokens,
+    promptLengthChars: userPrompt.length,
+  });
+  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
+  log.info(`${prefix}Claude call complete`, {
+    tripId: tripIntent.id,
+    duration: `${((Date.now() - t2) / 1000).toFixed(1)}s`,
+    model: claudeResult.model,
+    stopReason: claudeResult.stopReason,
+    inputTokens: claudeResult.inputTokens,
+    outputTokens: claudeResult.outputTokens,
+    outputLengthChars: claudeResult.text.length,
+    elapsed: elapsed(),
+  });
+
+  // Parse + validate
+  throwIfAborted(signal);
+  const t3 = Date.now();
+  log.info(`${prefix}Parsing and validating output`, {
+    tripId: tripIntent.id,
+    rawOutputLength: claudeResult.text.length,
+    rawOutputPreview: claudeResult.text.slice(0, 200),
+  });
+  const parsed = parseAndValidate(claudeResult.text);
+  log.info(`${prefix}Generation complete`, {
+    tripId: tripIntent.id,
+    duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`,
+    routeCities: parsed.route.map((r) => r.city),
+    cityCount: parsed.route.length,
+    dayCount: parsed.days.length,
+    routeCountries: [...new Set(parsed.route.map((r) => r.countryCode))],
+    elapsed: elapsed(),
+  });
+
+  // Best-effort: discover unknown cities (non-blocking)
+  discoverNewCities(parsed.route, tripIntent.id).catch((e) => {
+    log.warn("City discovery failed (non-blocking)", { error: getErrorMessage(e) });
+  });
+
+  return parsed;
+}
+
+// ── Prompt configs ────────────────────────────────────────────
+
+const CORE_PROMPT_CONFIG: PromptConfig = {
+  singleCity: {
+    assemblePrompt: assembleSingleCityPrompt,
+    systemPrompt: SYSTEM_PROMPT_SINGLE_CITY,
+    maxTokens: MAX_TOKENS_SINGLE_CITY,
+  },
+  multiCity: {
+    assemblePrompt: assemblePrompt,
+    systemPrompt: SYSTEM_PROMPT_V1,
+    maxTokens: MAX_TOKENS_MULTI_CITY,
+  },
+  logPrefix: "",
+};
+
+const ROUTE_ONLY_PROMPT_CONFIG: PromptConfig = {
+  singleCity: {
+    assemblePrompt: assembleRouteOnlySingleCityPrompt,
+    systemPrompt: SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY,
+    maxTokens: MAX_TOKENS_ROUTE_ONLY,
+  },
+  multiCity: {
+    assemblePrompt: assembleRouteOnlyPrompt,
+    systemPrompt: SYSTEM_PROMPT_ROUTE_ONLY,
+    maxTokens: MAX_TOKENS_ROUTE_ONLY,
+  },
+  logPrefix: "Route-only: ",
+};
+
 // ============================================================
 // generateCoreItinerary (route + days, no enrichment)
 // ============================================================
@@ -123,107 +282,13 @@ export async function generateCoreItinerary(
   preSelectedCities?: CityWithDays[],
   options?: { signal?: AbortSignal }
 ): Promise<Itinerary> {
-  const signal = options?.signal;
-  const t0 = Date.now();
-  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
-  const isSingleCityTrip = tripIntent.tripType === "single-city";
-  throwIfAborted(signal);
-
-  let userPrompt: string;
-  let systemPrompt: string;
-  let maxTokens: number;
-
-  if (isSingleCityTrip) {
-    log.info("Single-city mode", {
-      tripId: tripIntent.id,
-      destination: tripIntent.destination,
-      country: tripIntent.destinationCountry,
-      dateStart: tripIntent.dateStart,
-      dateEnd: tripIntent.dateEnd,
-      elapsed: elapsed(),
-    });
-    userPrompt = assembleSingleCityPrompt(profile, tripIntent);
-    systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
-    maxTokens = MAX_TOKENS_SINGLE_CITY;
-  } else {
-    log.info("Multi-city mode — resolving route", {
-      tripId: tripIntent.id,
-      region: tripIntent.region,
-      dateStart: tripIntent.dateStart,
-      dateEnd: tripIntent.dateEnd,
-      elapsed: elapsed(),
-    });
-    const cities = await resolveMultiCityRoute(
-      profile,
-      tripIntent,
-      preSelectedCities,
-      signal,
-      "",
-      elapsed
-    );
-    userPrompt = assemblePrompt(profile, tripIntent, undefined, cities);
-    systemPrompt = SYSTEM_PROMPT_V1;
-    maxTokens = MAX_TOKENS_MULTI_CITY;
-  }
-
-  log.info("Stage 1 (prompt assembly) done", {
-    tripId: tripIntent.id,
-    promptLength: userPrompt.length,
-    systemPromptLength: systemPrompt.length,
-    maxTokens,
-    elapsed: elapsed(),
-  });
-
-  // Stage 2: Call Claude
-  const t2 = Date.now();
-  log.info("Stage 2: Calling Claude Haiku", {
-    tripId: tripIntent.id,
-    maxTokens,
-    promptLengthChars: userPrompt.length,
-  });
-  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
-  const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
-  log.info("Stage 2 complete", {
-    tripId: tripIntent.id,
-    duration: `${claudeDuration}s`,
-    model: claudeResult.model,
-    stopReason: claudeResult.stopReason,
-    inputTokens: claudeResult.inputTokens,
-    outputTokens: claudeResult.outputTokens,
-    outputLengthChars: claudeResult.text.length,
-    elapsed: elapsed(),
-  });
-
-  // Stage 3: Parse + validate
-  throwIfAborted(signal);
-  const t3 = Date.now();
-  log.info("Stage 3: Parsing and validating Claude output", {
-    tripId: tripIntent.id,
-    rawOutputLength: claudeResult.text.length,
-    rawOutputPreview: claudeResult.text.slice(0, 200),
-  });
-  const parsed = parseAndValidate(claudeResult.text);
-  log.info("Stage 3 (parse+validate) done", {
-    tripId: tripIntent.id,
-    duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`,
-    routeCities: parsed.route.map((r) => r.city),
-    cityCount: parsed.route.length,
-    dayCount: parsed.days.length,
-    routeCountries: [...new Set(parsed.route.map((r) => r.countryCode))],
-    elapsed: elapsed(),
-  });
-
-  log.info("Core generation complete (enrichment deferred)", {
-    tripId: tripIntent.id,
-    totalCoreDuration: elapsed(),
-  });
-
-  // Best-effort: discover unknown cities (non-blocking)
-  discoverNewCities(parsed.route, tripIntent.id).catch((e) => {
-    log.warn("City discovery failed (non-blocking)", { error: getErrorMessage(e) });
-  });
-
-  return parsed;
+  return generateWithConfig(
+    CORE_PROMPT_CONFIG,
+    profile,
+    tripIntent,
+    preSelectedCities,
+    options?.signal
+  );
 }
 
 // ============================================================
@@ -240,97 +305,13 @@ export async function generateRouteOnly(
   preSelectedCities?: CityWithDays[],
   options?: { signal?: AbortSignal }
 ): Promise<Itinerary> {
-  const signal = options?.signal;
-  const t0 = Date.now();
-  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
-  const isSingleCityTrip = tripIntent.tripType === "single-city";
-  throwIfAborted(signal);
-
-  let userPrompt: string;
-  let systemPrompt: string;
-  let maxTokens: number;
-
-  if (isSingleCityTrip) {
-    log.info("Route-only: single-city mode", {
-      tripId: tripIntent.id,
-      destination: tripIntent.destination,
-      country: tripIntent.destinationCountry,
-      dateStart: tripIntent.dateStart,
-      dateEnd: tripIntent.dateEnd,
-      elapsed: elapsed(),
-    });
-    userPrompt = assembleRouteOnlySingleCityPrompt(profile, tripIntent);
-    systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY;
-    maxTokens = MAX_TOKENS_ROUTE_ONLY;
-  } else {
-    log.info("Route-only: multi-city mode — resolving route", {
-      tripId: tripIntent.id,
-      region: tripIntent.region,
-      dateStart: tripIntent.dateStart,
-      dateEnd: tripIntent.dateEnd,
-      elapsed: elapsed(),
-    });
-    const cities = await resolveMultiCityRoute(
-      profile,
-      tripIntent,
-      preSelectedCities,
-      signal,
-      "Route-only",
-      elapsed
-    );
-    userPrompt = assembleRouteOnlyPrompt(profile, tripIntent, undefined, cities);
-    systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY;
-    maxTokens = MAX_TOKENS_ROUTE_ONLY;
-  }
-
-  log.info("Route-only prompt assembled", {
-    tripId: tripIntent.id,
-    promptLength: userPrompt.length,
-    systemPromptLength: systemPrompt.length,
-    maxTokens,
-    elapsed: elapsed(),
-  });
-
-  const t2 = Date.now();
-  log.info("Route-only: calling Claude", {
-    tripId: tripIntent.id,
-    maxTokens,
-    promptLengthChars: userPrompt.length,
-  });
-  const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
-  log.info("Route-only Claude call complete", {
-    tripId: tripIntent.id,
-    duration: `${((Date.now() - t2) / 1000).toFixed(1)}s`,
-    model: claudeResult.model,
-    stopReason: claudeResult.stopReason,
-    inputTokens: claudeResult.inputTokens,
-    outputTokens: claudeResult.outputTokens,
-    outputLengthChars: claudeResult.text.length,
-    elapsed: elapsed(),
-  });
-
-  throwIfAborted(signal);
-  log.info("Route-only: parsing Claude output", {
-    tripId: tripIntent.id,
-    rawOutputLength: claudeResult.text.length,
-    rawOutputPreview: claudeResult.text.slice(0, 200),
-  });
-  const parsed = parseAndValidate(claudeResult.text);
-  log.info("Route-only generation complete", {
-    tripId: tripIntent.id,
-    routeCities: parsed.route.map((r) => r.city),
-    cityCount: parsed.route.length,
-    dayCount: parsed.days.length,
-    routeCountries: [...new Set(parsed.route.map((r) => r.countryCode))],
-    elapsed: elapsed(),
-  });
-
-  // Best-effort: discover unknown cities (non-blocking)
-  discoverNewCities(parsed.route, tripIntent.id).catch((e) => {
-    log.warn("City discovery failed (non-blocking)", { error: getErrorMessage(e) });
-  });
-
-  return parsed;
+  return generateWithConfig(
+    ROUTE_ONLY_PROMPT_CONFIG,
+    profile,
+    tripIntent,
+    preSelectedCities,
+    options?.signal
+  );
 }
 
 // ============================================================

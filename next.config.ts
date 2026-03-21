@@ -63,6 +63,19 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Permanent redirects for legacy /trip/:id URLs → /trips/:id
+  async redirects() {
+    return [
+      { source: "/trip/:id", destination: "/trips/:id", permanent: true },
+      { source: "/trip/:id/edit", destination: "/trips/:id", permanent: true },
+      {
+        source: "/trip/:id/summary",
+        destination: "/trips/:id/flights",
+        permanent: true,
+      },
+    ];
+  },
+
   // PostHog rewrites to avoid ad blockers (optional but recommended)
   async rewrites() {
     return [

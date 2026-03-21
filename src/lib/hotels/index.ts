@@ -1,1 +1,1 @@
-export { searchHotelsByCity, searchHotelOffers, buildCandidates } from "./amadeus";
+export { searchHotelsByCity, searchHotelOffers, buildCandidates } from "./hotel-search";

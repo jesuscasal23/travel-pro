@@ -1,4 +1,4 @@
-import { parseIataCode } from "@/lib/affiliate/link-generator";
+import { parseIataCode } from "@/lib/features/affiliate/link-generator";
 import { generateRouteOnly } from "@/lib/ai/pipeline";
 import { ApiError, ServiceMisconfiguredError } from "@/lib/api/errors";
 import { abortableDelay, isAbortError, throwIfAborted } from "@/lib/core/abort";

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TravelStyle, TripType, Itinerary, ActivityPace } from "@/types";
-import { normalizeInterest, normalizeInterests } from "@/lib/profile/interests";
+import { normalizeInterest, normalizeInterests } from "@/lib/features/profile/interests";
 
 interface TripStoreState {
   // Profile inputs reused across planner and profile screen

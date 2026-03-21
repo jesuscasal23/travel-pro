@@ -4,7 +4,7 @@
 
 import type { CityStop, CityAccommodation, CityHotel, TravelStyle } from "@/types";
 import { searchHotelsByCity, searchHotelOffers, buildCandidates } from "@/lib/hotels";
-import { buildHotelLink, buildTrackedLink } from "@/lib/affiliate/link-generator";
+import { buildHotelLink, buildTrackedLink } from "@/lib/features/affiliate/link-generator";
 import { getAnthropic } from "@/lib/ai/client";
 import { createLogger } from "@/lib/core/logger";
 

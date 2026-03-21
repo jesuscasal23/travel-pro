@@ -1,13 +1,17 @@
 import { z } from "zod";
 
-const cityStopSchema = z.object({
-  id: z.string(),
+/** Base geographic fields shared by all city-related schemas. */
+export const cityGeoSchema = z.object({
   city: z.string(),
   country: z.string(),
+  countryCode: z.string(),
   lat: z.number(),
   lng: z.number(),
+});
+
+const cityStopSchema = cityGeoSchema.extend({
+  id: z.string(),
   days: z.number(),
-  countryCode: z.string(),
   iataCode: z.string().optional(),
 });
 
