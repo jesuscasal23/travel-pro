@@ -38,7 +38,7 @@ export function ActiveTripCard({ trip, onClick }: ActiveTripCardProps) {
 
       {/* Badges */}
       <div className="absolute top-3 left-3 flex gap-2">
-        <span className="rounded-full bg-[#3b82f6] px-2.5 py-1 text-[10px] font-bold text-white uppercase">
+        <span className="bg-app-blue rounded-full px-2.5 py-1 text-[10px] font-bold text-white uppercase">
           Active Trip
         </span>
       </div>

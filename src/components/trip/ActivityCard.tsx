@@ -71,9 +71,9 @@ export const ActivityCard = memo(function ActivityCard({
         )}
 
         {/* Meta row */}
-        <div className="mt-3 flex items-center gap-3 text-[12px] text-[#7d8ea7]">
+        <div className="text-meta mt-3 flex items-center gap-3 text-[12px]">
           {activity.duration && (
-            <span className="flex items-center gap-1 rounded-full bg-[#f4f7fb] px-2.5 py-1">
+            <span className="bg-surface-soft flex items-center gap-1 rounded-full px-2.5 py-1">
               <Clock className="h-3 w-3" /> {activity.duration}
             </span>
           )}
@@ -81,7 +81,7 @@ export const ActivityCard = memo(function ActivityCard({
 
         {/* Food recommendation — show if duration >= 1.5h */}
         {activity.food && durationHours >= 1.5 && (
-          <p className="mt-2 text-[12px] text-[#9a6a10]">🍽️ {activity.food}</p>
+          <p className="text-food-text mt-2 text-[12px]">🍽️ {activity.food}</p>
         )}
 
         {/* Pro tip — show if duration >= 2h */}

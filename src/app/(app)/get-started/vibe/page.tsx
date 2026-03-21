@@ -120,12 +120,14 @@ export default function VibePage() {
                       className="flex items-center gap-2 transition-opacity duration-200"
                       style={{ opacity: 0.45 + 0.55 * leftOpacity }}
                     >
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0D737718]">
+                      <span className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
                         <LeftIcon className="text-brand-primary h-3.5 w-3.5" strokeWidth={2.4} />
                       </span>
                       <span
                         className="text-[11px] font-bold tracking-[0.16em] uppercase"
-                        style={{ color: leftOpacity > 0.5 ? "var(--brand-primary)" : "#8ea0bb" }}
+                        style={{
+                          color: leftOpacity > 0.5 ? "var(--brand-primary)" : "var(--color-label)",
+                        }}
                       >
                         {slider.leftLabel}
                       </span>
@@ -136,18 +138,20 @@ export default function VibePage() {
                     >
                       <span
                         className="text-[11px] font-bold tracking-[0.16em] uppercase"
-                        style={{ color: rightOpacity > 0.5 ? "var(--brand-primary)" : "#8ea0bb" }}
+                        style={{
+                          color: rightOpacity > 0.5 ? "var(--brand-primary)" : "var(--color-label)",
+                        }}
                       >
                         {slider.rightLabel}
                       </span>
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0D737718]">
+                      <span className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
                         <RightIcon className="text-brand-primary h-3.5 w-3.5" strokeWidth={2.4} />
                       </span>
                     </span>
                   </div>
 
                   <div className="relative">
-                    <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#e7ebf2]" />
+                    <div className="bg-slider-track pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full" />
                     <div
                       className="bg-brand-primary pointer-events-none absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-[width] duration-75"
                       style={{ width: `${currentValue}%` }}

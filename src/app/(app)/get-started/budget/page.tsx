@@ -23,7 +23,7 @@ const budgetOptions: BudgetOption[] = [
     price: "$20-40/DAY",
     description: "Hostels, street food, local transport",
     icon: Backpack,
-    iconClassName: "text-[#ef4444]",
+    iconClassName: "text-app-red",
   },
   {
     id: "smart-budget",
@@ -31,7 +31,7 @@ const budgetOptions: BudgetOption[] = [
     price: "$50-100/DAY",
     description: "Mid-range hotels, restaurants, tours",
     icon: Scale,
-    iconClassName: "text-[#b59a32]",
+    iconClassName: "text-app-gold",
   },
   {
     id: "comfort-explorer",
@@ -39,7 +39,7 @@ const budgetOptions: BudgetOption[] = [
     price: "$150-300/DAY",
     description: "Boutique hotels, fine dining, experiences",
     icon: Sparkles,
-    iconClassName: "text-[#eab308]",
+    iconClassName: "text-app-yellow",
   },
   {
     id: "luxury",
@@ -47,7 +47,7 @@ const budgetOptions: BudgetOption[] = [
     price: "$300+/DAY",
     description: "5-star resorts, private experiences",
     icon: Gem,
-    iconClassName: "text-[#38bdf8]",
+    iconClassName: "text-app-sky",
   },
 ];
 
@@ -95,7 +95,7 @@ export default function BudgetPage() {
                 >
                   <div
                     className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
-                      isSelected ? "bg-white/12" : "bg-[#f1f5fb]"
+                      isSelected ? "bg-white/12" : "bg-surface-soft"
                     }`}
                   >
                     <Icon

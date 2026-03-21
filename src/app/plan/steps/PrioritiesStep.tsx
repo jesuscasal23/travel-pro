@@ -17,18 +17,54 @@ import {
 type PriorityOption = {
   label: string;
   icon: LucideIcon;
-  color: string;
+  iconClass: string;
+  bgClass: string;
 };
 
 const priorityOptions: PriorityOption[] = [
-  { label: "Finding hidden gems", icon: Compass, color: "#e85d4a" },
-  { label: "Staying within budget", icon: Wallet, color: "#10b981" },
-  { label: "Visa & paperwork", icon: FileText, color: "#8b5cf6" },
-  { label: "Flight connections", icon: Plane, color: "#3b82f6" },
-  { label: "Local transport", icon: Bus, color: "#f59e0b" },
-  { label: "Language barriers", icon: Languages, color: "#ec4899" },
-  { label: "Safety concerns", icon: ShieldCheck, color: "#06b6d4" },
-  { label: "Finding the right hotel", icon: Hotel, color: "#6366f1" },
+  {
+    label: "Finding hidden gems",
+    icon: Compass,
+    iconClass: "text-accent",
+    bgClass: "bg-accent/10",
+  },
+  {
+    label: "Staying within budget",
+    icon: Wallet,
+    iconClass: "text-app-green",
+    bgClass: "bg-app-green/10",
+  },
+  {
+    label: "Visa & paperwork",
+    icon: FileText,
+    iconClass: "text-app-purple",
+    bgClass: "bg-app-purple/10",
+  },
+  {
+    label: "Flight connections",
+    icon: Plane,
+    iconClass: "text-app-blue",
+    bgClass: "bg-app-blue/10",
+  },
+  { label: "Local transport", icon: Bus, iconClass: "text-app-amber", bgClass: "bg-app-amber/10" },
+  {
+    label: "Language barriers",
+    icon: Languages,
+    iconClass: "text-app-pink",
+    bgClass: "bg-app-pink/10",
+  },
+  {
+    label: "Safety concerns",
+    icon: ShieldCheck,
+    iconClass: "text-app-cyan",
+    bgClass: "bg-app-cyan/10",
+  },
+  {
+    label: "Finding the right hotel",
+    icon: Hotel,
+    iconClass: "text-app-indigo",
+    bgClass: "bg-app-indigo/10",
+  },
 ];
 
 interface PrioritiesStepProps {
@@ -75,19 +111,17 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
               }`}
             >
               <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: `${option.color}14` }}
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${option.bgClass}`}
               >
                 <Icon
-                  className="h-5 w-5"
-                  style={{ color: isSelected ? option.color : "#8ea0bb" }}
+                  className={`h-5 w-5 ${isSelected ? option.iconClass : "text-label"}`}
                   strokeWidth={2.1}
                 />
               </span>
 
               <span
                 className={`flex-1 text-[14px] font-semibold tracking-[-0.01em] ${
-                  isSelected ? "text-heading" : "text-[#3b4658]"
+                  isSelected ? "text-heading" : "text-prose"
                 }`}
               >
                 {option.label}
@@ -97,7 +131,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                   isSelected
                     ? "border-brand-primary bg-brand-primary"
-                    : "border-[#d5dbe5] bg-white/70"
+                    : "border-checkbox-border bg-white/70"
                 }`}
               >
                 {isSelected && (

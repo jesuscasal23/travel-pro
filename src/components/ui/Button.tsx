@@ -21,8 +21,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /* ── Classic variants (use size system) ── */
 const classicVariants: Record<string, string> = {
-  primary: "btn-primary",
-  ghost: "btn-ghost",
+  primary:
+    "bg-primary text-primary-foreground inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 hover:opacity-90 active:scale-[0.97]",
+  ghost:
+    "text-foreground border-border inline-flex items-center justify-center rounded-lg border bg-transparent font-medium transition-all duration-200 hover:bg-muted active:scale-[0.97]",
   danger:
     "bg-red-600 dark:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-700 dark:hover:bg-red-800 active:scale-[0.97]",
   "danger-outline":

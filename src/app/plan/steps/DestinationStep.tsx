@@ -220,7 +220,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                     event.preventDefault();
                     handleSelectResult(result);
                   }}
-                  className="border-edge/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 hover:bg-[#f7faff]"
+                  className="border-edge/70 hover:bg-surface-hover flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0"
                 >
                   <div>
                     <p className="text-navy text-sm font-semibold">{result.label}</p>
@@ -256,7 +256,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
               clearError("dateStart");
             }}
             className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
-            style={{ color: dateStart ? "#1b2b4b" : "#9ca3af" }}
+            style={{ color: dateStart ? "var(--color-navy)" : "var(--color-faint)" }}
           />
         </div>
         {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
@@ -279,7 +279,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
               clearError("dateEnd");
             }}
             className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
-            style={{ color: dateEnd ? "#1b2b4b" : "#9ca3af" }}
+            style={{ color: dateEnd ? "var(--color-navy)" : "var(--color-faint)" }}
           />
         </div>
         {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
@@ -309,7 +309,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                   className={`rounded-2xl border px-4 py-2.5 text-[12px] font-bold tracking-[0.08em] uppercase transition-all ${
                     isSelected
                       ? "border-brand-primary bg-brand-primary-soft text-brand-primary shadow-[var(--shadow-brand-md)]"
-                      : "border-edge/80 bg-white/88 text-[#59657a]"
+                      : "border-edge/80 text-prose bg-white/88"
                   }`}
                 >
                   {item.name}

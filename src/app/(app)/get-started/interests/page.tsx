@@ -28,50 +28,50 @@ const interestCards: InterestCard[] = [
   {
     id: "surfing",
     icon: Waves,
-    iconClassName: "text-[#3b82ff]",
-    surfaceClassName: "bg-[#edf4ff]",
+    iconClassName: "text-app-blue",
+    surfaceClassName: "bg-app-blue/10",
   },
   {
     id: "food",
     icon: UtensilsCrossed,
-    iconClassName: "text-[#f97316]",
-    surfaceClassName: "bg-[#fff3e8]",
+    iconClassName: "text-app-orange",
+    surfaceClassName: "bg-app-orange/10",
   },
   {
     id: "culture",
     icon: Globe2,
-    iconClassName: "text-[#6b5cff]",
-    surfaceClassName: "bg-[#f0efff]",
+    iconClassName: "text-app-violet",
+    surfaceClassName: "bg-app-violet/10",
   },
   {
     id: "hiking",
     icon: Mountain,
-    iconClassName: "text-[#10b981]",
-    surfaceClassName: "bg-[#e8f8f1]",
+    iconClassName: "text-app-green",
+    surfaceClassName: "bg-app-green/10",
   },
   {
     id: "nightlife",
     icon: Music4,
-    iconClassName: "text-[#ff4b7a]",
-    surfaceClassName: "bg-[#ffeef3]",
+    iconClassName: "text-app-rose",
+    surfaceClassName: "bg-app-rose/10",
   },
   {
     id: "relaxation",
     icon: Coffee,
-    iconClassName: "text-[#f59e0b]",
-    surfaceClassName: "bg-[#fff8e8]",
+    iconClassName: "text-app-amber",
+    surfaceClassName: "bg-app-amber/10",
   },
   {
     id: "nature",
     icon: SunMedium,
-    iconClassName: "text-[#36a3ff]",
-    surfaceClassName: "bg-[#eef7ff]",
+    iconClassName: "text-app-light-blue",
+    surfaceClassName: "bg-app-light-blue/10",
   },
   {
     id: "photography",
     icon: Camera,
-    iconClassName: "text-[#8b5cf6]",
-    surfaceClassName: "bg-[#f3efff]",
+    iconClassName: "text-app-purple",
+    surfaceClassName: "bg-app-purple/10",
   },
 ];
 
@@ -129,7 +129,7 @@ export default function InterestsPage() {
                   }`}
                 >
                   <Icon className={`h-9 w-9 ${interest.iconClassName}`} strokeWidth={1.8} />
-                  <span className="text-[11px] font-bold tracking-[0.06em] text-[#314158] uppercase">
+                  <span className="text-prose text-[11px] font-bold tracking-[0.06em] uppercase">
                     {labels[interest.id]}
                   </span>
                 </button>
@@ -145,7 +145,7 @@ export default function InterestsPage() {
             disabled={interests.length === 0}
             className={`flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985] ${
               interests.length === 0
-                ? "cursor-not-allowed bg-[#a3a3a3] shadow-none"
+                ? "bg-disabled cursor-not-allowed shadow-none"
                 : "bg-ink shadow-dark-cta"
             }`}
           >

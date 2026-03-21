@@ -45,7 +45,7 @@ export function Modal({
             <Dialog.Close asChild>
               <button
                 aria-label="Close"
-                className="hover:bg-brand-primary-soft hover:text-steel -mt-2 -mr-2 flex h-10 w-10 items-center justify-center rounded-2xl text-[#7d8ea7] transition-all duration-200"
+                className="hover:bg-brand-primary-soft hover:text-steel text-meta -mt-2 -mr-2 flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-200"
               >
                 <X className="h-5 w-5" />
               </button>

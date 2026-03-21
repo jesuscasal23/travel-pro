@@ -35,7 +35,7 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
     <div className="space-y-5 pb-2 text-center">
       <div className="flex items-start justify-between gap-4 text-left">
         <div className="min-w-0 flex-1">
-          <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#10b981] uppercase">
+          <p className="font-display text-app-green text-[11px] font-bold tracking-[0.34em] uppercase">
             Profile Complete
           </p>
           <h2 className="text-navy mt-3 text-[30px] leading-[1.06] font-bold tracking-[-0.05em]">

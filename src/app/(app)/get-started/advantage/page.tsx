@@ -82,7 +82,7 @@ export default function AdvantagePage() {
                   key={item.title}
                   className="shadow-glass flex items-center gap-3 rounded-[28px] border border-white/80 bg-white/88 px-4 py-3.5 backdrop-blur-sm"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#eff4fb]">
+                  <div className="bg-surface-soft flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
                     <Icon className="text-brand-primary h-6 w-6" strokeWidth={2.1} />
                   </div>
 
@@ -90,13 +90,13 @@ export default function AdvantagePage() {
                     <p className="text-heading text-[16px] font-semibold tracking-[-0.02em]">
                       {item.title}
                     </p>
-                    <p className="mt-1 text-[10px] font-bold tracking-[0.18em] text-[#9babc1] uppercase">
+                    <p className="text-subtext mt-1 text-[10px] font-bold tracking-[0.18em] uppercase">
                       {item.description}
                     </p>
                   </div>
 
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#dbf4e8]">
-                    <Check className="h-4 w-4 text-[#47bc84]" strokeWidth={2.8} />
+                  <div className="bg-check-bg flex h-7 w-7 shrink-0 items-center justify-center rounded-full">
+                    <Check className="text-check h-4 w-4" strokeWidth={2.8} />
                   </div>
                 </article>
               );

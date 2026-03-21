@@ -104,6 +104,46 @@
   --color-google-border: #d7e3ff;
   --color-google-bg: #f8fbff;
   --color-google-hover-border: #bfd2ff;
+
+  /* Surface tokens */
+  --color-surface-soft: #f4f7fb;
+  --color-surface-hover: #f7faff;
+
+  /* Text tokens */
+  --color-meta: #7d8ea7;
+  --color-food-text: #9a6a10;
+  --color-prose: #3b4658;
+  --color-info-privacy: #6f86aa;
+
+  /* Alert text tokens */
+  --color-surface-info-text: #1e3a5f;
+  --color-surface-info-detail: #4b6b8a;
+  --color-surface-warn-text: #78350f;
+  --color-surface-warn-detail: #92400e;
+
+  /* Status tokens */
+  --color-check: #47bc84;
+  --color-check-bg: #dbf4e8;
+  --color-disabled: #a3a3a3;
+  --color-checkbox-border: #d5dbe5;
+  --color-slider-track: #e7ebf2;
+  --color-muted-icon: #97a8bf;
+
+  /* Accent palette extensions */
+  --color-app-amber: #f59e0b;
+  --color-app-indigo: #6366f1;
+  --color-app-sky: #38bdf8;
+  --color-app-cyan: #06b6d4;
+  --color-app-yellow: #eab308;
+  --color-app-gold: #b59a32;
+  --color-app-rose: #ff4b7a;
+  --color-app-light-blue: #36a3ff;
+  --color-app-violet: #6b5cff;
+
+  /* Dark accents */
+  --color-navy-deep: #0e1f46;
+  --color-sparkle-blue: #52a3ff;
+  --color-muted-slate: #8ea3c5;
 }
 
 .dark {
@@ -185,6 +225,7 @@
   --color-app-blue: #3b82f6;
   --color-app-purple: #8b5cf6;
   --color-app-pink: #ec4899;
+  --color-app-orange: #f97316;
   --color-app-teal: #0d9488;
   --color-dim: #6b7280;
   --color-faint: #9ca3af;
@@ -214,6 +255,46 @@
   --color-google-border: var(--color-google-border);
   --color-google-bg: var(--color-google-bg);
   --color-google-hover-border: var(--color-google-hover-border);
+
+  /* Surface tokens */
+  --color-surface-soft: var(--color-surface-soft);
+  --color-surface-hover: var(--color-surface-hover);
+
+  /* Text tokens */
+  --color-meta: var(--color-meta);
+  --color-food-text: var(--color-food-text);
+  --color-prose: var(--color-prose);
+  --color-info-privacy: var(--color-info-privacy);
+
+  /* Alert text tokens */
+  --color-surface-info-text: var(--color-surface-info-text);
+  --color-surface-info-detail: var(--color-surface-info-detail);
+  --color-surface-warn-text: var(--color-surface-warn-text);
+  --color-surface-warn-detail: var(--color-surface-warn-detail);
+
+  /* Status tokens */
+  --color-check: var(--color-check);
+  --color-check-bg: var(--color-check-bg);
+  --color-disabled: var(--color-disabled);
+  --color-checkbox-border: var(--color-checkbox-border);
+  --color-slider-track: var(--color-slider-track);
+  --color-muted-icon: var(--color-muted-icon);
+
+  /* Accent palette extensions */
+  --color-app-amber: var(--color-app-amber);
+  --color-app-indigo: var(--color-app-indigo);
+  --color-app-sky: var(--color-app-sky);
+  --color-app-cyan: var(--color-app-cyan);
+  --color-app-yellow: var(--color-app-yellow);
+  --color-app-gold: var(--color-app-gold);
+  --color-app-rose: var(--color-app-rose);
+  --color-app-light-blue: var(--color-app-light-blue);
+  --color-app-violet: var(--color-app-violet);
+
+  /* Dark accents */
+  --color-navy-deep: var(--color-navy-deep);
+  --color-sparkle-blue: var(--color-sparkle-blue);
+  --color-muted-slate: var(--color-muted-slate);
 }
 
 /* ============================================================
@@ -254,25 +335,7 @@
     @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
   }
 
-  .chip {
-    @apply border-border cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 select-none active:scale-95;
-  }
-
-  .chip-selected {
-    @apply bg-primary text-primary-foreground border-primary;
-  }
-
-  .badge-success {
-    @apply rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300;
-  }
-
-  .badge-warning {
-    @apply rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300;
-  }
-
-  .badge-info {
-    @apply rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700 dark:bg-sky-900/30 dark:text-sky-300;
-  }
+  /* Badge variants moved to src/components/ui/Badge.tsx */
 }
 
 /* ============================================================

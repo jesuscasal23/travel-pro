@@ -79,17 +79,17 @@ export default function RhythmPage() {
                 >
                   <div
                     className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
-                      isSelected ? "bg-brand-primary" : "bg-[#f2f5fa]"
+                      isSelected ? "bg-brand-primary" : "bg-surface-soft"
                     }`}
                   >
                     <Icon
-                      className={`h-6 w-6 ${isSelected ? "text-white" : "text-[#97a8bf]"}`}
+                      className={`h-6 w-6 ${isSelected ? "text-white" : "text-muted-icon"}`}
                       strokeWidth={2.1}
                     />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[16px] font-semibold tracking-[-0.02em] text-[#2a3242]">
+                    <p className="text-prose truncate text-[16px] font-semibold tracking-[-0.02em]">
                       {option.title}
                     </p>
                     <p className="text-subtext mt-1 text-[12px] font-medium">

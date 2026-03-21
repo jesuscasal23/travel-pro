@@ -54,7 +54,7 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
         <div className="border-edge flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border bg-white">
           <Info className="text-brand-primary h-4 w-4" strokeWidth={2.4} />
         </div>
-        <p className="text-sm leading-6 font-semibold text-[#6f86aa]">
+        <p className="text-info-privacy text-sm leading-6 font-semibold">
           Your data is encrypted and used only to personalize your travel experience.
         </p>
       </section>

@@ -3,6 +3,7 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import";
+import travelProPlugin from "./eslint-rules/index.js";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -44,6 +45,17 @@ const eslintConfig = defineConfig([
 
       // Catch circular imports — disabled in pre-commit for speed; run in CI
       // "import/no-cycle": ["error", { maxDepth: 3, ignoreExternal: true }],
+    },
+  },
+  // Design-system enforcement
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: {
+      "travel-pro": travelProPlugin,
+    },
+    rules: {
+      // Flag hardcoded hex colors in Tailwind arbitrary values — use design tokens instead
+      "travel-pro/no-hardcoded-colors": "warn",
     },
   },
   {

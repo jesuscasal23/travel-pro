@@ -45,7 +45,7 @@ export default function HomePage() {
         </div>
         <button
           onClick={() => router.push("/profile")}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eef2f7]"
+          className="bg-surface-soft flex h-10 w-10 items-center justify-center rounded-full"
         >
           <span className="text-dim text-sm font-bold">👤</span>
         </button>
@@ -70,12 +70,28 @@ export default function HomePage() {
         <div className="mt-4 space-y-3">
           <NextStepRow
             icon={BedDouble}
-            color="#8b5cf6"
+            iconClass="text-app-purple"
+            bgClass="bg-app-purple/8"
             label={`Book accommodation in ${destination}`}
           />
-          <NextStepRow icon={Plane} color="#3b82f6" label="Upload flight confirmation" />
-          <NextStepRow icon={ClipboardList} color="#f59e0b" label="Finish packing checklist" />
-          <NextStepRow icon={ShieldCheck} color="#10b981" label="Check visa requirements" />
+          <NextStepRow
+            icon={Plane}
+            iconClass="text-app-blue"
+            bgClass="bg-app-blue/8"
+            label="Upload flight confirmation"
+          />
+          <NextStepRow
+            icon={ClipboardList}
+            iconClass="text-app-amber"
+            bgClass="bg-app-amber/8"
+            label="Finish packing checklist"
+          />
+          <NextStepRow
+            icon={ShieldCheck}
+            iconClass="text-app-green"
+            bgClass="bg-app-green/8"
+            label="Check visa requirements"
+          />
         </div>
       </section>
 
@@ -90,7 +106,7 @@ export default function HomePage() {
               Ready
             </span>
           </div>
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#eef2f7]">
+          <div className="bg-surface-soft mt-3 h-2 w-full overflow-hidden rounded-full">
             <div className="bg-brand-primary h-full rounded-full" style={{ width: "72%" }} />
           </div>
           <div className="mt-4 space-y-2.5">
@@ -109,10 +125,12 @@ export default function HomePage() {
         <div className="mt-4 space-y-3">
           <div className="border-surface-info-border bg-surface-info-bg rounded-2xl border p-4">
             <div className="flex items-start gap-3">
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#3b82f6]" />
+              <Info className="text-app-blue mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-[#1e3a5f]">Flights cheaper this week</p>
-                <p className="mt-1 text-xs text-[#4b6b8a]">
+                <p className="text-surface-info-text text-sm font-semibold">
+                  Flights cheaper this week
+                </p>
+                <p className="text-surface-info-detail mt-1 text-xs">
                   Prices for {destination} flights have dropped by 15%. Consider booking now.
                 </p>
               </div>
@@ -121,12 +139,12 @@ export default function HomePage() {
 
           <div className="border-surface-warn-border bg-surface-warn-bg rounded-2xl border p-4">
             <div className="flex items-start gap-3">
-              <CloudSun className="mt-0.5 h-4 w-4 shrink-0 text-[#f59e0b]" />
+              <CloudSun className="text-app-amber mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-[#78350f]">
+                <p className="text-surface-warn-text text-sm font-semibold">
                   Weather change in {destination}
                 </p>
-                <p className="mt-1 text-xs text-[#92400e]">
+                <p className="text-surface-warn-detail mt-1 text-xs">
                   Expect rain during your first 3 days. Don&apos;t forget an umbrella.
                 </p>
               </div>
@@ -155,11 +173,13 @@ export default function HomePage() {
 
 function NextStepRow({
   icon: Icon,
-  color,
+  iconClass,
+  bgClass,
   label,
 }: {
   icon: typeof BedDouble;
-  color: string;
+  iconClass: string;
+  bgClass: string;
   label: string;
 }) {
   return (
@@ -167,11 +187,8 @@ function NextStepRow({
       type="button"
       className="shadow-glass-sm flex w-full items-center gap-3 rounded-2xl border border-white/80 bg-white/88 px-4 py-3.5 text-left"
     >
-      <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-        style={{ backgroundColor: `${color}14` }}
-      >
-        <Icon className="h-5 w-5" style={{ color }} strokeWidth={2} />
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bgClass}`}>
+        <Icon className={`h-5 w-5 ${iconClass}`} strokeWidth={2} />
       </div>
       <span className="text-heading flex-1 text-[14px] font-semibold tracking-[-0.01em]">
         {label}
@@ -185,7 +202,7 @@ function PrepItem({ icon, label, done }: { icon: string; label: string; done?: b
   return (
     <div className="flex items-center gap-2.5">
       <span className="text-sm">{icon}</span>
-      <span className={`text-sm ${done ? "text-[#3b4658]" : "text-label"}`}>{label}</span>
+      <span className={`text-sm ${done ? "text-prose" : "text-label"}`}>{label}</span>
     </div>
   );
 }

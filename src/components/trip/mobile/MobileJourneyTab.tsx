@@ -175,7 +175,7 @@ export function MobileJourneyTab({
                 </p>
                 <button
                   onClick={() => onGenerateActivities?.(cityStop.id, cityStop.city)}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#7b2d2d] px-4 py-2.5 text-sm font-semibold text-white"
+                  className="bg-surface-error-text mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white"
                 >
                   Retry
                 </button>
