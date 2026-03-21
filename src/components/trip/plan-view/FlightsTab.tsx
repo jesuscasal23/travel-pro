@@ -137,8 +137,10 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
     return derived;
   }, [route, flightOptions, flightLegs, homeIata, dateStart]);
 
-  // Auto-fetch all legs that don't have results
-  const hasLegsToFetch = legs.some((l) => l.results.length === 0 && l.departureDate);
+  // Auto-fetch legs that have no results OR only have placeholder results without booking tokens
+  const hasLegsToFetch = legs.some(
+    (l) => l.departureDate && (l.results.length === 0 || l.results.every((r) => !r.bookingToken))
+  );
   const { getResultsForLeg, isLoading: batchLoading } = useBatchFlightSearch(
     tripId,
     legs,

@@ -99,7 +99,11 @@ export function useBatchFlightSearch(
       return {
         queryKey: queryKeys.flights.search(tripId, request),
         queryFn: ({ signal }) => fetchFlightSearch(tripId, request, signal),
-        enabled: enabled && leg.results.length === 0 && !!leg.departureDate && travelers > 0,
+        enabled:
+          enabled &&
+          (leg.results.length === 0 || leg.results.every((r) => !r.bookingToken)) &&
+          !!leg.departureDate &&
+          travelers > 0,
         staleTime: 5 * 60 * 1000,
         retry: 1,
       };

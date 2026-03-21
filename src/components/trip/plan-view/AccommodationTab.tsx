@@ -230,12 +230,9 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
             {cityAccom.hotels.length > 0 ? (
               <div className="space-y-2">
                 {cityAccom.hotels.map((hotel) => (
-                  <a
+                  <div
                     key={hotel.hotelId}
-                    href={hotel.bookingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-background border-border hover:border-primary/30 group block rounded-lg border p-3 transition-colors"
+                    className="bg-background border-border rounded-lg border p-3"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -243,7 +240,6 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
                           <span className="text-foreground truncate text-sm font-medium">
                             {hotel.name}
                           </span>
-                          <ExternalLink className="text-muted-foreground h-3 w-3 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                         </div>
                         {hotel.rating && (
                           <div className="mt-0.5 flex items-center gap-0.5">
@@ -270,7 +266,15 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
                         {hotel.distance} from center
                       </p>
                     )}
-                  </a>
+                    <a
+                      href={hotel.bookingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="bg-primary hover:bg-primary/90 mt-2 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold text-white transition-colors"
+                    >
+                      Book now →
+                    </a>
+                  </div>
                 ))}
               </div>
             ) : (
