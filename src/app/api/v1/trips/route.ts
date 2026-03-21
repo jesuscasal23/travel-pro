@@ -8,7 +8,7 @@ import { apiHandler, parseAndValidateRequest, requireAuth } from "@/lib/api/help
 import { findProfileByUserId } from "@/lib/features/profile/profile-service";
 import { CreateTripInputSchema } from "@/lib/features/trips/schemas";
 import { createTrip, listTripsForProfile } from "@/lib/features/trips/trip-collection-service";
-import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 
 export const dynamic = "force-dynamic";
 

@@ -33,7 +33,7 @@ import {
   useSaveProfile,
 } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/core/supabase-client";
 import { travelStyles } from "@/data/travelStyles";
 import { hasInterest, normalizeInterests } from "@/lib/profile/interests";
 

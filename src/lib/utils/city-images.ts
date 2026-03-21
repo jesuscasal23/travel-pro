@@ -41,8 +41,3 @@ export function getCityImage(cityName: string, countryCode: string): string {
   const cc = countryCode.toLowerCase();
   return `/images/cities/${cc}/${slug}.webp`;
 }
-
-/** Get a hero-sized image (same source, CSS handles cropping) */
-export function getCityHeroImage(cityName: string, countryCode: string): string {
-  return getCityImage(cityName, countryCode);
-}

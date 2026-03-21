@@ -8,8 +8,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/core/supabase-client";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
+import { v2InputClass, v2LabelClass, v2ErrorClass } from "@/components/auth/auth-styles";
 import { Button } from "@/components/v2/ui/Button";
 import { queryKeys } from "@/hooks/api/keys";
 
@@ -29,11 +30,6 @@ const signupSchema = z
   });
 
 type SignupFormData = z.infer<typeof signupSchema>;
-
-const inputClass =
-  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-v2-navy outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
-const labelClass = "mb-2 flex items-center gap-2 text-sm font-semibold text-v2-navy";
-const errorClass = "mt-2 text-sm text-[#dc2626]";
 
 function SignupForm() {
   const router = useRouter();
@@ -165,7 +161,7 @@ function SignupForm() {
                     </div>
 
                     <div>
-                      <label htmlFor="signup-email" className={labelClass}>
+                      <label htmlFor="signup-email" className={v2LabelClass}>
                         <Mail className="h-4 w-4 text-[#8ea0bb]" />
                         Email address
                       </label>
@@ -179,15 +175,15 @@ function SignupForm() {
                         autoCorrect="off"
                         spellCheck={false}
                         placeholder="you@example.com"
-                        className={inputClass}
+                        className={v2InputClass}
                       />
                       {errors.email?.message && (
-                        <p className={errorClass}>{errors.email.message}</p>
+                        <p className={v2ErrorClass}>{errors.email.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <label htmlFor="signup-password" className={labelClass}>
+                      <label htmlFor="signup-password" className={v2LabelClass}>
                         <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
                         Password
                       </label>
@@ -197,15 +193,15 @@ function SignupForm() {
                         type="password"
                         autoComplete="new-password"
                         placeholder="At least 8 characters"
-                        className={inputClass}
+                        className={v2InputClass}
                       />
                       {errors.password?.message && (
-                        <p className={errorClass}>{errors.password.message}</p>
+                        <p className={v2ErrorClass}>{errors.password.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <label htmlFor="signup-confirm-password" className={labelClass}>
+                      <label htmlFor="signup-confirm-password" className={v2LabelClass}>
                         <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
                         Confirm password
                       </label>
@@ -215,10 +211,10 @@ function SignupForm() {
                         type="password"
                         autoComplete="new-password"
                         placeholder="Repeat your password"
-                        className={inputClass}
+                        className={v2InputClass}
                       />
                       {errors.confirmPassword?.message && (
-                        <p className={errorClass}>{errors.confirmPassword.message}</p>
+                        <p className={v2ErrorClass}>{errors.confirmPassword.message}</p>
                       )}
                     </div>
 

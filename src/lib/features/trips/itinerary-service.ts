@@ -4,6 +4,8 @@
 // generation state transitions. No HTTP concerns.
 // ============================================================
 import { prisma } from "@/lib/core/prisma";
+import { withTripLock } from "@/lib/core/with-trip-lock";
+import { GenerationAlreadyInProgressError } from "@/lib/api/errors";
 import crypto from "crypto";
 import { GENERATING_ITINERARY_SELECT, ITINERARY_VERSION_SELECT } from "./query-shapes";
 import { createLogger } from "@/lib/core/logger";
@@ -12,16 +14,8 @@ import type { Itinerary } from "@/types";
 
 const log = createLogger("itinerary-service");
 
-export class GenerationAlreadyInProgressError extends Error {
-  constructor(
-    public tripId: string,
-    public itineraryId: string,
-    public generationJobId?: string | null
-  ) {
-    super("Generation already in progress");
-    this.name = "GenerationAlreadyInProgressError";
-  }
-}
+// Re-export for consumers that import from this module
+export { GenerationAlreadyInProgressError };
 
 /**
  * Find the current active itinerary for a trip.
@@ -90,9 +84,7 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
     generationJobId,
   });
 
-  const record = await prisma.$transaction(async (tx) => {
-    log.info("createGeneratingRecord: acquiring advisory lock", { tripId: input.tripId });
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${input.tripId}))`;
+  const record = await withTripLock(input.tripId, async (tx) => {
     log.info("createGeneratingRecord: advisory lock acquired", {
       tripId: input.tripId,
       elapsed: `${Date.now() - t0}ms`,

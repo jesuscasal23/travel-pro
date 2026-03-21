@@ -9,7 +9,7 @@ vi.mock("@/lib/core/prisma", () => ({
   },
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
@@ -41,7 +41,7 @@ vi.mock("@/lib/core/request-context", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
-import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { optimizeFlights } from "@/lib/flights/optimizer";
 import { parseIataCode } from "@/lib/affiliate/link-generator";
 import { lookupIata } from "@/lib/flights/city-iata-map";

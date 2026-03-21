@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { BottomNav } from "@/components/v2/ui/BottomNav";
 import { TripBanners } from "@/components/trip/TripBanners";
 import { useTripContext } from "@/components/trip/TripContext";
-import { getCityHeroImage, getCityPlaceholder } from "@/lib/utils/city-images";
+import { useCityImage } from "@/hooks/useCityImage";
 import { formatDateRange } from "@/lib/utils/format/date";
 import { TripSectionNav } from "./TripSectionNav";
 
@@ -20,12 +19,8 @@ export function TripMobileShell({
   showBanners = false,
 }: TripMobileShellProps) {
   const { itinerary, tripId, tripTitle, totalDays } = useTripContext();
-  const [src, setSrc] = useState(() => {
-    const heroStop = itinerary.route[0];
-    return heroStop
-      ? getCityHeroImage(heroStop.city, heroStop.countryCode)
-      : getCityPlaceholder(tripTitle);
-  });
+  const heroStop = itinerary.route[0];
+  const [src, onImgError] = useCityImage(heroStop?.city ?? tripTitle, heroStop?.countryCode);
 
   const firstDate = itinerary.days[0]?.date;
   const lastDate = itinerary.days[itinerary.days.length - 1]?.date;
@@ -51,12 +46,7 @@ export function TripMobileShell({
           <div className="px-6">
             <div className="relative overflow-hidden rounded-[30px] border border-white/80 shadow-[0_24px_48px_rgba(27,43,75,0.08)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt=""
-                className="h-56 w-full object-cover"
-                onError={() => setSrc(getCityPlaceholder(tripTitle))}
-              />
+              <img src={src} alt="" className="h-56 w-full object-cover" onError={onImgError} />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,19,39,0.16)_0%,rgba(9,19,39,0.74)_100%)]" />
               <div className="bg-brand-primary absolute top-4 left-4 rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-white uppercase">
                 Active Trip

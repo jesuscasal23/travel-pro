@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { z } from "zod";
-import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { prisma } from "@/lib/core/prisma";
 import { createLogger } from "@/lib/core/logger";
 import { requestContext } from "@/lib/core/request-context";
@@ -41,14 +41,6 @@ export async function requireSuperUser(): Promise<{ userId: string; profileId: s
   const profile = await requireProfile(userId);
   if (!profile.isSuperUser) throw new ForbiddenError("Forbidden");
   return { userId, profileId: profile.id };
-}
-
-/** Returns trip after verifying ownership, or throws 403/404. */
-export async function requireUserTripOwner(tripId: string, profileId: string) {
-  const trip = await prisma.trip.findUnique({ where: { id: tripId } });
-  if (!trip) throw new TripNotFoundError({ tripId });
-  if (trip.profileId !== profileId) throw new TripOwnerRequiredError({ tripId, profileId });
-  return trip;
 }
 
 /**

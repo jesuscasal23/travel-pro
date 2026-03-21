@@ -28,7 +28,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockRouterPush }),
 }));
 
-vi.mock("@/lib/supabase/client", () => ({
+vi.mock("@/lib/core/supabase-client", () => ({
   createClient: () => ({
     auth: {
       getUser: mockGetUser,
@@ -46,14 +46,10 @@ vi.mock("next/link", () => mockNextLink());
 
 vi.mock("framer-motion", () => mockFramerMotion());
 
-vi.mock("@/components/ui", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/components/ui")>();
-  return {
-    ...actual,
-    Badge: ({ children }: { children?: React.ReactNode }) =>
-      React.createElement("span", null, children),
-  };
-});
+vi.mock("@/components/ui/Button", () => ({
+  Button: ({ children, ...props }: React.ComponentProps<"button">) =>
+    React.createElement("button", props, children),
+}));
 
 vi.mock("@/lib/client/api-error-reporting", () => ({
   parseApiErrorResponse: vi.fn(async (res: Response, fallback: string) => ({

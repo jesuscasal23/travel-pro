@@ -56,7 +56,6 @@ const visaInfoSchema = z.object({
     "no-admission",
   ]),
   maxStayDays: z.number(),
-  processingDays: z.number().optional(),
   notes: z.string(),
   icon: z.string(),
   label: z.string(),
@@ -123,6 +122,5 @@ export const itinerarySchema = itineraryCoreSchema.extend({
   weatherData: z.array(cityWeatherSchema).optional(),
   accommodationData: z.array(cityAccommodationSchema).optional(),
   flightLegs: z.array(itineraryFlightLegSchema).optional(),
-  flightBaselineCost: z.number().optional(),
   flightOptions: z.array(flightLegResultsSchema).optional(),
 });

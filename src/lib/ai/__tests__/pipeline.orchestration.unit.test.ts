@@ -61,8 +61,11 @@ vi.mock("../prompts/route-selector", () => ({
   selectRoute: mocks.selectRoute,
 }));
 
-vi.mock("../enrichment", () => ({
+vi.mock("../enrich-visa", () => ({
   enrichVisa: mocks.enrichVisa,
+}));
+
+vi.mock("../enrich-weather", () => ({
   enrichWeather: mocks.enrichWeather,
 }));
 

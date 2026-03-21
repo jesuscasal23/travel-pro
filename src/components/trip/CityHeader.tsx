@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { getCityHeroImage, getCityPlaceholder, CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
+import { CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
+import { useCityImage } from "@/hooks/useCityImage";
 import type { CityStop, CityWeather } from "@/types";
 
 interface CityHeaderProps {
@@ -13,7 +13,7 @@ interface CityHeaderProps {
 
 export function CityHeader({ city, weather, variant }: CityHeaderProps) {
   const isMobile = variant === "mobile";
-  const [src, setSrc] = useState(() => getCityHeroImage(city.city, city.countryCode));
+  const [src, onImgError] = useCityImage(city.city, city.countryCode);
 
   return (
     <div
@@ -28,7 +28,7 @@ export function CityHeader({ city, weather, variant }: CityHeaderProps) {
         placeholder="blur"
         blurDataURL={CITY_IMAGE_BLUR}
         unoptimized
-        onError={() => setSrc(getCityPlaceholder(city.city))}
+        onError={onImgError}
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,19,39,0.12)_0%,rgba(9,19,39,0.22)_32%,rgba(9,19,39,0.78)_100%)]" />
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { interestOptions } from "@/data/interests";
+import { OptionButton } from "./OptionButton";
 
 interface InterestSelectorProps {
   selected: string[];
@@ -10,25 +11,18 @@ interface InterestSelectorProps {
 export function InterestSelector({ selected, onToggle }: InterestSelectorProps) {
   return (
     <div className="grid grid-cols-2 gap-2.5">
-      {interestOptions.map((interest) => {
-        const isSelected = selected.includes(interest.id);
-        return (
-          <button
-            key={interest.id}
-            type="button"
-            onClick={() => onToggle(interest.id)}
-            aria-pressed={isSelected}
-            className={`rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all ${
-              isSelected
-                ? "border-brand-primary bg-brand-primary text-white"
-                : "bg-v2-chip-bg text-v2-navy border-transparent"
-            }`}
-          >
-            <span className="mr-2">{interest.emoji}</span>
-            {interest.label}
-          </button>
-        );
-      })}
+      {interestOptions.map((interest) => (
+        <OptionButton
+          key={interest.id}
+          selected={selected.includes(interest.id)}
+          onClick={() => onToggle(interest.id)}
+          variant="chip"
+          className="rounded-xl px-3 py-2.5 text-left text-sm font-medium"
+        >
+          <span className="mr-2">{interest.emoji}</span>
+          {interest.label}
+        </OptionButton>
+      ))}
     </div>
   );
 }

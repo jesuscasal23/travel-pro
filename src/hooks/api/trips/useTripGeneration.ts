@@ -3,6 +3,7 @@ import { queryKeys } from "@/hooks/api/keys";
 import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import { apiFetchRaw } from "@/lib/client/api-fetch";
 import { reportApiError } from "@/lib/client/api-error-reporting";
+import { consumeSSEStream } from "@/lib/client/sse-parser";
 import type { Itinerary } from "@/types";
 import { fetchTrip } from "./shared";
 
@@ -57,56 +58,20 @@ export function useTripGeneration() {
         throw new Error("Generation failed: no response stream");
       }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
       const initialRequestId = res.headers.get("x-request-id");
       let resultTripId: string | null = null;
-      let buffer = "";
-
-      const processFrame = (frame: string) => {
-        let payload = "";
-        for (const line of frame.split("\n")) {
-          const normalized = line.trim();
-          if (!normalized.startsWith("data:")) continue;
-          payload += normalized.slice(5).trim();
-        }
-        if (!payload) return;
-
-        try {
-          const event = JSON.parse(payload) as {
-            stage?: string;
-            trip_id?: string;
-            message?: string;
-          };
-          if (event.stage) onStage?.(event.stage);
-          if (event.stage === "done" && event.trip_id) {
-            resultTripId = event.trip_id;
-          }
-          if (event.stage === "error") {
-            throw new Error(event.message || "Generation failed");
-          }
-        } catch (e) {
-          if (e instanceof SyntaxError) {
-            return;
-          }
-          throw e instanceof Error ? e : new Error("Generation failed");
-        }
-      };
 
       try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (value) {
-            buffer += decoder.decode(value, { stream: !done });
+        await consumeSSEStream(res.body, (event) => {
+          const stage = event.stage as string | undefined;
+          if (stage) onStage?.(stage);
+          if (stage === "done" && event.trip_id) {
+            resultTripId = event.trip_id as string;
           }
-          const normalized = buffer.replace(/\r\n/g, "\n");
-          const frames = normalized.split("\n\n");
-          buffer = frames.pop() ?? "";
-          for (const frame of frames) processFrame(frame);
-          if (done) break;
-        }
-
-        if (buffer.trim()) processFrame(buffer);
+          if (stage === "error") {
+            throw new Error((event.message as string) || "Generation failed");
+          }
+        });
 
         if (!resultTripId) {
           throw new Error("Generation failed: stream ended before completion");

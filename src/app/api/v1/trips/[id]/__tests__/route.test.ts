@@ -20,7 +20,7 @@ vi.mock("@/lib/features/trips/trip-collection-service", () => ({
   deleteTripById: vi.fn(),
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
@@ -40,7 +40,7 @@ vi.mock("@/lib/core/request-context", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
-import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import {
   findActiveItinerary,
   createItineraryVersion,

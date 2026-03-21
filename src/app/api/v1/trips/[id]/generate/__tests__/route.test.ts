@@ -57,7 +57,7 @@ vi.mock("@/lib/flights/city-iata-map", () => ({
   lookupIata: mocks.lookupIata,
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
@@ -77,7 +77,7 @@ vi.mock("@/lib/core/request-context", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
-import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { POST } from "../route";
 
 const mockPrisma = prisma as unknown as {

@@ -21,7 +21,8 @@ import {
   assembleCityActivitiesPrompt,
 } from "./prompts/city-activities";
 import { selectRoute } from "./prompts/route-selector";
-import { enrichVisa, enrichWeather } from "./enrichment";
+import { enrichVisa } from "./enrich-visa";
+import { enrichWeather } from "./enrich-weather";
 import { callClaude, getAnthropic } from "./client";
 import { parseAndValidate, extractJSON, cityActivitiesOutputSchema } from "./parser";
 import type { UserProfile, TripIntent, Itinerary, TripDay } from "@/types";
@@ -486,7 +487,3 @@ export async function generateItinerary(
   log.info("Full generation complete", { tripId: tripIntent.id, elapsed: elapsed() });
   return itinerary;
 }
-
-// ── Re-export parser utilities for backwards compatibility ────
-// (unit tests import extractJSON and parseAndValidate from pipeline.ts)
-export { extractJSON, parseAndValidate } from "./parser";

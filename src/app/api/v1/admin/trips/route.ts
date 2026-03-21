@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/core/prisma";
 import { apiHandler, requireSuperUser } from "@/lib/api/helpers";
+import { parsePaginationParams, paginationMeta } from "@/lib/api/pagination";
 
 export const GET = apiHandler("GET /api/v1/admin/trips", async (req: NextRequest) => {
   await requireSuperUser();
 
-  const url = new URL(req.url);
-  const page = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
-  const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit") ?? "20")));
-  const search = url.searchParams.get("search") ?? "";
+  const { page, limit, search } = parsePaginationParams(new URL(req.url));
 
   const where = search
     ? {
@@ -49,8 +47,6 @@ export const GET = apiHandler("GET /api/v1/admin/trips", async (req: NextRequest
       profileAirport: t.profile?.homeAirport ?? null,
       createdAt: t.createdAt,
     })),
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
+    ...paginationMeta(total, page, limit),
   });
 });

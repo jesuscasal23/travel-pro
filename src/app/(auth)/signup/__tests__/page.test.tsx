@@ -19,7 +19,7 @@ vi.mock("@/components/auth/GoogleAuthButton", () => ({
   GoogleAuthButton: () => React.createElement("div", null, "Google Button"),
 }));
 
-vi.mock("@/lib/supabase/client", () => ({
+vi.mock("@/lib/core/supabase-client", () => ({
   createClient: () => ({
     auth: {
       signUp: mockSignUp,

@@ -2,21 +2,16 @@ import { queryKeys } from "@/hooks/api/keys";
 import { apiFetch } from "@/lib/client/api-fetch";
 import type { CityAccommodation, CityStop, TravelStyle } from "@/types";
 
-interface RoutePayload {
-  city: string;
-  country: string;
-  countryCode: string;
-  lat: number;
-  lng: number;
-}
-
-export function buildRoutePayload(route: CityStop[]): RoutePayload[] {
+export function buildRoutePayload(route: CityStop[]) {
   return route.map((r) => ({
+    id: r.id,
     city: r.city,
     country: r.country,
     countryCode: r.countryCode,
     lat: r.lat,
     lng: r.lng,
+    days: r.days,
+    iataCode: r.iataCode,
   }));
 }
 
@@ -42,16 +37,7 @@ export async function fetchAccommodationEnrichment(
       method: "POST",
       signal,
       body: {
-        route: route.map((r) => ({
-          id: r.id,
-          city: r.city,
-          country: r.country,
-          countryCode: r.countryCode,
-          lat: r.lat,
-          lng: r.lng,
-          days: r.days,
-          iataCode: r.iataCode,
-        })),
+        route: buildRoutePayload(route),
         dateStart,
         travelers,
         travelStyle,

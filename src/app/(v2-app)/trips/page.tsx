@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { V2CenteredState } from "@/components/v2/ui/V2CenteredState";
@@ -8,8 +7,8 @@ import { useTrips } from "@/hooks/api";
 import { V2IconActionButton } from "@/components/v2/ui/V2IconActionButton";
 import { V2PageHeader } from "@/components/v2/ui/V2PageHeader";
 import { V2Screen } from "@/components/v2/ui/V2Screen";
-import { getCityImage, getCityPlaceholder } from "@/lib/utils/city-images";
-import { formatDateRange, daysUntil } from "@/lib/utils/format/date";
+import { TripCard } from "@/components/v2/TripCard";
+import { daysUntil } from "@/lib/utils/format/date";
 import type { TripSummary } from "@/types";
 
 export default function TripsPage() {
@@ -76,52 +75,5 @@ export default function TripsPage() {
         </div>
       )}
     </V2Screen>
-  );
-}
-
-function TripCard({
-  trip,
-  label,
-  days,
-  onClick,
-}: {
-  trip: TripSummary;
-  label: string;
-  days: number | null;
-  onClick: () => void;
-}) {
-  const cityName = trip.destination || label;
-  const countryCode = trip.destinationCountryCode ?? "";
-  const [src, setSrc] = useState(() =>
-    countryCode ? getCityImage(cityName, countryCode) : getCityPlaceholder(cityName)
-  );
-
-  return (
-    <div className="relative h-52 cursor-pointer overflow-hidden rounded-2xl" onClick={onClick}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={label}
-        className="absolute inset-0 h-full w-full object-cover"
-        onError={() => setSrc(getCityPlaceholder(cityName))}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-
-      <div className="absolute top-3 right-3">
-        <span className="bg-v2-navy/80 rounded-full px-2.5 py-1 text-[10px] font-bold text-white uppercase backdrop-blur-sm">
-          {days ? `${days} DAYS AWAY` : "PLANNED"}
-        </span>
-      </div>
-      <p className="absolute bottom-12 left-5 text-xl font-bold text-white">{label}</p>
-      <div className="absolute bottom-4 left-5 flex items-center gap-2">
-        <span className="rounded-full bg-black/40 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
-          {formatDateRange(trip.dateStart, trip.dateEnd)}
-        </span>
-        <span className="text-xs text-white/60">&bull;</span>
-        <span className="text-xs text-white/80">
-          {trip.travelers} traveler{trip.travelers !== 1 ? "s" : ""}
-        </span>
-      </div>
-    </div>
   );
 }

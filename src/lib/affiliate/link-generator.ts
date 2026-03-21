@@ -41,15 +41,6 @@ export function buildHotelLink(
   return `https://www.booking.com/searchresults.html?${params}`;
 }
 
-/** Build a GetYourGuide activity search link. */
-function buildActivityLink(city: string, activity: string): string {
-  const params = new URLSearchParams({
-    q: `${city} ${activity}`,
-    partner_id: AFFILIATE_IDS.getyourguide,
-  });
-  return `https://www.getyourguide.com/s/?${params}`;
-}
-
 /**
  * Wrap any affiliate URL in the internal redirect endpoint for click tracking.
  * All affiliate links in the app should go through this.
