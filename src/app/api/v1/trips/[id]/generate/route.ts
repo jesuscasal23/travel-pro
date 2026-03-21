@@ -17,9 +17,7 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
   const t0 = Date.now();
   log.info("Generate request received", {
     tripId: params.id,
-    method: req.method,
-    url: req.nextUrl?.pathname,
-    userAgent: req.headers.get("user-agent")?.slice(0, 120),
+    hasUserAgent: !!req.headers.get("user-agent"),
   });
 
   await assertTripAccess(req, params.id, { requireTripOwner: true });
@@ -33,9 +31,9 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
     tripId: params.id,
     promptVersion,
     travelStyle: profile.travelStyle,
-    nationality: profile.nationality,
-    homeAirport: profile.homeAirport,
-    interests: profile.interests,
+    hasNationality: !!profile.nationality,
+    hasHomeAirport: !!profile.homeAirport,
+    interestCount: profile.interests?.length ?? 0,
     preSelectedCities: cities?.length ?? 0,
     elapsed: `${Date.now() - t0}ms`,
   });
