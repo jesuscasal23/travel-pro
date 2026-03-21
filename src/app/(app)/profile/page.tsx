@@ -167,7 +167,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="flex-1 overflow-y-auto pb-4">
+      <div className="flex-1 overflow-y-auto pb-28">
         <div className="px-6 pt-8 pb-4">
           <div className="flex items-center gap-4">
             <div className="bg-surface flex h-16 w-16 shrink-0 items-center justify-center rounded-full">

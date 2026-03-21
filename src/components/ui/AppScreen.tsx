@@ -10,7 +10,7 @@ interface AppScreenProps {
 export function AppScreen({ children }: AppScreenProps) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto pb-4">{children}</div>
+      <div className="flex-1 overflow-y-auto pb-28">{children}</div>
       <BottomNav />
     </div>
   );
