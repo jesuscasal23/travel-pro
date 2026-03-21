@@ -55,7 +55,15 @@ async function resolveMultiCityRoute(
 ): Promise<CityWithDays[] | undefined> {
   if (preSelectedCities) {
     log.info(`${logPrefix} Stage A skipped: using pre-selected cities`, {
+      tripId: tripIntent.id,
       count: preSelectedCities.length,
+      cities: preSelectedCities.map((c) => ({
+        city: c.city,
+        country: c.country,
+        iataCode: c.iataCode,
+        minDays: c.minDays,
+        maxDays: c.maxDays,
+      })),
       elapsed: elapsed(),
     });
     return preSelectedCities;
@@ -63,18 +71,36 @@ async function resolveMultiCityRoute(
 
   const tA = Date.now();
   try {
-    log.info(`${logPrefix} Stage A: Selecting route with Haiku`);
+    log.info(`${logPrefix} Stage A: Selecting route with Haiku`, {
+      tripId: tripIntent.id,
+      region: tripIntent.region,
+      tripType: tripIntent.tripType,
+      travelStyle: profile.travelStyle,
+      interests: profile.interests,
+    });
     const cities = await selectRoute(profile, tripIntent, getAnthropic(), signal);
     log.info(`${logPrefix} Stage A complete`, {
+      tripId: tripIntent.id,
       duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
-      cities: cities.map((c) => c.city),
+      cityCount: cities.length,
+      cities: cities.map((c) => ({
+        city: c.city,
+        country: c.country,
+        countryCode: c.countryCode,
+        iataCode: c.iataCode,
+        minDays: c.minDays,
+        maxDays: c.maxDays,
+      })),
       elapsed: elapsed(),
     });
     return cities;
   } catch (e) {
     log.warn(`${logPrefix} Stage A failed, falling back to Claude-only route`, {
+      tripId: tripIntent.id,
       duration: `${((Date.now() - tA) / 1000).toFixed(1)}s`,
+      errorName: e instanceof Error ? e.name : "unknown",
       error: getErrorMessage(e),
+      stack: e instanceof Error ? e.stack : undefined,
       elapsed: elapsed(),
     });
     return undefined;
@@ -108,14 +134,24 @@ export async function generateCoreItinerary(
 
   if (isSingleCityTrip) {
     log.info("Single-city mode", {
+      tripId: tripIntent.id,
       destination: tripIntent.destination,
       country: tripIntent.destinationCountry,
+      dateStart: tripIntent.dateStart,
+      dateEnd: tripIntent.dateEnd,
       elapsed: elapsed(),
     });
     userPrompt = assembleSingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_SINGLE_CITY;
     maxTokens = MAX_TOKENS_SINGLE_CITY;
   } else {
+    log.info("Multi-city mode — resolving route", {
+      tripId: tripIntent.id,
+      region: tripIntent.region,
+      dateStart: tripIntent.dateStart,
+      dateEnd: tripIntent.dateEnd,
+      elapsed: elapsed(),
+    });
     const cities = await resolveMultiCityRoute(
       profile,
       tripIntent,
@@ -129,35 +165,56 @@ export async function generateCoreItinerary(
     maxTokens = MAX_TOKENS_MULTI_CITY;
   }
 
-  log.info("Stage 1 (prompt assembly) done", { elapsed: elapsed() });
+  log.info("Stage 1 (prompt assembly) done", {
+    tripId: tripIntent.id,
+    promptLength: userPrompt.length,
+    systemPromptLength: systemPrompt.length,
+    maxTokens,
+    elapsed: elapsed(),
+  });
 
   // Stage 2: Call Claude
   const t2 = Date.now();
-  log.info("Stage 2: Calling Claude Haiku", { tripId: tripIntent.id });
+  log.info("Stage 2: Calling Claude Haiku", {
+    tripId: tripIntent.id,
+    maxTokens,
+    promptLengthChars: userPrompt.length,
+  });
   const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
   const claudeDuration = ((Date.now() - t2) / 1000).toFixed(1);
   log.info("Stage 2 complete", {
+    tripId: tripIntent.id,
     duration: `${claudeDuration}s`,
     model: claudeResult.model,
+    stopReason: claudeResult.stopReason,
     inputTokens: claudeResult.inputTokens,
     outputTokens: claudeResult.outputTokens,
+    outputLengthChars: claudeResult.text.length,
     elapsed: elapsed(),
   });
 
   // Stage 3: Parse + validate
   throwIfAborted(signal);
   const t3 = Date.now();
+  log.info("Stage 3: Parsing and validating Claude output", {
+    tripId: tripIntent.id,
+    rawOutputLength: claudeResult.text.length,
+    rawOutputPreview: claudeResult.text.slice(0, 200),
+  });
   const parsed = parseAndValidate(claudeResult.text);
   log.info("Stage 3 (parse+validate) done", {
+    tripId: tripIntent.id,
     duration: `${((Date.now() - t3) / 1000).toFixed(1)}s`,
-    cities: parsed.route.length,
-    days: parsed.days.length,
+    routeCities: parsed.route.map((r) => r.city),
+    cityCount: parsed.route.length,
+    dayCount: parsed.days.length,
+    routeCountries: [...new Set(parsed.route.map((r) => r.countryCode))],
     elapsed: elapsed(),
   });
 
   log.info("Core generation complete (enrichment deferred)", {
     tripId: tripIntent.id,
-    elapsed: elapsed(),
+    totalCoreDuration: elapsed(),
   });
 
   // Best-effort: discover unknown cities (non-blocking)
@@ -194,13 +251,24 @@ export async function generateRouteOnly(
 
   if (isSingleCityTrip) {
     log.info("Route-only: single-city mode", {
+      tripId: tripIntent.id,
       destination: tripIntent.destination,
+      country: tripIntent.destinationCountry,
+      dateStart: tripIntent.dateStart,
+      dateEnd: tripIntent.dateEnd,
       elapsed: elapsed(),
     });
     userPrompt = assembleRouteOnlySingleCityPrompt(profile, tripIntent);
     systemPrompt = SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY;
     maxTokens = MAX_TOKENS_ROUTE_ONLY;
   } else {
+    log.info("Route-only: multi-city mode — resolving route", {
+      tripId: tripIntent.id,
+      region: tripIntent.region,
+      dateStart: tripIntent.dateStart,
+      dateEnd: tripIntent.dateEnd,
+      elapsed: elapsed(),
+    });
     const cities = await resolveMultiCityRoute(
       profile,
       tripIntent,
@@ -214,24 +282,45 @@ export async function generateRouteOnly(
     maxTokens = MAX_TOKENS_ROUTE_ONLY;
   }
 
-  log.info("Route-only prompt assembled", { elapsed: elapsed() });
+  log.info("Route-only prompt assembled", {
+    tripId: tripIntent.id,
+    promptLength: userPrompt.length,
+    systemPromptLength: systemPrompt.length,
+    maxTokens,
+    elapsed: elapsed(),
+  });
 
   const t2 = Date.now();
+  log.info("Route-only: calling Claude", {
+    tripId: tripIntent.id,
+    maxTokens,
+    promptLengthChars: userPrompt.length,
+  });
   const claudeResult = await callClaude(userPrompt, systemPrompt, maxTokens, 0, signal);
   log.info("Route-only Claude call complete", {
+    tripId: tripIntent.id,
     duration: `${((Date.now() - t2) / 1000).toFixed(1)}s`,
     model: claudeResult.model,
+    stopReason: claudeResult.stopReason,
     inputTokens: claudeResult.inputTokens,
     outputTokens: claudeResult.outputTokens,
+    outputLengthChars: claudeResult.text.length,
     elapsed: elapsed(),
   });
 
   throwIfAborted(signal);
+  log.info("Route-only: parsing Claude output", {
+    tripId: tripIntent.id,
+    rawOutputLength: claudeResult.text.length,
+    rawOutputPreview: claudeResult.text.slice(0, 200),
+  });
   const parsed = parseAndValidate(claudeResult.text);
   log.info("Route-only generation complete", {
     tripId: tripIntent.id,
-    cities: parsed.route.length,
-    days: parsed.days.length,
+    routeCities: parsed.route.map((r) => r.city),
+    cityCount: parsed.route.length,
+    dayCount: parsed.days.length,
+    routeCountries: [...new Set(parsed.route.map((r) => r.countryCode))],
     elapsed: elapsed(),
   });
 

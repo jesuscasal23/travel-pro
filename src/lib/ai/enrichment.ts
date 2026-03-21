@@ -25,6 +25,8 @@ import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { WEATHER_CACHE_TTL_SECONDS, WEATHER_API_TIMEOUT_MS } from "@/lib/config/constants";
 import { createLogger } from "@/lib/core/logger";
 
+const log = createLogger("enrichment");
+
 // ============================================================
 // Redis client (lazy — only instantiated if env vars are set)
 // ============================================================
@@ -139,6 +141,8 @@ function parseRequirement(raw: string): {
  * Uses the Passport Index static dataset (199 passports × 227 destinations).
  */
 export async function enrichVisa(passportCountry: string, route: CityStop[]): Promise<VisaInfo[]> {
+  const t0 = Date.now();
+
   // Resolve nationality string → ISO-2 passport code
   const passportISO2 =
     NATIONALITY_TO_ISO2[passportCountry] ??
@@ -152,7 +156,16 @@ export async function enrichVisa(passportCountry: string, route: CityStop[]): Pr
     return true;
   });
 
-  return uniqueCountries.map((stop) => {
+  log.info("enrichVisa: starting", {
+    passportCountry,
+    passportISO2,
+    passportResolved: !!passportISO2,
+    routeCities: route.length,
+    uniqueCountries: uniqueCountries.length,
+    countries: uniqueCountries.map((s) => s.countryCode),
+  });
+
+  const results = uniqueCountries.map((stop) => {
     const destISO2 = stop.countryCode;
     const source = VISA_OFFICIAL_URLS[destISO2] ?? {
       url: "https://www.timatic.iata.org",
@@ -186,6 +199,19 @@ export async function enrichVisa(passportCountry: string, route: CityStop[]): Pr
       sourceLabel: source.label,
     };
   });
+
+  log.info("enrichVisa: complete", {
+    duration: `${Date.now() - t0}ms`,
+    resultCount: results.length,
+    results: results.map((r) => ({
+      country: r.country,
+      countryCode: r.countryCode,
+      requirement: r.requirement,
+      label: r.label,
+    })),
+  });
+
+  return results;
 }
 
 // ============================================================
@@ -242,10 +268,19 @@ async function getHistoricalWeather(
   if (redis) {
     try {
       const cached = await redis.get<WeatherSummary>(cacheKey);
-      if (cached) return cached;
-    } catch {
-      // Cache miss or connection error — continue to API
+      if (cached) {
+        log.info("Weather cache hit", { cacheKey, lat, lng, month });
+        return cached;
+      }
+      log.info("Weather cache miss", { cacheKey });
+    } catch (e) {
+      log.warn("Weather Redis error", {
+        cacheKey,
+        error: e instanceof Error ? e.message : String(e),
+      });
     }
+  } else {
+    log.info("Weather Redis not available, fetching from API", { lat, lng, month });
   }
 
   // Use previous year's data for the requested month
@@ -267,12 +302,20 @@ async function getHistoricalWeather(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), WEATHER_API_TIMEOUT_MS);
 
+  const tFetch = Date.now();
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       signal: controller.signal,
     });
-  } catch {
+  } catch (e) {
+    log.warn("Weather API fetch failed (timeout or network)", {
+      lat,
+      lng,
+      month,
+      duration: `${Date.now() - tFetch}ms`,
+      error: e instanceof Error ? e.message : String(e),
+    });
     // Timeout (AbortError) or network error — return neutral fallback
     return { avgTemp: 25, condition: "Warm", icon: "☀️" };
   } finally {
@@ -280,6 +323,14 @@ async function getHistoricalWeather(
   }
 
   if (!response.ok) {
+    log.warn("Weather API returned non-OK status", {
+      lat,
+      lng,
+      month,
+      status: response.status,
+      statusText: response.statusText,
+      duration: `${Date.now() - tFetch}ms`,
+    });
     // Return a neutral fallback rather than crashing
     return { avgTemp: 25, condition: "Warm", icon: "☀️" };
   }
@@ -315,6 +366,8 @@ async function getHistoricalWeather(
  * Runs in parallel for speed.
  */
 export async function enrichWeather(route: CityStop[], dateStart: string): Promise<CityWeather[]> {
+  const t0 = Date.now();
+
   // Parse month from dateStart (ISO format: YYYY-MM-DD)
   let month = 10; // Default to October (demo scenario)
   if (dateStart) {
@@ -323,6 +376,13 @@ export async function enrichWeather(route: CityStop[], dateStart: string): Promi
       month = parsed.getMonth() + 1;
     }
   }
+
+  log.info("enrichWeather: starting", {
+    routeCities: route.length,
+    cities: route.map((s) => s.city),
+    dateStart,
+    month,
+  });
 
   const results = await Promise.all(
     route.map(async (stop) => {
@@ -334,7 +394,13 @@ export async function enrichWeather(route: CityStop[], dateStart: string): Promi
           condition: weather.condition,
           icon: weather.icon,
         } satisfies CityWeather;
-      } catch {
+      } catch (e) {
+        log.warn("enrichWeather: per-city fetch failed, using fallback", {
+          city: stop.city,
+          lat: stop.lat,
+          lng: stop.lng,
+          error: e instanceof Error ? e.message : String(e),
+        });
         // Per-city fallback
         return {
           city: stop.city,
@@ -345,6 +411,12 @@ export async function enrichWeather(route: CityStop[], dateStart: string): Promi
       }
     })
   );
+
+  log.info("enrichWeather: complete", {
+    duration: `${Date.now() - t0}ms`,
+    resultCount: results.length,
+    results: results.map((r) => ({ city: r.city, temp: r.temp, condition: r.condition })),
+  });
 
   return results;
 }

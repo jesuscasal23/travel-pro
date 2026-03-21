@@ -81,9 +81,22 @@ export async function createItineraryVersion(input: {
  * Called at the start of AI generation before the pipeline runs.
  */
 export async function createGeneratingRecord(input: { tripId: string; promptVersion: string }) {
+  const t0 = Date.now();
   const generationJobId = crypto.randomUUID();
+
+  log.info("createGeneratingRecord: starting", {
+    tripId: input.tripId,
+    promptVersion: input.promptVersion,
+    generationJobId,
+  });
+
   const record = await prisma.$transaction(async (tx) => {
+    log.info("createGeneratingRecord: acquiring advisory lock", { tripId: input.tripId });
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${input.tripId}))`;
+    log.info("createGeneratingRecord: advisory lock acquired", {
+      tripId: input.tripId,
+      elapsed: `${Date.now() - t0}ms`,
+    });
 
     const existing = await tx.itinerary.findFirst({
       where: { tripId: input.tripId, generationStatus: "generating" },
@@ -92,7 +105,17 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
     });
 
     if (existing) {
-      if (Date.now() - existing.createdAt.getTime() <= STALE_GENERATION_MAX_AGE_MS) {
+      const ageMs = Date.now() - existing.createdAt.getTime();
+      log.info("createGeneratingRecord: found existing generating record", {
+        tripId: input.tripId,
+        existingId: existing.id,
+        existingJobId: existing.generationJobId,
+        ageMs,
+        staleThresholdMs: STALE_GENERATION_MAX_AGE_MS,
+        isStale: ageMs > STALE_GENERATION_MAX_AGE_MS,
+      });
+
+      if (ageMs <= STALE_GENERATION_MAX_AGE_MS) {
         throw new GenerationAlreadyInProgressError(
           input.tripId,
           existing.id,
@@ -100,6 +123,11 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
         );
       }
 
+      log.warn("createGeneratingRecord: marking stale record as failed", {
+        tripId: input.tripId,
+        staleItineraryId: existing.id,
+        ageMs,
+      });
       await tx.itinerary.update({
         where: { id: existing.id },
         data: { generationStatus: "failed" },
@@ -112,11 +140,19 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
       select: ITINERARY_VERSION_SELECT,
     });
 
+    const newVersion = (latest?.version ?? 0) + 1;
+    log.info("createGeneratingRecord: creating new record", {
+      tripId: input.tripId,
+      newVersion,
+      previousVersion: latest?.version ?? null,
+      generationJobId,
+    });
+
     return tx.itinerary.create({
       data: {
         tripId: input.tripId,
         data: {},
-        version: (latest?.version ?? 0) + 1,
+        version: newVersion,
         isActive: false,
         promptVersion: input.promptVersion,
         generationStatus: "generating",
@@ -125,11 +161,12 @@ export async function createGeneratingRecord(input: { tripId: string; promptVers
     });
   });
 
-  log.info("Created generating record", {
+  log.info("createGeneratingRecord: complete", {
     itineraryId: record.id,
     tripId: input.tripId,
     version: record.version,
     generationJobId: record.generationJobId,
+    duration: `${Date.now() - t0}ms`,
   });
   return { id: record.id };
 }
@@ -144,7 +181,16 @@ export async function activateGeneratedItinerary(
   tripId: string,
   data: Itinerary
 ) {
-  log.info("Activating generated itinerary", { itineraryId, tripId });
+  const t0 = Date.now();
+  log.info("activateGeneratedItinerary: starting transaction", {
+    itineraryId,
+    tripId,
+    hasRoute: !!data.route,
+    routeLength: data.route?.length,
+    daysLength: data.days?.length,
+    hasVisaData: !!data.visaData,
+    hasFlightOptions: !!data.flightOptions,
+  });
 
   await prisma.$transaction([
     // Activate this itinerary with the generated data
@@ -162,16 +208,28 @@ export async function activateGeneratedItinerary(
       data: { isActive: false },
     }),
   ]);
+
+  log.info("activateGeneratedItinerary: transaction complete", {
+    itineraryId,
+    tripId,
+    duration: `${Date.now() - t0}ms`,
+  });
 }
 
 /**
  * Mark a generating itinerary as failed.
  */
 export async function markGenerationFailed(itineraryId: string) {
-  log.warn("Marking itinerary generation as failed", { itineraryId });
+  const t0 = Date.now();
+  log.warn("markGenerationFailed: updating record", { itineraryId });
 
   await prisma.itinerary.update({
     where: { id: itineraryId },
     data: { generationStatus: "failed" },
+  });
+
+  log.info("markGenerationFailed: complete", {
+    itineraryId,
+    duration: `${Date.now() - t0}ms`,
   });
 }
