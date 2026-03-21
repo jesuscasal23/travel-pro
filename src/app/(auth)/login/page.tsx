@@ -10,8 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/core/supabase-client";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
-import { v2InputClass, v2LabelClass, v2ErrorClass } from "@/components/auth/auth-styles";
-import { Button } from "@/components/v2/ui/Button";
+import { v2InputClass, v2LabelClass, v2ErrorClass } from "@/components/ui/styles";
+import { Button } from "@/components/ui/Button";
 import { queryKeys } from "@/hooks/api/keys";
 
 const loginSchema = z.object({
@@ -66,16 +66,16 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
+    <div className="relative min-h-dvh overflow-hidden bg-[image:var(--gradient-page)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[image:var(--glow-top)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[image:var(--glow-bottom)]" />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-6 pt-8 pb-10">
         <div className="flex items-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm">
+          <div className="text-v2-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm">
             <Link
               href={next}
-              className="hover:text-v2-navy inline-flex items-center justify-center text-[#8aa0c0] transition-colors"
+              className="hover:text-v2-navy text-v2-back-btn inline-flex items-center justify-center transition-colors"
               aria-label="Go back"
             >
               <ArrowLeft size={20} />
@@ -92,7 +92,7 @@ function LoginForm() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Travel Pro
             </p>
-            <h1 className="mt-4 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="text-v2-dark mt-4 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em]">
               Welcome back
             </h1>
             <p className="text-v2-text-muted mt-3 text-sm leading-7">
@@ -104,22 +104,22 @@ function LoginForm() {
             onSubmit={handleSubmit(onSubmit)}
             autoComplete="on"
             method="post"
-            className="mt-10 rounded-[30px] border border-white/80 bg-white/88 px-5 py-5 shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+            className="shadow-glass-xl mt-10 rounded-[30px] border border-white/80 bg-white/88 px-5 py-5 backdrop-blur-sm"
           >
             <div className="space-y-5">
               <GoogleAuthButton next={next} disabled={isLoading} onError={setServerError} />
 
               <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-[#dbe4f2]" />
-                <span className="text-[11px] font-bold tracking-[0.22em] text-[#9aacbf] uppercase">
+                <div className="bg-v2-divider h-px flex-1" />
+                <span className="text-v2-subtext text-[11px] font-bold tracking-[0.22em] uppercase">
                   Or with email
                 </span>
-                <div className="h-px flex-1 bg-[#dbe4f2]" />
+                <div className="bg-v2-divider h-px flex-1" />
               </div>
 
               <div>
                 <label htmlFor="email" className={v2LabelClass}>
-                  <Mail className="h-4 w-4 text-[#8ea0bb]" />
+                  <Mail className="text-v2-label h-4 w-4" />
                   Email address
                 </label>
                 <input
@@ -141,7 +141,7 @@ function LoginForm() {
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <label htmlFor="password" className={`${v2LabelClass} mb-0`}>
-                    <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
+                    <LockKeyhole className="text-v2-label h-4 w-4" />
                     Password
                   </label>
                   <Link
@@ -172,9 +172,11 @@ function LoginForm() {
               )}
 
               <Button
+                variant="brand"
+                fullWidth
                 type="submit"
                 disabled={isLoading}
-                className="!bg-brand-primary mt-2 py-4 shadow-[var(--shadow-brand-xl)] hover:brightness-105"
+                className="shadow-brand-xl mt-2"
               >
                 <span className="flex items-center justify-center gap-2">
                   {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}

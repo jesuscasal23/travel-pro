@@ -14,8 +14,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
-import { GradientBackground } from "@/components/v2/ui/GradientBackground";
-import { BackButton } from "@/components/v2/ui/BackButton";
+import { GradientBackground } from "@/components/ui/GradientBackground";
+import { BackButton } from "@/components/ui/BackButton";
 
 type InterestCard = {
   id: string;
@@ -103,7 +103,7 @@ export default function V2InterestsPage() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Interests
             </p>
-            <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em]">
               What excites you?
             </h1>
             <p className="text-v2-text-muted mt-3 max-w-[320px] text-[15px] leading-7">
@@ -146,7 +146,7 @@ export default function V2InterestsPage() {
             className={`flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985] ${
               interests.length === 0
                 ? "cursor-not-allowed bg-[#a3a3a3] shadow-none"
-                : "bg-[#101114] shadow-[0_18px_36px_rgba(16,17,20,0.22)]"
+                : "bg-v2-dark shadow-dark-cta"
             }`}
           >
             <span>Continue</span>

@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { GradientBackground } from "@/components/v2/ui/GradientBackground";
-import { BackButton } from "@/components/v2/ui/BackButton";
+import { GradientBackground } from "@/components/ui/GradientBackground";
+import { BackButton } from "@/components/ui/BackButton";
 
 const highlights = [
   "Tailored to your pace and budget",
@@ -31,7 +31,7 @@ export default function V2PersonalizationPage() {
               Personalization Engine
             </p>
 
-            <h1 className="font-display mt-4 text-[2.55rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-4 text-[2.55rem] leading-[1.02] font-bold tracking-[-0.05em]">
               Your travel style
               <br />
               is <span className="text-brand-primary">unique</span>
@@ -46,7 +46,7 @@ export default function V2PersonalizationPage() {
               {highlights.map((highlight) => (
                 <li key={highlight} className="flex items-start gap-3">
                   <span className="bg-brand-primary mt-[0.4rem] h-2.5 w-2.5 shrink-0 rounded-full" />
-                  <span className="text-[15px] leading-6 font-semibold text-[#243247]">
+                  <span className="text-v2-slate text-[15px] leading-6 font-semibold">
                     {highlight}
                   </span>
                 </li>

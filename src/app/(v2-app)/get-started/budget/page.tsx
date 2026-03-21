@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { ArrowRight, type LucideIcon, Gem, Scale, Sparkles, Backpack } from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
-import { GradientBackground } from "@/components/v2/ui/GradientBackground";
-import { BackButton } from "@/components/v2/ui/BackButton";
+import { GradientBackground } from "@/components/ui/GradientBackground";
+import { BackButton } from "@/components/ui/BackButton";
 import type { TravelStyle } from "@/types";
 
 type BudgetOption = {
@@ -68,7 +68,7 @@ export default function V2BudgetPage() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Budget
             </p>
-            <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em]">
               Plan your spend
             </h1>
             <p className="text-v2-text-muted mt-3 max-w-[320px] text-[15px] leading-7">
@@ -90,7 +90,7 @@ export default function V2BudgetPage() {
                   className={`flex w-full items-center gap-4 rounded-[30px] border px-4 py-4 text-left transition-all ${
                     isSelected
                       ? "bg-brand-primary border-transparent text-white shadow-[var(--shadow-brand-xl)]"
-                      : "border-white/80 bg-white/88 text-[#17181c] shadow-[0_16px_36px_rgba(27,43,75,0.08)] backdrop-blur-sm"
+                      : "text-v2-heading shadow-glass border-white/80 bg-white/88 backdrop-blur-sm"
                   }`}
                 >
                   <div
@@ -107,7 +107,7 @@ export default function V2BudgetPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
                       <p
-                        className={`text-[16px] font-semibold tracking-[-0.02em] ${isSelected ? "text-white" : "text-[#17181c]"}`}
+                        className={`text-[16px] font-semibold tracking-[-0.02em] ${isSelected ? "text-white" : "text-v2-heading"}`}
                       >
                         {option.title}
                       </p>
@@ -118,7 +118,7 @@ export default function V2BudgetPage() {
                       </span>
                     </div>
                     <p
-                      className={`mt-1 text-[12px] font-medium ${isSelected ? "text-white/80" : "text-[#8ea0bb]"}`}
+                      className={`mt-1 text-[12px] font-medium ${isSelected ? "text-white/80" : "text-v2-label"}`}
                     >
                       {option.description}
                     </p>
@@ -133,7 +133,7 @@ export default function V2BudgetPage() {
           <button
             type="button"
             onClick={() => router.push("/get-started/rhythm")}
-            className="flex w-full items-center justify-center gap-3 rounded-[24px] bg-[#101114] px-6 py-5 text-lg font-bold text-white shadow-[0_18px_36px_rgba(16,17,20,0.22)] transition-transform duration-200 active:scale-[0.985]"
+            className="bg-v2-dark shadow-dark-cta flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985]"
           >
             <span>Continue</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

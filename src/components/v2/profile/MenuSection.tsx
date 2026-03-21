@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { DevelopmentTag } from "@/components/v2/ui/DevelopmentTag";
+import { DevelopmentTag } from "@/components/ui/DevelopmentTag";
 
 export interface MenuSectionItem {
   icon: LucideIcon;

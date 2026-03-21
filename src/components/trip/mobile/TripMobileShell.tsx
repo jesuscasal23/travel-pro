@@ -1,6 +1,6 @@
 "use client";
 
-import { BottomNav } from "@/components/v2/ui/BottomNav";
+import { BottomNav } from "@/components/ui/BottomNav";
 import { TripBanners } from "@/components/trip/TripBanners";
 import { useTripContext } from "@/components/trip/TripContext";
 import { useCityImage } from "@/hooks/useCityImage";
@@ -26,13 +26,13 @@ export function TripMobileShell({
   const lastDate = itinerary.days[itinerary.days.length - 1]?.date;
 
   return (
-    <div className="flex h-full flex-col bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
+    <div className="flex h-full flex-col bg-[image:var(--gradient-page-trip)]">
       <div className="flex-1 overflow-y-auto pb-4">
         <div className="px-6 pt-8 pb-4">
           <p className="text-brand-primary text-[11px] font-bold tracking-[0.24em] uppercase">
             Trip
           </p>
-          <h1 className="mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em] text-[#101114]">
+          <h1 className="text-v2-dark mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em]">
             {tripTitle}
           </h1>
           {firstDate && lastDate ? (
@@ -44,10 +44,10 @@ export function TripMobileShell({
 
         {showHero ? (
           <div className="px-6">
-            <div className="relative overflow-hidden rounded-[30px] border border-white/80 shadow-[0_24px_48px_rgba(27,43,75,0.08)]">
+            <div className="shadow-glass-xl relative overflow-hidden rounded-[30px] border border-white/80">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" className="h-56 w-full object-cover" onError={onImgError} />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,19,39,0.16)_0%,rgba(9,19,39,0.74)_100%)]" />
+              <div className="absolute inset-0 bg-[image:var(--gradient-overlay-mobile)]" />
               <div className="bg-brand-primary absolute top-4 left-4 rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-white uppercase">
                 Active Trip
               </div>

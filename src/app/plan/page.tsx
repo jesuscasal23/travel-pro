@@ -7,8 +7,8 @@ import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
 import { useToastStore } from "@/stores/useToastStore";
-import { ProgressBar } from "@/components/v2/ui/ProgressBar";
-import { Button } from "@/components/v2/ui/Button";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Button } from "@/components/ui/Button";
 import {
   useAuthStatus,
   useProfile,
@@ -415,9 +415,9 @@ export default function PlanPage() {
   ]);
 
   return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_18%,#f6f8fb_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-[image:var(--gradient-page)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[image:var(--glow-top)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[image:var(--glow-bottom)]" />
       <ProgressBar progress={progress} />
 
       <div className="relative flex-1 overflow-y-auto px-6 pt-4 pb-3">
@@ -426,7 +426,7 @@ export default function PlanPage() {
             type="button"
             onClick={goBack}
             aria-label="Go back"
-            className={`hover:text-v2-navy flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 text-[#8aa0c0] shadow-[0_12px_30px_rgba(27,43,75,0.08)] backdrop-blur-sm transition-colors ${
+            className={`hover:text-v2-navy text-v2-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors ${
               step === 1 ? "pointer-events-none opacity-0" : ""
             }`}
           >
@@ -473,10 +473,11 @@ export default function PlanPage() {
         {isFinalStep ? (
           <>
             <Button
-              variant="apple"
+              variant="brand"
+              fullWidth
               onClick={handleGenerate}
               disabled={!canAdvance() || isGenerating}
-              className="!bg-brand-primary flex items-center justify-center gap-2 rounded-[24px] py-5 text-lg font-bold shadow-[var(--shadow-brand-xl)] hover:brightness-105"
+              className="shadow-brand-xl gap-2 rounded-[24px] py-5 text-lg"
             >
               {isGenerating ? (
                 <>
@@ -493,10 +494,11 @@ export default function PlanPage() {
           </>
         ) : (
           <Button
-            variant="primary"
+            variant="brand"
+            fullWidth
             onClick={goNext}
             disabled={!canAdvance()}
-            className="flex items-center justify-center gap-3 rounded-[24px] py-5 text-lg font-bold shadow-[var(--shadow-brand-xl)]"
+            className="shadow-brand-xl gap-3 rounded-[24px] py-5 text-lg"
           >
             <span>{showPriorities ? "Analyze My Profile" : "Continue"}</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

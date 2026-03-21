@@ -49,7 +49,7 @@ export function TripSectionNav({ tripId }: TripSectionNavProps) {
               className={`flex shrink-0 snap-start items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
                 isActive
                   ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-md)]"
-                  : "text-v2-text-muted border-white/80 bg-white/88 shadow-[0_14px_26px_rgba(27,43,75,0.05)]"
+                  : "text-v2-text-muted shadow-glass-md border-white/80 bg-white/88"
               }`}
             >
               <Icon className="h-4 w-4" />

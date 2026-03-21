@@ -13,7 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useTrips } from "@/hooks/api";
-import { V2Screen } from "@/components/v2/ui/V2Screen";
+import { AppScreen } from "@/components/ui/AppScreen";
 import { ActiveTripCard } from "@/components/v2/ActiveTripCard";
 import { daysUntil } from "@/lib/utils/format/date";
 import type { TripSummary } from "@/types";
@@ -34,11 +34,11 @@ export default function HomePage() {
   const daysAway = nextTrip ? daysUntil(nextTrip.dateStart) : null;
 
   return (
-    <V2Screen>
+    <AppScreen>
       {/* Header */}
       <div className="flex items-start justify-between px-6 pt-8 pb-2">
         <div>
-          <h1 className="text-[1.8rem] font-bold tracking-[-0.04em] text-[#101114]">Voya</h1>
+          <h1 className="text-v2-dark text-[1.8rem] font-bold tracking-[-0.04em]">Voya</h1>
           <p className="text-brand-primary text-[13px] font-semibold">
             Your Travel Operating System
           </p>
@@ -61,8 +61,8 @@ export default function HomePage() {
       {/* Next Steps */}
       <section className="px-6 pt-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold tracking-[-0.02em] text-[#101114]">Next Steps</h2>
-          <span className="text-[11px] font-bold tracking-[0.14em] text-[#8ea0bb] uppercase">
+          <h2 className="text-v2-dark text-lg font-bold tracking-[-0.02em]">Next Steps</h2>
+          <span className="text-v2-label text-[11px] font-bold tracking-[0.14em] uppercase">
             4 pending
           </span>
         </div>
@@ -81,12 +81,12 @@ export default function HomePage() {
 
       {/* Trip Preparation */}
       <section className="px-6 pt-8">
-        <h2 className="text-lg font-bold tracking-[-0.02em] text-[#101114]">Trip Preparation</h2>
+        <h2 className="text-v2-dark text-lg font-bold tracking-[-0.02em]">Trip Preparation</h2>
 
-        <div className="mt-4 rounded-2xl border border-white/80 bg-white/88 p-5 shadow-[0_12px_24px_rgba(27,43,75,0.04)]">
+        <div className="shadow-glass-sm mt-4 rounded-2xl border border-white/80 bg-white/88 p-5">
           <div className="flex items-center justify-between">
-            <span className="text-[2rem] font-bold tracking-[-0.04em] text-[#101114]">72%</span>
-            <span className="text-[11px] font-bold tracking-[0.14em] text-[#8ea0bb] uppercase">
+            <span className="text-v2-dark text-[2rem] font-bold tracking-[-0.04em]">72%</span>
+            <span className="text-v2-label text-[11px] font-bold tracking-[0.14em] uppercase">
               Ready
             </span>
           </div>
@@ -104,10 +104,10 @@ export default function HomePage() {
 
       {/* Smart Alerts */}
       <section className="px-6 pt-8">
-        <h2 className="text-lg font-bold tracking-[-0.02em] text-[#101114]">Smart Alerts</h2>
+        <h2 className="text-v2-dark text-lg font-bold tracking-[-0.02em]">Smart Alerts</h2>
 
         <div className="mt-4 space-y-3">
-          <div className="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] p-4">
+          <div className="border-surface-info-border bg-surface-info-bg rounded-2xl border p-4">
             <div className="flex items-start gap-3">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#3b82f6]" />
               <div>
@@ -119,7 +119,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] p-4">
+          <div className="border-surface-warn-border bg-surface-warn-bg rounded-2xl border p-4">
             <div className="flex items-start gap-3">
               <CloudSun className="mt-0.5 h-4 w-4 shrink-0 text-[#f59e0b]" />
               <div>
@@ -138,7 +138,7 @@ export default function HomePage() {
       {/* Before You Go */}
       <section className="px-6 pt-8 pb-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold tracking-[-0.02em] text-[#101114]">Before You Go</h2>
+          <h2 className="text-v2-dark text-lg font-bold tracking-[-0.02em]">Before You Go</h2>
           <span className="text-brand-primary text-sm font-semibold">View All</span>
         </div>
 
@@ -147,7 +147,7 @@ export default function HomePage() {
           <ProductCard icon={Shield} title="Travel Insurance" detail="Comprehensive" price="$42" />
         </div>
       </section>
-    </V2Screen>
+    </AppScreen>
   );
 }
 
@@ -165,7 +165,7 @@ function NextStepRow({
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-3 rounded-2xl border border-white/80 bg-white/88 px-4 py-3.5 text-left shadow-[0_12px_24px_rgba(27,43,75,0.04)]"
+      className="shadow-glass-sm flex w-full items-center gap-3 rounded-2xl border border-white/80 bg-white/88 px-4 py-3.5 text-left"
     >
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -173,10 +173,10 @@ function NextStepRow({
       >
         <Icon className="h-5 w-5" style={{ color }} strokeWidth={2} />
       </div>
-      <span className="flex-1 text-[14px] font-semibold tracking-[-0.01em] text-[#17181c]">
+      <span className="text-v2-heading flex-1 text-[14px] font-semibold tracking-[-0.01em]">
         {label}
       </span>
-      <ChevronRight className="h-4 w-4 text-[#a3adbc]" />
+      <ChevronRight className="text-v2-icon-muted h-4 w-4" />
     </button>
   );
 }
@@ -185,7 +185,7 @@ function PrepItem({ icon, label, done }: { icon: string; label: string; done?: b
   return (
     <div className="flex items-center gap-2.5">
       <span className="text-sm">{icon}</span>
-      <span className={`text-sm ${done ? "text-[#3b4658]" : "text-[#8ea0bb]"}`}>{label}</span>
+      <span className={`text-sm ${done ? "text-[#3b4658]" : "text-v2-label"}`}>{label}</span>
     </div>
   );
 }
@@ -202,11 +202,11 @@ function ProductCard({
   price: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/80 bg-white/88 p-4 shadow-[0_12px_24px_rgba(27,43,75,0.04)]">
-      <Icon className="h-6 w-6 text-[#8ea0bb]" strokeWidth={1.5} />
-      <p className="mt-3 text-[14px] font-semibold text-[#17181c]">{title}</p>
-      <p className="text-xs text-[#8ea0bb]">{detail}</p>
-      <p className="mt-2 text-base font-bold text-[#101114]">{price}</p>
+    <div className="shadow-glass-sm rounded-2xl border border-white/80 bg-white/88 p-4">
+      <Icon className="text-v2-label h-6 w-6" strokeWidth={1.5} />
+      <p className="text-v2-heading mt-3 text-[14px] font-semibold">{title}</p>
+      <p className="text-v2-label text-xs">{detail}</p>
+      <p className="text-v2-dark mt-2 text-base font-bold">{price}</p>
     </div>
   );
 }

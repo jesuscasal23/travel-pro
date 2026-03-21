@@ -71,7 +71,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
               className={`flex w-full items-center gap-3.5 rounded-2xl border px-4 py-3.5 text-left transition-all ${
                 isSelected
                   ? "border-brand-primary-border bg-white shadow-[var(--shadow-brand-sm)]"
-                  : "border-white/85 bg-white/70 shadow-[0_12px_24px_rgba(27,43,75,0.04)]"
+                  : "shadow-glass-sm border-white/85 bg-white/70"
               }`}
             >
               <span
@@ -87,7 +87,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
 
               <span
                 className={`flex-1 text-[14px] font-semibold tracking-[-0.01em] ${
-                  isSelected ? "text-[#17181c]" : "text-[#3b4658]"
+                  isSelected ? "text-v2-heading" : "text-[#3b4658]"
                 }`}
               >
                 {option.label}

@@ -115,7 +115,7 @@ export function MobileJourneyTab({
             {route.length > 1 ? (
               <CityHeader city={cityStop} weather={weather} variant="mobile" />
             ) : (
-              <div className="mb-3 flex items-start justify-between gap-3 rounded-[22px] border border-white/80 bg-white/82 px-4 py-3 shadow-[0_16px_30px_rgba(27,43,75,0.05)]">
+              <div className="shadow-glass-md mb-3 flex items-start justify-between gap-3 rounded-[22px] border border-white/80 bg-white/82 px-4 py-3">
                 <div>
                   <h3 className="text-v2-navy text-[1.05rem] font-semibold tracking-[-0.02em]">
                     {cityStop.city}
@@ -148,7 +148,7 @@ export function MobileJourneyTab({
                   <div>
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                      <div className="text-v2-text-muted mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs shadow-[0_14px_28px_rgba(27,43,75,0.05)] backdrop-blur-sm">
+                      <div className="text-v2-text-muted shadow-glass-md mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs backdrop-blur-sm">
                         <span className="text-brand-primary">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
@@ -169,8 +169,8 @@ export function MobileJourneyTab({
                 )}
               </>
             ) : cityActivityError ? (
-              <div className="mt-3 rounded-xl border border-[#ffd8d8] bg-[#fff6f6] p-3">
-                <p className="text-sm font-medium text-[#7b2d2d]">
+              <div className="border-surface-error-border bg-surface-error-bg mt-3 rounded-xl border p-3">
+                <p className="text-surface-error-text text-sm font-medium">
                   Couldn&apos;t generate activities for {cityStop.city}.
                 </p>
                 <button
@@ -193,7 +193,7 @@ export function MobileJourneyTab({
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={i}
-                    className="h-14 animate-pulse rounded-[20px] border border-white/80 bg-white/72 shadow-[0_14px_28px_rgba(27,43,75,0.05)]"
+                    className="shadow-glass-md h-14 animate-pulse rounded-[20px] border border-white/80 bg-white/72"
                   />
                 ))}
               </div>

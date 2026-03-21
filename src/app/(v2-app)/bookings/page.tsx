@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Plus, Plane, Building2, Car, Ticket, ChevronLeft, ChevronRight } from "lucide-react";
-import { DevelopmentTag } from "@/components/v2/ui/DevelopmentTag";
-import { V2FilterChips } from "@/components/v2/ui/V2FilterChips";
-import { V2IconActionButton } from "@/components/v2/ui/V2IconActionButton";
-import { V2PageHeader } from "@/components/v2/ui/V2PageHeader";
-import { V2Screen } from "@/components/v2/ui/V2Screen";
+import { DevelopmentTag } from "@/components/ui/DevelopmentTag";
+import { FilterChips } from "@/components/ui/FilterChips";
+import { IconActionButton } from "@/components/ui/IconActionButton";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { AppScreen } from "@/components/ui/AppScreen";
 
 type BookingType = "flight" | "stay" | "transport" | "activity";
 
@@ -174,20 +174,20 @@ export default function BookingsPage() {
   });
 
   return (
-    <V2Screen>
-      <V2PageHeader
+    <AppScreen>
+      <PageHeader
         title="Wallet"
         titleBadge={<DevelopmentTag />}
         description="Preview data only. Booking sync and management are still in development."
         action={
-          <V2IconActionButton
+          <IconActionButton
             icon={<Plus size={20} className="text-white" />}
             badge={<DevelopmentTag label="Mock" className="text-v2-navy bg-white" />}
           />
         }
       />
 
-      <V2FilterChips options={filters} active={activeFilter} onChange={setActiveFilter} />
+      <FilterChips options={filters} active={activeFilter} onChange={setActiveFilter} />
 
       <div className="px-6 pb-2">
         <DevelopmentTag label="Filters are preview-only" />
@@ -214,6 +214,6 @@ export default function BookingsPage() {
           )
         )}
       </div>
-    </V2Screen>
+    </AppScreen>
   );
 }

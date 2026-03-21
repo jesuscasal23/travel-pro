@@ -17,7 +17,7 @@ export function CityHeader({ city, weather, variant }: CityHeaderProps) {
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-[28px] border border-white/70 shadow-[0_20px_40px_rgba(27,43,75,0.08)] ${isMobile ? "h-32" : "h-[180px]"}`}
+      className={`shadow-glass relative w-full overflow-hidden rounded-[28px] border border-white/70 ${isMobile ? "h-32" : "h-[180px]"}`}
     >
       <Image
         src={src}
@@ -30,7 +30,7 @@ export function CityHeader({ city, weather, variant }: CityHeaderProps) {
         unoptimized
         onError={onImgError}
       />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,19,39,0.12)_0%,rgba(9,19,39,0.22)_32%,rgba(9,19,39,0.78)_100%)]" />
+      <div className="absolute inset-0 bg-[image:var(--gradient-overlay-hero)]" />
 
       {/* Weather badge */}
       {weather && (

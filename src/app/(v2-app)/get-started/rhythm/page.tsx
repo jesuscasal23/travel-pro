@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Compass, CupSoda, Zap, type LucideIcon } from "lucide-react";
 import { useTripStore } from "@/stores/useTripStore";
-import { GradientBackground } from "@/components/v2/ui/GradientBackground";
-import { BackButton } from "@/components/v2/ui/BackButton";
+import { GradientBackground } from "@/components/ui/GradientBackground";
+import { BackButton } from "@/components/ui/BackButton";
 import type { ActivityPace } from "@/types";
 
 type RhythmOption = {
@@ -52,7 +52,7 @@ export default function V2RhythmPage() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Your Rhythm
             </p>
-            <h1 className="font-display mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-3 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em]">
               What&apos;s your rhythm?
             </h1>
             <p className="text-v2-text-muted mt-3 max-w-[320px] text-[15px] leading-7">
@@ -73,8 +73,8 @@ export default function V2RhythmPage() {
                   aria-pressed={isSelected}
                   className={`flex w-full items-center gap-4 rounded-[30px] px-4 py-4 text-left transition-all ${
                     isSelected
-                      ? "border-brand-primary-border-strong border bg-white text-[#17181c] shadow-[var(--shadow-brand-md)]"
-                      : "border border-transparent bg-white/70 text-[#17181c]"
+                      ? "border-brand-primary-border-strong text-v2-heading border bg-white shadow-[var(--shadow-brand-md)]"
+                      : "text-v2-heading border border-transparent bg-white/70"
                   }`}
                 >
                   <div
@@ -92,7 +92,7 @@ export default function V2RhythmPage() {
                     <p className="truncate text-[16px] font-semibold tracking-[-0.02em] text-[#2a3242]">
                       {option.title}
                     </p>
-                    <p className="mt-1 text-[12px] font-medium text-[#9aacbf]">
+                    <p className="text-v2-subtext mt-1 text-[12px] font-medium">
                       {option.description}
                     </p>
                   </div>
@@ -114,7 +114,7 @@ export default function V2RhythmPage() {
           <button
             type="button"
             onClick={() => router.push("/plan")}
-            className="flex w-full items-center justify-center gap-3 rounded-[24px] bg-[#101114] px-6 py-5 text-lg font-bold text-white shadow-[0_18px_36px_rgba(16,17,20,0.22)] transition-transform duration-200 active:scale-[0.985]"
+            className="bg-v2-dark shadow-dark-cta flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985]"
           >
             <span>Continue</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

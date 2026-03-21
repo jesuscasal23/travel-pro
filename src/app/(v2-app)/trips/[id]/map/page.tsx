@@ -14,7 +14,7 @@ export default function TripMapPage() {
 
   return (
     <TripMobileShell>
-      <div className="rounded-[28px] border border-white/80 bg-white/88 p-3 shadow-[0_20px_40px_rgba(27,43,75,0.06)]">
+      <div className="shadow-glass-xl rounded-[28px] border border-white/80 bg-white/88 p-3">
         <div className="h-[420px] overflow-hidden rounded-[24px]">
           <RouteMap cities={itinerary.route} activeCityIndex={null} onCityClick={() => {}} />
         </div>

@@ -1,4 +1,4 @@
-import { travelInputClass } from "@/components/forms/travel-field-styles";
+import { travelInputClass } from "@/components/ui/styles";
 import type { ActivityPace } from "@/types";
 
 export const profileInputClass = travelInputClass;

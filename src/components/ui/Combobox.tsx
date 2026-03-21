@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
-import { inputClass } from "@/components/auth/auth-styles";
+import { inputClass } from "./styles";
 
 export interface ComboboxProps<T> {
   /** Display value shown when the input is not focused */
@@ -138,7 +138,7 @@ export function Combobox<T>({
         <ul
           className={`absolute z-50 w-full overflow-hidden overflow-y-auto border ${
             isV2
-              ? "border-v2-border mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white shadow-[0_18px_40px_rgba(27,43,75,0.12)]"
+              ? "border-v2-border shadow-glass-lg mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white"
               : "bg-background border-border mt-1 max-h-[min(16rem,50vh)] rounded-lg shadow-lg"
           }`}
         >
@@ -171,7 +171,7 @@ export function Combobox<T>({
         <div
           className={`absolute z-50 w-full border px-4 py-3 text-sm ${
             isV2
-              ? "border-v2-border text-v2-text-muted mt-2 rounded-2xl bg-white shadow-[0_18px_40px_rgba(27,43,75,0.12)]"
+              ? "border-v2-border text-v2-text-muted shadow-glass-lg mt-2 rounded-2xl bg-white"
               : "bg-background border-border text-muted-foreground mt-1 rounded-lg shadow-lg"
           }`}
         >

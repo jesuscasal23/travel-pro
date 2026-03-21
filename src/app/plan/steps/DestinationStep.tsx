@@ -5,7 +5,7 @@ import { CalendarDays, LocateFixed, MapPinned, Search } from "lucide-react";
 import { CITIES, type CityEntry } from "@/data/cities";
 import { regions } from "@/data/sampleData";
 import { useTripStore } from "@/stores/useTripStore";
-import { travelFieldErrorClass, travelInputClass } from "@/components/forms/travel-field-styles";
+import { travelFieldErrorClass, travelInputClass } from "@/components/ui/styles";
 import { StepBadge } from "./StepBadge";
 
 interface DestinationStepProps {
@@ -191,7 +191,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
         <p className="text-v2-text-light text-[11px] font-bold tracking-[0.2em] uppercase">Where</p>
 
         <div ref={containerRef} className="relative mt-3">
-          <div className="pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2 text-[#9aacbf]">
+          <div className="text-v2-subtext pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2">
             {selectedLabel && !open ? (
               <LocateFixed className="h-4 w-4" />
             ) : (
@@ -211,7 +211,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           />
 
           {open && results.length > 0 && (
-            <div className="border-v2-border absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white shadow-[0_20px_40px_rgba(27,43,75,0.12)]">
+            <div className="border-v2-border shadow-glass-lg absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white">
               {results.map((result) => (
                 <button
                   key={result.key}
@@ -226,7 +226,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                     <p className="text-v2-navy text-sm font-semibold">{result.label}</p>
                     <p className="text-v2-text-muted mt-0.5 text-xs">{result.detail}</p>
                   </div>
-                  <MapPinned className="h-4 w-4 text-[#9aacbf]" />
+                  <MapPinned className="text-v2-subtext h-4 w-4" />
                 </button>
               ))}
             </div>
@@ -245,7 +245,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           Start
         </label>
         <div className="relative">
-          <CalendarDays className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9aacbf]" />
+          <CalendarDays className="text-v2-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
           <input
             type="date"
             value={dateStart}
@@ -267,7 +267,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           End
         </label>
         <div className="relative">
-          <CalendarDays className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9aacbf]" />
+          <CalendarDays className="text-v2-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
           <input
             type="date"
             value={dateEnd}

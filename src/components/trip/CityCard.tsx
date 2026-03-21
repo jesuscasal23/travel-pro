@@ -30,7 +30,7 @@ export const CityCard = memo(function CityCard({
       onClick={onClick}
       className={`group relative flex-shrink-0 overflow-hidden ${
         isMobile ? "h-32 w-24 rounded-2xl" : "h-[200px] min-w-[160px] rounded-2xl"
-      } border border-white/70 shadow-[0_16px_28px_rgba(27,43,75,0.08)] ${
+      } shadow-glass border border-white/70 ${
         isActive ? "ring-brand-primary ring-2 ring-offset-2 ring-offset-[#f8fbff]" : ""
       } ${!isMobile ? "transition-transform duration-200 hover:scale-105" : ""}`}
     >

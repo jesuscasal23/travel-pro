@@ -57,9 +57,9 @@ export default function V2LandingPage() {
   const { canInstall, install } = useInstallPrompt();
 
   return (
-    <div className="relative h-dvh overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f6f8fb_55%,#eef2f7_100%)]">
-      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[radial-gradient(circle_at_top,var(--brand-primary-glow)_0%,transparent_62%)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(circle_at_bottom,#1b2b4b10_0%,transparent_60%)]" />
+    <div className="relative h-dvh overflow-hidden bg-[image:var(--gradient-page-v2)]">
+      <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[image:var(--glow-top)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[image:var(--glow-bottom)]" />
 
       <div className="relative flex h-dvh flex-col">
         <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -67,7 +67,7 @@ export default function V2LandingPage() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               Welcome to Travel Pro
             </p>
-            <h1 className="font-display mt-5 text-[2.85rem] leading-[0.95] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-5 text-[2.85rem] leading-[0.95] font-bold tracking-[-0.05em]">
               Your dream trip,
               <br />
               <span className="text-brand-primary">effortlessly.</span>
@@ -83,16 +83,16 @@ export default function V2LandingPage() {
               return (
                 <div
                   key={card.label}
-                  className={`absolute z-10 flex h-28 w-40 flex-col justify-between rounded-[30px] border border-white/80 bg-white/88 p-4 shadow-[0_18px_40px_rgba(27,43,75,0.08)] backdrop-blur-sm ${card.className}`}
+                  className={`shadow-glass absolute z-10 flex h-28 w-40 flex-col justify-between rounded-[30px] border border-white/80 bg-white/88 p-4 backdrop-blur-sm ${card.className}`}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f4f7fb] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                  <div className="shadow-inset-white flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f4f7fb]">
                     <Icon className={`h-5 w-5 ${card.iconClassName}`} strokeWidth={2.2} />
                   </div>
                   <div>
                     <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#516079]">
                       {card.label}
                     </p>
-                    <p className="mt-1 text-[10px] font-bold tracking-[0.22em] text-[#a3adbc] uppercase">
+                    <p className="text-v2-icon-muted mt-1 text-[10px] font-bold tracking-[0.22em] uppercase">
                       {card.caption}
                     </p>
                   </div>
@@ -101,7 +101,7 @@ export default function V2LandingPage() {
             })}
 
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative z-20 flex h-40 w-28 flex-col items-center justify-center rounded-[30px] border border-white/70 bg-[linear-gradient(180deg,#132754_0%,#091327_100%)] shadow-[0_24px_60px_rgba(8,19,39,0.34)]">
+              <div className="relative z-20 flex h-40 w-28 flex-col items-center justify-center rounded-[30px] border border-white/70 bg-[image:var(--gradient-dark-card)] shadow-[0_24px_60px_rgba(8,19,39,0.34)]">
                 <div className="absolute inset-x-4 top-3 h-10 rounded-full bg-[#3b82f624] blur-xl" />
                 <div className="relative flex h-14 w-14 items-center justify-center rounded-3xl bg-[#0e1f46] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                   <Sparkles className="h-7 w-7 text-[#52a3ff]" strokeWidth={2.2} />

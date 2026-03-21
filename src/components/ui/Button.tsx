@@ -4,13 +4,23 @@ import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { Loader2 } from "lucide-react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "ghost" | "danger" | "danger-outline";
+  variant?:
+    | "primary"
+    | "ghost"
+    | "danger"
+    | "danger-outline"
+    | "brand"
+    | "dark"
+    | "outline"
+    | "apple";
   size?: "xs" | "sm" | "md" | "lg";
   loading?: boolean;
   iconOnly?: boolean;
+  fullWidth?: boolean;
 }
 
-const variantClass: Record<string, string> = {
+/* ── V1 variants (use size system) ── */
+const v1Variants: Record<string, string> = {
   primary: "btn-primary",
   ghost: "btn-ghost",
   danger:
@@ -33,6 +43,19 @@ const iconOnlySize: Record<string, string> = {
   lg: "w-12 h-12",
 };
 
+/* ── V2 variants (self-contained sizing: rounded-xl px-6 py-4) ── */
+const v2Base =
+  "rounded-xl px-6 py-4 text-base font-bold tracking-wide transition-all duration-200 active:scale-[0.98] disabled:opacity-50 inline-flex items-center justify-center";
+
+const v2Variants: Record<string, string> = {
+  brand: "bg-brand-primary text-white shadow-brand-sm hover:brightness-105",
+  dark: "bg-v2-navy text-white border-b-[3px] border-v2-pink hover:bg-v2-navy-light",
+  outline: "bg-white text-v2-navy border border-v2-border hover:bg-v2-chip-bg font-semibold",
+  apple: "bg-v2-navy text-white hover:bg-v2-navy-light font-semibold",
+};
+
+const isV2Variant = (v: string): v is keyof typeof v2Variants => v in v2Variants;
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -40,6 +63,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       size = "md",
       loading = false,
       iconOnly = false,
+      fullWidth = false,
       className = "",
       children,
       disabled,
@@ -47,15 +71,22 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const base = variantClass[variant];
-    const sizeStyles = iconOnly
-      ? `${iconOnlySize[size]} rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors`
-      : sizeClass[size];
+    let classes: string;
+
+    if (isV2Variant(variant)) {
+      classes = `${v2Base} ${v2Variants[variant]}`;
+    } else {
+      const base = v1Variants[variant] ?? v1Variants.primary;
+      const sizeStyles = iconOnly
+        ? `${iconOnlySize[size]} rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors`
+        : sizeClass[size];
+      classes = `${base} ${sizeStyles}`;
+    }
 
     return (
       <button
         ref={ref}
-        className={`${base} ${sizeStyles} focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 ${className}`}
+        className={`${classes} focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 ${fullWidth ? "w-full" : ""} ${className}`}
         disabled={disabled || loading}
         {...props}
       >

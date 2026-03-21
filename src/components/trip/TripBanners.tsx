@@ -39,11 +39,11 @@ export function TripBanners({ variant }: TripBannersProps) {
 
       {/* Error banner */}
       {generationError && (
-        <div className="border-b border-[#ffd8d8] bg-[#fff6f6]">
+        <div className="border-surface-error-border bg-surface-error-bg border-b">
           <div
             className={`flex items-center justify-between gap-4 ${wrapperClass} ${paddingClass}`}
           >
-            <p className="text-sm text-[#7b2d2d]">Generation failed. Please try again.</p>
+            <p className="text-surface-error-text text-sm">Generation failed. Please try again.</p>
             <Button size="xs" onClick={onRetry} className="shrink-0">
               Try again
             </Button>
@@ -57,7 +57,7 @@ export function TripBanners({ variant }: TripBannersProps) {
           <div
             className={`flex items-center justify-between gap-3 ${wrapperClass} ${paddingClass}`}
           >
-            <p className="text-sm text-[#243247]">
+            <p className="text-v2-slate text-sm">
               {isMobile
                 ? "Route changed. Regenerate?"
                 : "Your route has changed. Regenerate to update activities."}

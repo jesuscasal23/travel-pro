@@ -11,8 +11,8 @@ import {
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
-import { GradientBackground } from "@/components/v2/ui/GradientBackground";
-import { BackButton } from "@/components/v2/ui/BackButton";
+import { GradientBackground } from "@/components/ui/GradientBackground";
+import { BackButton } from "@/components/ui/BackButton";
 
 type AdvantageItem = {
   title: string;
@@ -63,7 +63,7 @@ export default function V2AdvantagePage() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               The Travel Pro Advantage
             </p>
-            <h1 className="font-display mt-4 text-[2.45rem] leading-[0.98] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-4 text-[2.45rem] leading-[0.98] font-bold tracking-[-0.05em]">
               Everything in
               <br />
               <span className="text-brand-primary">one place</span>
@@ -80,14 +80,14 @@ export default function V2AdvantagePage() {
               return (
                 <article
                   key={item.title}
-                  className="flex items-center gap-3 rounded-[28px] border border-white/80 bg-white/88 px-4 py-3.5 shadow-[0_16px_36px_rgba(27,43,75,0.08)] backdrop-blur-sm"
+                  className="shadow-glass flex items-center gap-3 rounded-[28px] border border-white/80 bg-white/88 px-4 py-3.5 backdrop-blur-sm"
                 >
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#eff4fb]">
                     <Icon className="text-brand-primary h-6 w-6" strokeWidth={2.1} />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-[16px] font-semibold tracking-[-0.02em] text-[#17181c]">
+                    <p className="text-v2-heading text-[16px] font-semibold tracking-[-0.02em]">
                       {item.title}
                     </p>
                     <p className="mt-1 text-[10px] font-bold tracking-[0.18em] text-[#9babc1] uppercase">
@@ -108,7 +108,7 @@ export default function V2AdvantagePage() {
           <button
             type="button"
             onClick={() => router.push("/get-started/personalization")}
-            className="flex w-full items-center justify-center gap-3 rounded-[24px] bg-[#101114] px-6 py-5 text-lg font-bold text-white shadow-[0_18px_36px_rgba(16,17,20,0.22)] transition-transform duration-200 active:scale-[0.985]"
+            className="bg-v2-dark shadow-dark-cta flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985]"
           >
             <span>Sounds Perfect</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

@@ -23,7 +23,7 @@ export const ActivityCard = memo(function ActivityCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[24px] border border-white/80 bg-white/88 px-4 py-4 shadow-[0_18px_34px_rgba(27,43,75,0.06)] backdrop-blur-sm ${
+      className={`shadow-glass-xl relative overflow-hidden rounded-[24px] border border-white/80 bg-white/88 px-4 py-4 backdrop-blur-sm ${
         !isLast ? "mb-3" : ""
       }`}
     >
@@ -38,7 +38,7 @@ export const ActivityCard = memo(function ActivityCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-start gap-3">
             <span
-              className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+              className="shadow-inset-white mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-sm"
               style={{ backgroundColor: style.bgHsl, color: style.strokeHsl }}
             >
               {activity.icon ?? getCategoryEmoji(activity.category)}

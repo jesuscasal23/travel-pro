@@ -23,7 +23,7 @@ export function ActiveTripCard({ trip, onClick }: ActiveTripCardProps) {
     <div
       role="button"
       tabIndex={0}
-      className="relative cursor-pointer overflow-hidden rounded-[24px] shadow-[0_20px_40px_rgba(27,43,75,0.12)]"
+      className="shadow-glass-lg relative cursor-pointer overflow-hidden rounded-[24px]"
       onClick={onClick}
       onKeyDown={(e) => {
         if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {

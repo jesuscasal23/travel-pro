@@ -2,11 +2,11 @@
 
 import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { V2CenteredState } from "@/components/v2/ui/V2CenteredState";
+import { CenteredState } from "@/components/ui/CenteredState";
 import { useTrips } from "@/hooks/api";
-import { V2IconActionButton } from "@/components/v2/ui/V2IconActionButton";
-import { V2PageHeader } from "@/components/v2/ui/V2PageHeader";
-import { V2Screen } from "@/components/v2/ui/V2Screen";
+import { IconActionButton } from "@/components/ui/IconActionButton";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { AppScreen } from "@/components/ui/AppScreen";
 import { TripCard } from "@/components/v2/TripCard";
 import { daysUntil } from "@/lib/utils/format/date";
 import type { TripSummary } from "@/types";
@@ -18,14 +18,14 @@ export default function TripsPage() {
   const tripList = trips ?? [];
 
   return (
-    <V2Screen>
-      <V2PageHeader
+    <AppScreen>
+      <PageHeader
         title="My Trips"
         description={
           isLoading ? "Loading..." : `${tripList.length} trip${tripList.length !== 1 ? "s" : ""}`
         }
         action={
-          <V2IconActionButton
+          <IconActionButton
             onClick={() => router.push("/plan")}
             icon={<Plus size={20} className="text-white" />}
           />
@@ -39,11 +39,11 @@ export default function TripsPage() {
       )}
 
       {!isLoading && error && (
-        <V2CenteredState title="Failed to load trips. Please try again." tone="error" />
+        <CenteredState title="Failed to load trips. Please try again." tone="error" />
       )}
 
       {!isLoading && tripList.length === 0 && !error && (
-        <V2CenteredState
+        <CenteredState
           title="No trips yet"
           description="Plan your first adventure!"
           action={
@@ -74,6 +74,6 @@ export default function TripsPage() {
           })}
         </div>
       )}
-    </V2Screen>
+    </AppScreen>
   );
 }

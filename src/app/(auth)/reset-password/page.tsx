@@ -10,7 +10,7 @@ import { createClient } from "@/lib/core/supabase-client";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
-import { inputClass } from "@/components/auth/auth-styles";
+import { inputClass } from "@/components/ui/styles";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 
 const resetSchema = z

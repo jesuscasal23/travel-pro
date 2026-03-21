@@ -1,10 +1,7 @@
 "use client";
 
 import { nationalities } from "@/data/nationalities";
-import {
-  travelFieldErrorClass,
-  travelFieldLabelClass,
-} from "@/components/forms/travel-field-styles";
+import { travelFieldErrorClass, travelFieldLabelClass } from "@/components/ui/styles";
 import { AirportCombobox } from "@/components/ui/AirportCombobox";
 import { profileInputClass } from "./travel-profile-options";
 

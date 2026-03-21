@@ -230,7 +230,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   if (!storeReady || tripSyncPending || tripHydrationPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#f9fbff_0%,#ffffff_22%,#f4f7fb_100%)]">
+      <div className="flex min-h-screen items-center justify-center bg-[image:var(--gradient-page-trip)]">
         <div className="border-brand-primary h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent" />
       </div>
     );

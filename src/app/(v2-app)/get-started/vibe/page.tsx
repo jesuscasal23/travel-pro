@@ -15,8 +15,8 @@ import {
   Sun,
   CloudSnow,
 } from "lucide-react";
-import { GradientBackground } from "@/components/v2/ui/GradientBackground";
-import { BackButton } from "@/components/v2/ui/BackButton";
+import { GradientBackground } from "@/components/ui/GradientBackground";
+import { BackButton } from "@/components/ui/BackButton";
 import type { LucideIcon } from "lucide-react";
 
 type VibeKey =
@@ -94,7 +94,7 @@ export default function V2VibePage() {
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
               The Vibe
             </p>
-            <h1 className="font-display mt-2 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em] text-[#101114]">
+            <h1 className="font-display text-v2-dark mt-2 text-[2.35rem] leading-[1.02] font-bold tracking-[-0.05em]">
               Tell us about you
             </h1>
             <p className="text-v2-text-muted mt-2 text-[15px] leading-7">
@@ -113,7 +113,7 @@ export default function V2VibePage() {
               return (
                 <div
                   key={slider.id}
-                  className="rounded-2xl bg-white/60 px-4 py-3 shadow-[0_2px_12px_rgba(27,43,75,0.06)] backdrop-blur-sm"
+                  className="shadow-glass-xs rounded-2xl bg-white/60 px-4 py-3 backdrop-blur-sm"
                 >
                   <div className="mb-2 flex items-center justify-between gap-4">
                     <span
@@ -176,7 +176,7 @@ export default function V2VibePage() {
           <button
             type="button"
             onClick={() => router.push("/get-started/interests")}
-            className="flex w-full items-center justify-center gap-3 rounded-[24px] bg-[#101114] px-6 py-5 text-lg font-bold text-white shadow-[0_18px_36px_rgba(16,17,20,0.22)] transition-transform duration-200 active:scale-[0.985]"
+            className="bg-v2-dark shadow-dark-cta flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985]"
           >
             <span>Continue</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />

@@ -46,7 +46,7 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
-      <section className="border-v2-border/80 rounded-[34px] border bg-white/90 p-5 text-left shadow-[0_24px_48px_rgba(27,43,75,0.06)] backdrop-blur-sm">
+      <section className="border-v2-border/80 shadow-glass-xl rounded-[34px] border bg-white/90 p-5 text-left backdrop-blur-sm">
         <div className="border-v2-border/70 border-b pb-5">
           <div>
             <p className="text-v2-text-light text-[11px] font-bold tracking-[0.18em] uppercase">
@@ -59,7 +59,7 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-3">
-          <div className="rounded-[22px] bg-[#f7f9fc] p-3">
+          <div className="bg-surface-neutral rounded-[22px] p-3">
             <p className="text-v2-text-light text-[10px] font-bold tracking-[0.18em] uppercase">
               Budget
             </p>
@@ -67,13 +67,13 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
               {budgetLabel}
             </p>
           </div>
-          <div className="rounded-[22px] bg-[#f7f9fc] p-3">
+          <div className="bg-surface-neutral rounded-[22px] p-3">
             <p className="text-v2-text-light text-[10px] font-bold tracking-[0.18em] uppercase">
               Pace
             </p>
             <p className="text-v2-navy mt-1 text-[14px] leading-tight font-semibold">{paceLabel}</p>
           </div>
-          <div className="rounded-[22px] bg-[#f7f9fc] p-3">
+          <div className="bg-surface-neutral rounded-[22px] p-3">
             <p className="text-v2-text-light text-[10px] font-bold tracking-[0.18em] uppercase">
               Interests
             </p>

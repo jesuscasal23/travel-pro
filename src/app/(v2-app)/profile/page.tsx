@@ -21,8 +21,8 @@ import { InterestSelector } from "@/components/profile/InterestSelector";
 import { PaceSelector } from "@/components/profile/PaceSelector";
 import { ProfileBasicsFields } from "@/components/profile/ProfileBasicsFields";
 import { TravelStyleSelector } from "@/components/profile/TravelStyleSelector";
-import { BottomNav } from "@/components/v2/ui/BottomNav";
-import { DevelopmentTag } from "@/components/v2/ui/DevelopmentTag";
+import { BottomNav } from "@/components/ui/BottomNav";
+import { DevelopmentTag } from "@/components/ui/DevelopmentTag";
 import { MenuSection } from "@/components/v2/profile/MenuSection";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
