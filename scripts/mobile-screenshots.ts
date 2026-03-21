@@ -19,7 +19,7 @@ const PAGES = [
   { name: "15-profile", url: "/profile" },
 ];
 
-const OUT_DIR = path.join(process.cwd(), "tmp/v2-screenshots");
+const OUT_DIR = path.join(process.cwd(), "tmp/mobile-screenshots");
 
 async function main() {
   const browser = await chromium.launch();

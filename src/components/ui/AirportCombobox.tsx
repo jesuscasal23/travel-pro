@@ -11,7 +11,7 @@ interface Props {
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
-  variant?: "default" | "modern";
+  variant?: "subtle" | "branded";
 }
 
 /** Format an airport entry into the canonical label stored in the Zustand store */
@@ -38,10 +38,10 @@ export function AirportCombobox({
   onChange,
   className = "",
   placeholder = "Search airport or city\u2026",
-  variant = "default",
+  variant = "subtle",
 }: Props) {
   const [results, setResults] = useState<AirportEntry[]>([]);
-  const isModern = variant === "modern";
+  const isBranded = variant === "branded";
 
   // Derive display label from stored value (show it when input is not focused)
   const displayValue = value ? value.split("(")[0].trim() : "";
@@ -73,13 +73,15 @@ export function AirportCombobox({
         <>
           <span
             className={`w-9 shrink-0 font-mono font-semibold ${
-              isModern ? "text-brand-primary" : "text-primary"
+              isBranded ? "text-brand-primary" : "text-primary"
             }`}
           >
             {a.iata}
           </span>
-          <span className={`${isModern ? "text-navy" : "text-foreground"} truncate`}>{a.name}</span>
-          <span className={`ml-auto shrink-0 ${isModern ? "text-dim" : "text-muted-foreground"}`}>
+          <span className={`${isBranded ? "text-navy" : "text-foreground"} truncate`}>
+            {a.name}
+          </span>
+          <span className={`ml-auto shrink-0 ${isBranded ? "text-dim" : "text-muted-foreground"}`}>
             {a.city ? `${a.city}, ${a.country}` : a.country}
           </span>
         </>

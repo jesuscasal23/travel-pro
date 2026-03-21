@@ -19,16 +19,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-/* ── Classic variants (use size system) ── */
-const classicVariants: Record<string, string> = {
-  primary:
-    "bg-primary text-primary-foreground inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 hover:opacity-90 active:scale-[0.97]",
-  ghost:
-    "text-foreground border-border inline-flex items-center justify-center rounded-lg border bg-transparent font-medium transition-all duration-200 hover:bg-muted active:scale-[0.97]",
-  danger:
-    "bg-red-600 dark:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-700 dark:hover:bg-red-800 active:scale-[0.97]",
-  "danger-outline":
-    "border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950 active:scale-[0.97]",
+/* ── Variant base classes ── */
+const baseClass = "inline-flex items-center justify-center font-medium transition-all duration-200";
+
+/* Variants that respect the size system (primary, ghost, danger, danger-outline) */
+const sizedVariants: Record<string, string> = {
+  primary: `${baseClass} bg-primary text-primary-foreground rounded-lg hover:opacity-90 active:scale-[0.97]`,
+  ghost: `${baseClass} text-foreground border-border rounded-lg border bg-transparent hover:bg-muted active:scale-[0.97]`,
+  danger: `${baseClass} bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-800 active:scale-[0.97]`,
+  "danger-outline": `${baseClass} border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 active:scale-[0.97]`,
 };
 
 const sizeClass: Record<string, string> = {
@@ -45,18 +44,15 @@ const iconOnlySize: Record<string, string> = {
   lg: "w-12 h-12",
 };
 
-/* ── Modern variants (self-contained sizing: rounded-xl px-6 py-4) ── */
-const modernBase =
-  "rounded-xl px-6 py-4 text-base font-bold tracking-wide transition-all duration-200 active:scale-[0.98] disabled:opacity-50 inline-flex items-center justify-center";
-
-const modernVariants: Record<string, string> = {
-  brand: "bg-brand-primary text-white shadow-brand-sm hover:brightness-105",
-  dark: "bg-navy text-white border-b-[3px] border-app-pink hover:bg-navy-light",
-  outline: "bg-white text-navy border border-edge hover:bg-chip-bg font-semibold",
-  apple: "bg-navy text-white hover:bg-navy-light font-semibold",
+/* Variants with self-contained sizing (rounded-xl px-6 py-4) */
+const fullVariants: Record<string, string> = {
+  brand: `${baseClass} rounded-xl px-6 py-4 text-base font-bold tracking-wide active:scale-[0.98] disabled:opacity-50 bg-brand-primary text-white shadow-brand-sm hover:brightness-105`,
+  dark: `${baseClass} rounded-xl px-6 py-4 text-base font-bold tracking-wide active:scale-[0.98] disabled:opacity-50 bg-navy text-white border-b-[3px] border-app-pink hover:bg-navy-light`,
+  outline: `${baseClass} rounded-xl px-6 py-4 text-base font-bold tracking-wide active:scale-[0.98] disabled:opacity-50 bg-white text-navy border border-edge hover:bg-chip-bg font-semibold`,
+  apple: `${baseClass} rounded-xl px-6 py-4 text-base font-bold tracking-wide active:scale-[0.98] disabled:opacity-50 bg-navy text-white hover:bg-navy-light font-semibold`,
 };
 
-const isModernVariant = (v: string): v is keyof typeof modernVariants => v in modernVariants;
+const isFullVariant = (v: string): v is keyof typeof fullVariants => v in fullVariants;
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -75,10 +71,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     let classes: string;
 
-    if (isModernVariant(variant)) {
-      classes = `${modernBase} ${modernVariants[variant]}`;
+    if (isFullVariant(variant)) {
+      classes = fullVariants[variant];
     } else {
-      const base = classicVariants[variant] ?? classicVariants.primary;
+      const base = sizedVariants[variant] ?? sizedVariants.primary;
       const sizeStyles = iconOnly
         ? `${iconOnlySize[size]} rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors`
         : sizeClass[size];

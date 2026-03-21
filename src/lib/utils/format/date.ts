@@ -1,7 +1,7 @@
 /**
  * Shared date utility functions.
- * Consolidates scattered date helpers from prompts/v1, prompts/v2,
- * prompts/route-selector, and flights/optimizer.
+ * Consolidates scattered date helpers from prompts, route-selector,
+ * and flights/optimizer.
  */
 
 /** Calculate number of days between two ISO date strings (YYYY-MM-DD). */

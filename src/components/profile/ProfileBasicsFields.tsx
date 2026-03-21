@@ -30,7 +30,7 @@ export function ProfileBasicsFields({
           value={nationality}
           onChange={(event) => onNationalityChange(event.target.value)}
           className={profileInputClass}
-          style={{ color: nationality ? "#1b2b4b" : "#9ca3af" }}
+          style={{ color: nationality ? "var(--color-navy)" : "var(--color-faint)" }}
         >
           <option value="">Select your nationality</option>
           {nationalities.map((entry) => (
@@ -48,7 +48,7 @@ export function ProfileBasicsFields({
           value={homeAirport}
           onChange={onHomeAirportChange}
           className={profileInputClass}
-          variant="modern"
+          variant="branded"
           placeholder="Search airport or city..."
         />
         {homeAirportError && <p className={travelFieldErrorClass}>{homeAirportError}</p>}

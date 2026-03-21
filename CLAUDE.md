@@ -47,12 +47,10 @@ src/
 ├── app/
 │   ├── (marketing)/           # Landing + privacy (public, Navbar wrapper)
 │   ├── (auth)/                # signup, login, forgot-password, reset-password
-│   ├── (v2-app)/              # Mobile-first app shell (430px container layout)
-│   │   ├── get-started/       # v2 onboarding entry (mobile landing)
-│   │   ├── onboarding/        # Multi-step onboarding: about-you → preferences → interests → pace → pain-points → summary → signup
+│   ├── (app)/                 # Mobile-first app shell (430px container layout)
+│   │   ├── get-started/       # Onboarding entry (mobile landing + advantage/vibe/interests/budget/rhythm)
 │   │   ├── home/              # Dashboard: next trip, info cards, departure tasks
 │   │   ├── trips/             # Trip list (real API data via useTrips)
-│   │   ├── discover/          # Trending destinations (mock — future feature)
 │   │   ├── bookings/          # Travel wallet (mock — future feature)
 │   │   └── profile/           # Settings hub: auth-aware, sign out, travel DNA
 │   ├── dashboard/             # Redirect → /home (backwards compatibility)
@@ -65,8 +63,7 @@ src/
 │       ├── health/            # Health check
 │       └── v1/                # REST API: trips, profile, affiliate
 ├── components/
-│   ├── ui/                    # Button, Card, Chip, Badge, Modal, Toast, AirportCombobox, CityCombobox
-│   ├── v2/                    # V2 mobile components: OnboardingShell, ui/ (Button, ProgressBar, BottomNav)
+│   ├── ui/                    # Button, Card, Badge, Tabs, Modal, Toast, Combobox variants, AlertBox, ProgressBar, BottomNav
 │   ├── auth/                  # Auth form styles + ServerErrorAlert
 │   ├── map/                   # RouteMap (MapLibre, dynamic import) + fallback
 │   ├── export/                # PDFDownloadButton
@@ -75,7 +72,7 @@ src/
 │   └── TravelStylePicker.tsx, WorldMapSVG.tsx
 ├── lib/
 │   ├── ai/                    # pipeline, enrichment
-│   │   └── prompts/           # v1, single-city, route-selector
+│   │   └── prompts/           # main (v1.ts), single-city, route-selector, city-activities
 │   ├── api/                   # helpers (auth guards, apiHandler), errors
 │   ├── core/                  # prisma, logger, request-context, abort (canonical locations)
 │   ├── features/              # Domain services (canonical location for all business logic)
@@ -97,7 +94,7 @@ src/
 │   └── animations.ts          # slideVariants, fadeUp, simpleFadeUp (Framer Motion)
 ├── stores/useTripStore.ts     # Zustand store (persisted + transient fields)
 ├── types/index.ts             # All TypeScript types
-├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps, v2-mock-data
+├── data/                      # sampleData, cities, nationalities, airports-full, visa-index, travelStyles, generationSteps
 ├── hooks/                     # api/ (React Query server-state hooks by feature), useItinerary, useToast, useScrollSync
 └── proxy.ts                   # Auth (protects /profile) + rate limiting (Upstash Redis)
 ```
@@ -199,7 +196,7 @@ TripType     = "single-city" | "multi-city"
 ## AI Pipeline (`src/lib/ai/`)
 
 1. **Route selection** (multi-city only): Haiku picks cities via `selectRoute()` → `CityWithDays[]`
-2. **Prompt assembly**: `assemblePrompt()` (v1/v2) or `assembleSingleCityPrompt()` with profile + intent + optional flight skeleton
+2. **Prompt assembly**: `assemblePrompt()` or `assembleSingleCityPrompt()` with profile + intent + optional flight skeleton
 3. **Claude Haiku call**: maxTokens 10,000 (multi-city) / 4,000 (single-city), temp 0.7, 50s timeout
 4. **Parse + validate**: `extractJSON()` strips fences → Zod schema validation
 5. **Enrichment** (parallel): `enrichVisa()` (Passport Index static data, 199×227) + `enrichWeather()` (Open-Meteo + Redis 7d cache)
@@ -245,16 +242,20 @@ Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { t
 
 ## Styling
 
-| Token       | Value           | Tailwind class               | Used by |
-| ----------- | --------------- | ---------------------------- | ------- |
-| `--primary` | teal `#0D7377`  | `bg-primary`, `text-primary` | v1      |
-| `--accent`  | coral `#E85D4A` | `bg-accent`, `text-accent`   | v1      |
-| `v2-navy`   | `#1b2b4b`       | `bg-v2-navy`, `text-v2-navy` | v2      |
-| `v2-orange` | `#f97316`       | `bg-v2-orange`               | v2      |
+All design tokens live in `src/app/globals.css` — CSS custom properties in `:root` exposed via `@theme inline` for Tailwind v4.
 
-V1 classes: `.card-travel`, `.btn-primary`, `.btn-ghost`, `.chip`, `.chip-selected`, `.badge-success/.warning/.info`
-V2 components: `@/components/v2/ui/Button` (5 variants), `ProgressBar`, `BottomNav`, `OnboardingShell`
-V2 tokens defined in `globals.css` `@theme inline` block (lines 93+).
+| Token               | Value           | Tailwind class                           |
+| ------------------- | --------------- | ---------------------------------------- |
+| `--primary`         | teal `#0D7377`  | `bg-primary`, `text-primary`             |
+| `--accent`          | coral `#E85D4A` | `bg-accent`, `text-accent`               |
+| `--brand-primary`   | blue `#2563ff`  | `bg-brand-primary`, `text-brand-primary` |
+| `--color-navy`      | `#1b2b4b`       | `bg-navy`, `text-navy`                   |
+| `--color-app-*`     | various         | `bg-app-blue`, `text-app-green`, etc.    |
+| `--color-surface-*` | various         | `bg-surface-soft`, `bg-surface-hover`    |
+
+Reusable components: `Button` (8 variants), `Card` (glass/solid/outline), `Badge` (7 variants), `Tabs` (TabList/Tab/TabPanel), `Modal`, `Toast`, `AlertBox`, `Combobox`.
+CSS utility classes: `.card-travel`, `.btn-primary`, `.btn-ghost` (for non-React elements like `<Link>`).
+ESLint rule `travel-pro/no-hardcoded-colors` flags arbitrary hex values in className — always use tokens.
 
 Dark mode: `dark` class on `<html>` via ThemeToggle + inline script in root layout prevents flash.
 

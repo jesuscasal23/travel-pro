@@ -27,8 +27,8 @@ export interface ComboboxProps<T> {
   minCharsForEmpty?: number;
   /** Optional header rendered at the top of the dropdown (e.g. "Popular destinations") */
   listHeader?: ReactNode;
-  /** Visual variant */
-  variant?: "default" | "modern";
+  /** Visual variant: "subtle" (neutral form style) or "branded" (navy/brand style) */
+  variant?: "subtle" | "branded";
   /** Optional override for the display value shown when not focused */
   displayValue?: string;
 }
@@ -45,7 +45,7 @@ export function Combobox<T>({
   emptyMessage,
   minCharsForEmpty = 2,
   listHeader,
-  variant = "default",
+  variant = "subtle",
   displayValue,
 }: ComboboxProps<T>) {
   const [query, setQuery] = useState("");
@@ -54,7 +54,7 @@ export function Combobox<T>({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isModern = variant === "modern";
+  const isBranded = variant === "branded";
   const shownValue = displayValue ?? value;
 
   const select = useCallback(
@@ -128,7 +128,7 @@ export function Combobox<T>({
       {/* Show current selection when not focused */}
       {!open && value && (
         <div className="pointer-events-none absolute inset-0 flex items-center px-4">
-          <span className={`${isModern ? "text-navy" : "text-foreground"} truncate text-sm`}>
+          <span className={`${isBranded ? "text-navy" : "text-foreground"} truncate text-sm`}>
             {shownValue}
           </span>
         </div>
@@ -137,7 +137,7 @@ export function Combobox<T>({
       {open && results.length > 0 && (
         <ul
           className={`absolute z-50 w-full overflow-hidden overflow-y-auto border ${
-            isModern
+            isBranded
               ? "border-edge shadow-glass-lg mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white"
               : "bg-background border-border mt-1 max-h-[min(16rem,50vh)] rounded-lg shadow-lg"
           }`}
@@ -147,7 +147,7 @@ export function Combobox<T>({
             <li
               key={getKey(item)}
               className={`flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                isModern
+                isBranded
                   ? i === highlighted
                     ? "bg-chip-bg text-navy"
                     : "text-navy hover:bg-chip-bg"
@@ -170,7 +170,7 @@ export function Combobox<T>({
       {open && query.length >= minCharsForEmpty && results.length === 0 && emptyMessage && (
         <div
           className={`absolute z-50 w-full border px-4 py-3 text-sm ${
-            isModern
+            isBranded
               ? "border-edge text-dim shadow-glass-lg mt-2 rounded-2xl bg-white"
               : "bg-background border-border text-muted-foreground mt-1 rounded-lg shadow-lg"
           }`}

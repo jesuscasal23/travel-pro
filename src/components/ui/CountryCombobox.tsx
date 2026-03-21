@@ -34,7 +34,7 @@ interface Props {
   onChange: (entry: CountryEntry) => void;
   className?: string;
   placeholder?: string;
-  variant?: "default" | "modern";
+  variant?: "subtle" | "branded";
 }
 
 function getPopularCountries(): CountryEntry[] {
@@ -54,11 +54,11 @@ export function CountryCombobox({
   onChange,
   className = "",
   placeholder = "Search country\u2026",
-  variant = "default",
+  variant = "subtle",
 }: Props) {
   const [results, setResults] = useState<CountryEntry[]>(getPopularCountries());
   const [hasQuery, setHasQuery] = useState(false);
-  const isModern = variant === "modern";
+  const isBranded = variant === "branded";
 
   const handleQueryChange = useCallback((query: string) => {
     const filtered = filterCountries(query);
@@ -81,7 +81,7 @@ export function CountryCombobox({
         !hasQuery ? (
           <li
             className={`border-b px-4 py-1.5 text-xs font-medium ${
-              isModern ? "border-edge text-dim bg-chip-bg" : "text-muted-foreground border-border"
+              isBranded ? "border-edge text-dim bg-chip-bg" : "text-muted-foreground border-border"
             }`}
           >
             Popular countries
@@ -90,12 +90,12 @@ export function CountryCombobox({
       }
       renderItem={(c) => (
         <>
-          <span className={`${isModern ? "text-navy" : "text-foreground"} truncate font-medium`}>
+          <span className={`${isBranded ? "text-navy" : "text-foreground"} truncate font-medium`}>
             {c.country}
           </span>
           <span
             className={`ml-auto w-6 shrink-0 font-mono text-xs ${
-              isModern ? "text-faint" : "text-muted-foreground/60"
+              isBranded ? "text-faint" : "text-muted-foreground/60"
             }`}
           >
             {c.countryCode}
