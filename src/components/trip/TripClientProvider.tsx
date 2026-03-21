@@ -214,7 +214,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     if (!current || current.days.length === 0) return;
     const needsVisa = visaData && !current.visaData?.length;
     const needsWeather = weatherData && !current.weatherData?.length;
-    const needsAccommodation = accommodationData && !current.accommodationData?.length;
+    const needsAccommodation =
+      accommodationData && !current.accommodationData?.some((a) => a.hotels.length > 0);
     if (!needsVisa && !needsWeather && !needsAccommodation) return;
     setItinerary({
       ...current,
