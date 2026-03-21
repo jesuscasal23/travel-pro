@@ -39,13 +39,13 @@ export function Modal({
           } ${contentClassName}`}
         >
           <div className="mb-4 flex items-start justify-between">
-            <Dialog.Title className="text-v2-heading text-lg font-bold tracking-[-0.03em]">
+            <Dialog.Title className="text-heading text-lg font-bold tracking-[-0.03em]">
               {title}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 aria-label="Close"
-                className="hover:bg-brand-primary-soft hover:text-v2-slate -mt-2 -mr-2 flex h-10 w-10 items-center justify-center rounded-2xl text-[#7d8ea7] transition-all duration-200"
+                className="hover:bg-brand-primary-soft hover:text-steel -mt-2 -mr-2 flex h-10 w-10 items-center justify-center rounded-2xl text-[#7d8ea7] transition-all duration-200"
               >
                 <X className="h-5 w-5" />
               </button>

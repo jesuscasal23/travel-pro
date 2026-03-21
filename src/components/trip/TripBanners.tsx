@@ -57,7 +57,7 @@ export function TripBanners({ variant }: TripBannersProps) {
           <div
             className={`flex items-center justify-between gap-3 ${wrapperClass} ${paddingClass}`}
           >
-            <p className="text-v2-slate text-sm">
+            <p className="text-steel text-sm">
               {isMobile
                 ? "Route changed. Regenerate?"
                 : "Your route has changed. Regenerate to update activities."}

@@ -154,7 +154,7 @@ export default function AdminDashboard() {
             onClick={() => setTab(t)}
             className={`rounded-md px-4 py-2 text-sm font-medium capitalize transition-colors ${
               tab === t
-                ? "bg-v2-navy text-white"
+                ? "bg-navy text-white"
                 : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             }`}
           >

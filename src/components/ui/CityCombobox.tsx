@@ -9,7 +9,7 @@ interface Props {
   onChange: (entry: CityEntry) => void;
   className?: string;
   placeholder?: string;
-  variant?: "default" | "v2";
+  variant?: "default" | "modern";
 }
 
 /** Show popular cities when query is empty */
@@ -38,7 +38,7 @@ export function CityCombobox({
 }: Props) {
   const [results, setResults] = useState<CityEntry[]>(getPopularCities());
   const [hasQuery, setHasQuery] = useState(false);
-  const isV2 = variant === "v2";
+  const isModern = variant === "modern";
 
   const handleQueryChange = useCallback((query: string) => {
     setResults(filterCities(query));
@@ -60,9 +60,7 @@ export function CityCombobox({
         !hasQuery ? (
           <li
             className={`border-b px-4 py-1.5 text-xs font-medium ${
-              isV2
-                ? "border-v2-border text-v2-text-muted bg-v2-chip-bg"
-                : "text-muted-foreground border-border"
+              isModern ? "border-edge text-dim bg-chip-bg" : "text-muted-foreground border-border"
             }`}
           >
             Popular destinations
@@ -71,17 +69,15 @@ export function CityCombobox({
       }
       renderItem={(c) => (
         <>
-          <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate font-medium`}>
+          <span className={`${isModern ? "text-navy" : "text-foreground"} truncate font-medium`}>
             {c.city}
           </span>
-          <span
-            className={`ml-auto shrink-0 ${isV2 ? "text-v2-text-muted" : "text-muted-foreground"}`}
-          >
+          <span className={`ml-auto shrink-0 ${isModern ? "text-dim" : "text-muted-foreground"}`}>
             {c.country}
           </span>
           <span
             className={`w-6 shrink-0 font-mono text-xs ${
-              isV2 ? "text-v2-text-light" : "text-muted-foreground/60"
+              isModern ? "text-faint" : "text-muted-foreground/60"
             }`}
           >
             {c.countryCode}

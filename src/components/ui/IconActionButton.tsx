@@ -13,7 +13,7 @@ export function IconActionButton({ icon, onClick, badge }: IconActionButtonProps
     <button
       type="button"
       onClick={onClick}
-      className="bg-v2-navy relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:shadow-md hover:brightness-110"
+      className="bg-navy relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:shadow-md hover:brightness-110"
     >
       {icon}
       {badge ? <span className="absolute -top-1 -right-1">{badge}</span> : null}

@@ -25,8 +25,8 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
           <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Details
           </p>
-          <h2 className="text-v2-navy text-[28px] leading-tight font-bold">The essentials</h2>
-          <p className="text-v2-text-muted mt-2 text-sm">
+          <h2 className="text-navy text-[28px] leading-tight font-bold">The essentials</h2>
+          <p className="text-dim mt-2 text-sm">
             We use this to calculate visa requirements and flight prices.
           </p>
         </div>
@@ -50,8 +50,8 @@ export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileSte
         />
       </section>
 
-      <section className="border-v2-border/80 bg-brand-primary-subtle flex items-start gap-4 rounded-[28px] border px-5 py-5">
-        <div className="border-v2-border flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border bg-white">
+      <section className="border-edge/80 bg-brand-primary-subtle flex items-start gap-4 rounded-[28px] border px-5 py-5">
+        <div className="border-edge flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border bg-white">
           <Info className="text-brand-primary h-4 w-4" strokeWidth={2.4} />
         </div>
         <p className="text-sm leading-6 font-semibold text-[#6f86aa]">

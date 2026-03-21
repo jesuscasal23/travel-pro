@@ -52,7 +52,7 @@ export const ActivityCard = memo(function ActivityCard({
                   {activity.category}
                 </span>
               </div>
-              <h4 className="text-v2-navy mt-2 truncate text-[15px] font-semibold tracking-[-0.02em]">
+              <h4 className="text-navy mt-2 truncate text-[15px] font-semibold tracking-[-0.02em]">
                 {activity.name}
               </h4>
             </div>
@@ -67,9 +67,7 @@ export const ActivityCard = memo(function ActivityCard({
 
         {/* Why description */}
         {activity.why && (
-          <p className="text-v2-text-muted mt-2 line-clamp-2 text-[13px] leading-5">
-            {activity.why}
-          </p>
+          <p className="text-dim mt-2 line-clamp-2 text-[13px] leading-5">{activity.why}</p>
         )}
 
         {/* Meta row */}
@@ -88,7 +86,7 @@ export const ActivityCard = memo(function ActivityCard({
 
         {/* Pro tip — show if duration >= 2h */}
         {activity.tip && durationHours >= 2 && (
-          <p className="text-v2-text-muted mt-1.5 text-[12px] italic">💡 {activity.tip}</p>
+          <p className="text-dim mt-1.5 text-[12px] italic">💡 {activity.tip}</p>
         )}
       </div>
     </div>

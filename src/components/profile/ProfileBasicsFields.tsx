@@ -48,7 +48,7 @@ export function ProfileBasicsFields({
           value={homeAirport}
           onChange={onHomeAirportChange}
           className={profileInputClass}
-          variant="v2"
+          variant="modern"
           placeholder="Search airport or city..."
         />
         {homeAirportError && <p className={travelFieldErrorClass}>{homeAirportError}</p>}

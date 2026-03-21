@@ -65,7 +65,7 @@ export function GoogleAuthButton({ next, disabled = false, onError }: GoogleAuth
       type="button"
       onClick={handleClick}
       disabled={disabled || isLoading}
-      className="text-v2-navy border-google-border bg-google-bg shadow-glass-sm hover:border-google-hover-border flex w-full items-center justify-center gap-3 rounded-[18px] border px-4 py-3.5 text-sm font-semibold transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+      className="text-navy border-google-border bg-google-bg shadow-glass-sm hover:border-google-hover-border flex w-full items-center justify-center gap-3 rounded-[18px] border px-4 py-3.5 text-sm font-semibold transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
     >
       {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
       <span>{isLoading ? "Redirecting to Google..." : "Continue with Google"}</span>

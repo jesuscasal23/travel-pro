@@ -38,21 +38,21 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
           <p className="font-display text-[11px] font-bold tracking-[0.34em] text-[#10b981] uppercase">
             Profile Complete
           </p>
-          <h2 className="text-v2-navy mt-3 text-[30px] leading-[1.06] font-bold tracking-[-0.05em]">
+          <h2 className="text-navy mt-3 text-[30px] leading-[1.06] font-bold tracking-[-0.05em]">
             Your Travel DNA is ready
           </h2>
-          <p className="text-v2-text-muted mt-2 text-sm">We&apos;ve captured your unique style.</p>
+          <p className="text-dim mt-2 text-sm">We&apos;ve captured your unique style.</p>
         </div>
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
-      <section className="border-v2-border/80 shadow-glass-xl rounded-[34px] border bg-white/90 p-5 text-left backdrop-blur-sm">
-        <div className="border-v2-border/70 border-b pb-5">
+      <section className="border-edge/80 shadow-glass-xl rounded-[34px] border bg-white/90 p-5 text-left backdrop-blur-sm">
+        <div className="border-edge/70 border-b pb-5">
           <div>
-            <p className="text-v2-text-light text-[11px] font-bold tracking-[0.18em] uppercase">
+            <p className="text-faint text-[11px] font-bold tracking-[0.18em] uppercase">
               Destinations
             </p>
-            <p className="text-v2-navy mt-2 text-[26px] leading-tight font-bold">
+            <p className="text-navy mt-2 text-[26px] leading-tight font-bold">
               {destinationLabel || "TBD"}
             </p>
           </div>
@@ -60,24 +60,18 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
 
         <div className="mt-4 grid grid-cols-3 gap-3">
           <div className="bg-surface-neutral rounded-[22px] p-3">
-            <p className="text-v2-text-light text-[10px] font-bold tracking-[0.18em] uppercase">
-              Budget
-            </p>
-            <p className="text-v2-navy mt-1 text-[14px] leading-tight font-semibold">
-              {budgetLabel}
-            </p>
+            <p className="text-faint text-[10px] font-bold tracking-[0.18em] uppercase">Budget</p>
+            <p className="text-navy mt-1 text-[14px] leading-tight font-semibold">{budgetLabel}</p>
           </div>
           <div className="bg-surface-neutral rounded-[22px] p-3">
-            <p className="text-v2-text-light text-[10px] font-bold tracking-[0.18em] uppercase">
-              Pace
-            </p>
-            <p className="text-v2-navy mt-1 text-[14px] leading-tight font-semibold">{paceLabel}</p>
+            <p className="text-faint text-[10px] font-bold tracking-[0.18em] uppercase">Pace</p>
+            <p className="text-navy mt-1 text-[14px] leading-tight font-semibold">{paceLabel}</p>
           </div>
           <div className="bg-surface-neutral rounded-[22px] p-3">
-            <p className="text-v2-text-light text-[10px] font-bold tracking-[0.18em] uppercase">
+            <p className="text-faint text-[10px] font-bold tracking-[0.18em] uppercase">
               Interests
             </p>
-            <p className="text-v2-navy mt-1 text-[14px] leading-tight font-semibold">
+            <p className="text-navy mt-1 text-[14px] leading-tight font-semibold">
               {interests.length} Selected
             </p>
           </div>

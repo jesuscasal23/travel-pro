@@ -177,10 +177,10 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Destination
           </p>
-          <h2 className="text-v2-navy text-[28px] leading-tight font-bold">
+          <h2 className="text-navy text-[28px] leading-tight font-bold">
             Where to <span className="text-brand-primary italic">next?</span>
           </h2>
-          <p className="text-v2-text-muted mt-2 text-sm">
+          <p className="text-dim mt-2 text-sm">
             Your dream trip starts with a single pin on the map.
           </p>
         </div>
@@ -188,10 +188,10 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
       </div>
 
       <div>
-        <p className="text-v2-text-light text-[11px] font-bold tracking-[0.2em] uppercase">Where</p>
+        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Where</p>
 
         <div ref={containerRef} className="relative mt-3">
-          <div className="text-v2-subtext pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2">
+          <div className="text-subtext pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2">
             {selectedLabel && !open ? (
               <LocateFixed className="h-4 w-4" />
             ) : (
@@ -211,7 +211,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           />
 
           {open && results.length > 0 && (
-            <div className="border-v2-border shadow-glass-lg absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white">
+            <div className="border-edge shadow-glass-lg absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white">
               {results.map((result) => (
                 <button
                   key={result.key}
@@ -220,13 +220,13 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                     event.preventDefault();
                     handleSelectResult(result);
                   }}
-                  className="border-v2-border/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 hover:bg-[#f7faff]"
+                  className="border-edge/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 hover:bg-[#f7faff]"
                 >
                   <div>
-                    <p className="text-v2-navy text-sm font-semibold">{result.label}</p>
-                    <p className="text-v2-text-muted mt-0.5 text-xs">{result.detail}</p>
+                    <p className="text-navy text-sm font-semibold">{result.label}</p>
+                    <p className="text-dim mt-0.5 text-xs">{result.detail}</p>
                   </div>
-                  <MapPinned className="text-v2-subtext h-4 w-4" />
+                  <MapPinned className="text-subtext h-4 w-4" />
                 </button>
               ))}
             </div>
@@ -241,11 +241,11 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
       </div>
 
       <div>
-        <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
+        <label className="text-faint mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
           Start
         </label>
         <div className="relative">
-          <CalendarDays className="text-v2-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
+          <CalendarDays className="text-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
           <input
             type="date"
             value={dateStart}
@@ -263,11 +263,11 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
       </div>
 
       <div>
-        <label className="text-v2-text-light mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
+        <label className="text-faint mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
           End
         </label>
         <div className="relative">
-          <CalendarDays className="text-v2-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
+          <CalendarDays className="text-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
           <input
             type="date"
             value={dateEnd}
@@ -286,7 +286,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
       </div>
 
       <section>
-        <p className="text-v2-text-light mb-3 text-[11px] font-bold tracking-[0.2em] uppercase">
+        <p className="text-faint mb-3 text-[11px] font-bold tracking-[0.2em] uppercase">
           Popular Right Now
         </p>
         <div className="flex flex-wrap gap-2.5">
@@ -309,7 +309,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                   className={`rounded-2xl border px-4 py-2.5 text-[12px] font-bold tracking-[0.08em] uppercase transition-all ${
                     isSelected
                       ? "border-brand-primary bg-brand-primary-soft text-brand-primary shadow-[var(--shadow-brand-md)]"
-                      : "border-v2-border/80 bg-white/88 text-[#59657a]"
+                      : "border-edge/80 bg-white/88 text-[#59657a]"
                   }`}
                 >
                   {item.name}

@@ -32,11 +32,11 @@ export function TripMobileShell({
           <p className="text-brand-primary text-[11px] font-bold tracking-[0.24em] uppercase">
             Trip
           </p>
-          <h1 className="text-v2-dark mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em]">
+          <h1 className="text-ink mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em]">
             {tripTitle}
           </h1>
           {firstDate && lastDate ? (
-            <p className="text-v2-text-muted mt-2 text-sm">
+            <p className="text-dim mt-2 text-sm">
               {formatDateRange(firstDate, lastDate)} · {totalDays} days
             </p>
           ) : null}

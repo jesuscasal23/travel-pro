@@ -47,10 +47,10 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
           <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Priorities
           </p>
-          <h2 className="text-v2-navy text-[28px] leading-tight font-bold">
+          <h2 className="text-navy text-[28px] leading-tight font-bold">
             What&apos;s the hardest part?
           </h2>
-          <p className="text-v2-text-muted mt-2 text-sm">
+          <p className="text-dim mt-2 text-sm">
             Select all that apply. We&apos;ll focus our AI on solving these specific challenges.
           </p>
         </div>
@@ -87,7 +87,7 @@ export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
 
               <span
                 className={`flex-1 text-[14px] font-semibold tracking-[-0.01em] ${
-                  isSelected ? "text-v2-heading" : "text-[#3b4658]"
+                  isSelected ? "text-heading" : "text-[#3b4658]"
                 }`}
               >
                 {option.label}

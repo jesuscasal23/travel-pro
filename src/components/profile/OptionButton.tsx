@@ -10,8 +10,8 @@ interface OptionButtonProps {
 
 const selectedClass = "border-brand-primary bg-brand-primary text-white";
 const variants = {
-  default: "border-v2-border text-v2-navy bg-white",
-  chip: "bg-v2-chip-bg text-v2-navy border-transparent",
+  default: "border-edge text-navy bg-white",
+  chip: "bg-chip-bg text-navy border-transparent",
 };
 
 export function OptionButton({

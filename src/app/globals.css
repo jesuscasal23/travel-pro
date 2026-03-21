@@ -65,7 +65,7 @@
 
   /* Gradient tokens */
   --gradient-page: linear-gradient(180deg, #f9fbff 0%, #ffffff 18%, #f6f8fb 100%);
-  --gradient-page-v2: linear-gradient(180deg, #ffffff 0%, #f6f8fb 55%, #eef2f7 100%);
+  --gradient-page-soft: linear-gradient(180deg, #ffffff 0%, #f6f8fb 55%, #eef2f7 100%);
   --gradient-page-trip: linear-gradient(180deg, #f9fbff 0%, #ffffff 22%, #f4f7fb 100%);
   --gradient-dark-card: linear-gradient(180deg, #132754 0%, #091327 100%);
   --gradient-overlay-hero: linear-gradient(
@@ -83,16 +83,16 @@
   --glow-bottom: radial-gradient(circle at bottom, #1b2b4b10 0%, transparent 60%);
 
   /* Extended color tokens */
-  --color-v2-dark: #101114;
-  --color-v2-heading: #17181c;
-  --color-v2-label: #8ea0bb;
-  --color-v2-back-btn: #8aa0c0;
-  --color-v2-subtext: #9aacbf;
-  --color-v2-icon-muted: #a3adbc;
-  --color-v2-divider: #dbe4f2;
-  --color-v2-input-placeholder: #9aacbf;
-  --color-v2-error: #dc2626;
-  --color-v2-slate: #243247;
+  --color-ink: #101114;
+  --color-heading: #17181c;
+  --color-label: #8ea0bb;
+  --color-back-btn: #8aa0c0;
+  --color-subtext: #9aacbf;
+  --color-icon-muted: #a3adbc;
+  --color-divider: #dbe4f2;
+  --color-input-placeholder: #9aacbf;
+  --color-error: #dc2626;
+  --color-steel: #243247;
   --color-surface-neutral: #f7f9fc;
   --color-surface-info-bg: #eff6ff;
   --color-surface-info-border: #dbeafe;
@@ -177,32 +177,32 @@
   --animate-tab-in: tab-in 0.15s ease-out both;
   --animate-slide-down: slide-down 0.3s ease-out both;
 
-  /* V2 Design Tokens */
-  --color-v2-navy: #1b2b4b;
-  --color-v2-navy-light: #2d4562;
-  --color-v2-green: #10b981;
-  --color-v2-red: #ef4444;
-  --color-v2-blue: #3b82f6;
-  --color-v2-purple: #8b5cf6;
-  --color-v2-pink: #ec4899;
-  --color-v2-teal: #0d9488;
-  --color-v2-text-muted: #6b7280;
-  --color-v2-text-light: #9ca3af;
-  --color-v2-border: #e5e7eb;
-  --color-v2-chip-bg: #f9fafb;
-  --color-v2-surface: #f3f4f6;
+  /* Design Tokens */
+  --color-navy: #1b2b4b;
+  --color-navy-light: #2d4562;
+  --color-app-green: #10b981;
+  --color-app-red: #ef4444;
+  --color-app-blue: #3b82f6;
+  --color-app-purple: #8b5cf6;
+  --color-app-pink: #ec4899;
+  --color-app-teal: #0d9488;
+  --color-dim: #6b7280;
+  --color-faint: #9ca3af;
+  --color-edge: #e5e7eb;
+  --color-chip-bg: #f9fafb;
+  --color-surface: #f3f4f6;
 
-  /* Extended V2 Colors */
-  --color-v2-dark: var(--color-v2-dark);
-  --color-v2-heading: var(--color-v2-heading);
-  --color-v2-label: var(--color-v2-label);
-  --color-v2-back-btn: var(--color-v2-back-btn);
-  --color-v2-subtext: var(--color-v2-subtext);
-  --color-v2-icon-muted: var(--color-v2-icon-muted);
-  --color-v2-divider: var(--color-v2-divider);
-  --color-v2-input-placeholder: var(--color-v2-input-placeholder);
-  --color-v2-error: var(--color-v2-error);
-  --color-v2-slate: var(--color-v2-slate);
+  /* Extended Colors */
+  --color-ink: var(--color-ink);
+  --color-heading: var(--color-heading);
+  --color-label: var(--color-label);
+  --color-back-btn: var(--color-back-btn);
+  --color-subtext: var(--color-subtext);
+  --color-icon-muted: var(--color-icon-muted);
+  --color-divider: var(--color-divider);
+  --color-input-placeholder: var(--color-input-placeholder);
+  --color-error: var(--color-error);
+  --color-steel: var(--color-steel);
   --color-surface-neutral: var(--color-surface-neutral);
   --color-surface-info-bg: var(--color-surface-info-bg);
   --color-surface-info-border: var(--color-surface-info-border);

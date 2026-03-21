@@ -426,7 +426,7 @@ export default function PlanPage() {
             type="button"
             onClick={goBack}
             aria-label="Go back"
-            className={`hover:text-v2-navy text-v2-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors ${
+            className={`hover:text-navy text-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors ${
               step === 1 ? "pointer-events-none opacity-0" : ""
             }`}
           >
@@ -466,7 +466,7 @@ export default function PlanPage() {
           </AnimatePresence>
         </div>
 
-        {generateError && <p className="text-v2-red mt-5 text-center text-sm">{generateError}</p>}
+        {generateError && <p className="text-app-red mt-5 text-center text-sm">{generateError}</p>}
       </div>
 
       <div className="relative shrink-0 border-t border-white/75 bg-white/86 px-6 pt-3 pb-6 backdrop-blur-sm">

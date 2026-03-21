@@ -14,10 +14,10 @@ export function PageHeader({ title, description, titleBadge, action }: PageHeade
     <div className="flex items-start justify-between gap-4 px-6 pt-8 pb-4">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-v2-navy text-2xl font-bold">{title}</h1>
+          <h1 className="text-navy text-2xl font-bold">{title}</h1>
           {titleBadge}
         </div>
-        {description && <p className="text-v2-text-muted mt-2 text-sm">{description}</p>}
+        {description && <p className="text-dim mt-2 text-sm">{description}</p>}
       </div>
       {action}
     </div>

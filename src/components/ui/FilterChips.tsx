@@ -15,9 +15,7 @@ export function FilterChips({ options, active, onChange }: FilterChipsProps) {
           type="button"
           onClick={() => onChange(option)}
           className={`cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-all ${
-            active === option
-              ? "bg-v2-navy text-white"
-              : "border-v2-border text-v2-navy border bg-white"
+            active === option ? "bg-navy text-white" : "border-edge text-navy border bg-white"
           }`}
         >
           <span>{option}</span>

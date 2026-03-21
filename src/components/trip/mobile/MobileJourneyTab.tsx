@@ -117,10 +117,10 @@ export function MobileJourneyTab({
             ) : (
               <div className="shadow-glass-md mb-3 flex items-start justify-between gap-3 rounded-[22px] border border-white/80 bg-white/82 px-4 py-3">
                 <div>
-                  <h3 className="text-v2-navy text-[1.05rem] font-semibold tracking-[-0.02em]">
+                  <h3 className="text-navy text-[1.05rem] font-semibold tracking-[-0.02em]">
                     {cityStop.city}
                   </h3>
-                  <p className="text-v2-text-muted mt-1 text-[13px]">
+                  <p className="text-dim mt-1 text-[13px]">
                     {cityStop.country} · {cityStop.days} days
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export function MobileJourneyTab({
                   <div>
                     {/* Travel banner */}
                     {activeDay.isTravel && activeDay.travelFrom && activeDay.travelTo && (
-                      <div className="text-v2-text-muted shadow-glass-md mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs backdrop-blur-sm">
+                      <div className="text-dim shadow-glass-md mb-3 flex items-center gap-2 rounded-[20px] border border-white/80 bg-white/78 px-3 py-2.5 text-xs backdrop-blur-sm">
                         <span className="text-brand-primary">✈️</span>
                         <span>
                           {activeDay.travelFrom} → {activeDay.travelTo}
@@ -182,7 +182,7 @@ export function MobileJourneyTab({
               </div>
             ) : (
               <div className="mt-3 space-y-2">
-                <div className="text-v2-text-muted flex items-center gap-2 text-xs">
+                <div className="text-dim flex items-center gap-2 text-xs">
                   <div className="border-brand-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
                   <span>
                     {isGeneratingThis

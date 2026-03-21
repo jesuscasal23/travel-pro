@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/core/supabase-client";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
-import { v2InputClass, v2LabelClass, v2ErrorClass } from "@/components/ui/styles";
+import { glassInputClass, glassLabelClass, formErrorClass } from "@/components/ui/styles";
 import { Button } from "@/components/ui/Button";
 import { queryKeys } from "@/hooks/api/keys";
 
@@ -91,10 +91,10 @@ function SignupForm() {
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-6 pt-6 pb-8">
         <div className="flex items-center">
-          <div className="text-v2-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm">
+          <div className="text-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm">
             <Link
               href={next}
-              className="hover:text-v2-navy text-v2-back-btn inline-flex items-center justify-center transition-colors"
+              className="hover:text-navy text-back-btn inline-flex items-center justify-center transition-colors"
               aria-label="Go back"
             >
               <ArrowLeft size={20} />
@@ -113,10 +113,10 @@ function SignupForm() {
 
           {emailSent ? (
             <div className="text-center">
-              <h1 className="text-v2-dark text-[1.7rem] font-bold tracking-[-0.04em]">
+              <h1 className="text-ink text-[1.7rem] font-bold tracking-[-0.04em]">
                 Check your inbox
               </h1>
-              <p className="text-v2-text-muted mx-auto mt-3 max-w-xs text-sm leading-relaxed">
+              <p className="text-dim mx-auto mt-3 max-w-xs text-sm leading-relaxed">
                 We sent a confirmation link to your email. Click it to activate your account and
                 continue.
               </p>
@@ -134,10 +134,10 @@ function SignupForm() {
                 <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
                   Travel Pro
                 </p>
-                <h1 className="text-v2-dark mt-3 text-[2.15rem] leading-[1.02] font-bold tracking-[-0.05em]">
+                <h1 className="text-ink mt-3 text-[2.15rem] leading-[1.02] font-bold tracking-[-0.05em]">
                   Create your account
                 </h1>
-                <p className="text-v2-text-muted mt-2 text-sm leading-6">
+                <p className="text-dim mt-2 text-sm leading-6">
                   Start planning smarter trips in minutes.
                 </p>
               </div>
@@ -153,16 +153,16 @@ function SignupForm() {
                     <GoogleAuthButton next={next} disabled={isLoading} onError={setServerError} />
 
                     <div className="flex items-center gap-3">
-                      <div className="bg-v2-divider h-px flex-1" />
-                      <span className="text-v2-subtext text-[11px] font-bold tracking-[0.22em] uppercase">
+                      <div className="bg-divider h-px flex-1" />
+                      <span className="text-subtext text-[11px] font-bold tracking-[0.22em] uppercase">
                         Or with email
                       </span>
-                      <div className="bg-v2-divider h-px flex-1" />
+                      <div className="bg-divider h-px flex-1" />
                     </div>
 
                     <div>
-                      <label htmlFor="signup-email" className={v2LabelClass}>
-                        <Mail className="text-v2-label h-4 w-4" />
+                      <label htmlFor="signup-email" className={glassLabelClass}>
+                        <Mail className="text-label h-4 w-4" />
                         Email address
                       </label>
                       <input
@@ -175,16 +175,16 @@ function SignupForm() {
                         autoCorrect="off"
                         spellCheck={false}
                         placeholder="you@example.com"
-                        className={v2InputClass}
+                        className={glassInputClass}
                       />
                       {errors.email?.message && (
-                        <p className={v2ErrorClass}>{errors.email.message}</p>
+                        <p className={formErrorClass}>{errors.email.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <label htmlFor="signup-password" className={v2LabelClass}>
-                        <LockKeyhole className="text-v2-label h-4 w-4" />
+                      <label htmlFor="signup-password" className={glassLabelClass}>
+                        <LockKeyhole className="text-label h-4 w-4" />
                         Password
                       </label>
                       <input
@@ -193,16 +193,16 @@ function SignupForm() {
                         type="password"
                         autoComplete="new-password"
                         placeholder="At least 8 characters"
-                        className={v2InputClass}
+                        className={glassInputClass}
                       />
                       {errors.password?.message && (
-                        <p className={v2ErrorClass}>{errors.password.message}</p>
+                        <p className={formErrorClass}>{errors.password.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <label htmlFor="signup-confirm-password" className={v2LabelClass}>
-                        <LockKeyhole className="text-v2-label h-4 w-4" />
+                      <label htmlFor="signup-confirm-password" className={glassLabelClass}>
+                        <LockKeyhole className="text-label h-4 w-4" />
                         Confirm password
                       </label>
                       <input
@@ -211,16 +211,16 @@ function SignupForm() {
                         type="password"
                         autoComplete="new-password"
                         placeholder="Repeat your password"
-                        className={v2InputClass}
+                        className={glassInputClass}
                       />
                       {errors.confirmPassword?.message && (
-                        <p className={v2ErrorClass}>{errors.confirmPassword.message}</p>
+                        <p className={formErrorClass}>{errors.confirmPassword.message}</p>
                       )}
                     </div>
 
                     {serverError ? (
                       <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-                        <p className="text-v2-error text-sm">{serverError}</p>
+                        <p className="text-error text-sm">{serverError}</p>
                       </div>
                     ) : null}
 
@@ -239,7 +239,7 @@ function SignupForm() {
                   </div>
                 </form>
 
-                <p className="text-v2-text-muted pt-4 text-center text-sm">
+                <p className="text-dim pt-4 text-center text-sm">
                   Already have an account?{" "}
                   <Link
                     href={`/login${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}

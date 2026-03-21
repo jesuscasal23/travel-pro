@@ -15,7 +15,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-v2-border flex items-center justify-around border-t bg-white px-2 pt-3 pb-6">
+    <nav className="border-edge flex items-center justify-around border-t bg-white px-2 pt-3 pb-6">
       {tabs.map((tab) => {
         const isActive = pathname.startsWith(tab.href);
         return (
@@ -23,9 +23,7 @@ export function BottomNav() {
             key={tab.label}
             href={tab.href}
             className={`flex flex-col items-center gap-1 text-xs transition-colors ${
-              isActive
-                ? "text-v2-navy font-semibold"
-                : "text-v2-text-light hover:text-v2-text-muted"
+              isActive ? "text-navy font-semibold" : "text-faint hover:text-dim"
             }`}
           >
             <tab.icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />

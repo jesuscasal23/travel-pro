@@ -14,7 +14,7 @@ export function GradientBackground({
 }: GradientBackgroundProps) {
   return (
     <div
-      className={`relative h-dvh overflow-hidden bg-[image:var(--gradient-page-v2)] ${className ?? ""}`}
+      className={`relative h-dvh overflow-hidden bg-[image:var(--gradient-page-soft)] ${className ?? ""}`}
     >
       <div className="pointer-events-none absolute inset-x-0 top-[-8rem] h-72 bg-[image:var(--glow-top)]" />
       {showBottomGlow && (

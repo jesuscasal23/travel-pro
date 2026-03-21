@@ -28,7 +28,7 @@ export interface ComboboxProps<T> {
   /** Optional header rendered at the top of the dropdown (e.g. "Popular destinations") */
   listHeader?: ReactNode;
   /** Visual variant */
-  variant?: "default" | "v2";
+  variant?: "default" | "modern";
   /** Optional override for the display value shown when not focused */
   displayValue?: string;
 }
@@ -54,7 +54,7 @@ export function Combobox<T>({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isV2 = variant === "v2";
+  const isModern = variant === "modern";
   const shownValue = displayValue ?? value;
 
   const select = useCallback(
@@ -128,7 +128,7 @@ export function Combobox<T>({
       {/* Show current selection when not focused */}
       {!open && value && (
         <div className="pointer-events-none absolute inset-0 flex items-center px-4">
-          <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate text-sm`}>
+          <span className={`${isModern ? "text-navy" : "text-foreground"} truncate text-sm`}>
             {shownValue}
           </span>
         </div>
@@ -137,8 +137,8 @@ export function Combobox<T>({
       {open && results.length > 0 && (
         <ul
           className={`absolute z-50 w-full overflow-hidden overflow-y-auto border ${
-            isV2
-              ? "border-v2-border shadow-glass-lg mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white"
+            isModern
+              ? "border-edge shadow-glass-lg mt-2 max-h-[min(18rem,52vh)] rounded-2xl bg-white"
               : "bg-background border-border mt-1 max-h-[min(16rem,50vh)] rounded-lg shadow-lg"
           }`}
         >
@@ -147,10 +147,10 @@ export function Combobox<T>({
             <li
               key={getKey(item)}
               className={`flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                isV2
+                isModern
                   ? i === highlighted
-                    ? "bg-v2-chip-bg text-v2-navy"
-                    : "text-v2-navy hover:bg-v2-chip-bg"
+                    ? "bg-chip-bg text-navy"
+                    : "text-navy hover:bg-chip-bg"
                   : i === highlighted
                     ? "bg-primary/10 text-primary"
                     : "hover:bg-muted"
@@ -170,8 +170,8 @@ export function Combobox<T>({
       {open && query.length >= minCharsForEmpty && results.length === 0 && emptyMessage && (
         <div
           className={`absolute z-50 w-full border px-4 py-3 text-sm ${
-            isV2
-              ? "border-v2-border text-v2-text-muted shadow-glass-lg mt-2 rounded-2xl bg-white"
+            isModern
+              ? "border-edge text-dim shadow-glass-lg mt-2 rounded-2xl bg-white"
               : "bg-background border-border text-muted-foreground mt-1 rounded-lg shadow-lg"
           }`}
         >

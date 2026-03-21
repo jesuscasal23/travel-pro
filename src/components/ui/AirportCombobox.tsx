@@ -11,7 +11,7 @@ interface Props {
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
-  variant?: "default" | "v2";
+  variant?: "default" | "modern";
 }
 
 /** Format an airport entry into the canonical label stored in the Zustand store */
@@ -41,7 +41,7 @@ export function AirportCombobox({
   variant = "default",
 }: Props) {
   const [results, setResults] = useState<AirportEntry[]>([]);
-  const isV2 = variant === "v2";
+  const isModern = variant === "modern";
 
   // Derive display label from stored value (show it when input is not focused)
   const displayValue = value ? value.split("(")[0].trim() : "";
@@ -73,15 +73,13 @@ export function AirportCombobox({
         <>
           <span
             className={`w-9 shrink-0 font-mono font-semibold ${
-              isV2 ? "text-brand-primary" : "text-primary"
+              isModern ? "text-brand-primary" : "text-primary"
             }`}
           >
             {a.iata}
           </span>
-          <span className={`${isV2 ? "text-v2-navy" : "text-foreground"} truncate`}>{a.name}</span>
-          <span
-            className={`ml-auto shrink-0 ${isV2 ? "text-v2-text-muted" : "text-muted-foreground"}`}
-          >
+          <span className={`${isModern ? "text-navy" : "text-foreground"} truncate`}>{a.name}</span>
+          <span className={`ml-auto shrink-0 ${isModern ? "text-dim" : "text-muted-foreground"}`}>
             {a.city ? `${a.city}, ${a.country}` : a.country}
           </span>
         </>
