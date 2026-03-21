@@ -8,8 +8,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/core/supabase-client";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
+import { v2InputClass, v2LabelClass, v2ErrorClass } from "@/components/auth/auth-styles";
 import { Button } from "@/components/v2/ui/Button";
 import { queryKeys } from "@/hooks/api/keys";
 
@@ -19,11 +20,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-
-const inputClass =
-  "w-full rounded-[18px] border border-white/80 bg-white/92 px-4 py-3.5 text-sm text-v2-navy outline-none transition-colors placeholder:text-[#9aacbf] focus:border-brand-primary";
-const labelClass = "text-v2-navy mb-2 flex items-center gap-2 text-sm font-semibold";
-const errorClass = "text-v2-red mt-2 text-sm";
 
 function LoginForm() {
   const router = useRouter();
@@ -122,7 +118,7 @@ function LoginForm() {
               </div>
 
               <div>
-                <label htmlFor="email" className={labelClass}>
+                <label htmlFor="email" className={v2LabelClass}>
                   <Mail className="h-4 w-4 text-[#8ea0bb]" />
                   Email address
                 </label>
@@ -136,15 +132,15 @@ function LoginForm() {
                   autoCorrect="off"
                   spellCheck={false}
                   placeholder="you@example.com"
-                  className={inputClass}
+                  className={v2InputClass}
                   aria-invalid={Boolean(errors.email)}
                 />
-                {errors.email?.message && <p className={errorClass}>{errors.email.message}</p>}
+                {errors.email?.message && <p className={v2ErrorClass}>{errors.email.message}</p>}
               </div>
 
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <label htmlFor="password" className={`${labelClass} mb-0`}>
+                  <label htmlFor="password" className={`${v2LabelClass} mb-0`}>
                     <LockKeyhole className="h-4 w-4 text-[#8ea0bb]" />
                     Password
                   </label>
@@ -161,11 +157,11 @@ function LoginForm() {
                   type="password"
                   autoComplete="current-password"
                   placeholder="Your password"
-                  className={inputClass}
+                  className={v2InputClass}
                   aria-invalid={Boolean(errors.password)}
                 />
                 {errors.password?.message && (
-                  <p className={errorClass}>{errors.password.message}</p>
+                  <p className={v2ErrorClass}>{errors.password.message}</p>
                 )}
               </div>
 

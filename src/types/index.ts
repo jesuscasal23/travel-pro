@@ -62,7 +62,6 @@ export interface VisaInfo {
     | "visa-required"
     | "no-admission";
   maxStayDays: number;
-  processingDays?: number;
   notes: string;
   icon: string; // emoji
   label: string;
@@ -154,8 +153,6 @@ export interface Itinerary {
   accommodationData?: CityAccommodation[];
   /** Real flight legs populated when Amadeus optimization succeeds */
   flightLegs?: ItineraryFlightLeg[];
-  /** Average cost across all evaluated date combinations — used to show savings vs optimized cost */
-  flightBaselineCost?: number;
   /** Pre-fetched multi-result flight options per leg (up to 5 results each) */
   flightOptions?: import("@/lib/flights/types").FlightLegResults[];
 }

@@ -69,7 +69,7 @@ vi.mock("@/lib/core/request-context", () => ({
   },
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn().mockResolvedValue(null),
 }));
 

@@ -1,4 +1,6 @@
-import { enrichAccommodation, enrichVisa, enrichWeather } from "@/lib/ai/enrichment";
+import { enrichVisa } from "@/lib/ai/enrich-visa";
+import { enrichWeather } from "@/lib/ai/enrich-weather";
+import { enrichAccommodation } from "@/lib/ai/enrich-accommodation";
 import { z } from "zod";
 import {
   EnrichAccommodationInputSchema,

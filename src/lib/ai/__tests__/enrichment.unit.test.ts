@@ -74,7 +74,8 @@ vi.mock("@/data/nationality-to-iso2", () => ({
   },
 }));
 
-import { enrichVisa, enrichWeather } from "@/lib/ai/enrichment";
+import { enrichVisa } from "@/lib/ai/enrich-visa";
+import { enrichWeather } from "@/lib/ai/enrich-weather";
 import type { CityStop } from "@/types";
 
 // ── Fixture helper ────────────────────────────────────────────────────────────

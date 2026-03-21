@@ -7,6 +7,9 @@ import type Anthropic from "@anthropic-ai/sdk";
 import type { UserProfile, TripIntent } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
 import { daysBetween } from "@/lib/utils/format/date";
+import { createLogger } from "@/lib/core/logger";
+
+const log = createLogger("ai:route-selector");
 
 const SYSTEM = `You are a travel route planning expert. Your only job is to select the best cities for a multi-city trip and return a JSON array — nothing else. No markdown, no explanation, just raw JSON starting with [`;
 
@@ -66,6 +69,18 @@ Return ONLY a JSON array, example:
   }
 ]`;
 
+  const t0 = Date.now();
+  log.info("selectRoute: calling Claude Haiku", {
+    tripId: intent.id,
+    region: intent.region,
+    tripType: intent.tripType,
+    durationDays,
+    sightseeingDays,
+    travelStyle: profile.travelStyle,
+    interests: profile.interests,
+    promptLength: prompt.length,
+  });
+
   const message = await anthropic.messages.create(
     {
       model: "claude-haiku-4-5-20251001",
@@ -77,15 +92,67 @@ Return ONLY a JSON array, example:
   );
 
   const block = message.content[0];
-  if (block.type !== "text") throw new Error("Route selector returned non-text");
+  log.info("selectRoute: Claude response received", {
+    tripId: intent.id,
+    duration: `${Date.now() - t0}ms`,
+    model: message.model,
+    stopReason: message.stop_reason,
+    inputTokens: message.usage?.input_tokens,
+    outputTokens: message.usage?.output_tokens,
+    contentBlockType: block?.type,
+  });
+
+  if (block.type !== "text") {
+    log.error("selectRoute: non-text response", {
+      tripId: intent.id,
+      contentBlockType: block.type,
+    });
+    throw new Error("Route selector returned non-text");
+  }
 
   const jsonMatch = block.text.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error("Route selector did not return a JSON array");
+  if (!jsonMatch) {
+    log.error("selectRoute: no JSON array in response", {
+      tripId: intent.id,
+      responseText: block.text.slice(0, 500),
+    });
+    throw new Error("Route selector did not return a JSON array");
+  }
 
-  const parsed = JSON.parse(jsonMatch[0]) as CityWithDays[];
+  let parsed: CityWithDays[];
+  try {
+    parsed = JSON.parse(jsonMatch[0]) as CityWithDays[];
+  } catch (e) {
+    log.error("selectRoute: JSON parse failed", {
+      tripId: intent.id,
+      error: e instanceof Error ? e.message : String(e),
+      jsonSnippet: jsonMatch[0].slice(0, 300),
+    });
+    throw e;
+  }
+
   if (!Array.isArray(parsed) || parsed.length < 2) {
+    log.error("selectRoute: invalid city array", {
+      tripId: intent.id,
+      isArray: Array.isArray(parsed),
+      length: Array.isArray(parsed) ? parsed.length : 0,
+      parsed,
+    });
     throw new Error("Route selector returned invalid city array");
   }
+
+  log.info("selectRoute: complete", {
+    tripId: intent.id,
+    duration: `${Date.now() - t0}ms`,
+    cityCount: parsed.length,
+    cities: parsed.map((c) => ({
+      city: c.city,
+      country: c.country,
+      iataCode: c.iataCode,
+      minDays: c.minDays,
+      maxDays: c.maxDays,
+    })),
+  });
 
   return parsed;
 }

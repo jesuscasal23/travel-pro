@@ -3,6 +3,7 @@ import { TripNotFoundError } from "@/lib/api/errors";
 import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { createLogger } from "@/lib/core/logger";
 import { prisma } from "@/lib/core/prisma";
+import { withTripLock } from "@/lib/core/with-trip-lock";
 import { z } from "zod";
 import { CreateTripInputSchema } from "./schemas";
 import { TRIP_LIST_INCLUDE } from "./query-shapes";
@@ -96,9 +97,7 @@ export async function deleteTripById(tripId: string) {
     tripId: trip.id,
   });
 
-  await prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${tripId}))`;
-
+  await withTripLock(tripId, async (tx) => {
     const itineraries = await tx.itinerary.findMany({
       where: { tripId },
       select: { id: true },

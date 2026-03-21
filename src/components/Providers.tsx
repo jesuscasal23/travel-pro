@@ -8,7 +8,7 @@ import { useTripStore } from "@/stores/useTripStore";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { Itinerary } from "@/types";
 import type { PostHog } from "posthog-js";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/core/supabase-client";
 import { queryKeys } from "@/hooks/api/keys";
 
 export function Providers({ children }: { children: ReactNode }) {

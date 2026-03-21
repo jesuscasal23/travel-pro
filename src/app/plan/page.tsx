@@ -26,7 +26,7 @@ import { PrioritiesStep } from "./steps/PrioritiesStep";
 import { OverviewStep } from "./steps/OverviewStep";
 import type { CityStop, Itinerary } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
-import type { CityWithDays } from "@/lib/flights/types";
+import { citiesToRoute, calculateDayCount } from "@/lib/utils/trip/cities-to-route";
 
 export default function PlanPage() {
   const router = useRouter();
@@ -159,13 +159,7 @@ export default function PlanPage() {
     tripType,
   ]);
 
-  const dayCount = (() => {
-    if (!dateStart || !dateEnd) return 0;
-    return Math.max(
-      0,
-      Math.round((new Date(dateEnd).getTime() - new Date(dateStart).getTime()) / 86400000)
-    );
-  })();
+  const dayCount = calculateDayCount(dateStart, dateEnd);
 
   const canAdvance = () => {
     if (showDestination) {
@@ -223,39 +217,6 @@ export default function PlanPage() {
     setDirection(-1);
     setPlanStep(step - 1);
   };
-
-  // ── Helper: convert CityWithDays[] → CityStop[] for partial itinerary ────
-  const citiesToRoute = useCallback(
-    (cities: CityWithDays[]): CityStop[] => {
-      const raw = cities.map((c) => ({
-        id: c.id,
-        city: c.city,
-        country: c.country,
-        countryCode: c.countryCode,
-        lat: c.lat,
-        lng: c.lng,
-        days: Math.round((c.minDays + c.maxDays) / 2),
-        iataCode: c.iataCode || undefined,
-      }));
-
-      const total = raw.reduce((s, c) => s + c.days, 0);
-      if (dayCount > 0 && total > dayCount) {
-        const scale = dayCount / total;
-        let remaining = dayCount;
-        for (let i = 0; i < raw.length; i++) {
-          if (i === raw.length - 1) {
-            raw[i].days = Math.max(1, remaining);
-          } else {
-            raw[i].days = Math.max(1, Math.round(raw[i].days * scale));
-            remaining -= raw[i].days;
-          }
-        }
-      }
-
-      return raw;
-    },
-    [dayCount]
-  );
 
   const singleCityRoute = useCallback((): CityStop[] => {
     if (!destination) return [];
@@ -359,7 +320,7 @@ export default function PlanPage() {
       try {
         const cities = await fetchRoute(params, cacheKey);
         if (cities && cities.length > 0) {
-          route = citiesToRoute(cities);
+          route = citiesToRoute(cities, dayCount);
         }
       } catch {
         // Route selection failed — proceed without pre-selected cities
@@ -443,7 +404,6 @@ export default function PlanPage() {
     setItinerary,
     pace,
     saveProfileMutation,
-    citiesToRoute,
     singleCityRoute,
     buildPartialItinerary,
     fetchRoute,

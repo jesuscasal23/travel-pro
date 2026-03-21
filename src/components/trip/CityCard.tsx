@@ -1,8 +1,9 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo } from "react";
 import Image from "next/image";
-import { getCityImage, getCityPlaceholder, CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
+import { CITY_IMAGE_BLUR } from "@/lib/utils/city-images";
+import { useCityImage } from "@/hooks/useCityImage";
 import type { CityStop } from "@/types";
 
 interface CityCardProps {
@@ -19,7 +20,7 @@ export const CityCard = memo(function CityCard({
   variant,
 }: CityCardProps) {
   const isMobile = variant === "mobile";
-  const [src, setSrc] = useState(() => getCityImage(city.city, city.countryCode));
+  const [src, onImgError] = useCityImage(city.city, city.countryCode);
 
   return (
     <button
@@ -42,7 +43,7 @@ export const CityCard = memo(function CityCard({
         placeholder="blur"
         blurDataURL={CITY_IMAGE_BLUR}
         unoptimized
-        onError={() => setSrc(getCityPlaceholder(city.city))}
+        onError={onImgError}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
       <div className="absolute right-0 bottom-0 left-0 p-2">

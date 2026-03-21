@@ -11,7 +11,7 @@
 // ============================================================
 
 import { describe, it, expect } from "vitest";
-import { extractJSON, parseAndValidate } from "@/lib/ai/pipeline";
+import { extractJSON, parseAndValidate } from "@/lib/ai/parser";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 

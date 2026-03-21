@@ -69,7 +69,6 @@ describe("useTripStore", () => {
       state.setTravelStyle("luxury");
       state.setPlanStep(4);
       state.setTripType("single-city");
-      state.setTripDescription("Spring city break");
       state.setPlanningPriorities(["Flight connections", "Visa & paperwork"]);
       state.setRegion("europe");
       state.setDateStart("2026-04-01");
@@ -83,7 +82,6 @@ describe("useTripStore", () => {
     expect(state.travelStyle).toBe("luxury");
     expect(state.planStep).toBe(4);
     expect(state.tripType).toBe("single-city");
-    expect(state.tripDescription).toBe("Spring city break");
     expect(state.planningPriorities).toEqual(["Flight connections", "Visa & paperwork"]);
     expect(state.region).toBe("europe");
     expect(state.dateStart).toBe("2026-04-01");
@@ -188,7 +186,6 @@ describe("useTripStore", () => {
       state.setHomeAirport("FRA");
       state.setTravelStyle("backpacker");
       state.setTripType("single-city");
-      state.setTripDescription("Before reset");
       state.setPlanningPriorities(["Flight connections"]);
       state.setRegion("asia");
       state.setDestination("Tokyo", "Japan", "JP", 35.67, 139.65);
@@ -206,7 +203,6 @@ describe("useTripStore", () => {
 
     const state = useTripStore.getState();
     expect(state.tripType).toBe("single-city");
-    expect(state.tripDescription).toBe("");
     expect(state.planningPriorities).toEqual([]);
     expect(state.region).toBe("");
     expect(state.destination).toBe("");

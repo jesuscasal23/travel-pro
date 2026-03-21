@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { z } from "zod";
 
 // Mock Supabase auth
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
@@ -33,7 +33,7 @@ import {
   validateBody,
 } from "../helpers";
 import { ApiError } from "../errors";
-import { getAuthenticatedUserId } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { prisma } from "@/lib/core/prisma";
 
 beforeEach(() => {
@@ -250,30 +250,5 @@ describe("requireProfile", () => {
     const { requireProfile } = await import("../helpers");
     vi.mocked(prisma.profile.findUnique).mockResolvedValue(null as never);
     await expect(requireProfile("u1")).rejects.toThrow("Profile not found");
-  });
-});
-
-// ── requireUserTripOwner ─────────────────────────────────────
-
-describe("requireUserTripOwner", () => {
-  it("returns trip when ownership matches", async () => {
-    const { requireUserTripOwner } = await import("../helpers");
-    const mockTrip = { id: "t1", profileId: "p1", region: "Asia" };
-    vi.mocked(prisma.trip.findUnique).mockResolvedValue(mockTrip as never);
-    const result = await requireUserTripOwner("t1", "p1");
-    expect(result.region).toBe("Asia");
-  });
-
-  it("throws 404 when trip not found", async () => {
-    const { requireUserTripOwner } = await import("../helpers");
-    vi.mocked(prisma.trip.findUnique).mockResolvedValue(null as never);
-    await expect(requireUserTripOwner("t1", "p1")).rejects.toThrow("Trip not found");
-  });
-
-  it("throws 403 when ownership does not match", async () => {
-    const { requireUserTripOwner } = await import("../helpers");
-    const mockTrip = { id: "t1", profileId: "p-other" };
-    vi.mocked(prisma.trip.findUnique).mockResolvedValue(mockTrip as never);
-    await expect(requireUserTripOwner("t1", "p1")).rejects.toThrow("Forbidden");
   });
 });

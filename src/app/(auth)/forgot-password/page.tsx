@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/core/supabase-client";
 import { Navbar } from "@/components/Navbar";
-import { Button, FormField } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
 import { inputClass } from "@/components/auth/auth-styles";
 import { ServerErrorAlert } from "@/components/auth/ServerErrorAlert";
 

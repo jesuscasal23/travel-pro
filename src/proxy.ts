@@ -8,7 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Routes that require authentication
 // /plan and /trip are intentionally public — guests can generate and view itineraries.
 // Auth is encouraged (not required) via a "save your trip" nudge on the trip page.
-const PROTECTED_PREFIXES = ["/profile", "/admin", "/home", "/trips"];
+const PROTECTED_PREFIXES = ["/profile", "/admin"];
 
 // Routes that are always public
 const PUBLIC_PREFIXES = [

@@ -58,10 +58,23 @@ export async function callClaude(
   retryCount = 0,
   signal?: AbortSignal
 ): Promise<ClaudeResult> {
+  const t0 = Date.now();
+  const model = "claude-haiku-4-5-20251001";
+
+  log.info("Calling Claude API", {
+    model,
+    maxTokens,
+    temperature: 0.7,
+    retryCount,
+    userPromptLength: userPrompt.length,
+    systemPromptLength: systemPrompt.length,
+    timeoutMs: CLAUDE_TIMEOUT_MS,
+  });
+
   try {
     const message = await getAnthropic().messages.create(
       {
-        model: "claude-haiku-4-5-20251001",
+        model,
         max_tokens: maxTokens,
         temperature: 0.7,
         system: systemPrompt,
@@ -70,21 +83,51 @@ export async function callClaude(
       { signal }
     );
 
+    const duration = `${Date.now() - t0}ms`;
     const block = message.content[0];
+
+    log.info("Claude API response received", {
+      duration,
+      model: message.model,
+      stopReason: message.stop_reason,
+      inputTokens: message.usage?.input_tokens,
+      outputTokens: message.usage?.output_tokens,
+      contentBlockType: block?.type,
+      contentBlockCount: message.content.length,
+      messageId: message.id,
+    });
+
     if (block.type !== "text") {
+      log.error("Claude returned non-text content", {
+        duration,
+        contentBlockType: block.type,
+        contentBlockCount: message.content.length,
+        model: message.model,
+        stopReason: message.stop_reason,
+      });
       throw new Error("Claude returned non-text content");
     }
 
     const stopReason = message.stop_reason ?? "unknown";
     if (stopReason === "max_tokens") {
-      log.warn("Claude output truncated", {
+      log.warn("Claude output truncated — max_tokens reached", {
+        duration,
         maxTokens,
         outputTokens: message.usage?.output_tokens,
+        inputTokens: message.usage?.input_tokens,
+        model: message.model,
+        outputPreview: block.text.slice(-200),
       });
       throw new Error(
         `Claude output was truncated at ${message.usage?.output_tokens} tokens (limit: ${maxTokens}). The itinerary was too long for the current token budget.`
       );
     }
+
+    log.info("Claude call successful", {
+      duration,
+      stopReason,
+      outputLength: block.text.length,
+    });
 
     return {
       text: block.text,
@@ -94,18 +137,36 @@ export async function callClaude(
       stopReason,
     };
   } catch (err) {
+    const duration = `${Date.now() - t0}ms`;
+
     if (isAbortError(err)) {
+      log.info("Claude call aborted", { duration, retryCount });
       throw err;
     }
+
     // Content filtering is probabilistic — retry with backoff (usually succeeds on 2nd attempt)
     const msg = getErrorMessage(err);
     const isContentFilter = msg.includes("content filtering") || msg.includes("Output blocked");
+
+    log.error("Claude API call failed", {
+      duration,
+      retryCount,
+      errorName: err instanceof Error ? err.name : "unknown",
+      error: msg,
+      isContentFilter,
+      stack: err instanceof Error ? err.stack : undefined,
+      statusCode: (err as { status?: number })?.status,
+      errorType: err?.constructor?.name,
+    });
+
     if (isContentFilter && retryCount < CONTENT_FILTER_MAX_RETRIES) {
-      log.warn("Content filter triggered, retrying", {
+      const backoffMs = CONTENT_FILTER_BACKOFF_MS * (retryCount + 1);
+      log.warn("Content filter triggered — retrying with backoff", {
         attempt: retryCount + 1,
         maxRetries: CONTENT_FILTER_MAX_RETRIES,
+        backoffMs,
       });
-      await abortableDelay(CONTENT_FILTER_BACKOFF_MS * (retryCount + 1), signal);
+      await abortableDelay(backoffMs, signal);
       return callClaude(userPrompt, systemPrompt, maxTokens, retryCount + 1, signal);
     }
     throw err;

@@ -47,7 +47,6 @@ interface TripStoreActions {
   // Quick Plan
   setPlanStep: (step: number) => void;
   setTripType: (tripType: TripType) => void;
-  setTripDescription: (description: string) => void;
   setPlanningPriorities: (priorities: string[]) => void;
   togglePlanningPriority: (priority: string) => void;
   setRegion: (region: string) => void;
@@ -129,7 +128,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Plan actions
       setPlanStep: (step) => set({ planStep: step }),
       setTripType: (tripType) => set({ tripType }),
-      setTripDescription: (description) => set({ tripDescription: description }),
       setPlanningPriorities: (planningPriorities) =>
         set({ planningPriorities: normalizePlanningPriorities(planningPriorities) }),
       togglePlanningPriority: (planningPriority) =>

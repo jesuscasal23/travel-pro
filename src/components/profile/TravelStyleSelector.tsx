@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { travelStyles } from "@/data/travelStyles";
 import type { TravelStyle } from "@/types";
+import { OptionButton } from "./OptionButton";
 
 interface TravelStyleSelectorProps {
   value: TravelStyle;
@@ -21,16 +22,11 @@ export function TravelStyleSelector({
         {travelStyles.map((style) => {
           const isSelected = value === style.id;
           return (
-            <button
+            <OptionButton
               key={style.id}
-              type="button"
+              selected={isSelected}
               onClick={() => onChange(style.id)}
-              aria-pressed={isSelected}
-              className={`relative rounded-[22px] border px-3 py-4 text-center transition-all ${
-                isSelected
-                  ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-md)]"
-                  : "border-v2-border text-v2-navy bg-white"
-              }`}
+              className={`relative rounded-[22px] px-3 py-4 text-center ${isSelected ? "shadow-[var(--shadow-brand-md)]" : ""}`}
             >
               {isSelected && (
                 <div className="absolute top-2.5 right-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-white/25">
@@ -40,7 +36,7 @@ export function TravelStyleSelector({
               <div className="text-2xl">{style.emoji}</div>
               <div className="mt-2 text-sm font-bold">{style.label}</div>
               <p className="mt-1 text-[11px] leading-relaxed opacity-80">{style.description}</p>
-            </button>
+            </OptionButton>
           );
         })}
       </div>
@@ -49,25 +45,17 @@ export function TravelStyleSelector({
 
   return (
     <div className="space-y-2.5">
-      {travelStyles.map((style) => {
-        const isSelected = value === style.id;
-        return (
-          <button
-            key={style.id}
-            type="button"
-            onClick={() => onChange(style.id)}
-            aria-pressed={isSelected}
-            className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
-              isSelected
-                ? "border-brand-primary bg-brand-primary text-white"
-                : "border-v2-border text-v2-navy bg-white"
-            }`}
-          >
-            <div className="text-sm font-bold">{style.label}</div>
-            <p className="mt-1 text-xs leading-relaxed opacity-80">{style.description}</p>
-          </button>
-        );
-      })}
+      {travelStyles.map((style) => (
+        <OptionButton
+          key={style.id}
+          selected={value === style.id}
+          onClick={() => onChange(style.id)}
+          className="w-full rounded-2xl px-4 py-3 text-left"
+        >
+          <div className="text-sm font-bold">{style.label}</div>
+          <p className="mt-1 text-xs leading-relaxed opacity-80">{style.description}</p>
+        </OptionButton>
+      ))}
     </div>
   );
 }

@@ -15,7 +15,7 @@ process.env.ANTHROPIC_API_KEY = "test-anthropic-key";
 // ── Mocks ────────────────────────────────────────────────────
 
 // Mock Supabase auth (not needed for generation, but imported transitively)
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn().mockResolvedValue(null),
   createClient: vi.fn(),
 }));

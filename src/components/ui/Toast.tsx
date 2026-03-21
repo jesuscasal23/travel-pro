@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import type { Toast as ToastType } from "@/hooks/useToast";
+import type { Toast as ToastType } from "@/stores/useToastStore";
 
 interface ToastContainerProps {
   toasts: ToastType[];

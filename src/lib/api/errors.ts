@@ -81,3 +81,14 @@ export class TripOwnerRequiredError extends ForbiddenError {
     super("Forbidden", details, "trip_owner_required");
   }
 }
+
+export class GenerationAlreadyInProgressError extends Error {
+  constructor(
+    public tripId: string,
+    public itineraryId: string,
+    public generationJobId?: string | null
+  ) {
+    super("Generation already in progress");
+    this.name = "GenerationAlreadyInProgressError";
+  }
+}

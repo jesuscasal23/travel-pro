@@ -103,7 +103,6 @@ const demoItineraryData = {
       countryCode: "VN",
       requirement: "e-visa",
       maxStayDays: 90,
-      processingDays: 3,
       notes: "E-visa required. Apply at evisa.xuatnhapcanh.gov.vn. €25 fee.",
       icon: "🌐",
       label: "E-Visa",
