@@ -83,6 +83,7 @@ export interface CityHotel {
   currency: string;
   address?: string;
   distance?: string; // distance from city center
+  imageUrl?: string; // thumbnail from SerpApi Google Hotels
   bookingUrl: string;
   why: string; // AI-generated reason
 }

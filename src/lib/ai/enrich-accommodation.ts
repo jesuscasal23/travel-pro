@@ -224,6 +224,7 @@ export async function enrichAccommodation(
             currency: c.currency,
             address: c.address,
             distance: c.distance,
+            imageUrl: c.thumbnail,
             bookingUrl:
               c.link ??
               buildHotelBookingUrl(
@@ -253,6 +254,7 @@ export async function enrichAccommodation(
             currency: c.currency,
             address: c.address,
             distance: c.distance,
+            imageUrl: c.thumbnail,
             bookingUrl:
               c.link ??
               buildHotelBookingUrl(

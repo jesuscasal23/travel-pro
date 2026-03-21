@@ -53,10 +53,20 @@ function SkeletonHotelCard() {
 /* ─── Individual Hotel Card (matches flights card design language) ─── */
 function HotelCard({ hotel }: { hotel: CityHotel }) {
   return (
-    <div className="bg-card shadow-card hover:shadow-card-hover overflow-hidden rounded-xl transition-shadow">
-      {/* Image placeholder — gradient with hotel icon */}
-      <div className="from-primary/10 to-primary/5 relative flex h-40 items-center justify-center bg-gradient-to-br">
-        <Hotel className="text-primary/20 h-12 w-12" />
+    <div className="bg-card shadow-card hover:shadow-card-hover group overflow-hidden rounded-xl transition-shadow">
+      {/* Hotel image or gradient fallback */}
+      <div className="relative h-48 overflow-hidden">
+        {hotel.imageUrl ? (
+          <img
+            src={hotel.imageUrl}
+            alt={hotel.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="from-primary/10 to-primary/5 flex h-full w-full items-center justify-center bg-gradient-to-br">
+            <Hotel className="text-primary/20 h-12 w-12" />
+          </div>
+        )}
         {hotel.rating && hotel.rating >= 4.5 && (
           <div className="absolute top-3 left-3">
             <Badge variant="brand">Premium</Badge>
