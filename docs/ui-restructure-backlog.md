@@ -1,5 +1,7 @@
 # UI Restructure Backlog
 
+> Last verified against codebase: 2026-03-21
+
 This document tracks the cleanup and integration work after consolidating the app around the canonical mobile-first flow.
 
 ## Current Canonical Flow

@@ -1,5 +1,7 @@
 # Travel Pro — Application Overview
 
+> Last verified against codebase: 2026-03-21
+
 **For use with Perplexity AI or external briefing.**
 
 Travel Pro is a mobile-friendly, AI-powered trip planner for multi-destination journeys. It generates complete day-by-day itineraries with activities, visa requirements, and flight links in under a minute. Guests can plan without creating an account; authentication persists trips to a dashboard and enables GDPR data controls.

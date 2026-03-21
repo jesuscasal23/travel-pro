@@ -1,5 +1,6 @@
 # Inline Edit Mode — Specification
 
+> Last verified against codebase: 2026-03-21
 > **Status:** Draft — under discussion
 > **Replaces:** Separate edit page at `/trip/[id]/edit`
 > **Primary target:** Mobile (touch-first design, desktop adapts from mobile)
@@ -312,7 +313,7 @@ Modified components:
 
 ### PDF Export Update
 
-The current PDF (`src/lib/export/pdf-generator.tsx`) only shows activity **names** in a compact day table (joined by `·`). With inline editing, users can now customize all activity fields, so the PDF should reflect everything they've curated:
+The PDF export feature (not yet implemented — planned at `src/lib/export/pdf-generator.tsx`) should show activity **names** in a compact day table (joined by `·`). With inline editing, users can customize all activity fields, so the PDF should reflect everything they've curated:
 
 **Current PDF day table row:**
 

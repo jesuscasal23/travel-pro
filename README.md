@@ -27,12 +27,10 @@ npm run typecheck
 
 - API routes: `src/app/api/**/route.ts`
 - Shared API helpers: `src/lib/api/helpers.ts`
-- Shared API schemas: `src/lib/api/schemas.ts`
-- Prisma client: `src/lib/db/prisma.ts`
+- Feature schemas: `src/lib/features/*/schemas.ts`
+- Prisma client: `src/lib/core/prisma.ts`
 
-Backend contributor/agent guide:
-
-- [Backend Agent Guide](docs/backend-agent-guide.md)
+Backend conventions: [docs/backend-conventions.md](docs/backend-conventions.md)
 
 ## Database
 
@@ -47,6 +45,6 @@ Superuser command notes: [docs/superuser-access.md](docs/superuser-access.md)
 
 ## Notes
 
-- Route handlers should use `apiHandler`, `parseJsonBody`, and `validateBody`.
-- API request/response contracts should be defined in `src/lib/api/schemas.ts`.
-- Use public imports from `@/lib/*` wrappers, not `@/lib/core/*`.
+- Route handlers should use `apiHandler` from `src/lib/api/helpers.ts`.
+- Request schemas live with their feature module in `src/lib/features/*/schemas.ts`.
+- Import core infrastructure from `@/lib/core/*` (prisma, logger, request-context).

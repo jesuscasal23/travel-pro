@@ -1,5 +1,7 @@
 # Backend Conventions
 
+> Last verified against codebase: 2026-03-21
+
 This is the canonical backend style guide for Travel Pro.
 
 ## Route Shape

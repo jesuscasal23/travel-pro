@@ -1,6 +1,7 @@
 # Travel Pro — Production Release Checklist
 
 > Generated from full codebase audit — 2026-02-18.
+> Last verified against codebase: 2026-03-21
 > Work through this top-to-bottom before going live. Items marked 🚫 are hard blockers.
 
 ---
@@ -105,4 +106,16 @@ These are installed but not imported anywhere in the source. Remove with `npm un
 
 ---
 
-_Last audited: 2026-02-18 | Next scheduled review: before each major release_
+## Quarterly Documentation Audit
+
+Run every quarter (next: 2026-06-21) to prevent doc drift:
+
+1. Run `npm run docs:check-refs` — fix any broken file references
+2. Review each doc's "Last verified" date — update or archive stale docs
+3. Verify CLAUDE.md matches the current project structure
+4. Archive completed or abandoned plans from `docs/plans/`
+5. Check `docs/` for docs that duplicate CLAUDE.md — consolidate or delete
+
+---
+
+_Last audited: 2026-03-21 | Next scheduled review: 2026-06-21_

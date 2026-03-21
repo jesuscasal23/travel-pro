@@ -1,5 +1,7 @@
 # Superuser Access
 
+> Last verified against codebase: 2026-03-21
+
 Use the CLI command below to grant or revoke admin access for a user profile.
 
 ## Grant Access
