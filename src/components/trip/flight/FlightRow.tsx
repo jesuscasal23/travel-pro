@@ -27,9 +27,15 @@ function StopsLabel({ stops }: { stops: number }) {
 
 export const FlightRow = memo(function FlightRow({
   result,
+  fromIata,
+  toIata,
+  departureDate,
   bookingHref,
 }: {
   result: FlightSearchResult;
+  fromIata: string;
+  toIata: string;
+  departureDate: string;
   bookingHref: string;
 }) {
   const [resolving, setResolving] = useState(false);
@@ -59,7 +65,12 @@ export const FlightRow = memo(function FlightRow({
           {
             source: "FlightRow",
             method: "POST",
-            body: { bookingToken: result.bookingToken },
+            body: {
+              bookingToken: result.bookingToken,
+              departureId: fromIata,
+              arrivalId: toIata,
+              outboundDate: departureDate,
+            },
             fallbackMessage: "Could not resolve booking link",
           }
         );

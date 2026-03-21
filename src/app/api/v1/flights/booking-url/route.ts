@@ -16,14 +16,23 @@ const log = createLogger("booking-url-route");
 
 const BookingUrlInputSchema = z.object({
   bookingToken: z.string().min(1),
+  departureId: z.string().min(2).max(10),
+  arrivalId: z.string().min(2).max(10),
+  outboundDate: z.string().min(8).max(12),
 });
 
 export const POST = apiHandler("POST /api/v1/flights/booking-url", async (req) => {
-  const { bookingToken } = await parseAndValidateRequest(req, BookingUrlInputSchema);
+  const { bookingToken, departureId, arrivalId, outboundDate } = await parseAndValidateRequest(
+    req,
+    BookingUrlInputSchema
+  );
 
   log.info("Booking URL request received", {
     tokenLength: bookingToken.length,
     tokenPrefix: bookingToken.slice(0, 40) + "…",
+    departureId,
+    arrivalId,
+    outboundDate,
   });
 
   const serpApi = getOptionalSerpApiEnv();
@@ -33,7 +42,11 @@ export const POST = apiHandler("POST /api/v1/flights/booking-url", async (req) =
   }
 
   try {
-    const url = await resolveBookingUrl(serpApi.apiKey, bookingToken);
+    const url = await resolveBookingUrl(serpApi.apiKey, bookingToken, {
+      departureId,
+      arrivalId,
+      outboundDate,
+    });
 
     if (!url) {
       log.warn("resolveBookingUrl returned null", {

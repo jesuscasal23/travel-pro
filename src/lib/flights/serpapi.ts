@@ -311,13 +311,19 @@ interface SerpApiBookingResponse {
  */
 export async function resolveBookingUrl(
   apiKey: string,
-  bookingToken: string
+  bookingToken: string,
+  flight: { departureId: string; arrivalId: string; outboundDate: string }
 ): Promise<string | null> {
   // Step 1: Get booking options from SerpApi
+  // SerpApi requires departure_id, arrival_id, outbound_date and type alongside the booking_token
   const params = new URLSearchParams({
     engine: "google_flights",
     api_key: apiKey,
     booking_token: bookingToken,
+    departure_id: flight.departureId,
+    arrival_id: flight.arrivalId,
+    outbound_date: flight.outboundDate,
+    type: "2", // one-way
     hl: "en",
     currency: "EUR",
   });
@@ -325,6 +331,9 @@ export async function resolveBookingUrl(
   log.info("Resolving booking URL", {
     tokenPrefix: bookingToken.slice(0, 40) + "…",
     tokenLength: bookingToken.length,
+    departureId: flight.departureId,
+    arrivalId: flight.arrivalId,
+    outboundDate: flight.outboundDate,
   });
 
   let res: Response;
