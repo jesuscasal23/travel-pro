@@ -115,7 +115,7 @@ export function useBatchFlightSearch(
 
       return {
         results: query?.data?.results ?? [],
-        loading: Boolean(query?.isPending || query?.isFetching),
+        loading: Boolean(query?.isFetching),
         error: query?.error instanceof Error ? query.error.message : null,
         fetchedAt: query?.data?.fetchedAt ?? null,
       };
@@ -125,6 +125,6 @@ export function useBatchFlightSearch(
 
   return {
     getResultsForLeg,
-    isLoading: queries.some((query) => query.isPending || query.isFetching),
+    isLoading: queries.some((query) => query.isFetching),
   };
 }
