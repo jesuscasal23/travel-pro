@@ -24,6 +24,10 @@ vi.mock("@/lib/core/request-context", () => ({
   },
 }));
 
+vi.mock("@/lib/core/supabase-server", () => ({
+  getAuthenticatedUserId: vi.fn().mockResolvedValue(null),
+}));
+
 import { prisma } from "@/lib/core/prisma";
 import { GET } from "../route";
 
