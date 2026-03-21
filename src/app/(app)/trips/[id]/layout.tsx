@@ -24,14 +24,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id },
-      include: { itineraries: { where: { isActive: true }, take: 1 } },
+      include: {
+        itineraries: {
+          where: { isActive: true },
+          orderBy: { version: "desc" },
+          take: 1,
+        },
+      },
     });
 
     if (!trip) {
       return { title: "Trip not found" };
     }
 
-    const raw = trip.itineraries[0]?.data;
+    const raw = trip.itineraries[0]?.data as unknown;
     const itinerary = raw ? parseItineraryData(raw) : null;
     const title = itinerary?.route?.length
       ? getTripTitle(itinerary.route)
