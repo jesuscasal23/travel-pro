@@ -421,7 +421,7 @@ export async function resolveBookingUrl(
     });
 
     const location = postRes.headers.get("location");
-    if (location) {
+    if (location && /^https?:\/\//i.test(location)) {
       return location;
     }
 
@@ -429,7 +429,7 @@ export async function resolveBookingUrl(
     if (postRes.status >= 200 && postRes.status < 400) {
       const html = await postRes.text();
       const metaMatch = html.match(/url=["']?([^"'\s>]+)/i);
-      if (metaMatch?.[1]) {
+      if (metaMatch?.[1] && /^https?:\/\//i.test(metaMatch[1])) {
         return metaMatch[1];
       }
     }
