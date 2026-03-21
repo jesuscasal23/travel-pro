@@ -178,11 +178,12 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     !(itinerary.visaData?.length && itinerary.weatherData?.length)
   );
 
+  const hasAccommodationWithHotels = itinerary?.accommodationData?.some((a) => a.hotels.length > 0);
   const shouldEnrichAccommodation = !!(
     itinerary &&
     itinerary.days.length > 0 &&
     itinerary.route.length > 0 &&
-    !itinerary.accommodationData?.length
+    !hasAccommodationWithHotels
   );
 
   const {

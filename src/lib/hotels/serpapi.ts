@@ -157,14 +157,23 @@ export async function searchHotels(
     .map((p, i) => mapPropertyToCandidate(p, i, currency, nights))
     .filter((c): c is HotelCandidate => c !== null);
 
-  // Apply star filter client-side (SerpApi hotel_class is minimum, but double-check)
+  // Apply star filter client-side (SerpApi hotel_class is minimum, but double-check).
+  // Properties without a star rating (hotel_class) pass through — SerpApi already
+  // filters server-side, so missing rating doesn't mean low quality.
   const filtered = filters?.minStars
-    ? candidates.filter((c) => (c.rating ?? 0) >= filters.minStars!)
+    ? candidates.filter((c) => c.rating === undefined || c.rating >= filters.minStars!)
     : candidates;
 
+  const withRating = candidates.filter((c) => c.rating !== undefined).length;
+  const droppedByFilter = candidates.length - filtered.length;
   log.info("Hotel search complete", {
     city,
     total: properties.length,
+    candidates: candidates.length,
+    withStarRating: withRating,
+    withoutStarRating: candidates.length - withRating,
+    droppedByMinStarsFilter: droppedByFilter,
+    afterFilter: filtered.length,
     withPrices: filtered.filter((c) => c.pricePerNight).length,
   });
 
