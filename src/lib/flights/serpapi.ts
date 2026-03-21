@@ -301,21 +301,25 @@ interface SerpApiBookingResponse {
   error?: string;
 }
 
+export interface BookingRequest {
+  url: string;
+  postData: string;
+  bookWith: string;
+  price: number | null;
+}
+
 /**
- * Resolve a booking_token into an actual airline/OTA booking URL.
+ * Get the booking request data for a flight booking_token.
  *
- * 1. Calls SerpApi with the booking_token to get booking_options
- * 2. Picks the first option's booking_request
- * 3. POSTs to Google's click-tracking endpoint to resolve the final URL
- * 4. Returns the redirect location (the real booking page)
+ * Returns the Google click-tracking URL + POST data that the browser
+ * should submit directly (as a form POST) so the airline receives
+ * proper session context, cookies, and referrer.
  */
-export async function resolveBookingUrl(
+export async function getBookingRequest(
   apiKey: string,
   bookingToken: string,
   flight: { departureId: string; arrivalId: string; outboundDate: string }
-): Promise<string | null> {
-  // Step 1: Get booking options from SerpApi
-  // SerpApi requires departure_id, arrival_id, outbound_date and type alongside the booking_token
+): Promise<BookingRequest | null> {
   const params = new URLSearchParams({
     engine: "google_flights",
     api_key: apiKey,
@@ -328,7 +332,7 @@ export async function resolveBookingUrl(
     currency: "EUR",
   });
 
-  log.info("Resolving booking URL", {
+  log.info("Fetching booking request", {
     tokenPrefix: bookingToken.slice(0, 40) + "…",
     tokenLength: bookingToken.length,
     departureId: flight.departureId,
@@ -362,24 +366,10 @@ export async function resolveBookingUrl(
 
   const body = (await res.json()) as SerpApiBookingResponse;
 
-  // Log the full response shape to diagnose missing fields
   log.info("SerpApi booking response", {
     hasError: !!body.error,
     error: body.error ?? null,
     optionsCount: body.booking_options?.length ?? 0,
-    topLevelKeys: Object.keys(body).join(", "),
-    firstOption: body.booking_options?.[0]
-      ? {
-          hasTogetherKey: !!body.booking_options[0].together,
-          togetherKeys: body.booking_options[0].together
-            ? Object.keys(body.booking_options[0].together).join(", ")
-            : null,
-          hasBookingRequest: !!body.booking_options[0].together?.booking_request,
-          bookWith: body.booking_options[0].together?.book_with ?? null,
-          requestUrl: body.booking_options[0].together?.booking_request?.url?.slice(0, 120) ?? null,
-          hasPostData: !!body.booking_options[0].together?.booking_request?.post_data,
-        }
-      : null,
   });
 
   if (body.error) {
@@ -389,76 +379,30 @@ export async function resolveBookingUrl(
 
   const options = body.booking_options ?? [];
   if (options.length === 0) {
-    log.warn("No booking options returned", { responseKeys: Object.keys(body).join(", ") });
+    log.warn("No booking options returned");
     return null;
   }
 
-  // Pick the first booking option
-  const bookingRequest = options[0].together?.booking_request;
+  const first = options[0].together;
+  const bookingRequest = first?.booking_request;
   if (!bookingRequest?.url) {
     log.warn("No booking_request in first option", {
-      optionKeys: Object.keys(options[0]).join(", "),
-      togetherKeys: options[0].together ? Object.keys(options[0].together).join(", ") : "N/A",
       rawFirstOption: JSON.stringify(options[0]).slice(0, 500),
     });
     return null;
   }
 
-  // Step 2: POST to Google's click-tracking endpoint to get the final redirect
-  log.info("POSTing to Google click endpoint", {
+  log.info("Booking request resolved", {
+    bookWith: first?.book_with ?? "unknown",
+    price: first?.price ?? null,
     url: bookingRequest.url.slice(0, 120),
     hasPostData: !!bookingRequest.post_data,
-    postDataLength: bookingRequest.post_data?.length ?? 0,
   });
 
-  try {
-    const postRes = await fetch(bookingRequest.url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: bookingRequest.post_data ?? "",
-      redirect: "manual", // Don't follow — we want the Location header
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    const location = postRes.headers.get("location");
-    log.info("Google click endpoint response", {
-      status: postRes.status,
-      hasLocation: !!location,
-      locationPrefix: location?.slice(0, 120) ?? null,
-      headers: Object.fromEntries(
-        [...postRes.headers.entries()].filter(([k]) =>
-          ["location", "content-type", "set-cookie"].includes(k.toLowerCase())
-        )
-      ),
-    });
-
-    if (location && /^https?:\/\//i.test(location)) {
-      log.info("Resolved booking URL successfully", { url: location.slice(0, 120) });
-      return location;
-    }
-
-    // Some responses use meta-refresh or JS redirect — try reading body
-    if (postRes.status >= 200 && postRes.status < 400) {
-      const html = await postRes.text();
-      log.info("Google click endpoint body (no Location header)", {
-        status: postRes.status,
-        bodyLength: html.length,
-        bodySnippet: html.slice(0, 300),
-      });
-
-      const metaMatch = html.match(/url=["']?([^"'\s>]+)/i);
-      if (metaMatch?.[1] && /^https?:\/\//i.test(metaMatch[1])) {
-        log.info("Resolved booking URL via meta-refresh", { url: metaMatch[1].slice(0, 120) });
-        return metaMatch[1];
-      }
-    }
-
-    log.warn("No redirect location from Google click endpoint", {
-      status: postRes.status,
-    });
-    return null;
-  } catch (e) {
-    log.warn("Failed to resolve booking redirect", { error: getErrorMessage(e) });
-    return null;
-  }
+  return {
+    url: bookingRequest.url,
+    postData: bookingRequest.post_data ?? "",
+    bookWith: first?.book_with ?? "unknown",
+    price: first?.price ?? null,
+  };
 }

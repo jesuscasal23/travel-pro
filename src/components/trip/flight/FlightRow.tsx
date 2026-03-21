@@ -1,9 +1,6 @@
 "use client";
 
-import { memo, useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";
-import { apiFetch } from "@/lib/client/api-fetch";
-import { useToastStore } from "@/stores/useToastStore";
+import { memo } from "react";
 import type { FlightSearchResult } from "@/lib/flights/types";
 
 /** Format ISO time -> "08:30" */
@@ -25,79 +22,34 @@ function StopsLabel({ stops }: { stops: number }) {
   );
 }
 
+function buildBookUrl(
+  token: string,
+  fromIata: string,
+  toIata: string,
+  departureDate: string
+): string {
+  const params = new URLSearchParams({
+    token,
+    dep: fromIata,
+    arr: toIata,
+    date: departureDate,
+  });
+  return `/api/v1/flights/book?${params}`;
+}
+
 export const FlightRow = memo(function FlightRow({
   result,
   fromIata,
   toIata,
   departureDate,
-  bookingHref,
 }: {
   result: FlightSearchResult;
   fromIata: string;
   toIata: string;
   departureDate: string;
-  bookingHref: string;
+  /** @deprecated No longer used — kept for backwards compat */
+  bookingHref?: string;
 }) {
-  const [resolving, setResolving] = useState(false);
-  const toast = useToastStore((s) => s.toast);
-
-  const handleClick = useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-
-      // No booking token — show error, don't silently redirect to Skyscanner
-      if (!result.bookingToken) {
-        toast({
-          title: "Booking link unavailable",
-          description:
-            "Google Flights didn't provide a booking link for this flight. Try another option or search manually.",
-          variant: "error",
-        });
-        return;
-      }
-
-      if (resolving) return;
-
-      setResolving(true);
-      try {
-        const { bookingUrl } = await apiFetch<{ bookingUrl: string | null }>(
-          "/api/v1/flights/booking-url",
-          {
-            source: "FlightRow",
-            method: "POST",
-            body: {
-              bookingToken: result.bookingToken,
-              departureId: fromIata,
-              arrivalId: toIata,
-              outboundDate: departureDate,
-            },
-            fallbackMessage: "Could not resolve booking link",
-          }
-        );
-
-        if (bookingUrl) {
-          window.open(bookingUrl, "_blank", "noopener,noreferrer");
-        } else {
-          toast({
-            title: "Could not resolve booking link",
-            description:
-              "The airline booking page couldn't be reached. Try again or pick a different flight.",
-            variant: "error",
-          });
-        }
-      } catch {
-        toast({
-          title: "Booking link failed",
-          description: "Something went wrong resolving the booking link. Please try again.",
-          variant: "error",
-        });
-      } finally {
-        setResolving(false);
-      }
-    },
-    [result.bookingToken, resolving, toast]
-  );
-
   const canBook = !!result.bookingToken;
 
   return (
@@ -125,21 +77,14 @@ export const FlightRow = memo(function FlightRow({
       </div>
 
       {canBook && (
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={resolving}
-          className="bg-primary hover:bg-primary/90 mt-2 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold text-white transition-colors disabled:opacity-70"
+        <a
+          href={buildBookUrl(result.bookingToken!, fromIata, toIata, departureDate)}
+          target="_blank"
+          rel="noreferrer"
+          className="bg-primary hover:bg-primary/90 mt-2 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold text-white transition-colors"
         >
-          {resolving ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Finding best booking link…
-            </>
-          ) : (
-            "Book now →"
-          )}
-        </button>
+          Book now →
+        </a>
       )}
     </div>
   );
