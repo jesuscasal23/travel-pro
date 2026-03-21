@@ -10,35 +10,35 @@
 - [ ] **"Add a city" button in Edit page** — renders with no `onClick` handler. Non-functional. See `add-city-feature.md` for analysis and proposed solution (Open-Meteo geocoding).
   - File: `src/app/trip/[id]/edit/page.tsx` line 313
 
-- [ ] **Trigger welcome email after signup** — `sendWelcomeEmail()` is implemented and ready but is never called anywhere. Hook into the Supabase auth callback or signup handler.
+- [ ] **Implement welcome email trigger after signup** — Email templates planned but not yet built. Hook into the Supabase auth callback or signup handler once email module is created.
   - Caller needed at: `src/app/auth/callback/route.ts` or signup flow
-  - Function at: `src/lib/email/index.ts`
 
-- [ ] **Trigger itinerary-ready email after generation** — `sendItineraryReadyEmail()` is implemented but never called. Should fire at end of SSE stream when `stage === "done"`.
-  - Caller needed at: `src/app/api/v1/trips/[id]/generate/route.ts` line 117
-  - Function at: `src/lib/email/index.ts`
-
-- [ ] **Prompt v2 is built but never used** — `SYSTEM_PROMPT_V2` and `assemblePromptV2()` exist and are higher quality than v1 (chain-of-thought, budget tracking, fewer hallucinations). The `promptVersion` param accepted by the generate endpoint is silently ignored. Either switch the pipeline to v2 or delete the file.
-  - File: `src/lib/ai/prompts/v2.ts`
+- [ ] **Implement itinerary-ready email after generation** — Should fire at end of SSE stream when `stage === "done"` once email module is created.
+  - Caller needed at: `src/app/api/v1/trips/[id]/generate/route.ts`
 
 ---
 
-## 🟡 Files to Delete
+## ✅ Files Deleted (cleaned up)
 
-| File                           | Why                                                                                                 |
-| ------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `src/data/generationSteps.ts`  | Defined but never imported — `plan/page.tsx` has its own inline copy                                |
-| `src/lib/ai/prompts/v2.ts`     | Never imported (unless switching pipeline to v2 — see above)                                        |
-| `src/lib/ai/model-selector.ts` | Fully implemented, never imported anywhere                                                          |
-| `src/lib/ai/validator.ts`      | Fully implemented, never imported anywhere                                                          |
-| `airports.csv`                 | One-time source data used to generate `airports-full.ts` — add to `.gitignore` and delete from repo |
+| File                           | Why                                                          |
+| ------------------------------ | ------------------------------------------------------------ |
+| `src/data/generationSteps.ts`  | Was never imported — `plan/page.tsx` has its own inline copy |
+| `src/lib/ai/prompts/v2.ts`     | Was never imported into the pipeline                         |
+| `src/lib/ai/model-selector.ts` | Was fully implemented but never imported anywhere            |
+| `src/lib/ai/validator.ts`      | Validation consolidated into `src/lib/ai/parser.ts`          |
+
+### Still to do
+
+| File           | Why                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| `airports.csv` | One-time source data used to generate `airports-full.ts` — add to `.gitignore` and delete from repo |
 
 ---
 
 ## 🟡 Infrastructure / Reliability
 
-- [ ] **Add `promptVersion` to the pipeline** — the generate endpoint accepts `promptVersion: "v1" | "v2"` but `generateItinerary()` ignores it and always uses v1. Either wire it up or remove the parameter to avoid confusion.
-  - File: `src/app/api/v1/trips/[id]/generate/route.ts` line 22 / `src/lib/ai/pipeline.ts`
+- [ ] **Clean up `promptVersion` parameter** — the generate endpoint may still accept `promptVersion` but v2 prompt was deleted. Remove the parameter to avoid confusion.
+  - File: `src/app/api/v1/trips/[id]/generate/route.ts` / `src/lib/ai/pipeline.ts`
 
 ---
 
@@ -59,7 +59,7 @@ These are installed but not imported anywhere in the source. Remove with `npm un
 
 - [ ] **`inputClass` Tailwind string duplicated across 4+ files** — same class string defined independently in `onboarding/page.tsx`, `profile/page.tsx`, `login/page.tsx`, `signup/page.tsx`. Extract to a shared constant.
 
-- [ ] **`generationSteps` defined twice** — `src/data/generationSteps.ts` exports it but `plan/page.tsx` defines its own inline version with slightly different labels. The page should import from the data file.
+- [ ] ~~**`generationSteps` defined twice**~~ — resolved: `src/data/generationSteps.ts` was deleted, `plan/page.tsx` inline version is canonical.
 
 ---
 

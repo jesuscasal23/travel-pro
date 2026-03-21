@@ -30,7 +30,7 @@ Shared cross-cutting code stays in:
 
 - `src/lib/api/*` for handler helpers and HTTP-layer errors
 - `src/lib/config/*` for validated env access
-- `src/lib/db/*` for Prisma entrypoints
+- `src/lib/core/prisma.ts` for the Prisma client entrypoint
 
 ## Errors
 
@@ -61,7 +61,7 @@ Request/query schemas live with the feature they validate.
 - trip and generation schemas: `src/lib/features/generation/schemas.ts`
 - client error report schemas: `src/lib/features/client-errors/schema.ts`
 
-`src/lib/api/schemas.ts` is only a compatibility barrel plus shared form schemas.
+Shared form schemas live in `src/lib/forms/schemas.ts`.
 
 ## Prisma Query Shapes
 
