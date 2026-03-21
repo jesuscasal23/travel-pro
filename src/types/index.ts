@@ -24,6 +24,9 @@ export interface ItineraryFlightLeg {
   price: number; // EUR, total for all travelers
   duration: string; // e.g. "12h 30m"
   airline: string;
+  departureTime?: string; // local time string, e.g. "08:30"
+  arrivalTime?: string; // local time string
+  stops?: number; // 0 = nonstop
 }
 
 /** A single activity within a day */
@@ -182,4 +185,35 @@ export interface TripIntent {
   flexibleDates?: boolean;
   travelers: number;
   description?: string;
+}
+
+/** Metadata stored with a booking click for later identification */
+export type BookingClickMetadata =
+  | {
+      type: "flight";
+      fromIata: string;
+      toIata: string;
+      departureDate: string;
+      airline?: string;
+      price?: number;
+    }
+  | {
+      type: "hotel";
+      hotelName?: string;
+      hotelId?: string;
+      city?: string;
+      checkIn?: string;
+      checkOut?: string;
+      pricePerNight?: number;
+    };
+
+/** A booking click record returned by the API */
+export interface BookingClick {
+  id: string;
+  tripId: string | null;
+  provider: string;
+  clickType: string;
+  city: string | null;
+  metadata: BookingClickMetadata | null;
+  createdAt: string;
 }

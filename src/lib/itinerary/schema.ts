@@ -24,6 +24,9 @@ const itineraryFlightLegSchema = z.object({
   price: z.number(),
   duration: z.string(),
   airline: z.string(),
+  departureTime: z.string().optional(),
+  arrivalTime: z.string().optional(),
+  stops: z.number().optional(),
 });
 
 export const dayActivitySchema = z.object({

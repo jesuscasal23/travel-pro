@@ -55,9 +55,9 @@ const baseLeg: FlightLegResults = {
   fetchedAt: Date.now(),
 };
 
-/** Count visible flight rows by the ✈️ emoji each row renders */
+/** Count visible flight rows by their data-testid */
 function getFlightRows() {
-  return screen.getAllByText("✈️");
+  return screen.getAllByTestId("flight-price");
 }
 
 beforeEach(() => {
@@ -107,7 +107,7 @@ describe("FlightOptionsPanel", () => {
 
     // Default sort is price — cheapest first
     const firstRow = getFlightRows()[0].closest("[class*='border']")!;
-    expect(firstRow).toHaveTextContent("TK");
+    expect(firstRow).toHaveTextContent("Turkish Airlines");
     expect(firstRow).toHaveTextContent("€320");
 
     // Click duration sort
@@ -115,7 +115,7 @@ describe("FlightOptionsPanel", () => {
 
     // JL (11h 45m) should now be first (shortest duration)
     const firstAfterSort = getFlightRows()[0].closest("[class*='border']")!;
-    expect(firstAfterSort).toHaveTextContent("JL");
+    expect(firstAfterSort).toHaveTextContent("Japan Airlines");
   });
 
   it("shows Skyscanner fallback when no results", () => {
@@ -165,7 +165,7 @@ describe("FlightOptionsPanel", () => {
     const rows = getFlightRows();
     expect(rows).toHaveLength(2);
     const firstRow = rows[0].closest("[class*='border']")!;
-    expect(firstRow).toHaveTextContent("QR");
+    expect(firstRow).toHaveTextContent("Qatar Airways");
     expect(firstRow).toHaveTextContent("€200");
   });
 
@@ -177,7 +177,7 @@ describe("FlightOptionsPanel", () => {
 
     render(<FlightOptionsPanel leg={nonstopLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText("Nonstop")).toBeInTheDocument();
+    expect(screen.getByText("Direct")).toBeInTheDocument();
   });
 
   it("displays stop count for 1+ stops", () => {

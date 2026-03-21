@@ -20,6 +20,9 @@ export interface FlightOption {
   price: number; // EUR, total for all travelers
   duration: string; // human-readable, e.g. "12h 30m"
   airline: string; // IATA carrier code, e.g. "LH"
+  departureTime?: string; // ISO 8601 or local time string
+  arrivalTime?: string; // ISO 8601 or local time string
+  stops?: number; // 0 = nonstop
 }
 
 /** A resolved flight leg with optimized date and real price */
@@ -32,6 +35,9 @@ export interface OptimizedLeg {
   price: number; // EUR, total for all travelers
   duration: string; // e.g. "12h 30m"
   airline: string;
+  departureTime?: string; // local time string, e.g. "08:30"
+  arrivalTime?: string; // local time string
+  stops?: number; // 0 = nonstop
 }
 
 /** A single flight search result with booking details */

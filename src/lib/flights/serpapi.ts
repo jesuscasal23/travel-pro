@@ -134,11 +134,15 @@ export async function searchFlights(
   allFlights.sort((a, b) => a.price - b.price);
   const best = allFlights[0];
   const firstFlight = best.flights[0];
+  const lastFlight = best.flights[best.flights.length - 1];
 
   return {
     price: best.price * adults, // SerpApi returns per-person price
     duration: formatDuration(best.total_duration),
     airline: extractAirlineCode(firstFlight?.flight_number ?? ""),
+    departureTime: firstFlight?.departure_airport?.time ?? undefined,
+    arrivalTime: lastFlight?.arrival_airport?.time ?? undefined,
+    stops: Math.max(0, best.flights.length - 1),
   };
 }
 

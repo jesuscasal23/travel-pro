@@ -84,7 +84,14 @@ export async function optimizeFlights(
   }
 
   // ── Pre-fetch all needed flight prices in parallel ──────────
-  type PriceCacheEntry = { price: number; duration: string; airline: string } | null;
+  type PriceCacheEntry = {
+    price: number;
+    duration: string;
+    airline: string;
+    departureTime?: string;
+    arrivalTime?: string;
+    stops?: number;
+  } | null;
   const priceMap = new Map<string, PriceCacheEntry>();
   const fetchPromises: Promise<void>[] = [];
 
@@ -184,6 +191,9 @@ export async function optimizeFlights(
       price: f?.price ?? 0,
       duration: f?.duration ?? "unknown",
       airline: f?.airline ?? "?",
+      ...(f?.departureTime ? { departureTime: f.departureTime } : {}),
+      ...(f?.arrivalTime ? { arrivalTime: f.arrivalTime } : {}),
+      ...(f?.stops != null ? { stops: f.stops } : {}),
     };
   }
 
