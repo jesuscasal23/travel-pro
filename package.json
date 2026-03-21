@@ -34,7 +34,8 @@
     "arch:diff:pages-endpoints": "node --no-warnings scripts/diff-pages-endpoints-graph.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "knip": "knip"
+    "knip": "knip",
+    "docs:check-refs": "bash scripts/check-doc-refs.sh"
   },
   "prisma": {
     "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
