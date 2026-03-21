@@ -12,8 +12,6 @@ import {
   AlertTriangle,
   Search,
   RefreshCw,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { getAccommodationQueryKey, fetchAccommodationEnrichment } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
@@ -62,12 +60,8 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
   const queryClient = useQueryClient();
 
   const [refetching, setRefetching] = useState(false);
-  const [debugResponse, setDebugResponse] = useState<string | null>(null);
-  const [debugOpen, setDebugOpen] = useState(false);
-
   const handleRefetch = useCallback(async () => {
     setRefetching(true);
-    setDebugResponse(null);
     try {
       const queryKey = getAccommodationQueryKey(route, dateStart, travelers, travelStyle);
       const data = await queryClient.fetchQuery({
@@ -76,8 +70,6 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
           fetchAccommodationEnrichment(route, dateStart, travelers, travelStyle, signal),
         staleTime: 0,
       });
-      setDebugResponse(JSON.stringify({ status: 200, accommodationData: data }, null, 2));
-      setDebugOpen(true);
 
       const current = useTripStore.getState().itinerary;
       if (current) {
@@ -86,9 +78,8 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
           accommodationData: data as CityAccommodation[],
         });
       }
-    } catch (e) {
-      setDebugResponse(JSON.stringify({ error: String(e) }, null, 2));
-      setDebugOpen(true);
+    } catch {
+      // Errors surface via the accommodationError context flag
     } finally {
       setRefetching(false);
     }
@@ -109,24 +100,6 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
       {refetching ? "Fetching…" : "Refetch"}
     </button>
   );
-
-  const DebugPanel = () =>
-    debugResponse ? (
-      <div className="border-border bg-secondary/50 rounded-lg border">
-        <button
-          onClick={() => setDebugOpen(!debugOpen)}
-          className="text-muted-foreground hover:text-foreground flex w-full items-center justify-between px-3 py-2 text-xs font-medium"
-        >
-          API Response
-          {debugOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        </button>
-        {debugOpen && (
-          <pre className="text-foreground border-border max-h-64 overflow-auto border-t px-3 py-2 font-mono text-[11px] leading-relaxed">
-            {debugResponse}
-          </pre>
-        )}
-      </div>
-    ) : null;
 
   if (accommodationLoading) {
     return (
@@ -157,7 +130,7 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
           </div>
           <RefetchButton />
         </div>
-        <DebugPanel />
+
         <div className="card-travel space-y-3 p-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="text-accent mt-0.5 h-5 w-5 flex-shrink-0" />
@@ -189,7 +162,6 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
           </div>
           <RefetchButton />
         </div>
-        <DebugPanel />
 
         {hasNoHotels ? (
           <div className="card-travel space-y-3 p-5">
@@ -235,8 +207,6 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
         </div>
         <RefetchButton />
       </div>
-      <DebugPanel />
-
       <div className="space-y-4">
         {accommodationData.map((cityAccom, i) => (
           <motion.div
