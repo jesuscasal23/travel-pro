@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CalendarDays, BedDouble, Copy, Map, Wallet } from "lucide-react";
+import { CalendarDays, BedDouble, Map, Wallet } from "lucide-react";
 import { useCityImage } from "@/hooks/useCityImage";
 import { formatDateRange } from "@/lib/utils/format/date";
 import type { TripSummary } from "@/types";
@@ -21,8 +21,16 @@ export function ActiveTripCard({ trip, onClick }: ActiveTripCardProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className="relative cursor-pointer overflow-hidden rounded-[24px] shadow-[0_20px_40px_rgba(27,43,75,0.12)]"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={cityName} className="h-52 w-full object-cover" onError={onImgError} />
@@ -34,18 +42,11 @@ export function ActiveTripCard({ trip, onClick }: ActiveTripCardProps) {
           Active Trip
         </span>
       </div>
-      <div className="absolute top-3 right-3 flex gap-2">
+      <div className="absolute top-3 right-3">
         <span className="flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
           <CalendarDays className="h-3 w-3" />
           {formatDateRange(trip.dateStart, trip.dateEnd)}
         </span>
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm"
-        >
-          <Copy className="h-3 w-3" />
-          Copy Trip
-        </button>
       </div>
 
       {/* Title */}

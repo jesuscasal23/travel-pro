@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { matchesStopsFilter } from "./FlightFilterPanel";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
@@ -60,6 +60,15 @@ export function useFlightOptions({
     },
     [search]
   );
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) {
+        clearTimeout(cooldownTimer.current);
+        cooldownTimer.current = null;
+      }
+    };
+  }, []);
 
   // Priority: manual search > batch search > prefetched
   const hasManual =
