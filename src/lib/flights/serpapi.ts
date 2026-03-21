@@ -6,12 +6,10 @@
 // Docs: https://serpapi.com/google-flights-api
 // ============================================================
 
-import { Redis } from "@upstash/redis";
 import type { FlightOption, FlightSearchResult, FlightLegResults } from "./types";
 import { buildFlightLink } from "@/lib/affiliate/link-generator";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
-import { getOptionalRedisEnv } from "@/lib/config/server-env";
 import { SERPAPI_REQUEST_TIMEOUT_MS } from "@/lib/config/constants";
 import { formatDuration } from "@/lib/utils/format/duration";
 
@@ -23,38 +21,6 @@ export class SerpApiRateLimitError extends Error {
   constructor() {
     super("Flight search is busy — please try again in a moment.");
     this.name = "SerpApiRateLimitError";
-  }
-}
-
-// ── Redis (shared lazy-init pattern) ────────────────────────
-
-let _redis: Redis | null | undefined;
-
-function getRedis(): Redis | null {
-  if (_redis !== undefined) return _redis;
-  const redisEnv = getOptionalRedisEnv();
-  if (!redisEnv) {
-    _redis = null;
-    return null;
-  }
-  _redis = new Redis(redisEnv);
-  return _redis;
-}
-
-async function safeRedisGet<T>(redis: Redis, key: string): Promise<T | null> {
-  try {
-    return await redis.get<T>(key);
-  } catch (e) {
-    log.warn("Redis get failed, skipping cache", { key, error: getErrorMessage(e) });
-    return null;
-  }
-}
-
-async function safeRedisSet(redis: Redis, key: string, ttl: number, value: unknown): Promise<void> {
-  try {
-    await redis.setex(key, ttl, value);
-  } catch (e) {
-    log.warn("Redis set failed, skipping cache", { key, error: getErrorMessage(e) });
   }
 }
 
@@ -115,7 +81,6 @@ function mapStopsFilter(nonStop?: boolean): string | undefined {
 /**
  * Search for the cheapest flight between two IATA codes on a given date.
  * Returns null when SerpApi is not configured, unavailable, or no flights found.
- * Results are cached in Redis for 2 hours.
  */
 export async function searchFlights(
   apiKey: string,
@@ -125,13 +90,6 @@ export async function searchFlights(
   adults: number,
   signal?: AbortSignal
 ): Promise<FlightOption | null> {
-  const redis = getRedis();
-  const cacheKey = `serpapi:flights:${origin}:${destination}:${date}:${adults}`;
-  if (redis) {
-    const cached = await safeRedisGet<FlightOption>(redis, cacheKey);
-    if (cached) return cached;
-  }
-
   const params = new URLSearchParams({
     engine: "google_flights",
     api_key: apiKey,
@@ -177,20 +135,16 @@ export async function searchFlights(
   const best = allFlights[0];
   const firstFlight = best.flights[0];
 
-  const option: FlightOption = {
+  return {
     price: best.price * adults, // SerpApi returns per-person price
     duration: formatDuration(best.total_duration),
     airline: extractAirlineCode(firstFlight?.flight_number ?? ""),
   };
-
-  if (redis) await safeRedisSet(redis, cacheKey, 7200, option);
-  return option;
 }
 
 /**
  * Search for up to 10 flight options between two IATA codes on a given date.
  * Returns [] when SerpApi is not configured, unavailable, or no flights found.
- * Results are cached in Redis for 2 hours.
  */
 export async function searchFlightsMulti(
   apiKey: string,
@@ -201,20 +155,6 @@ export async function searchFlightsMulti(
   filters?: { nonStop?: boolean; maxPrice?: number },
   signal?: AbortSignal
 ): Promise<FlightSearchResult[]> {
-  const redis = getRedis();
-  const filterSuffix = [
-    filters?.nonStop ? "nonstop" : "",
-    filters?.maxPrice ? `max${filters.maxPrice}` : "",
-  ]
-    .filter(Boolean)
-    .join(":");
-  const cacheKey = `serpapi:flights:multi:${origin}:${destination}:${date}:${adults}${filterSuffix ? `:${filterSuffix}` : ""}`;
-
-  if (redis) {
-    const cached = await safeRedisGet<FlightSearchResult[]>(redis, cacheKey);
-    if (cached) return cached;
-  }
-
   const params = new URLSearchParams({
     engine: "google_flights",
     api_key: apiKey,
@@ -293,10 +233,7 @@ export async function searchFlightsMulti(
   results.sort((a, b) => a.price - b.price);
 
   // Limit to 10 results
-  const trimmed = results.slice(0, 10);
-
-  if (redis) await safeRedisSet(redis, cacheKey, 7200, trimmed);
-  return trimmed;
+  return results.slice(0, 10);
 }
 
 /**
