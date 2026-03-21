@@ -1,1 +1,2 @@
-export { searchHotelsByCity, searchHotelOffers, buildCandidates } from "./hotel-search";
+export { searchHotels, SerpApiHotelRateLimitError } from "./serpapi";
+export type { HotelCandidate } from "./types";

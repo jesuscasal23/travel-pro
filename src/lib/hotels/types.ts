@@ -1,49 +1,49 @@
 // ============================================================
-// Travel Pro — Amadeus Hotel API Response Types
+// Travel Pro — Hotel API Types
 // ============================================================
 
-/** Single hotel entry from Hotel List API (GET /v1/reference-data/locations/hotels/by-city) */
-export interface AmadeusHotelEntry {
-  chainCode?: string;
-  iataCode: string;
-  dupeId?: number;
-  name: string;
-  hotelId: string;
-  geoCode: { latitude: number; longitude: number };
-  address?: { countryCode?: string };
-  distance?: { value: number; unit: string };
-  rating?: number; // star rating (1-5), only present for rated hotels
-}
+// ── SerpApi Google Hotels Response Types ─────────────────────
 
-/** Price info from Hotel Offers API */
-interface AmadeusHotelPrice {
-  currency: string;
-  total: string;
-  base?: string;
-}
-
-/** Single offer within a hotel from Hotel Offers API */
-export interface AmadeusOffer {
-  id: string;
-  checkInDate: string;
-  checkOutDate: string;
-  room?: { description?: { text?: string } };
-  price: AmadeusHotelPrice;
-}
-
-/** Hotel with offers from Hotel Offers API (GET /v3/shopping/hotel-offers) */
-export interface AmadeusHotelOffer {
+export interface SerpApiHotelProperty {
   type: string;
-  hotel: {
-    hotelId: string;
-    name: string;
-    cityCode?: string;
-    rating?: number;
-    address?: { lines?: string[] };
+  name: string;
+  description?: string;
+  link?: string;
+  gps_coordinates?: { latitude: number; longitude: number };
+  check_in_time?: string;
+  check_out_time?: string;
+  rate_per_night?: {
+    lowest?: string;
+    extracted_lowest?: number;
+    before_taxes_fees?: string;
+    extracted_before_taxes_fees?: number;
   };
-  available: boolean;
-  offers: AmadeusOffer[];
+  total_rate?: {
+    lowest?: string;
+    extracted_lowest?: number;
+    before_taxes_fees?: string;
+    extracted_before_taxes_fees?: number;
+  };
+  nearby_places?: Array<{
+    name: string;
+    transportations?: Array<{ type: string; duration: string }>;
+  }>;
+  hotel_class?: number; // star rating (1-5)
+  overall_rating?: number; // e.g. 4.2
+  reviews?: number; // review count
+  amenities?: string[];
+  images?: Array<{ thumbnail: string; original_image?: string }>;
+  essential_info?: string[];
 }
+
+export interface SerpApiHotelsResponse {
+  search_metadata: { status: string };
+  search_parameters: Record<string, string>;
+  properties?: SerpApiHotelProperty[];
+  error?: string;
+}
+
+// ── Internal Types ──────────────────────────────────────────
 
 /** Intermediate candidate used before AI ranking */
 export interface HotelCandidate {
@@ -55,4 +55,9 @@ export interface HotelCandidate {
   currency: string;
   address?: string;
   distance?: string;
+  overallRating?: number;
+  reviewCount?: number;
+  amenities?: string[];
+  thumbnail?: string;
+  link?: string;
 }

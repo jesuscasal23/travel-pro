@@ -1,11 +1,13 @@
 // ============================================================
-// Accommodation Enrichment — Amadeus Hotels + AI Ranking
+// Accommodation Enrichment — SerpApi Hotels + AI Ranking
 // ============================================================
 
 import type { CityStop, CityAccommodation, CityHotel, TravelStyle } from "@/types";
-import { searchHotelsByCity, searchHotelOffers, buildCandidates } from "@/lib/hotels";
+import { searchHotels } from "@/lib/hotels";
+import type { HotelCandidate } from "@/lib/hotels";
 import { buildHotelLink, buildTrackedLink } from "@/lib/features/affiliate/link-generator";
 import { getAnthropic } from "@/lib/ai/client";
+import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import { createLogger } from "@/lib/core/logger";
 
 const log = createLogger("enrichment:accommodation");
@@ -33,13 +35,7 @@ function computeCityDates(
  * Returns top 3 with a short "why" reason.
  */
 async function rankHotelsWithAI(
-  candidates: Array<{
-    hotelId: string;
-    name: string;
-    rating?: number;
-    pricePerNight?: number;
-    currency: string;
-  }>,
+  candidates: HotelCandidate[],
   city: string,
   travelStyle: TravelStyle
 ): Promise<Array<{ hotelId: string; why: string }>> {
@@ -47,10 +43,15 @@ async function rankHotelsWithAI(
 
   const hotelList = candidates
     .slice(0, 10)
-    .map(
-      (h, i) =>
-        `${i + 1}. ${h.name} (${h.rating ?? "?"}★, ${h.pricePerNight ?? "?"} ${h.currency}/night)`
-    )
+    .map((h, i) => {
+      const stars = h.rating ? `${h.rating}★` : "?★";
+      const review = h.overallRating
+        ? ` (${h.overallRating}/5, ${h.reviewCount ?? "?"} reviews)`
+        : "";
+      const price = h.pricePerNight ? `${h.pricePerNight} ${h.currency}/night` : "price N/A";
+      const amenities = h.amenities?.slice(0, 5).join(", ") ?? "";
+      return `${i + 1}. [${h.hotelId}] ${h.name} — ${stars}${review}, ${price}${amenities ? `, amenities: ${amenities}` : ""}`;
+    })
     .join("\n");
 
   const prompt = `You are a travel assistant. A "${travelStyle}" traveler is visiting ${city}.
@@ -60,7 +61,7 @@ Hotels:
 ${hotelList}
 
 Reply ONLY with a JSON array: [{"hotelId":"...","why":"..."}]
-Use the hotelId from the list. Pick exactly 3 (or fewer if less available).`;
+Use the hotelId from the brackets. Pick exactly 3 (or fewer if less available).`;
 
   try {
     const message = await getAnthropic().messages.create({
@@ -140,8 +141,8 @@ function emptyCityResult(
 
 /**
  * Enrich accommodation for all cities in the route.
- * For each city: search hotels -> get offers -> AI rank top 3.
- * Gracefully returns fallback URLs when Amadeus is unavailable.
+ * For each city: search hotels via SerpApi -> AI rank top 3.
+ * Gracefully returns fallback URLs when SerpApi is unavailable.
  */
 export async function enrichAccommodation(
   route: CityStop[],
@@ -149,47 +150,37 @@ export async function enrichAccommodation(
   travelers: number,
   travelStyle: TravelStyle
 ): Promise<CityAccommodation[]> {
+  const serpEnv = getOptionalSerpApiEnv();
+  if (!serpEnv) {
+    log.warn("SerpApi credentials missing — returning fallback URLs for all cities");
+    const cityDates = computeCityDates(route, dateStart);
+    return cityDates.map(({ city, checkIn, checkOut }) =>
+      emptyCityResult(city, checkIn, checkOut, buildFallbackUrl(city, checkIn, checkOut, travelers))
+    );
+  }
+
   const cityDates = computeCityDates(route, dateStart);
 
   const results = await Promise.all(
-    cityDates.map(async ({ city, checkIn, checkOut, nights }) => {
+    cityDates.map(async ({ city, checkIn, checkOut }) => {
       const fallbackSearchUrl = buildFallbackUrl(city, checkIn, checkOut, travelers);
-      const iataCode = city.iataCode;
-
-      if (!iataCode) {
-        log.info("No IATA code for city, using fallback", { city: city.city });
-        return emptyCityResult(city, checkIn, checkOut, fallbackSearchUrl);
-      }
 
       try {
-        const hotelList = await searchHotelsByCity(iataCode);
-        if (!hotelList || hotelList.length === 0) {
-          log.warn("No hotels returned from Amadeus for city", {
-            city: city.city,
-            iataCode,
-            hotelListNull: hotelList === null,
-          });
-          return emptyCityResult(city, checkIn, checkOut, fallbackSearchUrl);
-        }
-
-        log.info("Hotel list fetched", { city: city.city, iataCode, count: hotelList.length });
-        const hotelIds = hotelList.map((h) => h.hotelId);
-        const offers = await searchHotelOffers(hotelIds, checkIn, checkOut, travelers);
-        log.info("Hotel offers fetched", {
-          city: city.city,
-          offersNull: offers === null,
-          offersCount: offers?.length ?? 0,
-        });
-        const candidates = buildCandidates(hotelList, offers, nights);
+        const candidates = await searchHotels(
+          serpEnv.apiKey,
+          city.city,
+          checkIn,
+          checkOut,
+          travelers,
+          { minStars: 3 }
+        );
 
         if (candidates.length === 0) {
-          log.warn("No candidates with prices after merging offers", {
-            city: city.city,
-            hotelCount: hotelList.length,
-            offersCount: offers?.length ?? 0,
-          });
+          log.warn("No hotels returned from SerpApi for city", { city: city.city });
           return emptyCityResult(city, checkIn, checkOut, fallbackSearchUrl);
         }
+
+        log.info("Hotel candidates fetched", { city: city.city, count: candidates.length });
 
         // AI rank the candidates
         const ranked = await rankHotelsWithAI(candidates, city.city, travelStyle);
@@ -211,7 +202,7 @@ export async function enrichAccommodation(
             currency: c.currency,
             address: c.address,
             distance: c.distance,
-            bookingUrl,
+            bookingUrl: c.link ?? bookingUrl,
             why: rankedMap.get(c.hotelId) ?? "Well-rated hotel.",
           });
         }
@@ -230,7 +221,7 @@ export async function enrichAccommodation(
             currency: c.currency,
             address: c.address,
             distance: c.distance,
-            bookingUrl,
+            bookingUrl: c.link ?? bookingUrl,
             why: "Well-rated hotel in a convenient location.",
           });
         }
