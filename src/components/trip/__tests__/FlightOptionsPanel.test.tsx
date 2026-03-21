@@ -60,6 +60,11 @@ function getFlightRows() {
   return screen.getAllByTestId("flight-price");
 }
 
+/** Find the flight card containing a given price element */
+function getFlightCard(priceEl: HTMLElement) {
+  return priceEl.closest("[class*='rounded-xl']")!;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockHookState = {
@@ -71,11 +76,12 @@ beforeEach(() => {
 });
 
 describe("FlightOptionsPanel", () => {
-  it("renders leg header with IATA codes and date", () => {
+  it("renders leg header with IATA codes and formatted date", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText(/CDG → NRT/)).toBeInTheDocument();
-    expect(screen.getByText(/2026-06-01/)).toBeInTheDocument();
+    expect(screen.getByText("CDG")).toBeInTheDocument();
+    expect(screen.getByText("NRT")).toBeInTheDocument();
+    expect(screen.getByText("Jun 1")).toBeInTheDocument();
   });
 
   it("shows first 5 results by default", () => {
@@ -102,19 +108,19 @@ describe("FlightOptionsPanel", () => {
     expect(getFlightRows()).toHaveLength(5);
   });
 
-  it("toggles sort between price and duration", () => {
+  it("toggles sort between cheapest and quickest", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
     // Default sort is price — cheapest first
-    const firstRow = getFlightRows()[0].closest("[class*='border']")!;
-    expect(firstRow).toHaveTextContent("Turkish Airlines");
-    expect(firstRow).toHaveTextContent("€320");
+    const firstCard = getFlightCard(getFlightRows()[0]);
+    expect(firstCard).toHaveTextContent("Turkish Airlines");
+    expect(firstCard).toHaveTextContent("€320");
 
-    // Click duration sort
-    fireEvent.click(screen.getByText("Duration"));
+    // Click quickest sort
+    fireEvent.click(screen.getByText("Quickest"));
 
     // JL (11h 45m) should now be first (shortest duration)
-    const firstAfterSort = getFlightRows()[0].closest("[class*='border']")!;
+    const firstAfterSort = getFlightCard(getFlightRows()[0]);
     expect(firstAfterSort).toHaveTextContent("Japan Airlines");
   });
 
@@ -123,24 +129,28 @@ describe("FlightOptionsPanel", () => {
 
     render(<FlightOptionsPanel leg={emptyLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText("Search Flights")).toBeInTheDocument();
-    expect(screen.getByText(/Skyscanner/)).toBeInTheDocument();
+    expect(screen.getByText("Search on Skyscanner")).toBeInTheDocument();
   });
 
-  it("triggers live search when clicking 'Search live options'", () => {
+  it("triggers live search when clicking refresh", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    fireEvent.click(screen.getByText(/Refresh/));
+    // Refresh is now an icon-only button — find by its RefreshCw svg class
+    const allButtons = screen.getAllByRole("button");
+    const refreshButton = allButtons.find((btn) => btn.querySelector(".lucide-refresh-cw"))!;
+    fireEvent.click(refreshButton);
 
     expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
   });
 
-  it("shows loading spinner during search", () => {
+  it("shows skeleton loading during search", () => {
     mockHookState.loading = true;
 
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText(/Searching flights/)).toBeInTheDocument();
+    // Skeleton loading shows animated pulse cards
+    const skeletons = document.querySelectorAll(".animate-pulse");
+    expect(skeletons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows error message on search failure", () => {
@@ -164,12 +174,12 @@ describe("FlightOptionsPanel", () => {
     // Should show live results, not prefetched
     const rows = getFlightRows();
     expect(rows).toHaveLength(2);
-    const firstRow = rows[0].closest("[class*='border']")!;
-    expect(firstRow).toHaveTextContent("Qatar Airways");
-    expect(firstRow).toHaveTextContent("€200");
+    const firstCard = getFlightCard(rows[0]);
+    expect(firstCard).toHaveTextContent("Qatar Airways");
+    expect(firstCard).toHaveTextContent("€200");
   });
 
-  it("displays nonstop label for 0 stops", () => {
+  it("displays Non-stop badge for 0 stops", () => {
     const nonstopLeg: FlightLegResults = {
       ...baseLeg,
       results: [makeResult({ stops: 0 })],
@@ -177,7 +187,7 @@ describe("FlightOptionsPanel", () => {
 
     render(<FlightOptionsPanel leg={nonstopLeg} tripId="trip-1" travelers={2} />);
 
-    expect(screen.getByText("Direct")).toBeInTheDocument();
+    expect(screen.getByText("Non-stop")).toBeInTheDocument();
   });
 
   it("displays stop count for 1+ stops", () => {
@@ -223,10 +233,12 @@ describe("FlightOptionsPanel", () => {
   it("filters by nonstop when stops filter is selected", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    // Open filters
-    fireEvent.click(screen.getByText("Filters"));
+    // Open filters via the SlidersHorizontal icon button
+    const allButtons = screen.getAllByRole("button");
+    const filterBtn = allButtons.find((btn) => btn.querySelector(".lucide-sliders-horizontal"))!;
+    fireEvent.click(filterBtn);
 
-    // Click Nonstop filter button (inside the filter panel, not the flight labels)
+    // Click Nonstop filter button (inside the filter panel)
     const filterButtons = screen.getAllByRole("button");
     const nonstopBtn = filterButtons.find(
       (btn) => btn.textContent === "Nonstop" && btn.className.includes("rounded-full")
@@ -245,7 +257,9 @@ describe("FlightOptionsPanel", () => {
 
     render(<FlightOptionsPanel leg={stopsOnlyLeg} tripId="trip-1" travelers={2} />);
 
-    fireEvent.click(screen.getByText("Filters"));
+    const allButtons = screen.getAllByRole("button");
+    const filterBtn = allButtons.find((btn) => btn.querySelector(".lucide-sliders-horizontal"))!;
+    fireEvent.click(filterBtn);
 
     const filterButtons = screen.getAllByRole("button");
     const nonstopBtn = filterButtons.find(
@@ -260,7 +274,9 @@ describe("FlightOptionsPanel", () => {
   it("clears filters when 'Clear filters' is clicked", () => {
     render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
 
-    fireEvent.click(screen.getByText("Filters"));
+    const allButtons = screen.getAllByRole("button");
+    const filterBtn = allButtons.find((btn) => btn.querySelector(".lucide-sliders-horizontal"))!;
+    fireEvent.click(filterBtn);
 
     const filterButtons = screen.getAllByRole("button");
     const nonstopBtn = filterButtons.find(

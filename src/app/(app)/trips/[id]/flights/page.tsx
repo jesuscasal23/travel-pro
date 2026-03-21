@@ -10,14 +10,7 @@ export default function TripFlightsPage() {
   return (
     <TripMobileShell showBanners>
       <div className="py-1">
-        <section>
-          <p className="text-brand-primary text-[11px] font-bold tracking-[0.18em] uppercase">
-            Flights
-          </p>
-          <div className="mt-3">
-            <FlightsTab itinerary={itinerary} tripId={tripId} />
-          </div>
-        </section>
+        <FlightsTab itinerary={itinerary} tripId={tripId} />
       </div>
     </TripMobileShell>
   );

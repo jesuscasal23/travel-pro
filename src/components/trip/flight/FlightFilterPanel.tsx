@@ -46,20 +46,22 @@ export function FlightFilterPanel({
   onClearFilters,
 }: FlightFilterPanelProps) {
   return (
-    <div className="border-border bg-background mb-3 space-y-3 rounded-lg border p-3">
+    <div className="bg-surface-soft mb-4 space-y-4 rounded-xl p-4">
       {/* Stops filter */}
       <div>
-        <label className="text-muted-foreground mb-1.5 block text-xs font-medium">Stops</label>
-        <div className="flex flex-wrap gap-1.5">
+        <label className="text-muted-foreground mb-2 block text-[10px] font-bold tracking-widest uppercase">
+          Stops
+        </label>
+        <div className="flex flex-wrap gap-2">
           {STOPS_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               disabled={cooldown && opt.value !== stopsFilter}
               onClick={() => onStopsFilterChange(opt.value)}
-              className={`rounded-full px-3 py-1 text-xs transition-colors disabled:opacity-50 ${
+              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                 stopsFilter === opt.value
-                  ? "bg-primary font-medium text-white"
-                  : "bg-secondary text-foreground hover:bg-secondary/80"
+                  ? "bg-primary font-bold text-white"
+                  : "bg-card border-border text-foreground hover:border-primary/30 border shadow-sm"
               }`}
             >
               {opt.label}
@@ -71,12 +73,14 @@ export function FlightFilterPanel({
       {/* Max price filter */}
       {priceRange.min < priceRange.max && (
         <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className="text-muted-foreground text-xs font-medium">Max price</label>
-            <span className="text-foreground text-xs font-medium">
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+              Max price
+            </label>
+            <span className="font-display text-foreground text-sm font-bold">
               {maxPrice !== null
-                ? `€${maxPrice.toLocaleString()}`
-                : `€${priceRange.max.toLocaleString()}`}
+                ? `\u20AC${maxPrice.toLocaleString()}`
+                : `\u20AC${priceRange.max.toLocaleString()}`}
             </span>
           </div>
           <input
@@ -99,9 +103,9 @@ export function FlightFilterPanel({
             }}
             className="accent-primary w-full"
           />
-          <div className="text-muted-foreground mt-0.5 flex justify-between text-[10px]">
-            <span>€{priceRange.min.toLocaleString()}</span>
-            <span>€{priceRange.max.toLocaleString()}</span>
+          <div className="text-muted-foreground mt-1 flex justify-between text-[10px] font-medium">
+            <span>&euro;{priceRange.min.toLocaleString()}</span>
+            <span>&euro;{priceRange.max.toLocaleString()}</span>
           </div>
         </div>
       )}

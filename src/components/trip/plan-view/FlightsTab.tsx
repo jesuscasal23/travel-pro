@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Plane, Loader2 } from "lucide-react";
 import { FlightOptionsPanel } from "@/components/trip/FlightOptionsPanel";
+import { Badge } from "@/components/ui/Badge";
 import { useBatchFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { useTripStore } from "@/stores/useTripStore";
 import type { Itinerary } from "@/types";
@@ -151,9 +152,9 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   if (legs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <Plane className="text-muted-foreground mb-3 h-10 w-10" />
-        <p className="text-foreground font-medium">No flight legs available</p>
-        <p className="text-muted-foreground mt-1 text-sm">
+        <Plane className="text-primary/20 mb-4 h-12 w-12" />
+        <p className="font-display text-foreground text-lg font-bold">No flight legs available</p>
+        <p className="text-muted-foreground mt-1 max-w-xs text-sm">
           {!homeAirport
             ? "Set your home airport in your profile to see flight options."
             : "Flight information will appear once your itinerary has cities with airport codes."}
@@ -163,19 +164,21 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-foreground text-lg font-semibold">Flight Options</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="font-display text-foreground text-xl font-bold tracking-tight">
+            Flight Options
+          </h2>
           {batchLoading && (
-            <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
-              <Loader2 className="h-3 w-3 animate-spin" /> Searching…
-            </span>
+            <Badge variant="brand" className="gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin" /> Searching
+            </Badge>
           )}
         </div>
-        <span className="text-muted-foreground text-xs">
+        <Badge variant="neutral">
           {legs.length} leg{legs.length !== 1 ? "s" : ""}
-        </span>
+        </Badge>
       </div>
       {legs.map((leg, i) => {
         const batch = getResultsForLeg(leg.fromIata, leg.toIata, leg.departureDate);

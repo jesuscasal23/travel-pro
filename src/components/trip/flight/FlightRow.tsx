@@ -1,7 +1,9 @@
 "use client";
 
 import { memo } from "react";
+import { ArrowRight } from "lucide-react";
 import { getAirlineName } from "@/lib/flights/airlines";
+import { Badge } from "@/components/ui/Badge";
 import type { FlightSearchResult } from "@/lib/flights/types";
 
 /** Format ISO time -> "08:30" */
@@ -12,15 +14,6 @@ function formatTime(iso: string): string {
   } catch {
     return iso.slice(11, 16);
   }
-}
-
-function StopsLabel({ stops }: { stops: number }) {
-  if (stops === 0) return <span className="text-green-600 dark:text-green-400">Direct</span>;
-  return (
-    <span className="text-amber-600 dark:text-amber-400">
-      {stops} stop{stops > 1 ? "s" : ""}
-    </span>
-  );
 }
 
 function buildBookUrl(
@@ -60,45 +53,82 @@ export const FlightRow = memo(function FlightRow({
   const depTime = formatTime(result.departureTime);
   const arrTime = formatTime(result.arrivalTime);
 
+  const stopsLabel =
+    result.stops === 0 ? "Non-stop" : `${result.stops} stop${result.stops > 1 ? "s" : ""}`;
+
   return (
-    <div className="border-border rounded-lg border p-3 transition-colors">
-      {/* Row 1: times + airline + price */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          {/* Times row */}
-          {(depTime || arrTime) && (
-            <div className="text-foreground mb-0.5 flex items-baseline gap-1.5 text-sm font-semibold tabular-nums">
-              {depTime && <span>{depTime}</span>}
-              {depTime && arrTime && (
-                <span className="text-muted-foreground text-xs font-normal">&rarr;</span>
+    <div className="bg-card shadow-card hover:shadow-card-hover rounded-xl p-4 transition-shadow">
+      {/* Top section: airline badge + times + price */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex gap-3">
+          {/* Airline IATA badge */}
+          <div className="bg-secondary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+            <span className="text-foreground text-xs font-bold">{result.airline}</span>
+          </div>
+          {/* Times + route info */}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              {depTime || arrTime ? (
+                <>
+                  {depTime && (
+                    <span className="font-display text-foreground text-lg font-bold">
+                      {depTime}
+                    </span>
+                  )}
+                  {depTime && arrTime && (
+                    <ArrowRight className="text-muted-foreground h-3.5 w-3.5" />
+                  )}
+                  {arrTime && (
+                    <span className="font-display text-foreground text-lg font-bold">
+                      {arrTime}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="font-display text-foreground text-lg font-bold">
+                  {airlineName}
+                </span>
               )}
-              {arrTime && <span>{arrTime}</span>}
             </div>
-          )}
-          {/* Airline + stops + duration */}
-          <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
-            <span className="text-foreground font-medium">{airlineName}</span>
-            <span>&middot;</span>
-            <StopsLabel stops={result.stops} />
-            <span>&middot;</span>
-            <span>{result.duration}</span>
+            <span className="text-muted-foreground text-[11px] font-medium">
+              {airlineName} &middot; {stopsLabel}
+            </span>
           </div>
         </div>
-        <div className="text-foreground shrink-0 text-sm font-bold" data-testid="flight-price">
-          &euro;{Math.round(result.price).toLocaleString()}
+        {/* Price */}
+        <div className="shrink-0 text-right">
+          <p className="font-display text-foreground text-xl font-bold" data-testid="flight-price">
+            &euro;{Math.round(result.price).toLocaleString()}
+          </p>
+          <span className="text-muted-foreground text-[10px] font-bold tracking-tight uppercase">
+            Per person
+          </span>
         </div>
       </div>
 
-      {canBook && (
-        <a
-          href={buildBookUrl(result.bookingToken!, fromIata, toIata, departureDate, tripId)}
-          target="_blank"
-          rel="noreferrer"
-          className="bg-primary hover:bg-primary/90 mt-2 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold text-white transition-colors"
-        >
-          Book now &rarr;
-        </a>
-      )}
+      {/* Divider */}
+      <div className="border-border mt-3 border-t pt-3">
+        {/* Bottom section: badges + select button */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <Badge variant={result.stops === 0 ? "success" : "warning"}>{stopsLabel}</Badge>
+            <Badge variant="neutral">{result.duration}</Badge>
+          </div>
+          {canBook ? (
+            <a
+              href={buildBookUrl(result.bookingToken!, fromIata, toIata, departureDate, tripId)}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-primary hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold text-white transition-all active:scale-95"
+            >
+              Select
+              <ArrowRight className="h-3 w-3" />
+            </a>
+          ) : (
+            <span className="text-muted-foreground text-[10px] font-medium">No booking link</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 });
