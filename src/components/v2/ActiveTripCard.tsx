@@ -64,7 +64,7 @@ export function ActiveTripCard({ trip, onClick }: ActiveTripCardProps) {
       <div className="absolute right-0 bottom-0 left-0 flex items-center justify-around bg-black/30 py-2.5 backdrop-blur-sm">
         {[
           { icon: CalendarDays, label: "Itinerary", href: `/trips/${tripId}/itinerary` },
-          { icon: BedDouble, label: "Bookings", href: `/trips/${tripId}/bookings` },
+          { icon: BedDouble, label: "Hotels", href: `/trips/${tripId}/hotels` },
           { icon: Wallet, label: "Budget", href: `/trips/${tripId}/budget` },
           { icon: Map, label: "Map", href: `/trips/${tripId}/map` },
         ].map((action) => (

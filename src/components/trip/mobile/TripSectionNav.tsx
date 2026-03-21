@@ -2,13 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { CalendarDays, Map, ReceiptText, Wallet } from "lucide-react";
+import { CalendarDays, Hotel, Map, Plane, ReceiptText, Wallet } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const sections = [
   { id: "overview", label: "Overview", icon: ReceiptText, href: "" },
   { id: "itinerary", label: "Itinerary", icon: CalendarDays, href: "/itinerary" },
-  { id: "bookings", label: "Bookings", icon: ReceiptText, href: "/bookings" },
+  { id: "flights", label: "Flights", icon: Plane, href: "/flights" },
+  { id: "hotels", label: "Hotels", icon: Hotel, href: "/hotels" },
   { id: "budget", label: "Budget", icon: Wallet, href: "/budget" },
   { id: "map", label: "Map", icon: Map, href: "/map" },
 ];

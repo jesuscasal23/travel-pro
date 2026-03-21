@@ -3,6 +3,7 @@
 import { memo, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { apiFetch } from "@/lib/client/api-fetch";
+import { useToastStore } from "@/stores/useToastStore";
 import type { FlightSearchResult } from "@/lib/flights/types";
 
 /** Format ISO time -> "08:30" */
@@ -32,13 +33,23 @@ export const FlightRow = memo(function FlightRow({
   bookingHref: string;
 }) {
   const [resolving, setResolving] = useState(false);
+  const toast = useToastStore((s) => s.toast);
 
   const handleClick = useCallback(
     async (e: React.MouseEvent) => {
-      // No booking token — use the fallback Skyscanner link directly
-      if (!result.bookingToken) return;
-
       e.preventDefault();
+
+      // No booking token — show error, don't silently redirect to Skyscanner
+      if (!result.bookingToken) {
+        toast({
+          title: "Booking link unavailable",
+          description:
+            "Google Flights didn't provide a booking link for this flight. Try another option or search manually.",
+          variant: "error",
+        });
+        return;
+      }
+
       if (resolving) return;
 
       setResolving(true);
@@ -56,17 +67,24 @@ export const FlightRow = memo(function FlightRow({
         if (bookingUrl) {
           window.open(bookingUrl, "_blank", "noopener,noreferrer");
         } else {
-          // Fallback to Skyscanner if resolution failed
-          window.open(bookingHref, "_blank", "noopener,noreferrer");
+          toast({
+            title: "Could not resolve booking link",
+            description:
+              "The airline booking page couldn't be reached. Try again or pick a different flight.",
+            variant: "error",
+          });
         }
       } catch {
-        // On error, fall back to Skyscanner link
-        window.open(bookingHref, "_blank", "noopener,noreferrer");
+        toast({
+          title: "Booking link failed",
+          description: "Something went wrong resolving the booking link. Please try again.",
+          variant: "error",
+        });
       } finally {
         setResolving(false);
       }
     },
-    [result.bookingToken, bookingHref, resolving]
+    [result.bookingToken, resolving, toast]
   );
 
   return (
