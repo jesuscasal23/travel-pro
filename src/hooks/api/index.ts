@@ -37,3 +37,6 @@ export type { AdminStats, AdminUser, AdminTrip } from "./admin/shared";
 
 // Flights
 export { useFlightSearch, useBatchFlightSearch } from "./flights/useFlightSearch";
+
+// Booking Clicks
+export { useBookingClicks } from "./booking-clicks/useBookingClicks";

@@ -132,8 +132,11 @@ model AffiliateClick {
   userId    String? @map("user_id")
   sessionId String? @map("session_id")
   ipHash    String? @map("ip_hash")
+  metadata  Json?
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
 
   @@index([tripId])
   @@index([provider])

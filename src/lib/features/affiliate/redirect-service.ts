@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/core/prisma";
 import { BadRequestError } from "@/lib/api/errors";
 import { createLogger } from "@/lib/core/logger";
@@ -17,6 +18,8 @@ interface LogAffiliateRedirectInput {
   itinerary_id?: string;
   city?: string;
   ip: string;
+  userId?: string | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 export async function logAffiliateRedirect(input: LogAffiliateRedirectInput) {
@@ -57,7 +60,9 @@ export async function logAffiliateRedirect(input: LogAffiliateRedirectInput) {
         destination: getAffiliateDestinationHostname(input.dest),
         url: input.dest,
         tripId: tripId ?? null,
+        userId: input.userId ?? null,
         ipHash: hashIpAddress(input.ip),
+        metadata: (input.metadata as Prisma.InputJsonValue) ?? undefined,
       },
     });
   } catch (error) {

@@ -219,6 +219,7 @@ export function FlightOptionsPanel({
               fromIata={leg.fromIata}
               toIata={leg.toIata}
               departureDate={leg.departureDate}
+              tripId={tripId}
               bookingHref={buildTrackedLink({
                 provider: "skyscanner",
                 type: "flight",

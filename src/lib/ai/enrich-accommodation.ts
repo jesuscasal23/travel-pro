@@ -106,6 +106,7 @@ function buildFallbackUrl(
     type: "hotel",
     city: city.city,
     dest: rawUrl,
+    metadata: { type: "hotel", city: city.city, checkIn, checkOut },
   });
 }
 
@@ -113,13 +114,25 @@ function buildHotelBookingUrl(
   city: CityStop,
   checkIn: string,
   checkOut: string,
-  travelers: number
+  travelers: number,
+  hotelName?: string,
+  hotelId?: string,
+  pricePerNight?: number
 ): string {
   return buildTrackedLink({
     provider: "booking",
     type: "hotel",
     city: city.city,
     dest: buildHotelLink({ ...city, arrivalDate: checkIn, departureDate: checkOut }, travelers),
+    metadata: {
+      type: "hotel",
+      city: city.city,
+      checkIn,
+      checkOut,
+      ...(hotelName && { hotelName }),
+      ...(hotelId && { hotelId }),
+      ...(pricePerNight != null && { pricePerNight }),
+    },
   });
 }
 
@@ -195,7 +208,6 @@ export async function enrichAccommodation(
         // AI rank the candidates
         const ranked = await rankHotelsWithAI(candidates, city.city, travelStyle);
         const rankedMap = new Map(ranked.map((r) => [r.hotelId, r.why]));
-        const bookingUrl = buildHotelBookingUrl(city, checkIn, checkOut, travelers);
 
         // Build final hotel list — ranked hotels first, then fill to 3
         const hotels: CityHotel[] = [];
@@ -212,7 +224,17 @@ export async function enrichAccommodation(
             currency: c.currency,
             address: c.address,
             distance: c.distance,
-            bookingUrl: c.link ?? bookingUrl,
+            bookingUrl:
+              c.link ??
+              buildHotelBookingUrl(
+                city,
+                checkIn,
+                checkOut,
+                travelers,
+                c.name,
+                c.hotelId,
+                c.pricePerNight
+              ),
             why: rankedMap.get(c.hotelId) ?? "Well-rated hotel.",
           });
         }
@@ -231,7 +253,17 @@ export async function enrichAccommodation(
             currency: c.currency,
             address: c.address,
             distance: c.distance,
-            bookingUrl: c.link ?? bookingUrl,
+            bookingUrl:
+              c.link ??
+              buildHotelBookingUrl(
+                city,
+                checkIn,
+                checkOut,
+                travelers,
+                c.name,
+                c.hotelId,
+                c.pricePerNight
+              ),
             why: "Well-rated hotel in a convenient location.",
           });
         }

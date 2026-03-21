@@ -38,6 +38,10 @@ export const queryKeys = {
         [...queryKeys.admin.trips.all(), page, limit, search] as const,
     },
   },
+  bookingClicks: {
+    all: ["booking-clicks"] as const,
+    forTrip: (tripId: string) => [...queryKeys.bookingClicks.all, tripId] as const,
+  },
   flights: {
     all: ["flights"] as const,
     trip: (tripId: string) => [...queryKeys.flights.all, tripId] as const,

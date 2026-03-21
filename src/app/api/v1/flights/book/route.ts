@@ -8,6 +8,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import { getBookingRequest, SerpApiRateLimitError } from "@/lib/flights/serpapi";
 import { createLogger } from "@/lib/core/logger";
+import { prisma } from "@/lib/core/prisma";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
+import { hashIpAddress } from "@/lib/features/affiliate/redirect-utils";
+import { getClientIp } from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +74,7 @@ export async function GET(req: NextRequest) {
   const dep = sp.get("dep");
   const arr = sp.get("arr");
   const date = sp.get("date");
+  const tripId = sp.get("tripId");
 
   if (!token || !dep || !arr || !date) {
     return errorPage("Missing required parameters.");
@@ -101,6 +106,34 @@ export async function GET(req: NextRequest) {
       arr,
       date,
     });
+
+    // Best-effort booking click tracking — never block the redirect
+    try {
+      const userId = await getAuthenticatedUserId();
+      await prisma.affiliateClick.create({
+        data: {
+          provider: booking.bookWith.toLowerCase(),
+          clickType: "flight",
+          destination: new URL(booking.url).hostname,
+          url: booking.url,
+          tripId: tripId ?? null,
+          userId: userId ?? null,
+          ipHash: hashIpAddress(getClientIp(req)),
+          metadata: {
+            type: "flight",
+            fromIata: dep,
+            toIata: arr,
+            departureDate: date,
+            airline: booking.bookWith,
+            price: booking.price,
+          },
+        },
+      });
+    } catch (trackError) {
+      log.error("Failed to track flight booking click", {
+        error: trackError instanceof Error ? trackError.message : String(trackError),
+      });
+    }
 
     return redirectForm(booking.url, booking.postData, booking.bookWith);
   } catch (error) {

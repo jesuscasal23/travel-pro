@@ -6,4 +6,5 @@ export const AffiliateRedirectQuerySchema = z.object({
   dest: z.string().url("dest must be a valid URL"),
   itinerary_id: z.string().optional(),
   city: z.string().optional(),
+  metadata: z.string().optional(),
 });

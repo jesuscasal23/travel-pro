@@ -51,6 +51,7 @@ export function buildTrackedLink(p: {
   itineraryId?: string;
   city?: string;
   dest: string;
+  metadata?: Record<string, unknown>;
 }): string {
   const query = new URLSearchParams({
     provider: p.provider,
@@ -58,6 +59,7 @@ export function buildTrackedLink(p: {
     dest: p.dest,
     ...(p.itineraryId && { itinerary_id: p.itineraryId }),
     ...(p.city && { city: p.city }),
+    ...(p.metadata && { metadata: JSON.stringify(p.metadata) }),
   });
   return `/api/v1/affiliate/redirect?${query}`;
 }
