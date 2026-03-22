@@ -13,6 +13,7 @@ export interface ProfileData {
 export interface PersistedProfile extends UserProfile {
   id: string;
   userId: string;
+  isSuperUser?: boolean;
   onboardingCompleted?: boolean;
   languagesSpoken?: string[];
 }

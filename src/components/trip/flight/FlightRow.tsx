@@ -124,7 +124,7 @@ export const FlightRow = memo(function FlightRow({
             rel="noreferrer"
             className="from-primary to-primary/70 hover:shadow-primary/20 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br px-5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-lg active:scale-95"
           >
-            Select
+            Book Now
           </a>
         ) : (
           <span className="text-muted-foreground text-[10px] font-medium">No booking link</span>

@@ -425,11 +425,9 @@ export default function PlanPage() {
         <div className="mb-3 flex items-center">
           <button
             type="button"
-            onClick={goBack}
-            aria-label="Go back"
-            className={`hover:text-navy text-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors ${
-              step === 1 ? "pointer-events-none opacity-0" : ""
-            }`}
+            onClick={step === 1 ? () => router.push("/home") : goBack}
+            aria-label={step === 1 ? "Back to home" : "Go back"}
+            className="hover:text-navy text-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors"
           >
             <ArrowLeft className="h-5 w-5" strokeWidth={2.2} />
           </button>

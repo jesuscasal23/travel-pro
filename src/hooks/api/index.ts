@@ -40,3 +40,4 @@ export { useFlightSearch, useBatchFlightSearch } from "./flights/useFlightSearch
 
 // Booking Clicks
 export { useBookingClicks } from "./booking-clicks/useBookingClicks";
+export { useManualBooking } from "./booking-clicks/useManualBooking";

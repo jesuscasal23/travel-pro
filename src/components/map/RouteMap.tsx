@@ -12,8 +12,8 @@ interface RouteMapProps {
   onCityClick: (index: number) => void;
 }
 
-// MapLibre demo tiles — free, no API key required
-const MAP_STYLE = "https://demotiles.maplibre.org/style.json";
+// Carto Voyager — free, production-grade tiles, no API key required
+const MAP_STYLE = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
 export default function RouteMap({ cities, activeCityIndex, onCityClick }: RouteMapProps) {
   const mapRef = useRef<MapRef>(null);

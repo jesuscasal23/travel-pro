@@ -15,15 +15,13 @@ const securityHeaders = [
       `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://eu-assets.i.posthog.com`,
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
-      // Mapbox tiles, MapLibre demo tiles sprites/glyphs, local assets
-      "img-src 'self' data: blob: https://*.mapbox.com https://*.maplibre.org https://api.mapbox.com https://demotiles.maplibre.org https://images.unsplash.com https://source.unsplash.com",
+      // Carto basemap tiles, local assets
+      "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://images.unsplash.com https://source.unsplash.com https://*.googleusercontent.com https://encrypted-tbn0.gstatic.com",
       // External API connections
       [
         "connect-src 'self'",
         // MapLibre GL loads its WASM module via a data: URI
         "data:",
-        "https://api.mapbox.com",
-        "https://events.mapbox.com",
         "https://*.supabase.co",
         "https://api.open-meteo.com",
         // PostHog analytics (EU region)
@@ -39,13 +37,14 @@ const securityHeaders = [
         "https://sentry.io",
         // Resend email (server-side only, but include for CSP completeness)
         "https://api.resend.com",
-        // MapLibre demo tiles (used by MapLibre RouteMap — style JSON + vector tiles)
-        "https://demotiles.maplibre.org",
+        // Carto basemap tiles (style JSON + vector tiles + glyphs + sprites)
+        "https://*.basemaps.cartocdn.com",
+        "https://basemaps.cartocdn.com",
         // Amadeus flight search API (sandbox + production)
         "https://test.api.amadeus.com",
         "https://api.amadeus.com",
       ].join(" "),
-      // MapLibre GL uses Web Workers via blob: URLs
+      // MapLibre GL JS uses Web Workers via blob: URLs
       "worker-src blob:",
       "font-src 'self' https://fonts.gstatic.com",
       "frame-src 'none'",

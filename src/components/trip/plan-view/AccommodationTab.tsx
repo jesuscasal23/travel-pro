@@ -3,13 +3,32 @@
 import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Hotel, Star, MapPin, Loader2, Search, RefreshCw, ArrowRight } from "lucide-react";
+import {
+  Check,
+  Hotel,
+  Star,
+  MapPin,
+  Loader2,
+  Search,
+  RefreshCw,
+  ArrowRight,
+  X,
+} from "lucide-react";
 import { getAccommodationQueryKey, fetchAccommodationEnrichment } from "@/hooks/api";
+import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
+import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
+import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
 import { Badge } from "@/components/ui/Badge";
 import { AlertBox } from "@/components/ui/AlertBox";
 import { useTripStore } from "@/stores/useTripStore";
 import { useTripContext } from "../TripContext";
-import type { Itinerary, CityAccommodation, CityHotel } from "@/types";
+import type {
+  Itinerary,
+  CityAccommodation,
+  CityHotel,
+  BookingClick,
+  BookingClickMetadata,
+} from "@/types";
 
 const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
 
@@ -136,11 +155,83 @@ function HotelCard({ hotel }: { hotel: CityHotel }) {
   );
 }
 
+/** Find the most recent hotel booking click matching a city */
+function findClickForCity(
+  clicks: BookingClick[] | undefined,
+  city: string
+): BookingClick | undefined {
+  if (!clicks) return undefined;
+  return clicks.find((c) => {
+    if (c.clickType !== "hotel") return false;
+    // Match by metadata.city or top-level city field
+    if (c.metadata) {
+      const m = c.metadata as BookingClickMetadata;
+      if (m.type === "hotel" && m.city?.toLowerCase() === city.toLowerCase()) return true;
+    }
+    return c.city?.toLowerCase() === city.toLowerCase();
+  });
+}
+
+/* ─── Booking Confirmation Prompt ─── */
+function HotelBookingConfirmation({
+  click,
+  city,
+  onConfirm,
+}: {
+  click: BookingClick;
+  city: string;
+  onConfirm: (clickId: string, confirmed: boolean) => void;
+}) {
+  if (click.bookingConfirmed === true) {
+    return (
+      <div className="dark:bg-card flex items-center gap-2 rounded-xl bg-white px-4 py-3 shadow-sm">
+        <div className="bg-app-green/10 flex h-5 w-5 items-center justify-center rounded-full">
+          <Check className="text-app-green h-3 w-3" />
+        </div>
+        <p className="text-muted-foreground text-xs font-medium">Hotel booked in {city}</p>
+      </div>
+    );
+  }
+
+  if (click.bookingConfirmed !== null) return null;
+
+  return (
+    <div className="dark:bg-card flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm">
+      <Hotel className="text-primary h-4 w-4 shrink-0" />
+      <p className="text-foreground flex-1 text-xs font-medium">Did you book a hotel in {city}?</p>
+      <button
+        onClick={() => onConfirm(click.id, true)}
+        className="bg-app-green/10 text-app-green hover:bg-app-green/20 flex h-7 w-7 items-center justify-center rounded-full transition-colors"
+        aria-label={`Yes, I booked a hotel in ${city}`}
+      >
+        <Check className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={() => onConfirm(click.id, false)}
+        className="bg-app-red/10 text-app-red hover:bg-app-red/20 flex h-7 w-7 items-center justify-center rounded-full transition-colors"
+        aria-label={`No, I did not book a hotel in ${city}`}
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 /* ─── Main AccommodationTab ─── */
-export function AccommodationTab({ itinerary }: AccommodationTabProps) {
+export function AccommodationTab({ itinerary, tripId }: AccommodationTabProps) {
   const { accommodationLoading, accommodationError } = useTripContext();
   const accommodationData = itinerary.accommodationData;
   const route = itinerary.route;
+
+  const isAuthenticated = useAuthStatus();
+  const { data: bookingClicks } = useBookingClicks(tripId, { enabled: isAuthenticated === true });
+  const confirmMutation = useConfirmBooking();
+  const handleConfirmBooking = useCallback(
+    (clickId: string, confirmed: boolean) => {
+      confirmMutation.mutate({ tripId, clickId, confirmed });
+    },
+    [confirmMutation, tripId]
+  );
 
   const dateStart = useTripStore((s) => s.dateStart);
   const travelers = useTripStore((s) => s.travelers) || 1;
@@ -264,6 +355,18 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
               {cityAccom.hotels.length} hotel{cityAccom.hotels.length !== 1 ? "s" : ""}
             </Badge>
           </div>
+
+          {/* Booking confirmation prompt */}
+          {(() => {
+            const click = findClickForCity(bookingClicks, cityAccom.city);
+            return click ? (
+              <HotelBookingConfirmation
+                click={click}
+                city={cityAccom.city}
+                onConfirm={handleConfirmBooking}
+              />
+            ) : null;
+          })()}
 
           {/* Hotel cards */}
           {cityAccom.hotels.length > 0 ? (

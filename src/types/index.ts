@@ -189,12 +189,16 @@ export interface TripIntent {
 }
 
 /** Metadata stored with a booking click for later identification */
+/** Direction of a flight leg relative to the trip route */
+export type FlightDirection = "outbound" | "return" | "internal";
+
 export type BookingClickMetadata =
   | {
       type: "flight";
       fromIata: string;
       toIata: string;
       departureDate: string;
+      direction?: FlightDirection;
       airline?: string;
       price?: number;
     }
@@ -216,5 +220,6 @@ export interface BookingClick {
   clickType: string;
   city: string | null;
   metadata: BookingClickMetadata | null;
+  bookingConfirmed: boolean | null;
   createdAt: string;
 }

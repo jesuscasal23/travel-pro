@@ -1,6 +1,8 @@
 "use client";
 
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { AppLogo } from "@/components/ui/AppLogo";
 import {
   ChevronRight,
   BedDouble,
@@ -8,18 +10,23 @@ import {
   ClipboardList,
   FileText,
   CheckCircle,
-  AlertCircle,
+  Circle,
   TrendingDown,
   Cloud,
   CalendarDays,
   Map,
   Bell,
+  Shield,
 } from "lucide-react";
-import { useTrips } from "@/hooks/api";
+import { useTrips, useTrip, useBookingClicks, useManualBooking } from "@/hooks/api";
+import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { useCityImage } from "@/hooks/useCityImage";
+import { useTripStore } from "@/stores/useTripStore";
 import { daysUntil, formatDateRange } from "@/lib/utils/format/date";
-import type { TripSummary } from "@/types";
+import { computeTripPreparation } from "@/lib/utils/trip-preparation";
+import type { TripSummary, Itinerary } from "@/types";
+import type { PrepItem } from "@/lib/utils/trip-preparation";
 
 function getNextTrip(trips: TripSummary[]): TripSummary | null {
   const upcoming = trips
@@ -44,50 +51,51 @@ export default function HomePage() {
 
   return (
     <AppScreen>
-      <div className="bg-surface-soft min-h-full">
-        {/* Header */}
-        <header className="shadow-glass-xs sticky top-0 z-40 flex items-center justify-between bg-white/85 px-6 py-4 backdrop-blur-[20px]">
+      {/* Sticky Header */}
+      <header className="dark:bg-card/85 shadow-glass-xs sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
+        <div className="flex w-full items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push("/profile")}
-              className="bg-edge flex h-10 w-10 items-center justify-center overflow-hidden rounded-full"
+              className="flex items-center justify-center"
             >
-              <span className="text-dim text-sm font-bold">👤</span>
+              <AppLogo size={40} />
             </button>
             <span className="text-ink font-display text-2xl font-bold tracking-tight">Voya</span>
           </div>
           <button className="text-ink transition-opacity hover:opacity-80">
             <Bell className="h-6 w-6" />
           </button>
-        </header>
+        </div>
+        <div className="bg-edge h-px w-full" />
+      </header>
 
-        <main className="space-y-8 px-6 pt-6 pb-4">
-          {/* Personalized Greeting */}
-          <section>
-            <p className="text-label mb-1 text-[11px] font-medium tracking-[0.14em] uppercase">
-              Welcome back
-            </p>
-            <h1 className="text-ink font-display text-[1.75rem] leading-tight font-extrabold">
-              {getGreeting()}.
-            </h1>
-          </section>
+      <main className="px-6 pt-8">
+        {/* Personalized Greeting */}
+        <section>
+          <p className="text-label mb-1 text-[11px] font-medium tracking-[0.14em] uppercase">
+            Welcome back
+          </p>
+          <h1 className="text-ink font-display text-[1.75rem] leading-tight font-extrabold">
+            {getGreeting()}.
+          </h1>
+        </section>
 
-          {/* Active Trip Card */}
-          {nextTrip && <ActiveTripBento trip={nextTrip} />}
+        {/* Active Trip Card */}
+        {nextTrip && <ActiveTripBento trip={nextTrip} />}
 
-          {/* Trip Preparation */}
-          <TripPreparation />
+        {/* Trip Preparation */}
+        {nextTrip && <TripPreparation tripId={nextTrip.id} />}
 
-          {/* Next Steps */}
-          <NextSteps destination={destination} />
+        {/* Next Steps */}
+        <NextSteps destination={destination} />
 
-          {/* Smart Alerts */}
-          <SmartAlerts destination={destination} />
+        {/* Smart Alerts */}
+        <SmartAlerts destination={destination} />
 
-          {/* Before You Go */}
-          <BeforeYouGo />
-        </main>
-      </div>
+        {/* Before You Go */}
+        <BeforeYouGo />
+      </main>
     </AppScreen>
   );
 }
@@ -181,35 +189,121 @@ function ActiveTripBento({ trip }: { trip: TripSummary }) {
 
 /* ── Trip Preparation ────────────────────────────────────────── */
 
-function TripPreparation() {
+/** Extract IATA code from store value like "FRA - Frankfurt" */
+function extractIata(homeAirport: string): string {
+  if (!homeAirport) return "";
+  return homeAirport.split(/\s*[–—-]\s*/)[0].trim();
+}
+
+function PrepItemIcon({ item }: { item: PrepItem }) {
+  if (item.beta) return <Shield className="text-label h-5 w-5" />;
+  if (item.booked) return <CheckCircle className="text-app-green h-5 w-5" />;
+  return <Circle className="text-app-red h-5 w-5" />;
+}
+
+function PrepItemTypeIcon({ item }: { item: PrepItem }) {
+  if (item.type === "flight") return <Plane className="h-3.5 w-3.5" />;
+  if (item.type === "hotel") return <BedDouble className="h-3.5 w-3.5" />;
+  return <Shield className="h-3.5 w-3.5" />;
+}
+
+function TripPreparation({ tripId }: { tripId: string }) {
+  const homeAirport = useTripStore((s) => s.homeAirport);
+  const homeIata = extractIata(homeAirport);
+  const isAuthenticated = useAuthStatus();
+
+  const { data: tripDetail } = useTrip(tripId, { enabled: !!tripId });
+  const { data: bookingClicks } = useBookingClicks(tripId, {
+    enabled: isAuthenticated === true,
+  });
+  const manualBooking = useManualBooking();
+
+  const itinerary = tripDetail?.itineraries?.find((it) => it.generationStatus === "complete")
+    ?.data as Itinerary | undefined;
+  const route = itinerary?.route ?? [];
+
+  const progress = computeTripPreparation(route, bookingClicks ?? [], homeIata || undefined);
+
+  const handleMarkAsBooked = useCallback(
+    (item: PrepItem) => {
+      if (item.booked || item.beta) return;
+
+      const metadata: Record<string, unknown> = {};
+      if (item.type === "flight" && item.direction) {
+        metadata.type = "flight";
+        metadata.direction = item.direction;
+      } else if (item.type === "hotel" && item.city) {
+        metadata.type = "hotel";
+        metadata.city = item.city;
+      }
+
+      manualBooking.mutate({
+        tripId,
+        clickType: item.type as "flight" | "hotel",
+        city: item.city,
+        metadata,
+      });
+    },
+    [tripId, manualBooking]
+  );
+
+  // Don't render if no route data yet
+  if (route.length === 0) return null;
+
   return (
     <div className="shadow-glass-sm rounded-[2rem] bg-white p-7">
       <h3 className="font-display mb-5 text-xl font-bold">Trip Preparation</h3>
       <div className="mb-2 flex items-end justify-between">
         <span className="font-display text-brand-primary text-5xl font-extrabold">
-          72<span className="text-2xl font-bold">%</span>
+          {progress.percentage}
+          <span className="text-2xl font-bold">%</span>
         </span>
-        <span className="text-label mb-2 text-sm font-medium">Progress</span>
+        <span className="text-label mb-2 text-sm font-medium">
+          {progress.completedItems}/{progress.totalItems} completed
+        </span>
       </div>
       <div className="bg-surface-soft mb-7 h-3 w-full overflow-hidden rounded-full">
         <div
-          className="from-brand-primary to-app-blue h-full rounded-full bg-gradient-to-r"
-          style={{ width: "72%" }}
+          className="from-brand-primary to-app-blue h-full rounded-full bg-gradient-to-r transition-all duration-500"
+          style={{ width: `${progress.percentage}%` }}
         />
       </div>
-      <div className="space-y-3.5">
-        <div className="flex items-center gap-3">
-          <CheckCircle className="text-app-green h-5 w-5" />
-          <span className="text-ink font-medium">Flights booked</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <CheckCircle className="text-app-green h-5 w-5" />
-          <span className="text-ink font-medium">Visa confirmed</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <AlertCircle className="text-app-red h-5 w-5" />
-          <span className="text-ink font-medium">Accommodation missing</span>
-        </div>
+      <div className="space-y-3">
+        {progress.items.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            disabled={item.booked || item.beta || manualBooking.isPending}
+            onClick={() => handleMarkAsBooked(item)}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+              item.booked || item.beta
+                ? "cursor-default"
+                : "hover:bg-surface-soft cursor-pointer active:scale-[0.98]"
+            }`}
+          >
+            <PrepItemIcon item={item} />
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <span className="text-muted-foreground">
+                <PrepItemTypeIcon item={item} />
+              </span>
+              <span
+                className={`text-sm font-medium ${item.booked ? "text-muted-foreground line-through" : "text-ink"}`}
+              >
+                {item.label}
+              </span>
+              {item.beta && (
+                <span className="bg-surface-soft text-label rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">
+                  beta
+                </span>
+              )}
+            </div>
+            {!item.booked && !item.beta && (
+              <span className="text-label text-[10px] font-medium tracking-wider uppercase opacity-50">
+                Tap to mark
+              </span>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );

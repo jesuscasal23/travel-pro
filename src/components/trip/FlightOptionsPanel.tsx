@@ -1,12 +1,14 @@
 "use client";
 
 import {
+  Check,
   ChevronDown,
   ChevronUp,
   ExternalLink,
   Plane,
   RefreshCw,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { AlertBox } from "@/components/ui/AlertBox";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +17,7 @@ import { FlightRow } from "./flight/FlightRow";
 import { FlightFilterPanel } from "./flight/FlightFilterPanel";
 import { useFlightOptions } from "./flight/useFlightOptions";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
+import type { BookingClick, FlightDirection } from "@/types";
 
 /** Format YYYY-MM-DD → "Oct 12" */
 function formatDate(dateStr: string): string {
@@ -32,10 +35,13 @@ interface FlightOptionsPanelProps {
   tripId: string;
   travelers: number;
   itineraryId?: string;
+  direction?: FlightDirection;
   batchResults?: FlightSearchResult[];
   batchLoading?: boolean;
   batchError?: string | null;
   batchFetchedAt?: number | null;
+  bookingClick?: BookingClick;
+  onConfirmBooking?: (clickId: string, confirmed: boolean) => void;
 }
 
 export function FlightOptionsPanel({
@@ -47,6 +53,9 @@ export function FlightOptionsPanel({
   batchLoading,
   batchError,
   batchFetchedAt,
+  direction,
+  bookingClick,
+  onConfirmBooking,
 }: FlightOptionsPanelProps) {
   const {
     sortMode,
@@ -86,13 +95,51 @@ export function FlightOptionsPanel({
   const formattedDate = formatDate(leg.departureDate);
   const travelersLabel = `${travelers} traveler${travelers !== 1 ? "s" : ""}`;
 
+  // ── Booking confirmation prompt ──
+  const bookingConfirmation =
+    bookingClick && bookingClick.bookingConfirmed === null && onConfirmBooking ? (
+      <div className="dark:bg-card mb-4 flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm">
+        <Plane className="text-primary h-4 w-4 shrink-0" />
+        <p className="text-foreground flex-1 text-xs font-medium">Did you book this flight?</p>
+        <button
+          onClick={() => onConfirmBooking(bookingClick.id, true)}
+          className="bg-app-green/10 text-app-green hover:bg-app-green/20 flex h-7 w-7 items-center justify-center rounded-full transition-colors"
+          aria-label="Yes, I booked this flight"
+        >
+          <Check className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => onConfirmBooking(bookingClick.id, false)}
+          className="bg-app-red/10 text-app-red hover:bg-app-red/20 flex h-7 w-7 items-center justify-center rounded-full transition-colors"
+          aria-label="No, I did not book this flight"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    ) : bookingClick && bookingClick.bookingConfirmed === true ? (
+      <div className="dark:bg-card mb-4 flex items-center gap-2 rounded-xl bg-white px-4 py-3 shadow-sm">
+        <div className="bg-app-green/10 flex h-5 w-5 items-center justify-center rounded-full">
+          <Check className="text-app-green h-3 w-3" />
+        </div>
+        <p className="text-muted-foreground text-xs font-medium">Flight booked</p>
+      </div>
+    ) : null;
+
   // ── No results at all — show empty state + Skyscanner CTA ──
   if (displayResults.length === 0 && !loading) {
+    const flightMeta = {
+      type: "flight" as const,
+      fromIata: leg.fromIata,
+      toIata: leg.toIata,
+      departureDate: leg.departureDate,
+      ...(direction && { direction }),
+    };
     const fallbackUrl = buildTrackedLink({
       provider: "skyscanner",
       type: "flight",
       itineraryId,
       dest: `https://www.skyscanner.net/transport/flights/${leg.fromIata}/${leg.toIata}/`,
+      metadata: flightMeta,
     });
 
     return (
@@ -114,6 +161,8 @@ export function FlightOptionsPanel({
             </div>
           )}
         </div>
+
+        {bookingConfirmation}
 
         {error && (
           <AlertBox
@@ -156,6 +205,14 @@ export function FlightOptionsPanel({
       </div>
     );
   }
+
+  const flightMeta = {
+    type: "flight" as const,
+    fromIata: leg.fromIata,
+    toIata: leg.toIata,
+    departureDate: leg.departureDate,
+    ...(direction && { direction }),
+  };
 
   // ── Main results view ──
   return (
@@ -228,6 +285,8 @@ export function FlightOptionsPanel({
           )}
         </button>
       </div>
+
+      {bookingConfirmation}
 
       {/* Results summary + sort tabs */}
       <div className="mb-6 flex items-center justify-between">
@@ -334,6 +393,7 @@ export function FlightOptionsPanel({
                 type: "flight",
                 itineraryId,
                 dest: result.bookingUrl,
+                metadata: flightMeta,
               })}
             />
           ))}
@@ -357,6 +417,7 @@ export function FlightOptionsPanel({
             type: "flight",
             itineraryId,
             dest: sorted[0].bookingUrl,
+            metadata: flightMeta,
           })}
           target="_blank"
           rel="noopener noreferrer"

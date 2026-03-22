@@ -1,13 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { Plane, Loader2 } from "lucide-react";
 import { FlightOptionsPanel } from "@/components/trip/FlightOptionsPanel";
 import { Badge } from "@/components/ui/Badge";
 import { useBatchFlightSearch } from "@/hooks/api/flights/useFlightSearch";
+import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
+import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
+import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
 import { useTripStore } from "@/stores/useTripStore";
-import type { Itinerary } from "@/types";
+import type { Itinerary, BookingClick, BookingClickMetadata, FlightDirection } from "@/types";
 import type { FlightLegResults } from "@/lib/flights/types";
+
+interface FlightLegWithDirection extends FlightLegResults {
+  direction: FlightDirection;
+}
 
 interface FlightsTabProps {
   itinerary: Itinerary;
@@ -27,6 +34,20 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Find the most recent flight booking click matching a leg's IATA pair */
+function findClickForLeg(
+  clicks: BookingClick[] | undefined,
+  fromIata: string,
+  toIata: string
+): BookingClick | undefined {
+  if (!clicks) return undefined;
+  return clicks.find((c) => {
+    if (c.clickType !== "flight" || !c.metadata) return false;
+    const m = c.metadata as BookingClickMetadata;
+    return m.type === "flight" && m.fromIata === fromIata && m.toIata === toIata;
+  });
+}
+
 export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const homeAirport = useTripStore((s) => s.homeAirport);
   const travelers = useTripStore((s) => s.travelers) || 1;
@@ -35,13 +56,33 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const { route, flightOptions, flightLegs } = itinerary;
   const homeIata = extractIata(homeAirport);
 
-  // Build FlightLegResults[] from whatever data is available
-  const legs: FlightLegResults[] = useMemo(() => {
-    // If we already have multi-result flight options, use them directly
-    if (flightOptions && flightOptions.length > 0) return flightOptions;
+  const isAuthenticated = useAuthStatus();
+  const { data: bookingClicks } = useBookingClicks(tripId, { enabled: isAuthenticated === true });
+  const confirmMutation = useConfirmBooking();
+
+  const handleConfirmBooking = useCallback(
+    (clickId: string, confirmed: boolean) => {
+      confirmMutation.mutate({ tripId, clickId, confirmed });
+    },
+    [confirmMutation, tripId]
+  );
+
+  // Build FlightLegWithDirection[] from whatever data is available
+  const legs: FlightLegWithDirection[] = useMemo(() => {
+    // If we already have multi-result flight options, tag them with direction
+    if (flightOptions && flightOptions.length > 0) {
+      return flightOptions.map((leg, i) => ({
+        ...leg,
+        direction: (i === 0
+          ? "outbound"
+          : i === flightOptions.length - 1
+            ? "return"
+            : "internal") as FlightDirection,
+      }));
+    }
 
     // Otherwise derive legs from route + flightLegs or just the route
-    const derived: FlightLegResults[] = [];
+    const derived: FlightLegWithDirection[] = [];
     let runningDate = dateStart;
 
     // Outbound: home -> first city
@@ -54,6 +95,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
         fromIata: homeIata,
         toIata: route[0].iataCode!,
         departureDate: existing?.departureDate || depDate,
+        direction: "outbound",
         results: existing
           ? [
               {
@@ -87,6 +129,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
         fromIata: from.iataCode,
         toIata: to.iataCode,
         departureDate: existing?.departureDate || runningDate || "",
+        direction: "internal",
         results: existing
           ? [
               {
@@ -117,6 +160,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
         fromIata: lastCity.iataCode!,
         toIata: homeIata,
         departureDate: existing?.departureDate || runningDate || "",
+        direction: "return",
         results: existing
           ? [
               {
@@ -182,6 +226,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
       </div>
       {legs.map((leg, i) => {
         const batch = getResultsForLeg(leg.fromIata, leg.toIata, leg.departureDate);
+        const click = findClickForLeg(bookingClicks, leg.fromIata, leg.toIata);
         return (
           <FlightOptionsPanel
             key={`${leg.fromIata}-${leg.toIata}-${i}`}
@@ -189,10 +234,13 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
             tripId={tripId}
             travelers={travelers}
             itineraryId={tripId}
+            direction={leg.direction}
             batchResults={batch.results}
             batchLoading={batch.loading}
             batchError={batch.error}
             batchFetchedAt={batch.fetchedAt}
+            bookingClick={click}
+            onConfirmBooking={handleConfirmBooking}
           />
         );
       })}

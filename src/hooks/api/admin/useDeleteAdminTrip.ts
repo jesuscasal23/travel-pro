@@ -16,6 +16,7 @@ export function useDeleteAdminTrip() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips.all() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() });
     },
   });
 }

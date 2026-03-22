@@ -1,16 +1,19 @@
 "use client";
 
-import { Plus, Loader2, Star } from "lucide-react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { Plus, Loader2, Star, Trash2 } from "lucide-react";
+import { AppLogo } from "@/components/ui/AppLogo";
 import { useRouter } from "next/navigation";
 import { CenteredState } from "@/components/ui/CenteredState";
-import { useTrips } from "@/hooks/api";
+import { useTrips, useProfile, useDeleteAdminTrip } from "@/hooks/api";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { TripCard } from "@/components/trip/TripCard";
 import { daysUntil } from "@/lib/utils/format/date";
 import { useCityImage } from "@/hooks/useCityImage";
 import type { TripSummary } from "@/types";
 
-function PastTripRow({ trip }: { trip: TripSummary }) {
+function PastTripRow({ trip, isSuperAdmin }: { trip: TripSummary; isSuperAdmin: boolean }) {
   const router = useRouter();
   const cityName = trip.destination || trip.region;
   const countryCode = trip.destinationCountryCode ?? "";
@@ -37,14 +40,80 @@ function PastTripRow({ trip }: { trip: TripSummary }) {
           {dateLabel} &bull; {trip.travelers} Traveler{trip.travelers !== 1 ? "s" : ""}
         </p>
       </div>
-      <Star className="text-faint h-5 w-5 flex-shrink-0" fill="currentColor" />
+      {isSuperAdmin ? (
+        <div onClick={(e) => e.stopPropagation()}>
+          <AdminDeleteButton tripId={trip.id} tripName={cityName} />
+        </div>
+      ) : (
+        <Star className="text-faint h-5 w-5 flex-shrink-0" fill="currentColor" />
+      )}
     </div>
+  );
+}
+
+function AdminDeleteButton({ tripId, tripName }: { tripId: string; tripName: string }) {
+  const [confirming, setConfirming] = useState(false);
+  const deleteTrip = useDeleteAdminTrip();
+  const renderModal = () => {
+    if (!confirming) return null;
+    const container = document.getElementById("app-container");
+    if (!container) return null;
+    return createPortal(
+      <div className="absolute inset-0 z-50 flex items-center justify-center">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+          onClick={() => setConfirming(false)}
+        />
+        <div className="relative z-10 mx-6 w-full max-w-xs rounded-2xl border border-white/70 bg-white/95 p-5 shadow-xl backdrop-blur-xl">
+          <h3 className="text-foreground text-base font-bold">Delete trip</h3>
+          <p className="text-dim mt-2 text-sm">
+            Are you sure you want to delete{" "}
+            <strong className="text-foreground">&ldquo;{tripName}&rdquo;</strong>? This action
+            cannot be undone.
+          </p>
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={() => {
+                deleteTrip.mutate(tripId);
+                setConfirming(false);
+              }}
+              disabled={deleteTrip.isPending}
+              className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              {deleteTrip.isPending ? "Deleting..." : "Delete"}
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="bg-surface-soft text-foreground hover:bg-surface-hover flex-1 rounded-xl px-4 py-2.5 text-sm font-bold"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>,
+      container
+    );
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setConfirming(true)}
+        className="rounded-lg bg-red-500/10 p-2 text-red-500 transition-colors hover:bg-red-500/20"
+        title="Delete trip (admin)"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+      {renderModal()}
+    </>
   );
 }
 
 export default function TripsPage() {
   const router = useRouter();
   const { data: trips, isLoading, error } = useTrips();
+  const { data: profile } = useProfile();
+  const isSuperAdmin = profile?.isSuperUser === true;
 
   const tripList = trips ?? [];
 
@@ -56,14 +125,17 @@ export default function TripsPage() {
       {/* Sticky Header */}
       <header className="dark:bg-card/85 shadow-glass-xs sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
         <div className="flex w-full items-center justify-between px-6 py-4">
-          <h1 className="font-display text-foreground text-2xl font-bold tracking-tight">
-            My Trips
-          </h1>
+          <div className="flex items-center gap-3">
+            <AppLogo size={40} />
+            <h1 className="font-display text-foreground text-2xl font-bold tracking-tight">
+              My Trips
+            </h1>
+          </div>
           <button
             onClick={() => router.push("/plan")}
-            className="text-brand-primary hover:bg-surface-soft rounded-full p-2 transition-colors duration-150 active:scale-95"
+            className="bg-brand-primary hover:bg-brand-primary/90 flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md transition-all duration-150 active:scale-95"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-5 w-5" strokeWidth={2.5} />
           </button>
         </div>
         <div className="bg-edge h-px w-full" />
@@ -116,29 +188,24 @@ export default function TripsPage() {
                 const days = daysUntil(trip.dateStart);
                 const label = trip.destination || trip.region;
                 return (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    label={label}
-                    days={days}
-                    onClick={() => router.push(`/trips/${trip.id}`)}
-                  />
+                  <div key={trip.id} className="relative">
+                    <TripCard
+                      trip={trip}
+                      label={label}
+                      days={days}
+                      onClick={() => router.push(`/trips/${trip.id}`)}
+                    />
+                    {isSuperAdmin && (
+                      <div
+                        className="absolute right-16 bottom-6 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <AdminDeleteButton tripId={trip.id} tripName={label} />
+                      </div>
+                    )}
+                  </div>
                 );
               })}
-
-              {/* Add New Trip Card */}
-              <button
-                className="group bg-surface-soft border-edge hover:bg-surface-hover hover:border-brand-primary/50 relative flex aspect-[4/5] flex-col items-center justify-center gap-4 overflow-hidden rounded-xl border-2 border-dashed transition-all"
-                onClick={() => router.push("/plan")}
-              >
-                <div className="dark:bg-card text-brand-primary shadow-glass-xs group-hover:bg-brand-primary flex h-16 w-16 items-center justify-center rounded-full bg-white transition-all duration-300 group-hover:scale-110 group-hover:text-white">
-                  <Plus className="h-8 w-8" />
-                </div>
-                <div className="text-center">
-                  <p className="text-foreground text-lg font-bold">Plan a new trip</p>
-                  <p className="text-dim text-xs">Where to next?</p>
-                </div>
-              </button>
             </div>
 
             {/* Past Adventures */}
@@ -147,7 +214,7 @@ export default function TripsPage() {
                 <h3 className="font-display mb-6 text-2xl font-bold">Past Adventures</h3>
                 <div className="flex flex-col gap-4">
                   {past.map((trip) => (
-                    <PastTripRow key={trip.id} trip={trip} />
+                    <PastTripRow key={trip.id} trip={trip} isSuperAdmin={isSuperAdmin} />
                   ))}
                 </div>
               </section>

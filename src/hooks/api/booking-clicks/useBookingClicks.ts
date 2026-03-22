@@ -22,5 +22,7 @@ export function useBookingClicks(tripId: string, options?: { enabled?: boolean }
     queryKey: queryKeys.bookingClicks.forTrip(tripId),
     queryFn: () => fetchBookingClicks(tripId),
     enabled: options?.enabled ?? true,
+    staleTime: 0,
+    refetchOnWindowFocus: "always",
   });
 }

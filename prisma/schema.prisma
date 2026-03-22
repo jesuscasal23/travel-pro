@@ -133,6 +133,7 @@ model AffiliateClick {
   sessionId String? @map("session_id")
   ipHash    String? @map("ip_hash")
   metadata  Json?
+  bookingConfirmed Boolean? @map("booking_confirmed")
 
   createdAt DateTime @default(now()) @map("created_at")
 

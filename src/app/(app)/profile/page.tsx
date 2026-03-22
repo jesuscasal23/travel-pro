@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Camera,
   Check,
   ChevronRight,
@@ -23,11 +22,12 @@ import {
   Trash2,
   UtensilsCrossed,
 } from "lucide-react";
+import { AppLogo } from "@/components/ui/AppLogo";
 import { InterestSelector } from "@/components/profile/InterestSelector";
 import { PaceSelector } from "@/components/profile/PaceSelector";
 import { ProfileBasicsFields } from "@/components/profile/ProfileBasicsFields";
 import { TravelStyleSelector } from "@/components/profile/TravelStyleSelector";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { AppScreen } from "@/components/ui/AppScreen";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   useAuthStatus,
@@ -172,30 +172,22 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f5f7f9]">
-      {/* Fixed Top Navigation */}
-      <nav className="fixed top-0 z-50 flex h-16 w-full max-w-[430px] items-center justify-between bg-[#f5f7f9]/85 px-4 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="text-foreground/80 hover:bg-surface-soft flex h-10 w-10 items-center justify-center rounded-full transition-colors active:scale-95"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="font-display text-brand-primary text-lg font-bold">Profile</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="bg-brand-primary/10 text-brand-primary rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">
-            Beta
-          </span>
+    <AppScreen>
+      {/* Sticky Header */}
+      <header className="dark:bg-card/85 shadow-glass-xs sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
+        <div className="flex w-full items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <AppLogo size={40} />
+            <span className="text-ink font-display text-2xl font-bold tracking-tight">Profile</span>
+          </div>
           <button className="text-foreground/80 hover:bg-surface-soft flex h-10 w-10 items-center justify-center rounded-full transition-colors active:scale-95">
             <Settings size={20} />
           </button>
         </div>
-      </nav>
+        <div className="bg-edge h-px w-full" />
+      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 space-y-8 overflow-y-auto px-6 pt-24 pb-36">
+      <main className="px-6 pt-8">
         {/* User Identity Header */}
         <section className="flex flex-col items-center space-y-4 text-center">
           <div className="relative">
@@ -462,8 +454,6 @@ export default function ProfilePage() {
         )}
       </main>
 
-      <BottomNav />
-
       <ConfirmDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
@@ -479,6 +469,6 @@ export default function ProfilePage() {
         loading={deleteAccountMutation.isPending}
         onConfirm={() => void handleDeleteAccount()}
       />
-    </div>
+    </AppScreen>
   );
 }
