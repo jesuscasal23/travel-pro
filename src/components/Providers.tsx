@@ -89,6 +89,20 @@ export function Providers({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
+  // When the PWA regains focus (e.g. after OAuth in the system browser),
+  // recheck the Supabase session so the UI picks up the new auth state.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [queryClient]);
+
   // Register service worker for PWA install prompt + offline support
   useEffect(() => {
     if ("serviceWorker" in navigator) {

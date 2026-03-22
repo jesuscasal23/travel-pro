@@ -43,5 +43,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // When OAuth was triggered from the standalone PWA, the callback lands in
+  // the system browser. Redirect to a bridge page that tells the user to
+  // return to the app (the session cookies are already set on this origin).
+  const isPwa = requestUrl.searchParams.get("pwa") === "1";
+  if (isPwa) {
+    const bridgeUrl = new URL("/auth/pwa-bridge", requestUrl.origin);
+    bridgeUrl.searchParams.set("next", next);
+    return NextResponse.redirect(bridgeUrl);
+  }
+
   return NextResponse.redirect(new URL(next, requestUrl.origin));
 }

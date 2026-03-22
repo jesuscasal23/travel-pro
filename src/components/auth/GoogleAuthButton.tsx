@@ -47,10 +47,17 @@ export function GoogleAuthButton({ next, disabled = false, onError }: GoogleAuth
       return;
     }
 
+    // In standalone PWA mode, OAuth opens the system browser. Pass a flag so
+    // the callback can show a "return to app" bridge instead of a bare redirect.
+    const isPwa = window.matchMedia("(display-mode: standalone)").matches;
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", next);
+    if (isPwa) callbackUrl.searchParams.set("pwa", "1");
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: callbackUrl.toString(),
       },
     });
 
