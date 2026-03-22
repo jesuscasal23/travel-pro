@@ -3,27 +3,31 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
+  Camera,
+  Check,
+  ChevronRight,
   Clock,
   CreditCard,
+  Download,
   FileText,
+  Headphones,
   Leaf,
   Loader2,
   LogOut,
-  MessageSquare,
+  Pencil,
+  PlaneTakeoff,
   Settings,
   Shield,
-  Sparkles,
+  SlidersHorizontal,
+  Trash2,
   UtensilsCrossed,
-  Camera,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { InterestSelector } from "@/components/profile/InterestSelector";
 import { PaceSelector } from "@/components/profile/PaceSelector";
 import { ProfileBasicsFields } from "@/components/profile/ProfileBasicsFields";
 import { TravelStyleSelector } from "@/components/profile/TravelStyleSelector";
 import { BottomNav } from "@/components/ui/BottomNav";
-import { DevelopmentTag } from "@/components/ui/DevelopmentTag";
-import { MenuSection } from "@/components/profile/MenuSection";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   useAuthStatus,
@@ -37,14 +41,11 @@ import { createClient } from "@/lib/core/supabase-client";
 import { travelStyles } from "@/data/travelStyles";
 import { hasInterest, normalizeInterests } from "@/lib/features/profile/interests";
 
-const accountItems: { icon: LucideIcon; label: string; isMock?: boolean }[] = [
-  { icon: FileText, label: "Travel Documents", isMock: true },
-  { icon: Shield, label: "Login & Security", isMock: true },
-  { icon: CreditCard, label: "Payments", isMock: true },
-];
-
-const prefItems: { icon: LucideIcon; label: string; isMock?: boolean }[] = [
-  { icon: Settings, label: "App Settings", isMock: true },
+const menuItems = [
+  { icon: FileText, label: "Travel Documents" },
+  { icon: Shield, label: "Login & Security" },
+  { icon: CreditCard, label: "Payments" },
+  { icon: SlidersHorizontal, label: "App Settings" },
 ];
 
 export default function ProfilePage() {
@@ -115,15 +116,20 @@ export default function ProfilePage() {
   const styleLabel =
     travelStyles.find((style) => style.id === travelStyle)?.label ?? "Smart Budget";
 
-  const tags: { label: string; icon: LucideIcon }[] = [];
-  tags.push({ label: styleLabel, icon: Sparkles });
-  if (pace === "active") tags.push({ label: "Fast Explorer", icon: Clock });
-  else if (pace === "relaxed") tags.push({ label: "Slow Traveler", icon: Leaf });
-  else tags.push({ label: "Balanced Pace", icon: Clock });
+  const tags: string[] = [];
+  tags.push(styleLabel);
+  if (pace === "active") tags.push("Fast Explorer");
+  else if (pace === "relaxed") tags.push("Slow Traveler");
+  else tags.push("Balanced Pace");
+  if (hasInterest(interests, "food")) tags.push("Foodie");
+  if (hasInterest(interests, "photography")) tags.push("Photography");
+  if (hasInterest(interests, "nature")) tags.push("Nature Lover");
 
-  if (hasInterest(interests, "food")) tags.push({ label: "Foodie", icon: UtensilsCrossed });
-  if (hasInterest(interests, "photography")) tags.push({ label: "Photography", icon: Camera });
-  if (hasInterest(interests, "nature")) tags.push({ label: "Nature Lover", icon: Leaf });
+  // Extract airport display info
+  const airportCode = homeAirport?.match(/^[A-Z]{3}/)?.[0] ?? "";
+  const airportName = homeAirport
+    ? homeAirport.replace(/^[A-Z]{3}\s*-\s*/, "").replace(/\s*\(.*\)$/, "")
+    : "";
 
   async function handleSaveProfile() {
     try {
@@ -166,91 +172,141 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <div className="flex-1 overflow-y-auto pb-28">
-        <div className="px-6 pt-8 pb-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-surface flex h-16 w-16 shrink-0 items-center justify-center rounded-full">
-              <span className="text-2xl">👤</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-navy text-xl font-bold">{displayName}</h1>
-                <DevelopmentTag label="Profile beta" />
-              </div>
-              {email && <p className="text-dim text-sm">{email}</p>}
-            </div>
-          </div>
+    <div className="flex min-h-dvh flex-col bg-[#f5f7f9]">
+      {/* Fixed Top Navigation */}
+      <nav className="fixed top-0 z-50 flex h-16 w-full max-w-[430px] items-center justify-between bg-[#f5f7f9]/85 px-4 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="text-foreground/80 hover:bg-surface-soft flex h-10 w-10 items-center justify-center rounded-full transition-colors active:scale-95"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="font-display text-brand-primary text-lg font-bold">Profile</h1>
         </div>
+        <div className="flex items-center gap-2">
+          <span className="bg-brand-primary/10 text-brand-primary rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">
+            Beta
+          </span>
+          <button className="text-foreground/80 hover:bg-surface-soft flex h-10 w-10 items-center justify-center rounded-full transition-colors active:scale-95">
+            <Settings size={20} />
+          </button>
+        </div>
+      </nav>
 
-        <div className="px-6 pb-6">
-          <div className="mt-3 flex flex-wrap gap-2">
+      {/* Main Content */}
+      <main className="flex-1 space-y-8 overflow-y-auto px-6 pt-24 pb-36">
+        {/* User Identity Header */}
+        <section className="flex flex-col items-center space-y-4 text-center">
+          <div className="relative">
+            <div className="h-24 w-24 overflow-hidden rounded-full shadow-lg ring-4 ring-white">
+              <div className="bg-surface-soft flex h-full w-full items-center justify-center">
+                <span className="text-4xl">👤</span>
+              </div>
+            </div>
+            <button className="bg-brand-primary absolute right-0 bottom-0 rounded-full border-2 border-white p-2 text-white shadow-lg active:scale-90">
+              <Pencil size={12} />
+            </button>
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-display text-foreground text-2xl font-extrabold tracking-tight">
+              {displayName}
+            </h2>
+            {email && <p className="text-dim text-sm font-medium">{email}</p>}
+          </div>
+          {/* Interest Tags */}
+          <div className="flex flex-wrap justify-center gap-2 pt-2">
             {tags.map((tag) => (
               <span
-                key={tag.label}
-                className="bg-chip-bg border-edge text-navy flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
+                key={tag}
+                className="border-edge/30 text-foreground rounded-full border bg-white px-4 py-1.5 text-xs font-semibold shadow-sm"
               >
-                <tag.icon size={12} className="text-dim" />
-                {tag.label}
+                {tag}
               </span>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="mx-6 mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-navy text-lg font-bold">Travel Profile</h2>
-                {isAuth && persistedProfile ? (
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                    Saved
-                  </span>
-                ) : null}
-              </div>
-              <p className="text-dim mt-1 text-sm">
-                Used for visa checks, flights, and more relevant itinerary generation.
-              </p>
+        {/* Travel Profile Card */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-dim text-[10px] font-bold tracking-widest uppercase">
+              Travel Profile
+            </h3>
+            <div className="flex items-center gap-2">
+              {isAuth && persistedProfile && (
+                <span className="text-brand-primary flex items-center gap-1 text-[10px] font-bold">
+                  <Check size={14} className="fill-brand-primary text-white" />
+                  SAVED
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  setProfileEditorOverride((value) => !(value ?? defaultIsEditingProfile))
+                }
+                className="text-brand-primary text-[10px] font-bold tracking-wider uppercase"
+              >
+                {isEditingProfile ? "Close" : "Edit"}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                setProfileEditorOverride((value) => !(value ?? defaultIsEditingProfile))
-              }
-              className="text-brand-primary text-sm font-semibold"
-            >
-              {isEditingProfile ? "Close" : "Edit"}
-            </button>
           </div>
 
           {isAuth === true && isProfileLoading && (
-            <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+            <div className="text-dim flex items-center gap-2 rounded-xl bg-white p-5 text-sm">
               <Loader2 size={16} className="animate-spin" />
               Loading saved profile...
             </div>
           )}
 
-          {feedback && <p className="mt-4 text-sm text-slate-600">{feedback}</p>}
+          {feedback && <p className="text-dim rounded-xl bg-white px-5 py-3 text-sm">{feedback}</p>}
 
           {!isEditingProfile && (
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
-                <span className="text-slate-500">Nationality</span>
-                <span className="text-navy font-semibold">{nationality || "Not set"}</span>
+            <div className="border-edge/10 space-y-4 rounded-xl border bg-white p-5 shadow-[0_4px_12px_rgba(44,47,49,0.03)]">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-dim text-[10px] font-bold tracking-tight uppercase">
+                    Nationality
+                  </p>
+                  <p className="text-foreground text-sm font-semibold">
+                    {nationality || "Not set"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-dim text-[10px] font-bold tracking-tight uppercase">
+                    Travel style
+                  </p>
+                  <p className="text-foreground text-sm font-semibold">{styleLabel}</p>
+                </div>
               </div>
-              <div className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
-                <span className="text-slate-500">Home airport</span>
-                <span className="text-navy font-semibold">{homeAirport || "Not set"}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
-                <span className="text-slate-500">Travel style</span>
-                <span className="text-navy font-semibold">{styleLabel}</span>
+
+              <div className="border-edge/10 space-y-1 border-t pt-4">
+                <p className="text-dim text-[10px] font-bold tracking-tight uppercase">
+                  Home airport
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="bg-surface-soft flex h-10 w-10 items-center justify-center rounded-lg">
+                    <PlaneTakeoff size={20} className="text-brand-primary" />
+                  </div>
+                  <div>
+                    <p className="text-foreground text-sm font-bold">
+                      {homeAirport
+                        ? `${airportCode}${airportName ? ` - ${airportName}` : ""}`
+                        : "Not set"}
+                    </p>
+                    {homeAirport && (
+                      <p className="text-dim text-[11px]">
+                        {homeAirport.match(/\(([^)]+)\)/)?.[1] ?? ""}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {isEditingProfile && (
-            <div className="mt-5 space-y-5">
+            <div className="border-edge/10 space-y-5 rounded-xl border bg-white p-5 shadow-[0_4px_12px_rgba(44,47,49,0.03)]">
               <ProfileBasicsFields
                 nationality={nationality}
                 homeAirport={homeAirport}
@@ -313,7 +369,7 @@ export default function ProfilePage() {
                     saveProfileMutation.isPending ||
                     isProfileLoading
                   }
-                  className="bg-navy disabled:bg-navy/40 w-full rounded-xl px-4 py-3 text-sm font-bold text-white"
+                  className="bg-brand-primary w-full rounded-xl px-4 py-3 text-sm font-bold text-white disabled:opacity-40"
                 >
                   {saveProfileMutation.isPending ? "Saving..." : "Save Travel Profile"}
                 </button>
@@ -324,68 +380,87 @@ export default function ProfilePage() {
               )}
             </div>
           )}
-        </div>
+        </section>
 
-        {isAuth && (
-          <div className="mx-6 mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-navy text-lg font-bold">Account Data</h2>
-                <p className="text-dim mt-1 text-sm">
-                  These actions already use live backend endpoints.
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 space-y-3">
+        {/* Account & Preferences Menu */}
+        <section className="space-y-3">
+          <h3 className="text-dim px-1 text-[10px] font-bold tracking-widest uppercase">
+            Account & Preferences
+          </h3>
+          <div className="border-edge/10 overflow-hidden rounded-xl border bg-white shadow-[0_4px_12px_rgba(44,47,49,0.03)]">
+            {menuItems.map((item, i) => (
               <button
-                type="button"
-                onClick={() => void exportDataMutation.mutateAsync()}
-                disabled={exportDataMutation.isPending}
-                className="border-edge text-navy w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold disabled:opacity-60"
+                key={item.label}
+                className={`hover:bg-surface-soft flex w-full items-center justify-between p-4 transition-colors ${
+                  i > 0 ? "border-edge/10 border-t" : ""
+                }`}
               >
-                {exportDataMutation.isPending ? "Preparing export..." : "Export my data"}
+                <div className="flex items-center gap-4">
+                  <item.icon size={20} className="text-dim" />
+                  <span className="text-foreground text-sm font-medium">{item.label}</span>
+                </div>
+                <ChevronRight size={16} className="text-dim" />
               </button>
-              <button
-                type="button"
-                onClick={() => setIsDeleteOpen(true)}
-                className="w-full rounded-xl border border-red-200 px-4 py-3 text-left text-sm font-semibold text-red-700"
-              >
-                Delete account
-              </button>
-            </div>
+            ))}
           </div>
+        </section>
+
+        {/* Need Help Card */}
+        <section className="from-brand-primary shadow-brand-primary/20 relative overflow-hidden rounded-2xl bg-gradient-to-br to-[#7b9cff] p-6 text-white shadow-xl">
+          <div className="relative z-10 flex flex-col items-start gap-4">
+            <div>
+              <h3 className="font-display text-lg font-bold">Need Help?</h3>
+              <p className="max-w-[200px] text-sm text-white/80">
+                Our travel experts are ready to assist you 24/7.
+              </p>
+            </div>
+            <button className="text-brand-primary rounded-full bg-white px-6 py-2.5 text-xs font-bold tracking-wider uppercase shadow-lg active:scale-95">
+              Start Chat
+            </button>
+          </div>
+          <Headphones
+            size={120}
+            strokeWidth={1}
+            className="absolute -right-4 -bottom-4 rotate-12 text-white opacity-10"
+          />
+        </section>
+
+        {/* Account Data / Danger Zone */}
+        {isAuth && (
+          <section className="space-y-3 pt-2">
+            <button
+              type="button"
+              onClick={() => void exportDataMutation.mutateAsync()}
+              disabled={exportDataMutation.isPending}
+              className="bg-surface-soft text-foreground hover:bg-edge/30 flex w-full items-center justify-center gap-2 rounded-xl p-4 text-sm font-bold transition-colors disabled:opacity-60"
+            >
+              <Download size={18} />
+              {exportDataMutation.isPending ? "Preparing export..." : "Export my data"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsDeleteOpen(true)}
+              className="text-app-red hover:bg-app-red/5 flex w-full items-center justify-center gap-2 rounded-xl p-4 text-sm font-bold transition-colors"
+            >
+              <Trash2 size={18} />
+              Delete account
+            </button>
+          </section>
         )}
 
-        <div className="bg-navy relative mx-6 mb-6 overflow-hidden rounded-2xl p-6">
-          <Sparkles size={48} className="absolute top-2 right-2 text-white/10" />
-          <div className="bg-app-pink/20 flex h-10 w-10 items-center justify-center rounded-xl">
-            <MessageSquare size={20} className="text-app-pink" />
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <p className="text-lg font-bold text-white">Need Help?</p>
-            <DevelopmentTag label="Mock" className="border-white/20 bg-white/15 text-white" />
-          </div>
-          <p className="mt-1 text-sm text-white/70">
-            Chat with your personal travel assistant for support.
-          </p>
-          <span className="text-navy mt-4 inline-block cursor-pointer rounded-lg bg-white px-4 py-2.5 text-xs font-bold">
-            START CHAT
-          </span>
-        </div>
-
-        <MenuSection title="ACCOUNT" items={accountItems} />
-        <MenuSection title="PREFERENCES" items={prefItems} />
-
+        {/* Sign Out */}
         {isAuth && (
-          <div
-            className="mt-6 mb-6 flex cursor-pointer items-center justify-center gap-2 px-6"
-            onClick={handleSignOut}
-          >
-            <LogOut size={16} className="text-app-red" />
-            <span className="text-app-red text-sm font-bold">SIGN OUT</span>
+          <div className="flex justify-center pb-4">
+            <button
+              onClick={handleSignOut}
+              className="text-dim hover:text-app-red flex items-center gap-2 text-sm font-bold transition-colors"
+            >
+              <LogOut size={16} />
+              Sign out
+            </button>
           </div>
         )}
-      </div>
+      </main>
 
       <BottomNav />
 
