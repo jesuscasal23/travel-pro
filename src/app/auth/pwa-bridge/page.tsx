@@ -1,20 +1,31 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { CheckCircle2, ExternalLink } from "lucide-react";
-import { Suspense, useEffect } from "react";
+import { CheckCircle2 } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
 
 function BridgeContent() {
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/trips";
+  const [closed, setClosed] = useState(false);
 
-  // Attempt to close this browser tab (works when opened as a popup)
   useEffect(() => {
-    window.close();
+    // Try to auto-close this browser tab. This works when the tab was opened
+    // via window.open() from the PWA (Chrome allows scripts to close tabs
+    // they opened). If it fails, we show a manual "close" message.
+    try {
+      window.close();
+    } catch {
+      // ignore
+    }
+    // If we're still here after a tick, the tab didn't close
+    const t = setTimeout(() => setClosed(false), 300);
+    return () => clearTimeout(t);
   }, []);
 
-  // Build the deep link to re-enter the PWA
-  const appUrl = typeof window !== "undefined" ? `${window.location.origin}${next}` : next;
+  const handleClose = () => {
+    setClosed(true);
+    window.close();
+    // Fallback: if close didn't work, reset after a moment
+    setTimeout(() => setClosed(false), 500);
+  };
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[image:var(--gradient-page)] px-6">
@@ -25,16 +36,16 @@ function BridgeContent() {
 
         <h1 className="text-ink text-2xl font-bold tracking-tight">You&apos;re signed in!</h1>
         <p className="text-dim mt-3 text-sm leading-relaxed">
-          Switch back to the Travel Pro app to continue. You can close this browser tab.
+          You can close this tab and switch back to Travel Pro. Your session is ready.
         </p>
 
-        <a
-          href={appUrl}
+        <button
+          type="button"
+          onClick={handleClose}
           className="bg-brand-primary shadow-brand-xl mt-8 inline-flex items-center gap-2 rounded-2xl px-8 py-3.5 text-sm font-semibold text-white transition hover:brightness-110"
         >
-          Open Travel Pro
-          <ExternalLink className="h-4 w-4" />
-        </a>
+          {closed ? "Closing..." : "Close this tab"}
+        </button>
       </div>
     </div>
   );

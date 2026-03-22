@@ -47,23 +47,47 @@ export function GoogleAuthButton({ next, disabled = false, onError }: GoogleAuth
       return;
     }
 
-    // In standalone PWA mode, OAuth opens the system browser. Pass a flag so
-    // the callback can show a "return to app" bridge instead of a bare redirect.
     const isPwa = window.matchMedia("(display-mode: standalone)").matches;
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     callbackUrl.searchParams.set("next", next);
     if (isPwa) callbackUrl.searchParams.set("pwa", "1");
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: callbackUrl.toString(),
-      },
-    });
+    if (isPwa) {
+      // In standalone PWA mode, do NOT navigate this window away — that kills
+      // the PWA process. Instead get the OAuth URL and open it in a new browser
+      // tab. The PWA stays in the background; after the callback sets cookies
+      // the browser tab closes itself and the PWA picks up the session on focus.
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+          skipBrowserRedirect: true,
+        },
+      });
 
-    if (error) {
-      onError?.(error.message);
+      if (error) {
+        onError?.(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
       setIsLoading(false);
+    } else {
+      // Normal browser flow — full-page redirect
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+        },
+      });
+
+      if (error) {
+        onError?.(error.message);
+        setIsLoading(false);
+      }
     }
   };
 
