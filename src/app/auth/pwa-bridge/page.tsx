@@ -1,32 +1,9 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { CheckCircle2, ArrowLeft } from "lucide-react";
+import { Suspense } from "react";
 
 function BridgeContent() {
-  const [closed, setClosed] = useState(false);
-
-  useEffect(() => {
-    // Try to auto-close this browser tab. This works when the tab was opened
-    // via window.open() from the PWA (Chrome allows scripts to close tabs
-    // they opened). If it fails, we show a manual "close" message.
-    try {
-      window.close();
-    } catch {
-      // ignore
-    }
-    // If we're still here after a tick, the tab didn't close
-    const t = setTimeout(() => setClosed(false), 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  const handleClose = () => {
-    setClosed(true);
-    window.close();
-    // Fallback: if close didn't work, reset after a moment
-    setTimeout(() => setClosed(false), 500);
-  };
-
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[image:var(--gradient-page)] px-6">
       <div className="w-full max-w-[360px] text-center">
@@ -36,16 +13,14 @@ function BridgeContent() {
 
         <h1 className="text-ink text-2xl font-bold tracking-tight">You&apos;re signed in!</h1>
         <p className="text-dim mt-3 text-sm leading-relaxed">
-          You can close this tab and switch back to Travel Pro. Your session is ready.
+          Your session is ready. Switch back to the Travel Pro app to continue &mdash; just tap the
+          back button or find it in your recent apps.
         </p>
 
-        <button
-          type="button"
-          onClick={handleClose}
-          className="bg-brand-primary shadow-brand-xl mt-8 inline-flex items-center gap-2 rounded-2xl px-8 py-3.5 text-sm font-semibold text-white transition hover:brightness-110"
-        >
-          {closed ? "Closing..." : "Close this tab"}
-        </button>
+        <div className="bg-surface-soft mt-6 inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm">
+          <ArrowLeft className="text-dim h-4 w-4" />
+          <span className="text-dim">Swipe back or press Back</span>
+        </div>
       </div>
     </div>
   );
