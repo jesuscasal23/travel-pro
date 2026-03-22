@@ -20,6 +20,7 @@ const PUBLIC_PREFIXES = [
   "/privacy",
   "/api/health",
   "/auth/callback",
+  "/auth/pwa-complete",
   "/get-started",
   "/bookings",
 ];

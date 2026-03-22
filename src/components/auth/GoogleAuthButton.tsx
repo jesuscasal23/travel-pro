@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { createClient } from "@/lib/core/supabase-client";
 
 type GoogleAuthButtonProps = {
   next: string;
@@ -36,40 +35,20 @@ function GoogleIcon() {
 export function GoogleAuthButton({ next, disabled = false, onError }: GoogleAuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleClick = async () => {
+  const handleClick = () => {
     setIsLoading(true);
     onError?.(null);
 
-    const supabase = createClient();
-    if (!supabase) {
-      onError?.("Auth service unavailable.");
-      setIsLoading(false);
-      return;
-    }
-
-    // In standalone PWA mode, set a short-lived cookie so the callback route
-    // can detect the PWA context. Cookies survive the redirect chain
-    // (Google → Supabase → our callback) and are shared between the PWA and
-    // Chrome on Android/iOS, unlike query params which can be stripped.
+    // Navigate to a server-side route that initiates the OAuth flow.
+    // The server stores the PKCE verifier via Set-Cookie headers, which
+    // the browser processes regardless of PWA vs Chrome context — fixing
+    // the "code verifier not found" issue on Android standalone PWAs.
     const isPwa = window.matchMedia("(display-mode: standalone)").matches;
-    if (isPwa) {
-      document.cookie = "travel_pro_pwa_auth=1; path=/; max-age=300; SameSite=Lax";
-    }
+    const url = new URL("/api/auth/google", window.location.origin);
+    url.searchParams.set("next", next);
+    if (isPwa) url.searchParams.set("pwa", "1");
 
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("next", next);
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: callbackUrl.toString(),
-      },
-    });
-
-    if (error) {
-      onError?.(error.message);
-      setIsLoading(false);
-    }
+    window.location.href = url.toString();
   };
 
   return (
