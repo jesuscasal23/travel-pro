@@ -39,10 +39,7 @@ export async function fetchTrip(tripId: string): Promise<TripDetail | null> {
     });
     return data.trip ?? null;
   } catch (error) {
-    if (
-      error instanceof ApiError &&
-      (error.status === 401 || error.status === 403 || error.status === 404)
-    ) {
+    if (error instanceof ApiError && (error.status === 403 || error.status === 404)) {
       return null;
     }
     throw error;

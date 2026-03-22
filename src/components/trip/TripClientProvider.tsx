@@ -33,6 +33,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const travelStyle = useTripStore((s) => s.travelStyle);
   const interests = useTripStore((s) => s.interests);
   const dateStart = useTripStore((s) => s.dateStart);
+  const setDateStart = useTripStore((s) => s.setDateStart);
+  const setDateEnd = useTripStore((s) => s.setDateEnd);
   const currentTripId = useTripStore((s) => s.currentTripId);
   const setCurrentTripId = useTripStore((s) => s.setCurrentTripId);
   const setItinerary = useTripStore((s) => s.setItinerary);
@@ -83,6 +85,15 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       setCurrentTripId(tripId);
       setItinerary(dbItinerary);
     }
+
+    // Sync trip-level dates so enrichment hooks (accommodation, weather) can use them
+    const trip = tripQuery.data;
+    if (trip?.dateStart && !useTripStore.getState().dateStart) {
+      setDateStart(trip.dateStart);
+    }
+    if (trip?.dateEnd && !useTripStore.getState().dateEnd) {
+      setDateEnd(trip.dateEnd);
+    }
   }, [
     tripId,
     tripQuery.data,
@@ -90,6 +101,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     tripQueryEnabled,
     setCurrentTripId,
     setItinerary,
+    setDateStart,
+    setDateEnd,
   ]);
 
   const tripServerItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
@@ -145,6 +158,29 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const cityActivityMutation = useCityActivityGeneration();
   const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);
   const [cityActivityErrors, setCityActivityErrors] = useState<Record<string, string>>({});
+  const cityGenFiredRef = useRef<Set<string>>(new Set());
+
+  // Auto-trigger activity generation for cities missing activities
+  useEffect(() => {
+    if (!itinerary || itinerary.days.length === 0 || itinerary.route.length === 0) return;
+    if (generatingCityId) return; // One at a time
+
+    const cityMissingActivities = itinerary.route.find((stop) => {
+      if (cityGenFiredRef.current.has(stop.id)) return false;
+      if (cityActivityErrors[stop.id]) return false;
+      const hasActs = itinerary.days.some((d) => d.city === stop.city && d.activities.length > 0);
+      return !hasActs;
+    });
+
+    if (cityMissingActivities) {
+      cityGenFiredRef.current.add(cityMissingActivities.id);
+      // Defer to avoid calling setState during render
+      queueMicrotask(() => {
+        handleGenerateActivities(cityMissingActivities.id, cityMissingActivities.city);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itinerary, generatingCityId, cityActivityErrors]);
 
   const handleGenerateActivities = (cityId: string, cityName: string) => {
     setGeneratingCityId(cityId);

@@ -31,10 +31,10 @@ export function TripSectionNav({ tripId }: TripSectionNavProps) {
   }, [pathname]);
 
   return (
-    <div className="px-6 py-4">
+    <div className="px-6 py-3">
       <div
         aria-label="Trip sections"
-        className="scrollbar-thin flex touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-2"
+        className="scrollbar-hide flex touch-pan-x gap-1 overflow-x-auto overscroll-x-contain"
       >
         {sections.map((section) => {
           const href = `/trips/${tripId}${section.href}`;
@@ -46,13 +46,13 @@ export function TripSectionNav({ tripId }: TripSectionNavProps) {
               key={section.id}
               href={href}
               ref={isActive ? activeSectionRef : undefined}
-              className={`flex shrink-0 snap-start items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-all ${
                 isActive
-                  ? "border-brand-primary bg-brand-primary text-white shadow-[var(--shadow-brand-md)]"
-                  : "text-dim shadow-glass-md border-white/80 bg-white/88"
+                  ? "bg-primary text-white"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" strokeWidth={isActive ? 2.5 : 1.5} />
               <span>{section.label}</span>
             </Link>
           );

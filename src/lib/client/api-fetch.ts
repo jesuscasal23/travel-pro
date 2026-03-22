@@ -18,6 +18,22 @@ export class ApiError extends Error {
   }
 }
 
+// Prevent multiple concurrent redirects when several API calls 401 at once
+let isRedirectingToLogin = false;
+
+/**
+ * Redirect to login when API returns 401 (session expired).
+ * Uses window.location so the full page reloads and clears stale client state.
+ */
+function handleSessionExpired(): void {
+  if (isRedirectingToLogin) return;
+  isRedirectingToLogin = true;
+
+  const currentPath = window.location.pathname + window.location.search;
+  const loginUrl = `/login?next=${encodeURIComponent(currentPath)}&expired=1`;
+  window.location.href = loginUrl;
+}
+
 export interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   /** Hook or component name — included in error reports for tracing. */
   source: string;
@@ -68,6 +84,11 @@ export async function apiFetchRaw(endpoint: string, options: ApiFetchOptions): P
   }
 
   if (!res.ok) {
+    // Session expired — redirect to login before processing the error further
+    if (res.status === 401 && typeof window !== "undefined") {
+      handleSessionExpired();
+    }
+
     const parsed = await parseApiErrorResponse(res, fallbackMessage);
     await reportApiError({
       source,

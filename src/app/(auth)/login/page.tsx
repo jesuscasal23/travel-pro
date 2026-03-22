@@ -26,8 +26,11 @@ function LoginForm() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/trips";
+  const isExpired = searchParams.get("expired") === "1";
   const callbackError = searchParams.get("error");
-  const [serverError, setServerError] = useState<string | null>(callbackError);
+  const [serverError, setServerError] = useState<string | null>(
+    isExpired ? "Your session has expired. Please sign in again." : callbackError
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const {

@@ -150,6 +150,7 @@ export function AccommodationTab({ itinerary }: AccommodationTabProps) {
 
   const [refetching, setRefetching] = useState(false);
   const handleRefetch = useCallback(async () => {
+    if (!dateStart) return;
     setRefetching(true);
     try {
       const queryKey = getAccommodationQueryKey(route, dateStart, travelers, travelStyle);
