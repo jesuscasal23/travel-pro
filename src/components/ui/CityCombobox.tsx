@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { CITIES, type CityEntry } from "@/data/cities";
 import { Combobox } from "./Combobox";
+import { useCombobox } from "./useCombobox";
 
 interface Props {
   value: string; // stored as "Tokyo, Japan"
@@ -12,22 +12,16 @@ interface Props {
   variant?: "subtle" | "branded";
 }
 
-/** Show popular cities when query is empty */
-function getPopularCities(): CityEntry[] {
-  return CITIES.filter((c) => c.popular);
-}
-
-/** Filter cities by query — matches city name, country name, or country code */
-function filterCities(query: string): CityEntry[] {
+const filterCities = (query: string): CityEntry[] => {
   const q = query.toLowerCase().trim();
-  if (!q) return getPopularCities();
+  if (!q) return CITIES.filter((c) => c.popular);
   return CITIES.filter(
     (c) =>
       c.city.toLowerCase().includes(q) ||
       c.country.toLowerCase().includes(q) ||
       c.countryCode.toLowerCase().startsWith(q)
   ).slice(0, 8);
-}
+};
 
 export function CityCombobox({
   value,
@@ -36,14 +30,8 @@ export function CityCombobox({
   placeholder = "Search city or country\u2026",
   variant = "subtle",
 }: Props) {
-  const [results, setResults] = useState<CityEntry[]>(getPopularCities());
-  const [hasQuery, setHasQuery] = useState(false);
+  const { results, hasQuery, handleQueryChange } = useCombobox({ filter: filterCities });
   const isBranded = variant === "branded";
-
-  const handleQueryChange = useCallback((query: string) => {
-    setResults(filterCities(query));
-    setHasQuery(query.trim().length > 0);
-  }, []);
 
   return (
     <Combobox<CityEntry>

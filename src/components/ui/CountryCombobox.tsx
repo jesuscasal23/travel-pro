@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { CITIES } from "@/data/cities";
 import { Combobox } from "./Combobox";
+import { useCombobox } from "./useCombobox";
 
 interface CountryEntry {
   country: string;
@@ -37,17 +37,13 @@ interface Props {
   variant?: "subtle" | "branded";
 }
 
-function getPopularCountries(): CountryEntry[] {
-  return COUNTRIES.filter((c) => c.popular);
-}
-
-function filterCountries(query: string): CountryEntry[] {
+const filterCountries = (query: string): CountryEntry[] => {
   const q = query.toLowerCase().trim();
-  if (!q) return getPopularCountries();
+  if (!q) return COUNTRIES.filter((c) => c.popular);
   return COUNTRIES.filter(
     (c) => c.country.toLowerCase().includes(q) || c.countryCode.toLowerCase().startsWith(q)
   ).slice(0, 8);
-}
+};
 
 export function CountryCombobox({
   value,
@@ -56,15 +52,8 @@ export function CountryCombobox({
   placeholder = "Search country\u2026",
   variant = "subtle",
 }: Props) {
-  const [results, setResults] = useState<CountryEntry[]>(getPopularCountries());
-  const [hasQuery, setHasQuery] = useState(false);
+  const { results, hasQuery, handleQueryChange } = useCombobox({ filter: filterCountries });
   const isBranded = variant === "branded";
-
-  const handleQueryChange = useCallback((query: string) => {
-    const filtered = filterCountries(query);
-    setResults(filtered);
-    setHasQuery(query.trim().length > 0);
-  }, []);
 
   return (
     <Combobox<CountryEntry>

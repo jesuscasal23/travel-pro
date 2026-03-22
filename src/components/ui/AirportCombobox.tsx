@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { AIRPORTS } from "@/data/airports-full";
 import { Combobox } from "./Combobox";
+import { useCombobox } from "./useCombobox";
 
 type AirportEntry = (typeof AIRPORTS)[number];
 
@@ -20,8 +21,7 @@ function toLabel(a: AirportEntry): string {
   return `${a.iata} \u2013 ${a.name} (${display})`;
 }
 
-/** Filter airports by query — matches IATA, city, or airport name */
-function filterAirports(query: string): AirportEntry[] {
+const filterAirports = (query: string): AirportEntry[] => {
   const q = query.toLowerCase().trim();
   if (!q) return [];
   return AIRPORTS.filter(
@@ -31,7 +31,7 @@ function filterAirports(query: string): AirportEntry[] {
       a.name.toLowerCase().includes(q) ||
       a.country.toLowerCase().includes(q)
   ).slice(0, 8);
-}
+};
 
 export function AirportCombobox({
   value,
@@ -40,15 +40,13 @@ export function AirportCombobox({
   placeholder = "Search airport or city\u2026",
   variant = "subtle",
 }: Props) {
-  const [results, setResults] = useState<AirportEntry[]>([]);
+  const { results, handleQueryChange } = useCombobox({
+    filter: filterAirports,
+    initialResults: [],
+  });
   const isBranded = variant === "branded";
 
-  // Derive display label from stored value (show it when input is not focused)
   const displayValue = value ? value.split("(")[0].trim() : "";
-
-  const handleQueryChange = useCallback((query: string) => {
-    setResults(filterAirports(query));
-  }, []);
 
   const handleSelect = useCallback(
     (a: AirportEntry) => {

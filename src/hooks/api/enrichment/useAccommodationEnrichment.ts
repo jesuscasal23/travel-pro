@@ -1,6 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import type { CityStop, TravelStyle } from "@/types";
-import { fetchAccommodationEnrichment, getAccommodationQueryKey } from "./shared";
+import {
+  useEnrichmentQuery,
+  fetchAccommodationEnrichment,
+  getAccommodationQueryKey,
+} from "./shared";
 
 export function useAccommodationEnrichment(
   route: CityStop[],
@@ -9,12 +12,11 @@ export function useAccommodationEnrichment(
   travelStyle: TravelStyle,
   enabled: boolean
 ) {
-  return useQuery({
+  return useEnrichmentQuery({
     queryKey: getAccommodationQueryKey(route, dateStart, travelers, travelStyle),
-    queryFn: ({ signal }) =>
+    queryFn: (signal) =>
       fetchAccommodationEnrichment(route, dateStart, travelers, travelStyle, signal),
     enabled: enabled && route.length > 0 && !!dateStart && travelers > 0,
     staleTime: 30 * 60 * 1000,
-    retry: 1,
   });
 }

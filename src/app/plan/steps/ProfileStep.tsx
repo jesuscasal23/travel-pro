@@ -1,7 +1,7 @@
 "use client";
 
 import { Info } from "lucide-react";
-import { useTripStore } from "@/stores/useTripStore";
+import { useProfileState } from "@/hooks/useProfileState";
 import { ProfileBasicsFields } from "@/components/profile/ProfileBasicsFields";
 import { StepBadge } from "./StepBadge";
 
@@ -13,10 +13,7 @@ interface ProfileStepProps {
 }
 
 export function ProfileStep({ errors, clearError, step, totalSteps }: ProfileStepProps) {
-  const nationality = useTripStore((s) => s.nationality);
-  const setNationality = useTripStore((s) => s.setNationality);
-  const homeAirport = useTripStore((s) => s.homeAirport);
-  const setHomeAirport = useTripStore((s) => s.setHomeAirport);
+  const { nationality, setNationality, homeAirport, setHomeAirport } = useProfileState();
 
   return (
     <div className="space-y-7 pb-2">

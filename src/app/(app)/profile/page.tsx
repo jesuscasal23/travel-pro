@@ -37,6 +37,7 @@ import {
   useSaveProfile,
 } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
+import { useProfileState } from "@/hooks/useProfileState";
 import { createClient } from "@/lib/core/supabase-client";
 import { travelStyles } from "@/data/travelStyles";
 import { hasInterest, normalizeInterests } from "@/lib/features/profile/interests";
@@ -58,16 +59,18 @@ export default function ProfilePage() {
   const exportDataMutation = useExportData();
   const deleteAccountMutation = useDeleteAccount();
 
-  const nationality = useTripStore((s) => s.nationality);
-  const setNationality = useTripStore((s) => s.setNationality);
-  const homeAirport = useTripStore((s) => s.homeAirport);
-  const setHomeAirport = useTripStore((s) => s.setHomeAirport);
-  const travelStyle = useTripStore((s) => s.travelStyle);
-  const setTravelStyle = useTripStore((s) => s.setTravelStyle);
-  const interests = useTripStore((s) => s.interests);
-  const toggleInterest = useTripStore((s) => s.toggleInterest);
-  const pace = useTripStore((s) => s.pace);
-  const setPace = useTripStore((s) => s.setPace);
+  const {
+    nationality,
+    setNationality,
+    homeAirport,
+    setHomeAirport,
+    travelStyle,
+    setTravelStyle,
+    interests,
+    toggleInterest,
+    pace,
+    setPace,
+  } = useProfileState();
 
   const [displayName, setDisplayName] = useState("Traveler");
   const [email, setEmail] = useState("");

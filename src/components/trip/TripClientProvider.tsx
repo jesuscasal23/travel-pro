@@ -11,7 +11,9 @@ import {
   useAuthStatus,
   useTrip,
 } from "@/hooks/api";
+import { useShallow } from "zustand/shallow";
 import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
+import { useProfileState } from "@/hooks/useProfileState";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import type { Itinerary } from "@/types";
@@ -22,25 +24,37 @@ interface TripClientProviderProps {
 }
 
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
-  const itinerary = useTripStore((s) => s.itinerary);
+  const {
+    itinerary,
+    dateStart,
+    setDateStart,
+    setDateEnd,
+    currentTripId,
+    setCurrentTripId,
+    setItinerary,
+    needsRegeneration,
+    setNeedsRegeneration,
+    travelers,
+  } = useTripStore(
+    useShallow((s) => ({
+      itinerary: s.itinerary,
+      dateStart: s.dateStart,
+      setDateStart: s.setDateStart,
+      setDateEnd: s.setDateEnd,
+      currentTripId: s.currentTripId,
+      setCurrentTripId: s.setCurrentTripId,
+      setItinerary: s.setItinerary,
+      needsRegeneration: s.needsRegeneration,
+      setNeedsRegeneration: s.setNeedsRegeneration,
+      travelers: s.travelers,
+    }))
+  );
   const route = itinerary?.route ?? [];
   const days = itinerary?.days ?? [];
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
 
-  const nationality = useTripStore((s) => s.nationality);
-  const homeAirport = useTripStore((s) => s.homeAirport);
-  const travelStyle = useTripStore((s) => s.travelStyle);
-  const interests = useTripStore((s) => s.interests);
-  const dateStart = useTripStore((s) => s.dateStart);
-  const setDateStart = useTripStore((s) => s.setDateStart);
-  const setDateEnd = useTripStore((s) => s.setDateEnd);
-  const currentTripId = useTripStore((s) => s.currentTripId);
-  const setCurrentTripId = useTripStore((s) => s.setCurrentTripId);
-  const setItinerary = useTripStore((s) => s.setItinerary);
-  const needsRegeneration = useTripStore((s) => s.needsRegeneration);
-  const setNeedsRegeneration = useTripStore((s) => s.setNeedsRegeneration);
-  const travelers = useTripStore((s) => s.travelers);
+  const { nationality, homeAirport, travelStyle, interests } = useProfileState();
 
   const [storeReady, setStoreReady] = useState(false);
   useEffect(() => {

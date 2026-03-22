@@ -2,7 +2,9 @@
 
 import { travelStyles } from "@/data/travelStyles";
 import { regions } from "@/data/sampleData";
+import { useShallow } from "zustand/shallow";
 import { useTripStore } from "@/stores/useTripStore";
+import { useProfileState } from "@/hooks/useProfileState";
 import { StepBadge } from "./StepBadge";
 
 interface OverviewStepProps {
@@ -11,13 +13,15 @@ interface OverviewStepProps {
 }
 
 export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
-  const tripType = useTripStore((s) => s.tripType);
-  const region = useTripStore((s) => s.region);
-  const destination = useTripStore((s) => s.destination);
-  const destinationCountry = useTripStore((s) => s.destinationCountry);
-  const travelStyle = useTripStore((s) => s.travelStyle);
-  const interests = useTripStore((s) => s.interests);
-  const pace = useTripStore((s) => s.pace);
+  const { tripType, region, destination, destinationCountry } = useTripStore(
+    useShallow((s) => ({
+      tripType: s.tripType,
+      region: s.region,
+      destination: s.destination,
+      destinationCountry: s.destinationCountry,
+    }))
+  );
+  const { travelStyle, interests, pace } = useProfileState();
 
   const regionLabel = regions.find((item) => item.id === region)?.name ?? region;
   const destinationLabel =
