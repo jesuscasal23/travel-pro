@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { createClient } from "@/lib/core/supabase-client";
 
 type GoogleAuthButtonProps = {
   next: string;
@@ -35,20 +36,28 @@ function GoogleIcon() {
 export function GoogleAuthButton({ next, disabled = false, onError }: GoogleAuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     setIsLoading(true);
     onError?.(null);
 
-    // Navigate to a server-side route that initiates the OAuth flow.
-    // The server stores the PKCE verifier via Set-Cookie headers, which
-    // the browser processes regardless of PWA vs Chrome context — fixing
-    // the "code verifier not found" issue on Android standalone PWAs.
-    const isPwa = window.matchMedia("(display-mode: standalone)").matches;
-    const url = new URL("/api/auth/google", window.location.origin);
-    url.searchParams.set("next", next);
-    if (isPwa) url.searchParams.set("pwa", "1");
+    const supabase = createClient();
+    if (!supabase) {
+      onError?.("Auth service unavailable.");
+      setIsLoading(false);
+      return;
+    }
 
-    window.location.href = url.toString();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      },
+    });
+
+    if (error) {
+      onError?.(error.message);
+      setIsLoading(false);
+    }
   };
 
   return (

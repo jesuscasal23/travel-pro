@@ -89,26 +89,6 @@ export function Providers({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
-  // When the PWA regains focus (e.g. after OAuth in the system browser),
-  // recheck the Supabase session so the UI picks up the new auth state.
-  // The OAuth callback set cookies in Chrome; since PWA and Chrome share the
-  // same cookie jar on Android/iOS, we just need Supabase to re-read them.
-  useEffect(() => {
-    const handleVisibility = async () => {
-      if (document.visibilityState !== "visible") return;
-      // Tell Supabase client to re-read the session from cookies
-      const supabase = createClient();
-      if (supabase) {
-        await supabase.auth.getUser();
-      }
-      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [queryClient]);
-
   // Register service worker for PWA install prompt + offline support
   useEffect(() => {
     if ("serviceWorker" in navigator) {

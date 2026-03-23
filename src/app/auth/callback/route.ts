@@ -1,9 +1,6 @@
 // ============================================================
-// Travel Pro — Auth Callback (server-side)
-//
-// Exchanges the Supabase auth code for a session.  The PKCE code
-// verifier was stored via Set-Cookie by /api/auth/google, so it is
-// present in the request cookies regardless of PWA ↔ Chrome context.
+// Travel Pro — Supabase Auth Callback Handler
+// Exchanges auth code for a session after OAuth or email confirmation
 // ============================================================
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -44,17 +41,6 @@ export async function GET(request: NextRequest) {
       loginUrl.searchParams.set("next", next);
       return NextResponse.redirect(loginUrl);
     }
-  }
-
-  // Check if this flow was started from the standalone PWA
-  const cookieStore = await cookies();
-  const isPwa = cookieStore.get("travel_pro_pwa_auth")?.value === "1";
-
-  if (isPwa) {
-    // Clear the one-time flag
-    const response = NextResponse.redirect(new URL("/auth/pwa-complete", requestUrl.origin));
-    response.cookies.set("travel_pro_pwa_auth", "", { path: "/", maxAge: 0 });
-    return response;
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));
