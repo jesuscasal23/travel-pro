@@ -8,9 +8,6 @@ import { useTripContext } from "@/components/trip/TripContext";
 export default function TripItineraryPage() {
   const {
     itinerary,
-    generatingCityId,
-    cityActivityErrors,
-    onGenerateActivities,
     discoveryStatus,
     discoveryCards,
     discoveryCursor,
@@ -26,12 +23,7 @@ export default function TripItineraryPage() {
   return (
     <TripMobileShell showBanners>
       {showLegacyItinerary ? (
-        <MobileJourneyTab
-          itinerary={itinerary}
-          generatingCityId={generatingCityId}
-          cityActivityErrors={cityActivityErrors}
-          onGenerateActivities={onGenerateActivities}
-        />
+        <MobileJourneyTab itinerary={itinerary} />
       ) : (
         <MobileDiscoveryTab
           status={discoveryStatus}
