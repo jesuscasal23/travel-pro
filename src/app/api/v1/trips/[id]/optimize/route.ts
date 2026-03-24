@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiHandler, assertTripAccess, parseAndValidateRequest } from "@/lib/api/helpers";
 import { OptimizeTripInputSchema } from "@/lib/features/trips/schemas";
-import { optimizeTripFlights } from "@/lib/features/trips/flight-optimization-service";
+import { optimizeFlightsForTrip } from "@/lib/flights";
 
 /**
  * POST /api/v1/trips/[id]/optimize
@@ -16,7 +16,7 @@ export const POST = apiHandler("POST /api/v1/trips/:id/optimize", async (req, pa
   await assertTripAccess(req, params.id, { requireTripOwner: true });
 
   const body = await parseAndValidateRequest(req, OptimizeTripInputSchema);
-  const skeleton = await optimizeTripFlights(body);
+  const skeleton = await optimizeFlightsForTrip(body);
 
   return NextResponse.json({ skeleton });
 });

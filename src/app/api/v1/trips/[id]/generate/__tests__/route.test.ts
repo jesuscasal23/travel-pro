@@ -9,9 +9,7 @@ const mocks = vi.hoisted(() => ({
   createGeneratingRecord: vi.fn(),
   activateGeneratedItinerary: vi.fn(),
   markGenerationFailed: vi.fn(),
-  prefetchFlightOptions: vi.fn(),
-  parseIataCode: vi.fn(),
-  lookupIata: vi.fn(),
+  prefetchFlightsForRoute: vi.fn(),
   GenerationAlreadyInProgressError: class GenerationAlreadyInProgressError extends Error {
     tripId: string;
     itineraryId: string;
@@ -45,16 +43,8 @@ vi.mock("@/lib/features/trips/itinerary-service", () => ({
   markGenerationFailed: mocks.markGenerationFailed,
 }));
 
-vi.mock("@/lib/flights/amadeus", () => ({
-  prefetchFlightOptions: mocks.prefetchFlightOptions,
-}));
-
-vi.mock("@/lib/features/affiliate/link-generator", () => ({
-  parseIataCode: mocks.parseIataCode,
-}));
-
-vi.mock("@/lib/flights/city-iata-map", () => ({
-  lookupIata: mocks.lookupIata,
+vi.mock("@/lib/flights", () => ({
+  prefetchFlightsForRoute: mocks.prefetchFlightsForRoute,
 }));
 
 vi.mock("@/lib/core/supabase-server", () => ({
@@ -127,9 +117,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
     mocks.activateGeneratedItinerary.mockResolvedValue(undefined);
     mocks.markGenerationFailed.mockResolvedValue(undefined);
     mocks.generateRouteOnly.mockResolvedValue(itinerary);
-    mocks.parseIataCode.mockReturnValue("FRA");
-    mocks.lookupIata.mockReturnValue("LIS");
-    mocks.prefetchFlightOptions.mockResolvedValue([]);
+    mocks.prefetchFlightsForRoute.mockResolvedValue(null);
   });
 
   it("returns 401 for user-owned trips when unauthenticated", async () => {

@@ -5,8 +5,7 @@
 // receives proper session context, cookies, and referrer.
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";
-import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
-import { getBookingRequest, SerpApiRateLimitError } from "@/lib/flights/serpapi";
+import { resolveBooking, SerpApiRateLimitError } from "@/lib/flights";
 import { createLogger } from "@/lib/core/logger";
 import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
@@ -80,13 +79,9 @@ export async function GET(req: NextRequest) {
     return errorPage("Missing required parameters.");
   }
 
-  const serpApi = getOptionalSerpApiEnv();
-  if (!serpApi) {
-    return errorPage("Flight booking is not configured.");
-  }
-
   try {
-    const booking = await getBookingRequest(serpApi.apiKey, token, {
+    const booking = await resolveBooking({
+      bookingToken: token,
       departureId: dep,
       arrivalId: arr,
       outboundDate: date,

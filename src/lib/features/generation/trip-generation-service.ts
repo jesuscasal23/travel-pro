@@ -1,19 +1,15 @@
-import { parseIataCode } from "@/lib/features/affiliate/link-generator";
 import { generateRouteOnly } from "@/lib/ai/pipeline";
 import { ApiError, ServiceMisconfiguredError } from "@/lib/api/errors";
-import { abortableDelay, isAbortError, throwIfAborted } from "@/lib/core/abort";
-import { buildFlightLegsFromRoute } from "@/lib/flights/route-utils";
-import { prefetchFlightOptions as serpApiPrefetch } from "@/lib/flights/serpapi";
-import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
-import type { CityWithDays } from "@/lib/flights/types";
+import { isAbortError, throwIfAborted } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
+import { prefetchFlightsForRoute } from "@/lib/flights";
+import type { CityWithDays } from "@/lib/flights/types";
 import {
   activateGeneratedItinerary,
   createGeneratingRecord,
   GenerationAlreadyInProgressError,
   markGenerationFailed,
 } from "@/lib/features/trips/itinerary-service";
-import { FLIGHT_PREFETCH_TIMEOUT_MS } from "@/lib/config/constants";
 import type { Itinerary, TripIntent, UserProfile } from "@/types";
 
 const log = createLogger("trip-generation-service");
@@ -142,65 +138,27 @@ export async function createTripGenerationStreamResponse(
         throwIfAborted(input.signal);
 
         try {
-          const homeIata = parseIataCode(input.profile.homeAirport);
-          const legs = buildFlightLegsFromRoute(
-            itinerary.route,
-            input.trip.dateStart,
-            input.trip.dateEnd,
-            homeIata
-          );
+          send({ stage: "flights", message: "Searching flights...", pct: 70 });
 
-          log.info("[SSE] Flight legs built", {
+          const tFlights = Date.now();
+          const flightOptions = await prefetchFlightsForRoute({
+            homeAirport: input.profile.homeAirport,
+            route: itinerary.route,
+            dateStart: input.trip.dateStart,
+            dateEnd: input.trip.dateEnd,
+            travelers: input.trip.travelers,
+            signal: input.signal,
+          });
+
+          log.info("[SSE] Flight prefetch complete", {
             tripId: input.tripId,
-            homeIata,
-            legCount: legs.length,
-            legs: legs.map((l) => `${l.fromIata}→${l.toIata} (${l.departureDate})`),
+            hasResults: !!flightOptions,
+            flightDuration: `${Date.now() - tFlights}ms`,
             elapsed: elapsed(),
           });
 
-          if (legs.length > 0) {
-            send({ stage: "flights", message: "Searching flights...", pct: 70 });
-
-            const serpApi = getOptionalSerpApiEnv();
-            log.info("[SSE] Stage: flights — starting prefetch", {
-              tripId: input.tripId,
-              serpApiAvailable: !!serpApi,
-              legCount: legs.length,
-              travelers: input.trip.travelers,
-              timeoutMs: FLIGHT_PREFETCH_TIMEOUT_MS,
-              elapsed: elapsed(),
-            });
-
-            const tFlights = Date.now();
-            const flightOptions = serpApi
-              ? await Promise.race([
-                  serpApiPrefetch(serpApi.apiKey, legs, input.trip.travelers, input.signal),
-                  abortableDelay(FLIGHT_PREFETCH_TIMEOUT_MS, input.signal).then(() => null),
-                ])
-              : null;
-
-            const hasResults = flightOptions?.some((leg) => leg.results.length > 0) ?? false;
-            log.info("[SSE] Flight prefetch complete", {
-              tripId: input.tripId,
-              flightOptionsNull: flightOptions === null,
-              hasResults,
-              legResults:
-                flightOptions?.map((l) => ({
-                  leg: `${l.fromIata}→${l.toIata}`,
-                  resultCount: l.results.length,
-                })) ?? null,
-              flightDuration: `${Date.now() - tFlights}ms`,
-              elapsed: elapsed(),
-            });
-
-            if (hasResults && flightOptions) {
-              itinerary.flightOptions = flightOptions;
-            }
-          } else {
-            log.info("[SSE] Skipping flight prefetch — no legs", {
-              tripId: input.tripId,
-              elapsed: elapsed(),
-            });
+          if (flightOptions) {
+            itinerary.flightOptions = flightOptions;
           }
         } catch (error) {
           if (isAbortError(error)) {
@@ -210,7 +168,6 @@ export async function createTripGenerationStreamResponse(
             tripId: input.tripId,
             itineraryId,
             error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
             elapsed: elapsed(),
           });
         }

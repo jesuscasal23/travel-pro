@@ -1,28 +1,17 @@
 // ============================================================
 // Travel Pro — Affiliate Link Generator
-// Builds tracked deep links for Skyscanner, Booking.com, GetYourGuide
+// Builds tracked deep links for Booking.com, GetYourGuide
+//
+// Flight links (Skyscanner) have moved to @/lib/flights/booking-links.
+// IATA parsing has moved to @/lib/flights/iata.
 // ============================================================
 
 import type { CityStop } from "@/types";
 
 const AFFILIATE_IDS = {
-  skyscanner: "travel-pro",
   booking: process.env.BOOKING_AFFILIATE_ID ?? "TRAVEL_PRO_AID",
   getyourguide: process.env.GYG_PARTNER_ID ?? "TRAVEL_PRO_ID",
 } as const;
-
-interface FlightLeg {
-  fromIata: string;
-  toIata: string;
-  departureDate: string; // YYYY-MM-DD
-}
-
-/** Build a Skyscanner deep link for a flight leg. */
-export function buildFlightLink(leg: FlightLeg, travelers: number): string {
-  const date = leg.departureDate.replace(/-/g, "").slice(2); // YYMMDD
-  const params = new URLSearchParams({ adults: String(travelers), ref: AFFILIATE_IDS.skyscanner });
-  return `https://www.skyscanner.net/transport/flights/${leg.fromIata}/${leg.toIata}/${date}/?${params}`;
-}
 
 /** Build a Booking.com hotel search link for a city stay. */
 export function buildHotelLink(
@@ -62,10 +51,4 @@ export function buildTrackedLink(p: {
     ...(p.metadata && { metadata: JSON.stringify(p.metadata) }),
   });
   return `/api/v1/affiliate/redirect?${query}`;
-}
-
-/** Parse IATA code from a label like "LEJ – Leipzig/Halle" */
-export function parseIataCode(airportLabel: string): string {
-  const match = airportLabel.match(/^([A-Z]{3})/);
-  return match ? match[1] : airportLabel.slice(0, 3).toUpperCase();
 }

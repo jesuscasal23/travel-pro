@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { apiHandler, assertTripAccess, parseAndValidateRequest } from "@/lib/api/helpers";
 import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
-import { searchTripFlights } from "@/lib/features/trips/flight-search-service";
+import { searchFlightLeg } from "@/lib/flights";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +19,6 @@ export const POST = apiHandler("POST /api/v1/trips/:id/flights", async (req, par
     await parseAndValidateRequest(req, FlightSearchInputSchema);
 
   return NextResponse.json(
-    await searchTripFlights({ fromIata, toIata, departureDate, travelers, nonStop, maxPrice })
+    await searchFlightLeg({ fromIata, toIata, departureDate, travelers, nonStop, maxPrice })
   );
 });

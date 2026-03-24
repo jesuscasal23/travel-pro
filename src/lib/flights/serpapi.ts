@@ -7,7 +7,7 @@
 // ============================================================
 
 import type { FlightOption, FlightSearchResult, FlightLegResults } from "./types";
-import { buildFlightLink } from "@/lib/features/affiliate/link-generator";
+import { buildFlightLink } from "./booking-links";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
 import { SERPAPI_REQUEST_TIMEOUT_MS } from "@/lib/config/constants";

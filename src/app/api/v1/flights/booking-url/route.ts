@@ -9,7 +9,7 @@ import { z } from "zod";
 import { apiHandler, parseAndValidateRequest } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/errors";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
-import { getBookingRequest, SerpApiRateLimitError } from "@/lib/flights/serpapi";
+import { resolveBooking, SerpApiRateLimitError } from "@/lib/flights";
 
 export const dynamic = "force-dynamic";
 
@@ -26,17 +26,17 @@ export const POST = apiHandler("POST /api/v1/flights/booking-url", async (req) =
     BookingUrlInputSchema
   );
 
-  const serpApi = getOptionalSerpApiEnv();
-  if (!serpApi) {
-    throw new ApiError(503, "Flight booking resolution is not available");
-  }
-
   try {
-    const booking = await getBookingRequest(serpApi.apiKey, bookingToken, {
+    const booking = await resolveBooking({
+      bookingToken,
       departureId,
       arrivalId,
       outboundDate,
     });
+
+    if (!booking && !getOptionalSerpApiEnv()) {
+      throw new ApiError(503, "Flight booking resolution is not available");
+    }
 
     return NextResponse.json({ bookingUrl: booking?.url ?? null });
   } catch (error) {

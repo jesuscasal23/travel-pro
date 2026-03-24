@@ -9,8 +9,8 @@ vi.mock("@/lib/core/prisma", () => ({
   },
 }));
 
-vi.mock("@/lib/features/trips/flight-search-service", () => ({
-  searchTripFlights: vi.fn(),
+vi.mock("@/lib/flights", () => ({
+  searchFlightLeg: vi.fn(),
 }));
 
 vi.mock("@/lib/core/logger", () => ({
@@ -29,13 +29,13 @@ vi.mock("@/lib/core/request-context", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
-import { searchTripFlights } from "@/lib/features/trips/flight-search-service";
+import { searchFlightLeg } from "@/lib/flights";
 import { POST } from "../route";
 
 const mockPrisma = prisma as unknown as {
   trip: { findUnique: ReturnType<typeof vi.fn> };
 };
-const mockSearch = searchTripFlights as ReturnType<typeof vi.fn>;
+const mockSearch = searchFlightLeg as ReturnType<typeof vi.fn>;
 
 const tripId = "trip-123";
 
@@ -108,7 +108,7 @@ describe("POST /api/v1/trips/:id/flights", () => {
     expect(json.fetchedAt).toBeGreaterThan(0);
   });
 
-  it("calls searchTripFlights with correct params", async () => {
+  it("calls searchFlightLeg with correct params", async () => {
     const req = makeRequest(validBody);
     await POST(req, { params: Promise.resolve({ id: tripId }) });
 

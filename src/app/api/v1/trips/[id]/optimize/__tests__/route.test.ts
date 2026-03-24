@@ -13,16 +13,8 @@ vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/flights/optimizer", () => ({
-  optimizeFlights: vi.fn(),
-}));
-
-vi.mock("@/lib/features/affiliate/link-generator", () => ({
-  parseIataCode: vi.fn(),
-}));
-
-vi.mock("@/lib/flights/city-iata-map", () => ({
-  lookupIata: vi.fn(),
+vi.mock("@/lib/flights", () => ({
+  optimizeFlightsForTrip: vi.fn(),
 }));
 
 vi.mock("@/lib/core/logger", () => ({
@@ -42,9 +34,7 @@ vi.mock("@/lib/core/request-context", () => ({
 
 import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
-import { optimizeFlights } from "@/lib/flights/optimizer";
-import { parseIataCode } from "@/lib/features/affiliate/link-generator";
-import { lookupIata } from "@/lib/flights/city-iata-map";
+import { optimizeFlightsForTrip } from "@/lib/flights";
 import { POST } from "../route";
 
 const mockPrisma = prisma as unknown as {
@@ -52,9 +42,7 @@ const mockPrisma = prisma as unknown as {
   trip: { findUnique: ReturnType<typeof vi.fn> };
 };
 const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
-const mockOptimizeFlights = optimizeFlights as ReturnType<typeof vi.fn>;
-const mockParseIataCode = parseIataCode as ReturnType<typeof vi.fn>;
-const mockLookupIata = lookupIata as ReturnType<typeof vi.fn>;
+const mockOptimizeFlightsForTrip = optimizeFlightsForTrip as ReturnType<typeof vi.fn>;
 
 const baseBody = {
   homeAirport: "FRA - Frankfurt",
@@ -97,36 +85,35 @@ beforeEach(() => {
   mockAuth.mockResolvedValue("user-1");
   mockPrisma.profile.findUnique.mockResolvedValue({ id: "profile-1", userId: "user-1" });
   mockPrisma.trip.findUnique.mockResolvedValue({ id: "trip-1", profileId: "profile-1" });
-  mockParseIataCode.mockReturnValue("FRA");
-  mockLookupIata.mockImplementation((city: string) => (city === "Hanoi" ? "HAN" : null));
-  mockOptimizeFlights.mockResolvedValue({
+  mockOptimizeFlightsForTrip.mockResolvedValue({
     legs: [{ fromIata: "FRA", toIata: "NRT", price: 500 }],
     totalPrice: 500,
   });
 });
 
 describe("POST /api/v1/trips/:id/optimize", () => {
-  it("resolves missing city IATA codes and returns optimized skeleton", async () => {
+  it("returns optimized skeleton", async () => {
     const req = makeRequest(baseBody);
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(mockOptimizeFlights).toHaveBeenCalledWith(
-      "FRA",
-      expect.arrayContaining([
-        expect.objectContaining({ city: "Tokyo", iataCode: "NRT", minDays: 3, maxDays: 5 }),
-        expect.objectContaining({ city: "Hanoi", iataCode: "HAN", minDays: 2, maxDays: 4 }),
-      ]),
-      "2026-04-01",
-      7,
-      2
+    expect(mockOptimizeFlightsForTrip).toHaveBeenCalledWith(
+      expect.objectContaining({
+        homeAirport: "FRA - Frankfurt",
+        dateStart: "2026-04-01",
+        dateEnd: "2026-04-08",
+        travelers: 2,
+      })
     );
     expect(json.skeleton.totalPrice).toBe(500);
   });
 
-  it("returns 400 when home airport IATA cannot be parsed", async () => {
-    mockParseIataCode.mockReturnValue(null);
+  it("returns 400 when facade throws BadRequestError for IATA resolution", async () => {
+    const { BadRequestError } = await import("@/lib/api/errors");
+    mockOptimizeFlightsForTrip.mockRejectedValue(
+      new BadRequestError("Could not parse home airport IATA code")
+    );
     const req = makeRequest(baseBody);
 
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
@@ -136,20 +123,13 @@ describe("POST /api/v1/trips/:id/optimize", () => {
     expect(json.error).toBe("Could not parse home airport IATA code");
   });
 
-  it("returns 400 when a city IATA cannot be resolved", async () => {
-    mockLookupIata.mockReturnValue(null);
-    const req = makeRequest(baseBody);
-
-    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
-    const json = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(json.error).toContain("Could not resolve IATA codes");
-    expect(json.error).toContain("Hanoi");
-  });
-
-  it("returns 502 when optimizer throws", async () => {
-    mockOptimizeFlights.mockRejectedValue(new Error("amadeus down"));
+  it("returns 502 when facade throws UpstreamServiceError", async () => {
+    const { UpstreamServiceError } = await import("@/lib/api/errors");
+    mockOptimizeFlightsForTrip.mockRejectedValue(
+      new UpstreamServiceError(
+        "Flight optimization failed — SerpApi may not be configured or available"
+      )
+    );
     const req = makeRequest(baseBody);
 
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
