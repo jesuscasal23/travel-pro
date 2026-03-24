@@ -13,17 +13,9 @@ import type { Itinerary, CityWeather } from "@/types";
 
 interface MobileJourneyTabProps {
   itinerary: Itinerary;
-  generatingCityId?: string | null;
-  cityActivityErrors?: Record<string, string>;
-  onGenerateActivities?: (cityId: string, cityName: string) => void;
 }
 
-export function MobileJourneyTab({
-  itinerary,
-  generatingCityId,
-  cityActivityErrors,
-  onGenerateActivities,
-}: MobileJourneyTabProps) {
+export function MobileJourneyTab({ itinerary }: MobileJourneyTabProps) {
   const { route, days, flightLegs, weatherData } = itinerary;
   const [activeCityIdx, setActiveCityIdx] = useState(0);
   const cityScrollRef = useRef<HTMLDivElement>(null);
@@ -104,8 +96,6 @@ export function MobileJourneyTab({
         const cityStop = route.find((r) => r.city === group.city) ?? route[0];
         const weather = weatherMap.get(group.city);
         const hasActivities = cityHasActivities(itinerary, cityStop.id);
-        const isGeneratingThis = generatingCityId === cityStop.id;
-        const cityActivityError = cityActivityErrors?.[cityStop.id];
         const activeDayNum = activeDayMap[groupIdx] ?? group.days[0]?.day;
         const activeDay = group.days.find((d) => d.day === activeDayNum) ?? group.days[0];
         const timedActivities = activeDay && hasActivities ? distributeActivities(activeDay) : [];
@@ -168,27 +158,11 @@ export function MobileJourneyTab({
                   </div>
                 )}
               </>
-            ) : cityActivityError ? (
-              <div className="border-surface-error-border bg-surface-error-bg mt-3 rounded-xl border p-3">
-                <p className="text-surface-error-text text-sm font-medium">
-                  Couldn&apos;t generate activities for {cityStop.city}.
-                </p>
-                <button
-                  onClick={() => onGenerateActivities?.(cityStop.id, cityStop.city)}
-                  className="bg-surface-error-text mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white"
-                >
-                  Retry
-                </button>
-              </div>
             ) : (
               <div className="mt-3 space-y-2">
                 <div className="text-dim flex items-center gap-2 text-xs">
                   <div className="border-brand-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
-                  <span>
-                    {isGeneratingThis
-                      ? `Generating activities for ${cityStop.city}...`
-                      : `Preparing activity recommendations for ${cityStop.city}...`}
-                  </span>
+                  <span>{`Preparing activity recommendations for ${cityStop.city}...`}</span>
                 </div>
                 {Array.from({ length: 3 }, (_, i) => (
                   <div

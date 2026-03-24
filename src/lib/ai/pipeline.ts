@@ -11,15 +11,11 @@
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
 import { SYSTEM_PROMPT_SINGLE_CITY, assembleSingleCityPrompt } from "./prompts/single-city";
 import { SYSTEM_PROMPT_ROUTE_ONLY, assembleRouteOnlyPrompt } from "./prompts/route-only";
-import {
-  SYSTEM_PROMPT_CITY_ACTIVITIES,
-  assembleCityActivitiesPrompt,
-} from "./prompts/city-activities";
 import { selectRoute } from "./prompts/route-selector";
 import { enrichVisa } from "./enrich-visa";
 import { enrichWeather } from "./enrich-weather";
 import { callClaude, getAnthropic } from "./client";
-import { parseAndValidate, extractJSON, cityActivitiesOutputSchema } from "./parser";
+import { parseAndValidate } from "./parser";
 import type { UserProfile, TripIntent, Itinerary, TripDay, CityStop } from "@/types";
 import { addDays, daysBetween, formatDateShort } from "@/lib/utils/format/date";
 import type { CityWithDays } from "@/lib/flights/types";
@@ -31,7 +27,6 @@ import {
   MAX_TOKENS_MULTI_CITY,
   MAX_TOKENS_SINGLE_CITY,
   MAX_TOKENS_ROUTE_ONLY,
-  MAX_TOKENS_CITY_ACTIVITIES,
 } from "@/lib/config/constants";
 
 const log = createLogger("pipeline");
@@ -361,92 +356,6 @@ export async function generateRouteOnly(
     preSelectedCities,
     options?.signal
   );
-}
-
-// ============================================================
-// generateCityActivities (per-city, fills empty day stubs)
-// ============================================================
-
-/**
- * Generate activities for a single city within an existing route-only itinerary.
- * Returns the updated TripDay[] for that city with activities populated.
- */
-export async function generateCityActivities(
-  profile: UserProfile,
-  tripIntent: TripIntent,
-  itinerary: Itinerary,
-  cityId: string,
-  options?: { signal?: AbortSignal }
-): Promise<TripDay[]> {
-  const signal = options?.signal;
-  const t0 = Date.now();
-  const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
-  throwIfAborted(signal);
-
-  const cityStop = itinerary.route.find((r) => r.id === cityId);
-  if (!cityStop) {
-    throw new Error(`City "${cityId}" not found in itinerary route`);
-  }
-
-  const cityDays = itinerary.days.filter((d) => d.city === cityStop.city);
-  if (cityDays.length === 0) {
-    throw new Error(`No days found for city "${cityStop.city}"`);
-  }
-
-  const maxTokens = MAX_TOKENS_CITY_ACTIVITIES;
-
-  log.info("Generating activities for city", {
-    cityId,
-    city: cityStop.city,
-    days: cityDays.length,
-    maxTokens,
-    elapsed: elapsed(),
-  });
-
-  const userPrompt = assembleCityActivitiesPrompt(profile, tripIntent, cityStop, cityDays);
-
-  const claudeResult = await callClaude(
-    userPrompt,
-    SYSTEM_PROMPT_CITY_ACTIVITIES,
-    maxTokens,
-    0,
-    signal
-  );
-  log.info("City activities Claude call complete", {
-    cityId,
-    duration: `${((Date.now() - t0) / 1000).toFixed(1)}s`,
-    inputTokens: claudeResult.inputTokens,
-    outputTokens: claudeResult.outputTokens,
-    elapsed: elapsed(),
-  });
-
-  // Parse + validate city activities output
-  throwIfAborted(signal);
-  const json = extractJSON(claudeResult.text);
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(json);
-  } catch (e) {
-    throw new Error(`City activities output is not valid JSON: ${getErrorMessage(e)}`);
-  }
-
-  const result = cityActivitiesOutputSchema.safeParse(parsed);
-  if (!result.success) {
-    const issues = result.error.issues
-      .slice(0, 5)
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
-    throw new Error(`City activities schema validation failed: ${issues}`);
-  }
-
-  log.info("City activities generation complete", {
-    cityId,
-    daysGenerated: result.data.days.length,
-    totalActivities: result.data.days.reduce((sum, d) => sum + d.activities.length, 0),
-    elapsed: elapsed(),
-  });
-
-  return result.data.days;
 }
 
 // ============================================================

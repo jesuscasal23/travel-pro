@@ -29,11 +29,6 @@ export interface TripContextValue {
   accommodationLoading: boolean;
   accommodationError: boolean;
 
-  // City activity generation
-  generatingCityId: string | null;
-  cityActivityErrors: Record<string, string>;
-  onGenerateActivities: (cityId: string, cityName: string) => void;
-
   // Activity discovery swipe flow
   discoveryStatus: DiscoveryStatus;
   discoveryCards: ActivityDiscoveryCandidate[];

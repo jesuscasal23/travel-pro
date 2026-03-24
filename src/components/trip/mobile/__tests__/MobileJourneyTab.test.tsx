@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { Itinerary } from "@/types";
 import { MobileJourneyTab } from "../MobileJourneyTab";
@@ -128,29 +128,9 @@ describe("MobileJourneyTab", () => {
     expect(screen.getByTestId("activity-card")).toBeInTheDocument();
   });
 
-  it("shows generation loading state for city being generated", () => {
-    render(<MobileJourneyTab itinerary={itineraryNoActivities()} generatingCityId="rome" />);
-
-    expect(screen.getByText(/Generating activities for Rome/i)).toBeInTheDocument();
-  });
-
   it("shows queued generation state when city has no activities", () => {
     render(<MobileJourneyTab itinerary={itineraryNoActivities()} />);
 
     expect(screen.getByText(/Preparing activity recommendations for Rome/i)).toBeInTheDocument();
-  });
-
-  it("shows retry CTA and wires callback when generation failed", () => {
-    const onGenerateActivities = vi.fn();
-    render(
-      <MobileJourneyTab
-        itinerary={itineraryNoActivities()}
-        cityActivityErrors={{ rome: "Activity generation failed" }}
-        onGenerateActivities={onGenerateActivities}
-      />
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: /retry/i }));
-    expect(onGenerateActivities).toHaveBeenCalledWith("rome", "Rome");
   });
 });

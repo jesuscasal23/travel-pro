@@ -84,12 +84,7 @@ vi.mock("@/lib/core/prisma", () => ({
   }),
 }));
 
-import {
-  generateCoreItinerary,
-  generateRouteOnly,
-  generateCityActivities,
-  generateItinerary,
-} from "@/lib/ai/pipeline";
+import { generateCoreItinerary, generateRouteOnly, generateItinerary } from "@/lib/ai/pipeline";
 
 const profile: UserProfile = {
   nationality: "German",
@@ -236,47 +231,6 @@ describe("pipeline orchestration", () => {
       expect(day.activities).toHaveLength(0);
       expect(day.isTravel).toBe(false);
     }
-  });
-
-  it("validates city activity generation guard rails and success path", async () => {
-    await expect(
-      generateCityActivities(profile, multiCityIntent, coreItinerary, "unknown")
-    ).rejects.toThrow(/not found in itinerary route/i);
-
-    const noDaysForCity: Itinerary = {
-      ...coreItinerary,
-      route: [
-        ...coreItinerary.route,
-        {
-          id: "rome",
-          city: "Rome",
-          country: "Italy",
-          countryCode: "IT",
-          lat: 41.9,
-          lng: 12.49,
-          days: 2,
-        },
-      ],
-    };
-    await expect(
-      generateCityActivities(profile, multiCityIntent, noDaysForCity, "rome")
-    ).rejects.toThrow(/No days found for city "Rome"/);
-
-    mockClaudeText(
-      JSON.stringify({
-        days: [
-          {
-            day: 1,
-            date: "2026-06-01",
-            city: "Paris",
-            activities: [{ name: "Cafe", category: "Food", why: "Local", duration: "1h" }],
-          },
-        ],
-      })
-    );
-    const days = await generateCityActivities(profile, multiCityIntent, coreItinerary, "paris");
-    expect(days).toHaveLength(1);
-    expect(days[0].activities[0].name).toBe("Cafe");
   });
 
   it("runs full itinerary generation with enrichment and persists to existing record", async () => {

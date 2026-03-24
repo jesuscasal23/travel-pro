@@ -7,7 +7,6 @@ export { useTrip } from "./trips/useTrip";
 export { useCreateTrip } from "./trips/useCreateTrip";
 export { useSaveTripEdit } from "./trips/useSaveTripEdit";
 export { useTripGeneration } from "./trips/useTripGeneration";
-export { useCityActivityGeneration } from "./trips/useCityActivityGeneration";
 export { useDiscoverActivities } from "./trips/useDiscoverActivities";
 export { useRecordActivitySwipe } from "./trips/useRecordActivitySwipe";
 export type { TripDetail } from "./trips/shared";
