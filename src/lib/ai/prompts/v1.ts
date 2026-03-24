@@ -76,7 +76,7 @@ export function assemblePrompt(
   const paceActivityCount =
     profile.pace === "relaxed" ? "2–3" : profile.pace === "active" ? "5–6" : "3–4";
 
-  // ── Build flight skeleton block (when Amadeus optimization succeeded) ──
+  // ── Build flight skeleton block (when flight optimization succeeded) ──
   const skeletonBlock =
     skeleton && cities
       ? `

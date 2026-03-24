@@ -155,7 +155,7 @@ export interface Itinerary {
   weatherData?: CityWeather[];
   /** Hotel accommodation data populated by background enrichment */
   accommodationData?: CityAccommodation[];
-  /** Real flight legs populated when Amadeus optimization succeeds */
+  /** Real flight legs populated when flight optimization succeeds */
   flightLegs?: ItineraryFlightLeg[];
   /** Pre-fetched multi-result flight options per leg (up to 5 results each) */
   flightOptions?: import("@/lib/flights/types").FlightLegResults[];

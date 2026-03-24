@@ -40,9 +40,6 @@ const securityHeaders = [
         // Carto basemap tiles (style JSON + vector tiles + glyphs + sprites)
         "https://*.basemaps.cartocdn.com",
         "https://basemaps.cartocdn.com",
-        // Amadeus flight search API (sandbox + production)
-        "https://test.api.amadeus.com",
-        "https://api.amadeus.com",
       ].join(" "),
       // MapLibre GL JS uses Web Workers via blob: URLs
       "worker-src blob:",

@@ -129,31 +129,6 @@ export function getOptionalRedisEnv(): { url: string; token: string } | null {
   );
 }
 
-export function getOptionalAmadeusEnv(): {
-  apiKey: string;
-  apiSecret: string;
-  environment: "production" | "test";
-} | null {
-  if (!hasEnvValue("AMADEUS_API_KEY") || !hasEnvValue("AMADEUS_API_SECRET")) {
-    return null;
-  }
-
-  return parseRequiredEnv(
-    "amadeus",
-    z.object({
-      apiKey: nonEmptyString,
-      apiSecret: nonEmptyString,
-      environment: z.enum(["production", "test"]).default("test"),
-    }),
-    {
-      apiKey: process.env.AMADEUS_API_KEY,
-      apiSecret: process.env.AMADEUS_API_SECRET,
-      environment: process.env.AMADEUS_ENVIRONMENT,
-    },
-    ["AMADEUS_API_KEY", "AMADEUS_API_SECRET", "AMADEUS_ENVIRONMENT"]
-  );
-}
-
 export function getOptionalSerpApiEnv(): { apiKey: string } | null {
   if (!hasEnvValue("SERPAPI_API_KEY")) {
     return null;

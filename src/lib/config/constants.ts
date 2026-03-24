@@ -45,11 +45,6 @@ export const WEATHER_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 /** Timeout for Open-Meteo weather API requests. */
 export const WEATHER_API_TIMEOUT_MS = 5_000;
 
-// ── Amadeus (flights only) ───────────────────────────────
-
-/** Timeout for Amadeus API requests (auth, flight optimization). */
-export const AMADEUS_REQUEST_TIMEOUT_MS = 10_000;
-
 // ── SerpApi Google Flights ──────────────────────────────
 
 /** Timeout for SerpApi requests (scrapes Google Flights). */

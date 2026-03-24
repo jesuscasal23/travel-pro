@@ -6,7 +6,7 @@ import { optimizeFlightsForTrip } from "@/lib/flights";
 /**
  * POST /api/v1/trips/[id]/optimize
  *
- * Runs Amadeus flight price optimization on demand.
+ * Runs flight price optimization on demand.
  * Accepts the current itinerary route and trip dates; returns a FlightSkeleton
  * with per-leg real prices and a baseline (average) for savings display.
  *

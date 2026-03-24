@@ -61,7 +61,7 @@ function extractAirlineCode(flightNumber: string): string {
   return match ? match[1] : "?";
 }
 
-/** Map SerpApi travel_class to Amadeus-style cabin string. */
+/** Map SerpApi travel_class to standard cabin string. */
 function normalizeCabin(travelClass: string): string {
   const upper = travelClass.toUpperCase();
   if (upper.includes("BUSINESS")) return "BUSINESS";

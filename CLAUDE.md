@@ -9,7 +9,7 @@
 - **DB**: Prisma 7 + Supabase PostgreSQL (`prisma/schema.prisma`, config in `prisma.config.ts`)
 - **Auth**: Supabase Auth (email/password) + SSR middleware
 - **Maps**: MapLibre GL / react-map-gl v8 (open-source, not Mapbox GL)
-- **Flights**: Amadeus API for price optimization (`src/lib/flights/`)
+- **Flights**: SerpApi (Google Flights) for price optimization (`src/lib/flights/`)
 - **Email**: Resend + React Email templates (`src/lib/email/`)
 - **Analytics**: PostHog (EU region, consent-gated) + Sentry error tracking
 - **Testing**: Vitest (unit) + Playwright (e2e)
@@ -84,8 +84,8 @@ src/
 │   │   ├── health/            # health-service
 │   │   └── client-errors/     # service, schema
 │   ├── forms/                 # Form validation schemas (plan, onboarding, profile)
-│   ├── flights/               # amadeus.ts, optimizer.ts, city-iata-map, types
-│   ├── hotels/                # amadeus hotel search + types
+│   ├── flights/               # serpapi.ts, optimizer.ts, booking-links, iata, city-iata-map, types
+│   ├── hotels/                # SerpApi hotel search + types
 │   ├── itinerary/             # Shared Zod schemas for itinerary data (cityGeoSchema, itinerarySchema)
 │   ├── client/                # Client-side fetch wrapper (apiFetch, SSE parser, error reporting)
 │   ├── utils/                 # date, error, country-flags, trip-metadata, derive-city-budget, etc.
@@ -211,7 +211,7 @@ Content filtering retry: backoff, max 2 retries.
 | `/api/v1/trips`                | GET, POST          | GET: auth, POST: optional        | List/create trips                               |
 | `/api/v1/trips/[id]`           | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version             |
 | `/api/v1/trips/[id]/generate`  | POST               | Public                           | SSE stream (route→activities→visa→weather→done) |
-| `/api/v1/trips/[id]/optimize`  | POST               | Owner                            | Amadeus flight price optimization               |
+| `/api/v1/trips/[id]/optimize`  | POST               | Owner                            | SerpApi flight price optimization               |
 | `/api/v1/trips/[id]/share`     | GET                | Owner                            | Generate/return share token + URL               |
 | `/api/v1/trips/shared/[token]` | GET                | Public (60/min)                  | Fetch shared itinerary                          |
 | `/api/v1/profile`              | GET, PATCH, DELETE | Auth                             | Upsert profile, GDPR account delete             |
@@ -273,8 +273,7 @@ NEXT_PUBLIC_APP_URL            # Share URLs, email links
 NEXT_PUBLIC_POSTHOG_KEY        # Analytics (EU region)
 NEXT_PUBLIC_POSTHOG_HOST       # PostHog host
 NEXT_PUBLIC_SENTRY_DSN         # Error tracking
-AMADEUS_API_KEY                # Flight optimization (optional)
-AMADEUS_API_SECRET
+SERPAPI_API_KEY                 # Flight optimization (optional)
 ```
 
 See `.env.local.example` for full list.
