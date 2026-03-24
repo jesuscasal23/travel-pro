@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, UserPlus } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useTripStore } from "@/stores/useTripStore";
 import { useToastStore } from "@/stores/useToastStore";
@@ -23,10 +23,12 @@ import { DestinationStep } from "./steps/DestinationStep";
 import { ProfileStep } from "./steps/ProfileStep";
 import { PrioritiesStep } from "./steps/PrioritiesStep";
 import { OverviewStep } from "./steps/OverviewStep";
+import { SignupGateStep } from "./steps/SignupGateStep";
 import type { CityStop, Itinerary } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
 import { citiesToRoute } from "@/lib/utils/trip/cities-to-route";
 import { daysBetween } from "@/lib/utils/format/date";
+import Link from "next/link";
 
 export default function PlanPage() {
   const router = useRouter();
@@ -35,6 +37,7 @@ export default function PlanPage() {
   const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [showSignupGate, setShowSignupGate] = useState(false);
 
   const {
     planStep,
@@ -109,7 +112,7 @@ export default function PlanPage() {
   const showPriorities = needsProfileStep ? step === 3 : step === 2;
   const showOverview = needsProfileStep ? step === 4 : step === 3;
   const isFinalStep = step === totalSteps;
-  const progress = Math.round((step / totalSteps) * 100);
+  const progress = showSignupGate ? 100 : Math.round((step / totalSteps) * 100);
 
   const dayCount = dateStart && dateEnd ? Math.max(0, daysBetween(dateStart, dateEnd)) : 0;
 
@@ -209,7 +212,7 @@ export default function PlanPage() {
 
   const handleGenerate = useCallback(async () => {
     if (isAuthenticated !== true) {
-      router.push(`/signup?next=${encodeURIComponent("/plan")}`);
+      setShowSignupGate(true);
       return;
     }
 
@@ -382,7 +385,13 @@ export default function PlanPage() {
         <div className="mb-3 flex items-center">
           <button
             type="button"
-            onClick={step === 1 ? () => router.push("/home") : goBack}
+            onClick={
+              showSignupGate
+                ? () => setShowSignupGate(false)
+                : step === 1
+                  ? () => router.push("/home")
+                  : goBack
+            }
             aria-label={step === 1 ? "Back to home" : "Go back"}
             className="hover:text-navy text-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors"
           >
@@ -393,14 +402,15 @@ export default function PlanPage() {
         <div className="relative overflow-x-clip overflow-y-visible">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              key={step}
+              key={showSignupGate ? "gate" : step}
               custom={direction}
               variants={slideVariants}
               initial="enter"
               animate="center"
               exit="exit"
             >
-              {showDestination && (
+              {showSignupGate && <SignupGateStep />}
+              {!showSignupGate && showDestination && (
                 <DestinationStep
                   errors={errors}
                   clearError={clearError}
@@ -408,7 +418,7 @@ export default function PlanPage() {
                   totalSteps={totalSteps}
                 />
               )}
-              {showDetails && (
+              {!showSignupGate && showDetails && (
                 <ProfileStep
                   errors={errors}
                   clearError={clearError}
@@ -416,8 +426,12 @@ export default function PlanPage() {
                   totalSteps={totalSteps}
                 />
               )}
-              {showPriorities && <PrioritiesStep step={step} totalSteps={totalSteps} />}
-              {showOverview && <OverviewStep step={step} totalSteps={totalSteps} />}
+              {!showSignupGate && showPriorities && (
+                <PrioritiesStep step={step} totalSteps={totalSteps} />
+              )}
+              {!showSignupGate && showOverview && (
+                <OverviewStep step={step} totalSteps={totalSteps} />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -426,7 +440,28 @@ export default function PlanPage() {
       </div>
 
       <div className="relative shrink-0 border-t border-white/75 bg-white/86 px-6 pt-3 pb-6 backdrop-blur-sm">
-        {isFinalStep ? (
+        {showSignupGate ? (
+          <>
+            <Button
+              variant="brand"
+              fullWidth
+              onClick={() => router.push(`/signup?next=${encodeURIComponent("/plan")}`)}
+              className="shadow-brand-xl gap-2 rounded-[24px] py-5 text-lg"
+            >
+              <UserPlus className="h-5 w-5" />
+              Create free account
+            </Button>
+            <p className="text-dim mt-3 text-center text-sm">
+              Already have an account?{" "}
+              <Link
+                href={`/login?next=${encodeURIComponent("/plan")}`}
+                className="text-brand-primary font-semibold"
+              >
+                Log in
+              </Link>
+            </p>
+          </>
+        ) : isFinalStep ? (
           <>
             <Button
               variant="brand"

@@ -180,15 +180,11 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
     }),
     {
       name: "travel-pro-store",
-      // Persist only user preferences and plan form state.
-      // Trip results (currentTripId, itinerary) are NOT persisted —
-      // they come from the API/database and are managed by React Query.
+      // Only persist plan form fields — these survive the signup redirect so
+      // a guest who fills the planner doesn't have to re-enter destination/dates
+      // after creating an account. Profile fields (nationality, homeAirport, etc.)
+      // are NOT persisted: logged-in users always get them from the server.
       partialize: (state) => ({
-        nationality: state.nationality,
-        homeAirport: state.homeAirport,
-        travelStyle: state.travelStyle,
-        interests: state.interests,
-        pace: state.pace,
         tripType: state.tripType,
         tripDescription: state.tripDescription,
         planningPriorities: state.planningPriorities,
@@ -210,7 +206,6 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         return {
           ...currentState,
           ...typedState,
-          interests: normalizeInterests(typedState.interests ?? currentState.interests),
           planningPriorities: normalizePlanningPriorities(
             typedState.planningPriorities ?? typedState.planningPriority
           ),

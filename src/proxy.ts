@@ -6,7 +6,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require authentication.
-const PROTECTED_PREFIXES = ["/profile", "/admin", "/trips"];
+const PROTECTED_PREFIXES = ["/profile", "/admin", "/trips", "/home", "/bookings", "/discover"];
 
 // Routes that are always public
 const PUBLIC_PREFIXES = [
@@ -19,7 +19,9 @@ const PUBLIC_PREFIXES = [
   "/api/health",
   "/auth/callback",
   "/get-started",
-  "/bookings",
+  "/plan",
+  "/trip/",
+  "/share",
 ];
 
 function isProtected(pathname: string): boolean {
