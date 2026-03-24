@@ -249,7 +249,6 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           <input
             type="date"
             value={dateStart}
-            onFocus={(e) => e.target.showPicker?.()}
             onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
             onChange={(event) => {
               setDateStart(event.target.value);
@@ -272,7 +271,6 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
             type="date"
             value={dateEnd}
             min={dateStart}
-            onFocus={(e) => e.target.showPicker?.()}
             onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
             onChange={(event) => {
               setDateEnd(event.target.value);
