@@ -49,3 +49,6 @@ export const WEATHER_API_TIMEOUT_MS = 5_000;
 
 /** Timeout for SerpApi requests (scrapes Google Flights). */
 export const SERPAPI_REQUEST_TIMEOUT_MS = 15_000;
+
+/** Hard wall-clock cap for the full flight optimization pass (30–50 parallel SerpApi calls). */
+export const OPTIMIZE_FLIGHTS_TIMEOUT_MS = 20_000;

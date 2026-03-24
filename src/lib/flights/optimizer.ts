@@ -12,22 +12,8 @@
 // Target city-days = totalDays - 1 - N  (N = number of cities)
 // ============================================================
 
-import { searchFlights as serpApiSearchFlights } from "./serpapi";
-import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
-import type { CityWithDays, OptimizedLeg, FlightSkeleton, FlightOption } from "./types";
+import type { CityWithDays, OptimizedLeg, FlightSkeleton, FlightSearcher } from "./types";
 import { addDays } from "@/lib/utils/format/date";
-
-function searchFlights(
-  origin: string,
-  destination: string,
-  date: string,
-  travelers: number,
-  signal?: AbortSignal
-): Promise<FlightOption | null> {
-  const serpApi = getOptionalSerpApiEnv();
-  if (!serpApi) return Promise.resolve(null);
-  return serpApiSearchFlights(serpApi.apiKey, origin, destination, date, travelers, signal);
-}
 
 /** Enumerate all feasible day assignments where the sum equals target. */
 function* generateAssignments(
@@ -66,7 +52,9 @@ export async function optimizeFlights(
   cities: CityWithDays[],
   startDateStr: string,
   totalDays: number,
-  travelers: number
+  travelers: number,
+  searcher: FlightSearcher,
+  signal?: AbortSignal
 ): Promise<FlightSkeleton> {
   const N = cities.length;
 
@@ -100,7 +88,7 @@ export async function optimizeFlights(
     if (!priceMap.has(key)) {
       priceMap.set(key, null);
       fetchPromises.push(
-        searchFlights(origin, dest, date, travelers).then((r) => {
+        searcher(origin, dest, date, travelers, signal).then((r) => {
           priceMap.set(key, r);
         })
       );

@@ -62,6 +62,18 @@ export interface FlightLegResults {
   fetchedAt: number; // epoch ms
 }
 
+/**
+ * A price-lookup function injected into the optimizer.
+ * Decouples the DP algorithm from SerpApi and env-checking.
+ */
+export type FlightSearcher = (
+  origin: string,
+  destination: string,
+  date: string,
+  travelers: number,
+  signal?: AbortSignal
+) => Promise<FlightOption | null>;
+
 /** Complete optimized flight skeleton for the whole trip */
 export interface FlightSkeleton {
   homeIata: string;

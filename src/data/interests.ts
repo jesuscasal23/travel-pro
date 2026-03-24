@@ -10,5 +10,3 @@ export const interestOptions: InterestOption[] = [
   { id: "nature", label: "Nature", emoji: "🌤️" },
   { id: "photography", label: "Photography", emoji: "📷" },
 ];
-
-export const interestOptionsById = new Map(interestOptions.map((option) => [option.id, option]));

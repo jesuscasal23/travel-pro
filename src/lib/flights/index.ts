@@ -9,10 +9,11 @@
 import { ApiError, BadRequestError, UpstreamServiceError } from "@/lib/api/errors";
 import { abortableDelay } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
-import { FLIGHT_PREFETCH_TIMEOUT_MS } from "@/lib/config/constants";
+import { FLIGHT_PREFETCH_TIMEOUT_MS, OPTIMIZE_FLIGHTS_TIMEOUT_MS } from "@/lib/config/constants";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import {
   SerpApiRateLimitError,
+  searchFlights as serpApiSearchFlights,
   searchFlightsMulti,
   prefetchFlightOptions as serpApiPrefetch,
   getBookingRequest,
@@ -124,15 +125,29 @@ export async function optimizeFlightsForTrip(input: OptimizeFlightsInput): Promi
       (1000 * 60 * 60 * 24)
   );
 
+  const serpApi = getOptionalSerpApiEnv();
+  const searcher = serpApi
+    ? (origin: string, dest: string, date: string, travelers: number, signal?: AbortSignal) =>
+        serpApiSearchFlights(serpApi.apiKey, origin, dest, date, travelers, signal)
+    : () => Promise.resolve(null);
+
   try {
-    return await optimizeFlights(
-      homeIata,
-      buildOptimizerCities(resolvedRoute),
-      input.dateStart,
-      totalDays,
-      input.travelers ?? 1
-    );
-  } catch {
+    const result = await Promise.race([
+      optimizeFlights(
+        homeIata,
+        buildOptimizerCities(resolvedRoute),
+        input.dateStart,
+        totalDays,
+        input.travelers ?? 1,
+        searcher
+      ),
+      abortableDelay(OPTIMIZE_FLIGHTS_TIMEOUT_MS).then(() => {
+        throw new UpstreamServiceError("Flight optimization timed out");
+      }),
+    ]);
+    return result;
+  } catch (err) {
+    if (err instanceof UpstreamServiceError) throw err;
     throw new UpstreamServiceError(
       "Flight optimization failed — SerpApi may not be configured or available"
     );
