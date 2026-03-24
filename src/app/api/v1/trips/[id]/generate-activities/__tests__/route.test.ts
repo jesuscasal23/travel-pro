@@ -20,6 +20,7 @@ import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 vi.mock("@/lib/core/prisma", () => ({
   prisma: {
+    profile: { findUnique: vi.fn() },
     trip: { findUnique: vi.fn() },
     itinerary: { update: vi.fn() },
   },
@@ -74,14 +75,17 @@ vi.mock("@/lib/core/supabase-server", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { findActiveItinerary } from "@/lib/features/trips/itinerary-service";
 import { generateCityActivities } from "@/lib/ai/pipeline";
 import { POST } from "../route";
 
 const mockPrisma = prisma as unknown as {
+  profile: { findUnique: ReturnType<typeof vi.fn> };
   trip: { findUnique: ReturnType<typeof vi.fn> };
   itinerary: { update: ReturnType<typeof vi.fn> };
 };
+const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
 const mockFindActive = findActiveItinerary as ReturnType<typeof vi.fn>;
 const mockGenerateActivities = generateCityActivities as ReturnType<typeof vi.fn>;
 
@@ -140,6 +144,7 @@ const generatedTokyoDays: TripDay[] = [
 
 const mockTrip = {
   id: "trip-1",
+  profileId: null,
   tripType: "multi-city",
   region: "east-asia",
   dateStart: "2026-10-01",
@@ -178,6 +183,28 @@ async function callPOST(body: object) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockAuth.mockResolvedValue(null);
+  mockPrisma.profile.findUnique.mockImplementation(async ({ where }) => {
+    if ("userId" in where) {
+      return { id: "profile-1", userId: "user-1" };
+    }
+
+    if ("id" in where) {
+      return {
+        id: "profile-1",
+        userId: "user-1",
+        nationality: "German",
+        homeAirport: "FRA",
+        travelStyle: "smart-budget",
+        interests: ["culture", "food"],
+        activityLevel: "moderate",
+        onboardingCompleted: true,
+        languagesSpoken: [],
+      };
+    }
+
+    return null;
+  });
   mockPrisma.trip.findUnique.mockResolvedValue(mockTrip);
   mockFindActive.mockResolvedValue({ id: "itin-1", data: routeOnlyItinerary });
   mockGenerateActivities.mockResolvedValue(generatedTokyoDays);
@@ -185,6 +212,39 @@ beforeEach(() => {
 });
 
 describe("POST /api/v1/trips/:id/generate-activities", () => {
+  it("loads the stored profile for authenticated trips", async () => {
+    mockAuth.mockResolvedValue("user-1");
+    mockPrisma.trip.findUnique.mockResolvedValue({
+      ...mockTrip,
+      profileId: "profile-1",
+    });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate-activities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cityId: "tokyo" }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.itinerary).toBeDefined();
+    expect(mockGenerateActivities).toHaveBeenCalledWith(
+      {
+        nationality: "German",
+        homeAirport: "FRA",
+        travelStyle: "smart-budget",
+        interests: ["culture", "food"],
+        pace: "moderate",
+      },
+      expect.any(Object),
+      expect.any(Object),
+      "tokyo",
+      expect.any(Object)
+    );
+  });
+
   it("returns full merged itinerary with activities populated for the target city", async () => {
     const res = await callPOST({ profile: validProfile, cityId: "tokyo" });
     const json = await res.json();

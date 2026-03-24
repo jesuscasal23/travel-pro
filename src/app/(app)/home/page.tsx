@@ -18,13 +18,19 @@ import {
   Bell,
   Shield,
 } from "lucide-react";
-import { useTrips, useTrip, useBookingClicks, useManualBooking } from "@/hooks/api";
+import {
+  useTrips,
+  useTrip,
+  useBookingClicks,
+  useManualBooking,
+  useTravelerPreferences,
+} from "@/hooks/api";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { useCityImage } from "@/hooks/useCityImage";
-import { useTripStore } from "@/stores/useTripStore";
 import { daysUntil, formatDateRange } from "@/lib/utils/format/date";
 import { computeTripPreparation } from "@/lib/utils/trip-preparation";
+import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
 import type { TripSummary, Itinerary } from "@/types";
 import type { PrepItem } from "@/lib/utils/trip-preparation";
 
@@ -189,12 +195,6 @@ function ActiveTripBento({ trip }: { trip: TripSummary }) {
 
 /* ── Trip Preparation ────────────────────────────────────────── */
 
-/** Extract IATA code from store value like "FRA - Frankfurt" */
-function extractIata(homeAirport: string): string {
-  if (!homeAirport) return "";
-  return homeAirport.split(/\s*[–—-]\s*/)[0].trim();
-}
-
 function PrepItemIcon({ item }: { item: PrepItem }) {
   if (item.beta) return <Shield className="text-label h-5 w-5" />;
   if (item.booked) return <CheckCircle className="text-app-green h-5 w-5" />;
@@ -208,8 +208,9 @@ function PrepItemTypeIcon({ item }: { item: PrepItem }) {
 }
 
 function TripPreparation({ tripId }: { tripId: string }) {
-  const homeAirport = useTripStore((s) => s.homeAirport);
-  const homeIata = extractIata(homeAirport);
+  const travelerPreferences = useTravelerPreferences();
+  const homeAirport = travelerPreferences.data?.homeAirport ?? "";
+  const homeIata = extractHomeAirportIata(homeAirport);
   const isAuthenticated = useAuthStatus();
 
   const { data: tripDetail } = useTrip(tripId, { enabled: !!tripId });

@@ -9,11 +9,11 @@ import {
   useWeatherEnrichment,
   useAccommodationEnrichment,
   useAuthStatus,
+  useTravelerPreferences,
   useTrip,
 } from "@/hooks/api";
 import { useShallow } from "zustand/shallow";
 import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
-import { useProfileState } from "@/hooks/useProfileState";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import type { Itinerary } from "@/types";
@@ -53,8 +53,17 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const days = itinerary?.days ?? [];
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
-
-  const { nationality, homeAirport, travelStyle, interests } = useProfileState();
+  const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
+  const nationality = travelerPreferences.data?.nationality ?? "";
+  const homeAirport = travelerPreferences.data?.homeAirport ?? "";
+  const travelStyle = travelerPreferences.data?.travelStyle ?? "smart-budget";
+  const interests = travelerPreferences.data?.interests ?? [];
+  const transientGenerationProfile =
+    nationality && homeAirport ? { nationality, homeAirport, travelStyle, interests } : null;
+  const requestProfile =
+    travelerPreferences.source === "server" ? undefined : transientGenerationProfile;
+  const canAutoGenerateFromProfile =
+    travelerPreferences.source === "server" || requestProfile !== null;
 
   const [storeReady, setStoreReady] = useState(false);
   useEffect(() => {
@@ -134,12 +143,19 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const genAttemptsRef = useRef(0);
 
   useEffect(() => {
-    if (!isPartialItinerary || tripSyncPending || genFiredRef.current || !itinerary) return;
+    if (
+      !isPartialItinerary ||
+      tripSyncPending ||
+      genFiredRef.current ||
+      !itinerary ||
+      !canAutoGenerateFromProfile
+    ) {
+      return;
+    }
     if (genAttemptsRef.current >= 2) return; // Max 2 auto-retries
     genFiredRef.current = true;
     genAttemptsRef.current += 1;
 
-    const profile = { nationality, homeAirport, travelStyle, interests };
     const cities =
       itinerary.route.length > 0
         ? itinerary.route.map((r) => ({
@@ -156,7 +172,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         : undefined;
 
     generateMutation.mutate(
-      { tripId, profile, promptVersion: "v1", cities },
+      { tripId, profile: requestProfile ?? undefined, promptVersion: "v1", cities },
       {
         onSuccess: (result) => {
           if (result) setItinerary(result);
@@ -167,7 +183,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPartialItinerary, tripSyncPending, tripId]);
+  }, [isPartialItinerary, tripSyncPending, tripId, canAutoGenerateFromProfile, requestProfile]);
 
   const cityActivityMutation = useCityActivityGeneration();
   const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);
@@ -176,7 +192,14 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   // Auto-trigger activity generation for cities missing activities
   useEffect(() => {
-    if (!itinerary || itinerary.days.length === 0 || itinerary.route.length === 0) return;
+    if (
+      !itinerary ||
+      itinerary.days.length === 0 ||
+      itinerary.route.length === 0 ||
+      !canAutoGenerateFromProfile
+    ) {
+      return;
+    }
     if (generatingCityId) return; // One at a time
 
     const cityMissingActivities = itinerary.route.find((stop) => {
@@ -203,9 +226,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       delete next[cityId];
       return next;
     });
-    const profile = { nationality, homeAirport, travelStyle, interests };
     cityActivityMutation.mutate(
-      { tripId, cityId, cityName, profile },
+      { tripId, cityId, cityName, profile: requestProfile ?? undefined },
       {
         onSuccess: (mergedItinerary) => {
           setItinerary(mergedItinerary);
@@ -318,8 +340,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const handleRetry = () => {
     genFiredRef.current = false;
     generateMutation.reset();
-
-    const profile = { nationality, homeAirport, travelStyle, interests };
     const cities =
       itinerary.route.length > 0
         ? itinerary.route.map((r) => ({
@@ -336,7 +356,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         : undefined;
 
     generateMutation.mutate(
-      { tripId, profile, promptVersion: "v1", cities },
+      { tripId, profile: requestProfile ?? undefined, promptVersion: "v1", cities },
       {
         onSuccess: (result) => {
           if (result) setItinerary(result);

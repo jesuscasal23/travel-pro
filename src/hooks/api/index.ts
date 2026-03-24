@@ -23,6 +23,7 @@ export { fetchAccommodationEnrichment, getAccommodationQueryKey } from "./enrich
 
 // Profile
 export { useProfile } from "./profile/useProfile";
+export { useTravelerPreferences } from "./profile/useTravelerPreferences";
 export { useSaveProfile } from "./profile/useSaveProfile";
 export { useExportData } from "./profile/useExportData";
 export { useDeleteAccount } from "./profile/useDeleteAccount";

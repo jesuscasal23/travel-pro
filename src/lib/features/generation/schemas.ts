@@ -51,13 +51,13 @@ export const CityWithDaysInputSchema = cityGeoSchema.extend({
 const PromptVersionSchema = z.literal("v1").default("v1");
 
 export const GenerateTripInputSchema = z.object({
-  profile: ProfileInputSchema,
+  profile: ProfileInputSchema.optional(),
   promptVersion: PromptVersionSchema,
   cities: z.array(CityWithDaysInputSchema).optional(),
 });
 
 export const GenerateActivitiesInputSchema = z.object({
-  profile: ProfileInputSchema,
+  profile: ProfileInputSchema.optional(),
   cityId: z.string().min(1).max(100),
 });
 

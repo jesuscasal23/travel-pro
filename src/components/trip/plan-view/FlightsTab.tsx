@@ -4,11 +4,13 @@ import { useMemo, useCallback } from "react";
 import { Plane, Loader2 } from "lucide-react";
 import { FlightOptionsPanel } from "@/components/trip/FlightOptionsPanel";
 import { Badge } from "@/components/ui/Badge";
+import { useTravelerPreferences } from "@/hooks/api";
 import { useBatchFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
 import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
 import { useTripStore } from "@/stores/useTripStore";
+import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
 import type { Itinerary, BookingClick, BookingClickMetadata, FlightDirection } from "@/types";
 import type { FlightLegResults } from "@/lib/flights/types";
 
@@ -19,12 +21,6 @@ interface FlightLegWithDirection extends FlightLegResults {
 interface FlightsTabProps {
   itinerary: Itinerary;
   tripId: string;
-}
-
-/** Extract IATA code from store value like "FRA - Frankfurt" */
-function extractIata(homeAirport: string): string {
-  if (!homeAirport) return "";
-  return homeAirport.split(/\s*[–—-]\s*/)[0].trim();
 }
 
 /** Add N days to a YYYY-MM-DD date string */
@@ -49,12 +45,13 @@ function findClickForLeg(
 }
 
 export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
-  const homeAirport = useTripStore((s) => s.homeAirport);
+  const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
+  const homeAirport = travelerPreferences.data?.homeAirport ?? "";
   const travelers = useTripStore((s) => s.travelers) || 1;
   const dateStart = useTripStore((s) => s.dateStart);
 
   const { route, flightOptions, flightLegs } = itinerary;
-  const homeIata = extractIata(homeAirport);
+  const homeIata = extractHomeAirportIata(homeAirport);
 
   const isAuthenticated = useAuthStatus();
   const { data: bookingClicks } = useBookingClicks(tripId, { enabled: isAuthenticated === true });

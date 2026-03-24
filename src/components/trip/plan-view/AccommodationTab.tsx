@@ -14,7 +14,11 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import { getAccommodationQueryKey, fetchAccommodationEnrichment } from "@/hooks/api";
+import {
+  getAccommodationQueryKey,
+  fetchAccommodationEnrichment,
+  useTravelerPreferences,
+} from "@/hooks/api";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
 import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
@@ -235,7 +239,8 @@ export function AccommodationTab({ itinerary, tripId }: AccommodationTabProps) {
 
   const dateStart = useTripStore((s) => s.dateStart);
   const travelers = useTripStore((s) => s.travelers) || 1;
-  const travelStyle = useTripStore((s) => s.travelStyle) || "smart-budget";
+  const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
+  const travelStyle = travelerPreferences.data?.travelStyle ?? "smart-budget";
   const setItinerary = useTripStore((s) => s.setItinerary);
   const queryClient = useQueryClient();
 

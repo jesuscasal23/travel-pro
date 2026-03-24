@@ -3,15 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Camera,
   Check,
   ChevronRight,
-  Clock,
   CreditCard,
   Download,
   FileText,
   Headphones,
-  Leaf,
   Loader2,
   LogOut,
   Pencil,
@@ -20,7 +17,6 @@ import {
   Shield,
   SlidersHorizontal,
   Trash2,
-  UtensilsCrossed,
 } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { InterestSelector } from "@/components/profile/InterestSelector";
@@ -33,14 +29,19 @@ import {
   useAuthStatus,
   useDeleteAccount,
   useExportData,
-  useProfile,
   useSaveProfile,
+  useTravelerPreferences,
 } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
-import { useProfileState } from "@/hooks/useProfileState";
 import { createClient } from "@/lib/core/supabase-client";
 import { travelStyles } from "@/data/travelStyles";
-import { hasInterest, normalizeInterests } from "@/lib/features/profile/interests";
+import { hasInterest } from "@/lib/features/profile/interests";
+import {
+  DEFAULT_TRAVELER_PREFERENCES,
+  toTravelerPreferences,
+  toggleTravelerPreferenceInterest,
+  type TravelerPreferences,
+} from "@/lib/features/profile/traveler-preferences";
 
 const menuItems = [
   { icon: FileText, label: "Travel Documents" },
@@ -52,31 +53,21 @@ const menuItems = [
 export default function ProfilePage() {
   const router = useRouter();
   const isAuth = useAuthStatus();
-  const { data: persistedProfile, isLoading: isProfileLoading } = useProfile({
-    enabled: isAuth === true,
-  });
+  const travelerPreferencesQuery = useTravelerPreferences({ includeTransientFallback: true });
+  const persistedProfile = travelerPreferencesQuery.hasServerProfile
+    ? travelerPreferencesQuery.data
+    : null;
+  const isProfileLoading = isAuth === true ? travelerPreferencesQuery.isLoading : false;
   const saveProfileMutation = useSaveProfile();
   const exportDataMutation = useExportData();
   const deleteAccountMutation = useDeleteAccount();
-
-  const {
-    nationality,
-    setNationality,
-    homeAirport,
-    setHomeAirport,
-    travelStyle,
-    setTravelStyle,
-    interests,
-    toggleInterest,
-    pace,
-    setPace,
-  } = useProfileState();
 
   const [displayName, setDisplayName] = useState("Traveler");
   const [email, setEmail] = useState("");
   const [profileEditorOverride, setProfileEditorOverride] = useState<boolean | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [draftState, setDraftState] = useState<TravelerPreferences | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -101,49 +92,63 @@ export default function ProfilePage() {
     }
   }, [isAuth]);
 
-  useEffect(() => {
-    if (!persistedProfile) return;
-
-    useTripStore.setState({
-      nationality: persistedProfile.nationality,
-      homeAirport: persistedProfile.homeAirport,
-      travelStyle: persistedProfile.travelStyle,
-      interests: normalizeInterests(persistedProfile.interests),
-      pace: persistedProfile.pace ?? "moderate",
-    });
-  }, [persistedProfile]);
-
   const defaultIsEditingProfile = isAuth === true && !isProfileLoading && persistedProfile === null;
   const isEditingProfile = profileEditorOverride ?? defaultIsEditingProfile;
+  const formState = draftState ?? travelerPreferencesQuery.data ?? DEFAULT_TRAVELER_PREFERENCES;
+
+  const syncGuestPreferences = (next: TravelerPreferences) => {
+    if (isAuth === true) return;
+
+    useTripStore.setState({
+      nationality: next.nationality,
+      homeAirport: next.homeAirport,
+      travelStyle: next.travelStyle,
+      interests: next.interests,
+      pace: next.pace,
+    });
+  };
+
+  const updateFormState = (patch: Partial<TravelerPreferences>) => {
+    setDraftState((currentDraft) => {
+      const current = currentDraft ?? formState;
+      const next = toTravelerPreferences({ ...current, ...patch });
+      syncGuestPreferences(next);
+      return next;
+    });
+  };
 
   const styleLabel =
-    travelStyles.find((style) => style.id === travelStyle)?.label ?? "Smart Budget";
+    travelStyles.find((style) => style.id === formState.travelStyle)?.label ?? "Smart Budget";
 
   const tags: string[] = [];
   tags.push(styleLabel);
-  if (pace === "active") tags.push("Fast Explorer");
-  else if (pace === "relaxed") tags.push("Slow Traveler");
+  if (formState.pace === "active") tags.push("Fast Explorer");
+  else if (formState.pace === "relaxed") tags.push("Slow Traveler");
   else tags.push("Balanced Pace");
-  if (hasInterest(interests, "food")) tags.push("Foodie");
-  if (hasInterest(interests, "photography")) tags.push("Photography");
-  if (hasInterest(interests, "nature")) tags.push("Nature Lover");
+  if (hasInterest(formState.interests, "food")) tags.push("Foodie");
+  if (hasInterest(formState.interests, "photography")) tags.push("Photography");
+  if (hasInterest(formState.interests, "nature")) tags.push("Nature Lover");
 
   // Extract airport display info
-  const airportCode = homeAirport?.match(/^[A-Z]{3}/)?.[0] ?? "";
-  const airportName = homeAirport
-    ? homeAirport.replace(/^[A-Z]{3}\s*-\s*/, "").replace(/\s*\(.*\)$/, "")
+  const airportCode = formState.homeAirport?.match(/^[A-Z]{3}/)?.[0] ?? "";
+  const airportName = formState.homeAirport
+    ? formState.homeAirport.replace(/^[A-Z]{3}\s*-\s*/, "").replace(/\s*\(.*\)$/, "")
     : "";
 
   async function handleSaveProfile() {
     try {
-      await saveProfileMutation.mutateAsync({
-        nationality,
-        homeAirport,
-        travelStyle,
-        interests,
-        pace,
+      const response = await saveProfileMutation.mutateAsync({
+        nationality: formState.nationality,
+        homeAirport: formState.homeAirport,
+        travelStyle: formState.travelStyle,
+        interests: formState.interests,
+        pace: formState.pace,
         onboardingCompleted: true,
       });
+      const next = toTravelerPreferences(
+        response.profile ?? { ...formState, onboardingCompleted: true }
+      );
+      setDraftState(next);
       setFeedback("Travel profile saved.");
       setProfileEditorOverride(false);
     } catch (error) {
@@ -264,7 +269,7 @@ export default function ProfilePage() {
                     Nationality
                   </p>
                   <p className="text-foreground text-sm font-semibold">
-                    {nationality || "Not set"}
+                    {formState.nationality || "Not set"}
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -285,13 +290,13 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <p className="text-foreground text-sm font-bold">
-                      {homeAirport
+                      {formState.homeAirport
                         ? `${airportCode}${airportName ? ` - ${airportName}` : ""}`
                         : "Not set"}
                     </p>
-                    {homeAirport && (
+                    {formState.homeAirport && (
                       <p className="text-dim text-[11px]">
-                        {homeAirport.match(/\(([^)]+)\)/)?.[1] ?? ""}
+                        {formState.homeAirport.match(/\(([^)]+)\)/)?.[1] ?? ""}
                       </p>
                     )}
                   </div>
@@ -303,14 +308,14 @@ export default function ProfilePage() {
           {isEditingProfile && (
             <div className="border-edge/10 space-y-5 rounded-xl border bg-white p-5 shadow-[0_4px_12px_rgba(44,47,49,0.03)]">
               <ProfileBasicsFields
-                nationality={nationality}
-                homeAirport={homeAirport}
+                nationality={formState.nationality}
+                homeAirport={formState.homeAirport}
                 onNationalityChange={(value) => {
-                  setNationality(value);
+                  updateFormState({ nationality: value });
                   setFeedback(null);
                 }}
                 onHomeAirportChange={(value) => {
-                  setHomeAirport(value);
+                  updateFormState({ homeAirport: value });
                   setFeedback(null);
                 }}
               />
@@ -320,9 +325,9 @@ export default function ProfilePage() {
                   Travel Style
                 </p>
                 <TravelStyleSelector
-                  value={travelStyle}
+                  value={formState.travelStyle}
                   onChange={(value) => {
-                    setTravelStyle(value);
+                    updateFormState({ travelStyle: value });
                     setFeedback(null);
                   }}
                 />
@@ -333,9 +338,9 @@ export default function ProfilePage() {
                   Trip Pace
                 </p>
                 <PaceSelector
-                  value={pace}
+                  value={formState.pace}
                   onChange={(value) => {
-                    setPace(value);
+                    updateFormState({ pace: value });
                     setFeedback(null);
                   }}
                 />
@@ -346,9 +351,17 @@ export default function ProfilePage() {
                   Interests
                 </p>
                 <InterestSelector
-                  selected={interests}
+                  selected={formState.interests}
                   onToggle={(value) => {
-                    toggleInterest(value);
+                    setDraftState((currentDraft) => {
+                      const current = currentDraft ?? formState;
+                      const next = toTravelerPreferences({
+                        ...current,
+                        interests: toggleTravelerPreferenceInterest(current.interests, value),
+                      });
+                      syncGuestPreferences(next);
+                      return next;
+                    });
                     setFeedback(null);
                   }}
                 />
@@ -359,8 +372,8 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleSaveProfile}
                   disabled={
-                    !nationality ||
-                    !homeAirport ||
+                    !formState.nationality ||
+                    !formState.homeAirport ||
                     saveProfileMutation.isPending ||
                     isProfileLoading
                   }

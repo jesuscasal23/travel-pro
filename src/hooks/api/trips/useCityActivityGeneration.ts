@@ -8,7 +8,7 @@ interface GenerateCityActivitiesParams {
   tripId: string;
   cityId: string;
   cityName: string;
-  profile: {
+  profile?: {
     nationality: string;
     homeAirport: string;
     travelStyle: string;
@@ -30,7 +30,10 @@ export function useCityActivityGeneration() {
         {
           source: "useCityActivityGeneration",
           method: "POST",
-          body: { profile, cityId },
+          body: {
+            cityId,
+            ...(profile ? { profile } : {}),
+          },
           fallbackMessage: "Activity generation failed",
         }
       );

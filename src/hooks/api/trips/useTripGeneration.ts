@@ -9,7 +9,7 @@ import { fetchTrip } from "./shared";
 
 interface GenerateParams {
   tripId: string;
-  profile: {
+  profile?: {
     nationality: string;
     homeAirport: string;
     travelStyle: string;
@@ -47,8 +47,8 @@ export function useTripGeneration() {
         source: "useTripGeneration",
         method: "POST",
         body: {
-          profile,
           promptVersion,
+          ...(profile ? { profile } : {}),
           ...(cities ? { cities } : {}),
         },
         fallbackMessage: "Generation failed",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/core/prisma";
+import { requirePageAuth } from "@/lib/auth/require-page-auth";
 import { parseItineraryData, getTripTitle } from "@/lib/utils/trip/trip-metadata";
 import { TripClientProvider } from "@/components/trip/TripClientProvider";
 
@@ -82,6 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TripDetailsLayout({ params, children }: Props) {
   const { id } = await params;
+  await requirePageAuth(`/trips/${id}`);
 
   return <TripClientProvider tripId={id}>{children}</TripClientProvider>;
 }

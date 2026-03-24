@@ -5,6 +5,7 @@
 import { apiHandler, assertTripAccess, parseAndValidateRequest } from "@/lib/api/helpers";
 import { GenerateTripInputSchema } from "@/lib/features/generation/schemas";
 import { createTripGenerationStreamResponse } from "@/lib/features/generation/trip-generation-service";
+import { resolveTripUserProfile } from "@/lib/features/profile/profile-service";
 import { loadTripContext } from "@/lib/features/trips/trip-query-service";
 import { createLogger } from "@/lib/core/logger";
 
@@ -20,13 +21,18 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
     hasUserAgent: !!req.headers.get("user-agent"),
   });
 
-  await assertTripAccess(req, params.id, { requireTripOwner: true });
+  const tripAccess = await assertTripAccess(req, params.id, { requireTripOwner: true });
+  if (!tripAccess) {
+    throw new Error("Trip access unexpectedly missing for generation request");
+  }
   log.info("Trip access verified", { tripId: params.id, elapsed: `${Date.now() - t0}ms` });
 
-  const { profile, promptVersion, cities } = await parseAndValidateRequest(
-    req,
-    GenerateTripInputSchema
-  );
+  const {
+    profile: requestProfile,
+    promptVersion,
+    cities,
+  } = await parseAndValidateRequest(req, GenerateTripInputSchema);
+  const profile = await resolveTripUserProfile(tripAccess.profileId, requestProfile);
   log.info("Request body validated", {
     tripId: params.id,
     promptVersion,

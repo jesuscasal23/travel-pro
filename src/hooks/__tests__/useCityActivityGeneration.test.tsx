@@ -69,6 +69,10 @@ const mutationParams = {
   tripId: "trip-1",
   cityId: "tokyo",
   cityName: "Tokyo",
+};
+
+const guestMutationParams = {
+  ...mutationParams,
   profile: {
     nationality: "German",
     homeAirport: "FRA",
@@ -144,9 +148,35 @@ describe("useCityActivityGeneration", () => {
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cityId: "tokyo" }),
+      })
+    );
+  });
+
+  it("includes profile in the request when provided", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ itinerary: mergedItinerary }),
+    });
+
+    const { result } = renderHook(() => useCityActivityGeneration(), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.mutate(guestMutationParams);
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/v1/trips/trip-1/generate-activities",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          profile: mutationParams.profile,
           cityId: "tokyo",
+          profile: guestMutationParams.profile,
         }),
       })
     );

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import type { Itinerary } from "@/types";
 import { ServiceMisconfiguredError } from "@/lib/api/errors";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 const mocks = vi.hoisted(() => ({
   generateRouteOnly: vi.fn(),
@@ -97,7 +98,27 @@ describe("POST /api/v1/trips/:id/generate", () => {
     vi.clearAllMocks();
 
     mockAuth.mockResolvedValue("user-1");
-    mockPrisma.profile.findUnique.mockResolvedValue({ id: "profile-1", userId: "user-1" });
+    mockPrisma.profile.findUnique.mockImplementation(async ({ where }) => {
+      if ("userId" in where) {
+        return { id: "profile-1", userId: "user-1" };
+      }
+
+      if ("id" in where) {
+        return {
+          id: "profile-1",
+          userId: "user-1",
+          nationality: "German",
+          homeAirport: "FRA",
+          travelStyle: "smart-budget",
+          interests: ["food"],
+          activityLevel: "moderate",
+          onboardingCompleted: true,
+          languagesSpoken: [],
+        };
+      }
+
+      return null;
+    });
     mockPrisma.trip.findUnique.mockResolvedValue({
       id: "trip-1",
       profileId: "profile-1",
@@ -126,14 +147,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
     const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        profile: {
-          nationality: "German",
-          homeAirport: "FRA",
-          travelStyle: "smart-budget",
-          interests: ["food"],
-        },
-      }),
+      body: JSON.stringify({}),
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
@@ -149,10 +163,10 @@ describe("POST /api/v1/trips/:id/generate", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         profile: {
-          nationality: "German",
-          homeAirport: "FRA",
-          travelStyle: "smart-budget",
-          interests: ["food"],
+          nationality: "French",
+          homeAirport: "CDG",
+          travelStyle: "luxury",
+          interests: ["nightlife"],
         },
       }),
     });
@@ -168,6 +182,70 @@ describe("POST /api/v1/trips/:id/generate", () => {
       promptVersion: "v1",
     });
     expect(mocks.activateGeneratedItinerary).toHaveBeenCalled();
+    expect(mocks.generateRouteOnly).toHaveBeenCalledWith(
+      {
+        nationality: "German",
+        homeAirport: "FRA",
+        travelStyle: "smart-budget",
+        interests: ["food"],
+        pace: "moderate",
+      },
+      expect.any(Object),
+      undefined,
+      expect.any(Object)
+    );
+  });
+
+  it("falls back to client profile for guest-owned trips", async () => {
+    const ownerCookie = createGuestTripOwnerCookie("trip-1");
+    mockAuth.mockResolvedValue(null);
+    mockPrisma.trip.findUnique.mockResolvedValue({
+      id: "trip-1",
+      profileId: null,
+      tripType: "multi-city",
+      region: "europe",
+      destination: null,
+      destinationCountry: null,
+      destinationCountryCode: null,
+      dateStart: "2026-06-01",
+      dateEnd: "2026-06-10",
+      flexibleDates: false,
+      travelers: 2,
+      description: null,
+    });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: `${ownerCookie.name}=${ownerCookie.value}`,
+      },
+      body: JSON.stringify({
+        profile: {
+          nationality: "Spanish",
+          homeAirport: "MAD",
+          travelStyle: "comfort-explorer",
+          interests: ["food"],
+        },
+      }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
+    const body = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(body).toContain('"stage":"done"');
+    expect(mocks.generateRouteOnly).toHaveBeenCalledWith(
+      {
+        nationality: "Spanish",
+        homeAirport: "MAD",
+        travelStyle: "comfort-explorer",
+        interests: ["food"],
+      },
+      expect.any(Object),
+      undefined,
+      expect.any(Object)
+    );
   });
 
   it("returns 409 when a generation is already running for the trip", async () => {
@@ -204,15 +282,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
     const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        profile: {
-          nationality: "German",
-          homeAirport: "FRA",
-          travelStyle: "smart-budget",
-          interests: ["food"],
-        },
-        promptVersion: "v2",
-      }),
+      body: JSON.stringify({ promptVersion: "v2" }),
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
@@ -231,14 +301,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
     const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        profile: {
-          nationality: "German",
-          homeAirport: "FRA",
-          travelStyle: "smart-budget",
-          interests: ["food"],
-        },
-      }),
+      body: JSON.stringify({}),
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
@@ -256,14 +319,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
     const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        profile: {
-          nationality: "German",
-          homeAirport: "FRA",
-          travelStyle: "smart-budget",
-          interests: ["food"],
-        },
-      }),
+      body: JSON.stringify({}),
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });

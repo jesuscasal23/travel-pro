@@ -2,9 +2,14 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { prisma } from "@/lib/core/prisma";
 import { getSupabaseAdminEnv } from "@/lib/config/server-env";
-import { ProfileNotFoundError } from "@/lib/api/errors";
+import { BadRequestError, ProfileNotFoundError } from "@/lib/api/errors";
 import { normalizeInterests } from "@/lib/features/profile/interests";
 import { resolvePaceInput } from "@/lib/features/profile/pace";
+import {
+  toTravelerPreferences,
+  toTravelerProfile,
+} from "@/lib/features/profile/traveler-preferences";
+import type { UserProfile } from "@/types";
 import { z } from "zod";
 import { PROFILE_EXPORT_INCLUDE } from "./query-shapes";
 import { ProfilePatchInputSchema } from "./schemas";
@@ -21,6 +26,10 @@ export async function getProfileByUserId(userId: string) {
 
 export async function findProfileByUserId(userId: string) {
   return prisma.profile.findUnique({ where: { userId } });
+}
+
+export async function findProfileById(profileId: string) {
+  return prisma.profile.findUnique({ where: { id: profileId } });
 }
 
 export async function saveProfile(userId: string, data: ProfilePatchInput) {
@@ -102,4 +111,33 @@ export async function exportProfileData(userId: string) {
   }
 
   return profile;
+}
+
+export async function resolveTripUserProfile(
+  tripProfileId: string | null,
+  fallbackProfile?: UserProfile
+): Promise<UserProfile> {
+  if (!tripProfileId) {
+    if (!fallbackProfile) {
+      throw new BadRequestError("Guest trip generation requires profile details");
+    }
+    return fallbackProfile;
+  }
+
+  const profile = await findProfileById(tripProfileId);
+  if (!profile) {
+    throw new ProfileNotFoundError({ profileId: tripProfileId });
+  }
+
+  return toTravelerProfile(
+    toTravelerPreferences({
+      nationality: profile.nationality,
+      homeAirport: profile.homeAirport,
+      travelStyle: profile.travelStyle as UserProfile["travelStyle"],
+      interests: profile.interests,
+      activityLevel: profile.activityLevel,
+      onboardingCompleted: profile.onboardingCompleted,
+      languagesSpoken: profile.languagesSpoken,
+    })
+  );
 }

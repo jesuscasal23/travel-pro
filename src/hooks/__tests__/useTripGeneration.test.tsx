@@ -51,13 +51,17 @@ function makeSseResponse(lines: string[]): Response {
 
 const baseParams = {
   tripId: "trip-1",
+  promptVersion: "v1" as const,
+};
+
+const guestParams = {
+  ...baseParams,
   profile: {
     nationality: "German",
     homeAirport: "FRA",
     travelStyle: "smart-budget",
     interests: ["culture", "food"],
   },
-  promptVersion: "v1" as const,
 };
 
 describe("useTripGeneration", () => {
@@ -105,11 +109,51 @@ describe("useTripGeneration", () => {
     expect(global.fetch).toHaveBeenNthCalledWith(
       1,
       "/api/v1/trips/trip-1/generate",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ promptVersion: "v1" }),
+      })
     );
     expect(global.fetch).toHaveBeenNthCalledWith(2, "/api/v1/trips/trip-1", expect.any(Object));
     expect(mockParseItineraryData).toHaveBeenCalledWith({ route: [], days: [] });
     expect(output).toEqual({ route: [], days: [] });
+  });
+
+  it("includes profile in the request body when provided", async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(makeSseResponse(['data: {"stage":"done","trip_id":"trip-1"}\n\n']))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            trip: { itineraries: [{ data: { route: [], days: [] } }] },
+          }),
+      });
+
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const { result } = renderHook(() => useTripGeneration(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync(guestParams);
+    });
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/trips/trip-1/generate",
+      expect.objectContaining({
+        method: "POST",
+      })
+    );
+    const firstCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(JSON.parse(firstCall[1].body as string)).toEqual({
+      promptVersion: "v1",
+      profile: guestParams.profile,
+    });
   });
 
   it("throws when SSE emits an error stage", async () => {
