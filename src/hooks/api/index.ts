@@ -13,7 +13,6 @@ export { useRecordActivitySwipe } from "./trips/useRecordActivitySwipe";
 export type { TripDetail } from "./trips/shared";
 
 // Route Selection
-export { usePrefetchRouteSelection } from "./route-selection/usePrefetchRouteSelection";
 export { useFetchRouteSelection } from "./route-selection/useFetchRouteSelection";
 export { buildCacheKey } from "./route-selection/shared";
 

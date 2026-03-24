@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { queryKeys } from "@/hooks/api/keys";
-import { usePrefetchRouteSelection, useFetchRouteSelection, buildCacheKey } from "@/hooks/api";
+import { useFetchRouteSelection, buildCacheKey } from "@/hooks/api";
 
 const originalFetch = global.fetch;
 
@@ -109,38 +108,6 @@ describe("useRouteSelection hooks", () => {
     });
 
     expect(output).toBeNull();
-  });
-
-  it("prefetch populates cache and subsequent fetch uses cached result", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ cities }),
-    });
-
-    const queryClient = new QueryClient();
-    const cacheKey = "prefetch-key";
-
-    const prefetchHook = renderHook(() => usePrefetchRouteSelection(), {
-      wrapper: createWrapper(queryClient),
-    });
-    const fetchHook = renderHook(() => useFetchRouteSelection(), {
-      wrapper: createWrapper(queryClient),
-    });
-
-    act(() => {
-      prefetchHook.result.current(params, cacheKey);
-    });
-
-    await waitFor(() => {
-      expect(queryClient.getQueryData(queryKeys.routeSelection.byParams(cacheKey))).toEqual(cities);
-    });
-
-    await act(async () => {
-      const output = await fetchHook.result.current(params, cacheKey);
-      expect(output).toEqual(cities);
-    });
-
-    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   it("buildCacheKey changes when query inputs change", () => {

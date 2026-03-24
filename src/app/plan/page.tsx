@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/Button";
 import {
   useAuthStatus,
   useProfile,
-  usePrefetchRouteSelection,
   useFetchRouteSelection,
   buildCacheKey,
   useCreateTrip,
@@ -63,7 +62,6 @@ export default function PlanPage() {
     setItinerary,
   } = useTripStore();
 
-  const prefetchRoute = usePrefetchRouteSelection();
   const fetchRoute = useFetchRouteSelection();
   const createTripMutation = useCreateTrip();
   const saveProfileMutation = useSaveProfile();
@@ -90,7 +88,7 @@ export default function PlanPage() {
 
   useEffect(() => {
     if (hydratedProfileRef.current || !persistedProfile) return;
-    if (nationality || homeAirport) return;
+    if (!persistedProfile.nationality || !persistedProfile.homeAirport) return;
 
     useTripStore.setState({
       nationality: persistedProfile.nationality,
@@ -100,7 +98,7 @@ export default function PlanPage() {
       pace: persistedProfile.pace ?? "moderate",
     });
     hydratedProfileRef.current = true;
-  }, [persistedProfile, nationality, homeAirport]);
+  }, [persistedProfile]);
 
   // Clamp persisted planStep to valid range
   const step = Math.min(Math.max(planStep, 1), totalSteps);
@@ -112,53 +110,6 @@ export default function PlanPage() {
   const showOverview = needsProfileStep ? step === 4 : step === 3;
   const isFinalStep = step === totalSteps;
   const progress = Math.round((step / totalSteps) * 100);
-
-  // Speculative route selection: prefetch when user reaches destination step.
-  useEffect(() => {
-    if (isSingleCity || !dateStart || !dateEnd) return;
-    if (step < 1) return;
-    if (isSingleCountry && !destinationCountry) return;
-    if (isMultiCountry && !region) return;
-
-    const params = {
-      profile: {
-        nationality: effectiveNationality,
-        homeAirport: effectiveHomeAirport,
-        travelStyle,
-        interests,
-        pace,
-      },
-      tripIntent: {
-        id: "speculative",
-        tripType,
-        region,
-        destinationCountry,
-        destinationCountryCode,
-        dateStart,
-        dateEnd,
-        travelers,
-      },
-    };
-    const cacheKey = buildCacheKey(params);
-    prefetchRoute(params, cacheKey);
-  }, [
-    step,
-    isSingleCity,
-    isSingleCountry,
-    isMultiCountry,
-    region,
-    destinationCountry,
-    destinationCountryCode,
-    dateStart,
-    dateEnd,
-    travelers,
-    effectiveNationality,
-    effectiveHomeAirport,
-    travelStyle,
-    interests,
-    pace,
-    tripType,
-  ]);
 
   const dayCount = dateStart && dateEnd ? Math.max(0, daysBetween(dateStart, dateEnd)) : 0;
 
