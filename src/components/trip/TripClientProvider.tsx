@@ -1,22 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import {
-  useTripGeneration,
-  useCityActivityGeneration,
   useVisaEnrichment,
   useWeatherEnrichment,
   useAccommodationEnrichment,
   useAuthStatus,
   useTravelerPreferences,
   useTrip,
+  useDiscoverActivities,
+  useRecordActivitySwipe,
 } from "@/hooks/api";
 import { useShallow } from "zustand/shallow";
 import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
-import type { Itinerary } from "@/types";
+import {
+  DISCOVERY_TOTAL_CARDS,
+  DISCOVERY_TOTAL_BATCHES,
+  advanceDiscoveryCursor,
+  appendDiscoveryBatch,
+  createDiscoveryQueueState,
+  getOrderedDiscoveryCards,
+} from "@/lib/features/trips/discovery-queue";
+import type { DiscoveryStatus, Itinerary } from "@/types";
 
 interface TripClientProviderProps {
   tripId: string;
@@ -49,21 +57,21 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       travelers: s.travelers,
     }))
   );
+
   const route = itinerary?.route ?? [];
   const days = itinerary?.days ?? [];
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
+
   const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
   const nationality = travelerPreferences.data?.nationality ?? "";
   const homeAirport = travelerPreferences.data?.homeAirport ?? "";
   const travelStyle = travelerPreferences.data?.travelStyle ?? "smart-budget";
   const interests = travelerPreferences.data?.interests ?? [];
-  const transientGenerationProfile =
+  const transientProfile =
     nationality && homeAirport ? { nationality, homeAirport, travelStyle, interests } : null;
-  const requestProfile =
-    travelerPreferences.source === "server" ? undefined : transientGenerationProfile;
-  const canAutoGenerateFromProfile =
-    travelerPreferences.source === "server" || requestProfile !== null;
+  const requestProfile = travelerPreferences.source === "server" ? undefined : transientProfile;
+  const hasDiscoveryProfile = travelerPreferences.source === "server" || requestProfile !== null;
 
   const [storeReady, setStoreReady] = useState(false);
   useEffect(() => {
@@ -109,13 +117,11 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       setItinerary(dbItinerary);
     }
 
-    // Sync trip-level dates so enrichment hooks (accommodation, weather) can use them
-    const trip = tripQuery.data;
-    if (trip?.dateStart && !useTripStore.getState().dateStart) {
-      setDateStart(trip.dateStart);
+    if (tripQuery.data?.dateStart && !useTripStore.getState().dateStart) {
+      setDateStart(tripQuery.data.dateStart);
     }
-    if (trip?.dateEnd && !useTripStore.getState().dateEnd) {
-      setDateEnd(trip.dateEnd);
+    if (tripQuery.data?.dateEnd && !useTripStore.getState().dateEnd) {
+      setDateEnd(tripQuery.data.dateEnd);
     }
   }, [
     tripId,
@@ -129,6 +135,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   ]);
 
   const tripServerItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
+  const tripServerDiscoveryStatus = (tripQuery.data?.itineraries?.[0]?.discoveryStatus ??
+    "completed") as DiscoveryStatus;
   const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
   const tripHydrationPending =
     tripId !== "guest" && Boolean(tripServerItinerary) && (currentTripId !== tripId || !itinerary);
@@ -137,110 +145,103 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const tripLoadFailedWithoutLocal =
     tripId !== "guest" && tripQuery.isError && (!itinerary || currentTripId !== tripId);
 
-  const isPartialItinerary = !!(itinerary && itinerary.days.length === 0 && tripId !== "guest");
-  const generateMutation = useTripGeneration();
-  const genFiredRef = useRef(false);
-  const genAttemptsRef = useRef(0);
+  const discoverActivitiesMutation = useDiscoverActivities();
+  const recordActivitySwipeMutation = useRecordActivitySwipe();
+  const [queueState, setQueueState] = useState(createDiscoveryQueueState);
+  const [nextBatchIndex, setNextBatchIndex] = useState(0);
+  const [discoveryBatchesDone, setDiscoveryBatchesDone] = useState(false);
+  const [discoveryError, setDiscoveryError] = useState<string | null>(null);
+  const [discoveryStatusOverride, setDiscoveryStatusOverride] = useState<DiscoveryStatus | null>(
+    null
+  );
+
+  const discoveryCards = useMemo(() => getOrderedDiscoveryCards(queueState), [queueState]);
+  const discoveryStatus = discoveryStatusOverride ?? tripServerDiscoveryStatus;
+  const discoveryCity = itinerary?.route?.[0];
+  const discoveryBatchLoading = discoverActivitiesMutation.isPending;
+  const shouldRunDiscovery =
+    tripId !== "guest" &&
+    !!itinerary &&
+    itinerary.days.length === 0 &&
+    itinerary.route.length > 0 &&
+    (discoveryStatus === "pending" || discoveryStatus === "in_progress");
 
   useEffect(() => {
     if (
-      !isPartialItinerary ||
-      tripSyncPending ||
-      genFiredRef.current ||
-      !itinerary ||
-      !canAutoGenerateFromProfile
+      !shouldRunDiscovery ||
+      discoveryBatchesDone ||
+      discoveryBatchLoading ||
+      nextBatchIndex >= DISCOVERY_TOTAL_BATCHES ||
+      !discoveryCity ||
+      !hasDiscoveryProfile
     ) {
       return;
     }
-    if (genAttemptsRef.current >= 2) return; // Max 2 auto-retries
-    genFiredRef.current = true;
-    genAttemptsRef.current += 1;
 
-    const cities =
-      itinerary.route.length > 0
-        ? itinerary.route.map((r) => ({
-            id: r.id,
-            city: r.city,
-            country: r.country,
-            countryCode: r.countryCode,
-            iataCode: r.iataCode ?? "",
-            lat: r.lat,
-            lng: r.lng,
-            minDays: r.days,
-            maxDays: r.days,
-          }))
-        : undefined;
+    let cancelled = false;
 
-    generateMutation.mutate(
-      { tripId, profile: requestProfile ?? undefined, promptVersion: "v1", cities },
-      {
-        onSuccess: (result) => {
-          if (result) setItinerary(result);
-        },
-        onError: () => {
-          genFiredRef.current = false;
-        },
-      }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPartialItinerary, tripSyncPending, tripId, canAutoGenerateFromProfile, requestProfile]);
-
-  const cityActivityMutation = useCityActivityGeneration();
-  const [generatingCityId, setGeneratingCityId] = useState<string | null>(null);
-  const [cityActivityErrors, setCityActivityErrors] = useState<Record<string, string>>({});
-  const cityGenFiredRef = useRef<Set<string>>(new Set());
-
-  // Auto-trigger activity generation for cities missing activities
-  useEffect(() => {
-    if (
-      !itinerary ||
-      itinerary.days.length === 0 ||
-      itinerary.route.length === 0 ||
-      !canAutoGenerateFromProfile
-    ) {
-      return;
-    }
-    if (generatingCityId) return; // One at a time
-
-    const cityMissingActivities = itinerary.route.find((stop) => {
-      if (cityGenFiredRef.current.has(stop.id)) return false;
-      if (cityActivityErrors[stop.id]) return false;
-      const hasActs = itinerary.days.some((d) => d.city === stop.city && d.activities.length > 0);
-      return !hasActs;
-    });
-
-    if (cityMissingActivities) {
-      cityGenFiredRef.current.add(cityMissingActivities.id);
-      // Defer to avoid calling setState during render
-      queueMicrotask(() => {
-        handleGenerateActivities(cityMissingActivities.id, cityMissingActivities.city);
+    discoverActivitiesMutation
+      .mutateAsync({
+        tripId,
+        cityId: discoveryCity.id,
+        batchIndex: nextBatchIndex,
+        profile: requestProfile ?? undefined,
+      })
+      .then((activities) => {
+        if (cancelled) return;
+        setDiscoveryError(null);
+        setDiscoveryStatusOverride("in_progress");
+        setQueueState((prev) => appendDiscoveryBatch(prev, nextBatchIndex, activities));
+        const next = nextBatchIndex + 1;
+        setNextBatchIndex(next);
+        if (next >= DISCOVERY_TOTAL_BATCHES) {
+          setDiscoveryBatchesDone(true);
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setDiscoveryError(
+          error instanceof Error ? error.message : "Could not load activity recommendations"
+        );
+        setDiscoveryBatchesDone(true);
       });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itinerary, generatingCityId, cityActivityErrors]);
 
-  const handleGenerateActivities = (cityId: string, cityName: string) => {
-    setGeneratingCityId(cityId);
-    setCityActivityErrors((prev) => {
-      const next = { ...prev };
-      delete next[cityId];
-      return next;
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    shouldRunDiscovery,
+    discoveryBatchesDone,
+    discoveryBatchLoading,
+    nextBatchIndex,
+    discoveryCity,
+    hasDiscoveryProfile,
+    discoverActivitiesMutation,
+    tripId,
+    requestProfile,
+  ]);
+
+  const handleDiscoverySwipe = (decision: "liked" | "disliked") => {
+    const card = discoveryCards[queueState.cursor];
+    if (!card || !discoveryCity) return;
+
+    const nextCursor = queueState.cursor + 1;
+    const isFinalSwipe =
+      nextCursor >= DISCOVERY_TOTAL_CARDS ||
+      (discoveryBatchesDone && nextCursor >= discoveryCards.length);
+
+    setQueueState((prev) => advanceDiscoveryCursor(prev));
+    if (isFinalSwipe) {
+      setDiscoveryStatusOverride("completed");
+    }
+
+    recordActivitySwipeMutation.mutate({
+      tripId,
+      destination: discoveryCity.city,
+      activity: card,
+      decision,
+      isFinal: isFinalSwipe,
     });
-    cityActivityMutation.mutate(
-      { tripId, cityId, cityName, profile: requestProfile ?? undefined },
-      {
-        onSuccess: (mergedItinerary) => {
-          setItinerary(mergedItinerary);
-        },
-        onError: (error) => {
-          setCityActivityErrors((prev) => ({
-            ...prev,
-            [cityId]: error instanceof Error ? error.message : "Activity generation failed",
-          }));
-        },
-        onSettled: () => setGeneratingCityId(null),
-      }
-    );
   };
 
   const shouldEnrich = !!(
@@ -321,52 +322,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const singleCity = route.length === 1;
   const tripTitle = singleCity ? `${route[0].city}, ${route[0].country}` : countries.join(", ");
   const totalDays = days.length || route.reduce((sum, r) => sum + r.days, 0);
-  const generationError = generateMutation.error?.message ?? null;
-  const isGenerating = isPartialItinerary && !generationError;
-
-  const handleRegenerate = () => {
-    setNeedsRegeneration(false);
-    genFiredRef.current = false;
-    generateMutation.reset();
-    setItinerary({
-      ...itinerary,
-      days: [],
-      visaData: undefined,
-      weatherData: undefined,
-      accommodationData: undefined,
-    });
-  };
-
-  const handleRetry = () => {
-    genFiredRef.current = false;
-    generateMutation.reset();
-    const cities =
-      itinerary.route.length > 0
-        ? itinerary.route.map((r) => ({
-            id: r.id,
-            city: r.city,
-            country: r.country,
-            countryCode: r.countryCode,
-            iataCode: r.iataCode ?? "",
-            lat: r.lat,
-            lng: r.lng,
-            minDays: r.days,
-            maxDays: r.days,
-          }))
-        : undefined;
-
-    generateMutation.mutate(
-      { tripId, profile: requestProfile ?? undefined, promptVersion: "v1", cities },
-      {
-        onSuccess: (result) => {
-          if (result) setItinerary(result);
-        },
-        onError: () => {
-          genFiredRef.current = false;
-        },
-      }
-    );
-  };
 
   const contextValue: TripContextValue = {
     itinerary,
@@ -375,12 +330,12 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     totalDays,
     countries,
     isAuthenticated,
-    isPartialItinerary,
-    isGenerating,
-    generationError,
+    isPartialItinerary: false,
+    isGenerating: false,
+    generationError: null,
     needsRegeneration,
-    onRetry: handleRetry,
-    onRegenerate: handleRegenerate,
+    onRetry: () => undefined,
+    onRegenerate: () => setNeedsRegeneration(false),
     onDismissRegeneration: () => setNeedsRegeneration(false),
     visaLoading: visaLoading && shouldEnrich,
     weatherLoading: weatherLoading && shouldEnrich,
@@ -388,9 +343,20 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     weatherError: !!weatherError,
     accommodationLoading: accommodationLoading && shouldEnrichAccommodation,
     accommodationError: !!accommodationError,
-    generatingCityId,
-    cityActivityErrors,
-    onGenerateActivities: handleGenerateActivities,
+    generatingCityId: null,
+    cityActivityErrors: {},
+    onGenerateActivities: () => undefined,
+    discoveryStatus,
+    discoveryCards,
+    discoveryCursor: queueState.cursor,
+    discoveryTotalTarget: DISCOVERY_TOTAL_CARDS,
+    discoveryIsLoading:
+      shouldRunDiscovery &&
+      (discoveryBatchLoading ||
+        (discoveryCards.length === 0 && !discoveryError && !discoveryBatchesDone)),
+    discoveryHasPendingBatches: shouldRunDiscovery && !discoveryBatchesDone,
+    discoveryError,
+    onDiscoverySwipe: handleDiscoverySwipe,
   };
 
   return <TripProvider value={contextValue}>{children}</TripProvider>;

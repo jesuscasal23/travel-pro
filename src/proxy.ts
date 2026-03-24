@@ -5,10 +5,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Routes that require authentication
-// /plan and /trip are intentionally public — guests can generate and view itineraries.
-// Auth is encouraged (not required) via a "save your trip" nudge on the trip page.
-const PROTECTED_PREFIXES = ["/profile", "/admin"];
+// Routes that require authentication.
+const PROTECTED_PREFIXES = ["/profile", "/admin", "/trips"];
 
 // Routes that are always public
 const PUBLIC_PREFIXES = [
@@ -31,6 +29,7 @@ function isProtected(pathname: string): boolean {
 // ── Rate limiting (Upstash Redis sliding window) ───────────────────────────
 // All API rate limiting is centralized here. Limits:
 //   - /api/v1/trips/*/generate : 5 per hour per IP (LLM cost protection)
+//   - /api/v1/trips/*/discover-activities : 5 per hour per IP (LLM cost protection)
 //   - /api/generate/select-route: 10 per minute per IP (speculative route selection)
 //   - /api/v1/* (general)      : 30 req/min per IP
 
@@ -60,6 +59,11 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     limitKey = `rl:generate:${ip}`;
     limit = 5;
     windowSeconds = 3600;
+  } else if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/discover-activities$/)) {
+    // Discovery batches: 5 per hour per IP (LLM cost protection)
+    limitKey = `rl:discover:${ip}`;
+    limit = 5;
+    windowSeconds = 3600;
   } else if (pathname === "/api/generate/select-route") {
     // Speculative route selection: 10 per minute per IP
     limitKey = `rl:route-select:${ip}`;
@@ -79,7 +83,8 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     return null;
   }
 
-  const isGenerateRoute = limitKey.startsWith("rl:generate:");
+  const isExpensiveGenerationRoute =
+    limitKey.startsWith("rl:generate:") || limitKey.startsWith("rl:discover:");
 
   try {
     // Upstash Redis REST API — works at the edge without ioredis
@@ -115,10 +120,10 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     if (!res.ok) {
       console.error(
         `[rate-limit] Redis error: status=${res.status}, key=${limitKey}, latency=${fetchMs}ms, ` +
-          `path=${pathname}, ip=${ip}, action=${isGenerateRoute ? "fail-closed" : "fail-open"}`
+          `path=${pathname}, ip=${ip}, action=${isExpensiveGenerationRoute ? "fail-closed" : "fail-open"}`
       );
       // Fail closed for expensive LLM endpoints, open for others
-      if (isGenerateRoute) {
+      if (isExpensiveGenerationRoute) {
         return new NextResponse(
           JSON.stringify({
             error: "Service unavailable",
@@ -148,7 +153,7 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       return new NextResponse(
         JSON.stringify({
           error: "Too many requests",
-          message: isGenerateRoute
+          message: isExpensiveGenerationRoute
             ? `You've reached the generation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
             : "Too many requests. Please slow down.",
           retryAfter,
@@ -169,10 +174,10 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       err instanceof DOMException && err.name === "AbortError" ? "timeout (2s)" : String(err);
     console.error(
       `[rate-limit] Redis failure: reason=${reason}, key=${limitKey}, ` +
-        `path=${pathname}, ip=${ip}, action=${isGenerateRoute ? "fail-closed" : "fail-open"}`
+        `path=${pathname}, ip=${ip}, action=${isExpensiveGenerationRoute ? "fail-closed" : "fail-open"}`
     );
     // Fail closed for expensive LLM endpoints, open for others
-    if (isGenerateRoute) {
+    if (isExpensiveGenerationRoute) {
       return new NextResponse(
         JSON.stringify({
           error: "Service unavailable",

@@ -21,8 +21,32 @@ export async function listTripsForProfile(profileId: string) {
 }
 
 export async function createTrip(input: CreateTripInput, profileId: string | null) {
-  return prisma.trip.create({
-    data: { ...input, profileId },
+  const { initialItinerary, ...tripData } = input;
+
+  if (!initialItinerary) {
+    return prisma.trip.create({
+      data: { ...tripData, profileId },
+    });
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const trip = await tx.trip.create({
+      data: { ...tripData, profileId },
+    });
+
+    await tx.itinerary.create({
+      data: {
+        tripId: trip.id,
+        data: initialItinerary as object,
+        version: 1,
+        isActive: true,
+        promptVersion: "v1",
+        generationStatus: "complete",
+        discoveryStatus: "pending",
+      },
+    });
+
+    return trip;
   });
 }
 

@@ -63,6 +63,7 @@ export async function createItineraryVersion(input: {
         isActive: true,
         promptVersion,
         generationStatus: "complete",
+        discoveryStatus: "completed",
       },
     }),
   ]);
@@ -192,6 +193,7 @@ export async function activateGeneratedItinerary(
         data: data as object,
         isActive: true,
         generationStatus: "complete",
+        discoveryStatus: "completed",
       },
     }),
     // Deactivate all other itineraries for this trip

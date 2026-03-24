@@ -122,7 +122,7 @@ describe("PlanPage — authenticated API failure", () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
     const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /continue to generate my trip/i })
+      screen.getByRole("button", { name: /generate my trip/i })
     );
 
     fireEvent.click(generateBtn);
@@ -157,7 +157,7 @@ describe("PlanPage — authenticated API failure", () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
     const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /continue to generate my trip/i })
+      screen.getByRole("button", { name: /generate my trip/i })
     );
 
     // First click → error appears inline
@@ -187,7 +187,7 @@ describe("PlanPage — authenticated API failure", () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
     const generateBtn = await waitFor(() =>
-      screen.getByRole("button", { name: /continue to generate my trip/i })
+      screen.getByRole("button", { name: /generate my trip/i })
     );
 
     fireEvent.click(generateBtn);

@@ -257,6 +257,11 @@ export default function PlanPage() {
         : `Top challenges: ${planningPriorities.join(", ")}`;
 
   const handleGenerate = useCallback(async () => {
+    if (isAuthenticated !== true) {
+      router.push(`/signup?next=${encodeURIComponent("/plan")}`);
+      return;
+    }
+
     if (needsProfileStep) {
       const profileErrors = validate(onboardingStep1Schema, {
         nationality: effectiveNationality,
@@ -367,6 +372,7 @@ export default function PlanPage() {
         dateEnd,
         travelers,
         ...(combinedDescription ? { description: combinedDescription } : {}),
+        initialItinerary: buildPartialItinerary(route),
       });
 
       setItinerary(buildPartialItinerary(route));
@@ -486,7 +492,7 @@ export default function PlanPage() {
               ) : (
                 <>
                   <Sparkles className="h-5 w-5" />
-                  Continue to Generate My Trip
+                  Generate My Trip
                 </>
               )}
             </Button>

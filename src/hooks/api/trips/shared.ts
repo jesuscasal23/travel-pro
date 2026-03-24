@@ -1,11 +1,12 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
 import { queryKeys } from "@/hooks/api/keys";
-import type { Itinerary, TripSummary, TripType } from "@/types";
+import type { DiscoveryStatus, Itinerary, TripSummary, TripType } from "@/types";
 
 export interface TripDetailItinerary {
   id: string;
   generationStatus: string;
+  discoveryStatus: DiscoveryStatus;
   data: Itinerary;
 }
 

@@ -41,6 +41,16 @@ export interface DayActivity {
   cost?: string; // estimated cost range, e.g. "€10-15"
 }
 
+/** A swipe card candidate generated during activity discovery. */
+export interface ActivityDiscoveryCandidate {
+  name: string;
+  description: string;
+  category: string;
+  duration: string;
+  googleMapsUrl: string;
+  imageUrl: null;
+}
+
 /** A single day in the itinerary */
 export interface TripDay {
   day: number;
@@ -118,7 +128,7 @@ export interface TripSummary {
   dateEnd: string;
   travelers: number;
   createdAt: string;
-  itineraries: { id: string; generationStatus: string }[];
+  itineraries: { id: string; generationStatus: string; discoveryStatus?: DiscoveryStatus }[];
 }
 
 /** Region option for questionnaire */
@@ -138,6 +148,9 @@ export interface InterestOption {
 
 /** Travel style */
 export type TravelStyle = "backpacker" | "smart-budget" | "comfort-explorer" | "luxury";
+
+/** Activity discovery lifecycle for a trip itinerary. */
+export type DiscoveryStatus = "pending" | "in_progress" | "completed";
 
 /** Activity pace — how many activities per day the traveler prefers */
 export type ActivityPace = "relaxed" | "moderate" | "active";

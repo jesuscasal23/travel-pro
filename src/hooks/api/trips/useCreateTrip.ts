@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
 import { apiFetch } from "@/lib/client/api-fetch";
-import type { TripType } from "@/types";
+import type { TripType, Itinerary } from "@/types";
 
 interface CreateTripParams {
   tripType: TripType;
@@ -14,6 +14,7 @@ interface CreateTripParams {
   flexibleDates?: boolean;
   travelers: number;
   description?: string;
+  initialItinerary?: Pick<Itinerary, "route" | "days">;
 }
 
 export function useCreateTrip() {

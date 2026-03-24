@@ -118,6 +118,7 @@ describe("createItineraryVersion", () => {
         isActive: true,
         promptVersion: "v1",
         generationStatus: "complete",
+        discoveryStatus: "completed",
       },
     });
   });
@@ -233,6 +234,7 @@ describe("activateGeneratedItinerary", () => {
         data: expect.anything(),
         isActive: true,
         generationStatus: "complete",
+        discoveryStatus: "completed",
       },
     });
     // Verify the deactivate-others updateMany was constructed

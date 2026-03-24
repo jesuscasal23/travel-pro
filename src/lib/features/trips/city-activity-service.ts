@@ -62,7 +62,7 @@ export async function generateActivitiesForCity(
 
   await prisma.itinerary.update({
     where: { id: itineraryRecord.id },
-    data: { data: mergedItinerary as object },
+    data: { data: mergedItinerary as object, discoveryStatus: "completed" },
   });
 
   log.info("City activities saved", {

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { Itinerary } from "@/types";
+import type { ActivityDiscoveryCandidate, DiscoveryStatus, Itinerary } from "@/types";
 
 export interface TripContextValue {
   // Core trip identity
@@ -33,6 +33,16 @@ export interface TripContextValue {
   generatingCityId: string | null;
   cityActivityErrors: Record<string, string>;
   onGenerateActivities: (cityId: string, cityName: string) => void;
+
+  // Activity discovery swipe flow
+  discoveryStatus: DiscoveryStatus;
+  discoveryCards: ActivityDiscoveryCandidate[];
+  discoveryCursor: number;
+  discoveryTotalTarget: number;
+  discoveryIsLoading: boolean;
+  discoveryHasPendingBatches: boolean;
+  discoveryError: string | null;
+  onDiscoverySwipe: (decision: "liked" | "disliked") => void;
 }
 
 const TripContext = createContext<TripContextValue | null>(null);

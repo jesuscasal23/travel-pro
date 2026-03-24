@@ -22,6 +22,7 @@ const ACTIVE_ITINERARY_SUMMARY_SELECT = {
   id: true,
   version: true,
   generationStatus: true,
+  discoveryStatus: true,
   createdAt: true,
   data: true,
 } satisfies Prisma.ItinerarySelect;
