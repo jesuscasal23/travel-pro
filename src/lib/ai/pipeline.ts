@@ -10,12 +10,7 @@
 
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
 import { SYSTEM_PROMPT_SINGLE_CITY, assembleSingleCityPrompt } from "./prompts/single-city";
-import {
-  SYSTEM_PROMPT_ROUTE_ONLY,
-  SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY,
-  assembleRouteOnlyPrompt,
-  assembleRouteOnlySingleCityPrompt,
-} from "./prompts/route-only";
+import { SYSTEM_PROMPT_ROUTE_ONLY, assembleRouteOnlyPrompt } from "./prompts/route-only";
 import {
   SYSTEM_PROMPT_CITY_ACTIVITIES,
   assembleCityActivitiesPrompt,
@@ -25,7 +20,8 @@ import { enrichVisa } from "./enrich-visa";
 import { enrichWeather } from "./enrich-weather";
 import { callClaude, getAnthropic } from "./client";
 import { parseAndValidate, extractJSON, cityActivitiesOutputSchema } from "./parser";
-import type { UserProfile, TripIntent, Itinerary, TripDay } from "@/types";
+import type { UserProfile, TripIntent, Itinerary, TripDay, CityStop } from "@/types";
+import { addDays, daysBetween, formatDateShort } from "@/lib/utils/format/date";
 import type { CityWithDays } from "@/lib/flights/types";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
@@ -254,9 +250,10 @@ const CORE_PROMPT_CONFIG: PromptConfig = {
 };
 
 const ROUTE_ONLY_PROMPT_CONFIG: PromptConfig = {
+  // Single-city is handled by buildSingleCityRouteOnly() — this branch is never reached.
   singleCity: {
-    assemblePrompt: assembleRouteOnlySingleCityPrompt,
-    systemPrompt: SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY,
+    assemblePrompt: (p, t) => assembleRouteOnlyPrompt(p, t, undefined, undefined),
+    systemPrompt: SYSTEM_PROMPT_ROUTE_ONLY,
     maxTokens: MAX_TOKENS_ROUTE_ONLY,
   },
   multiCity: {
@@ -296,8 +293,52 @@ export async function generateCoreItinerary(
 // ============================================================
 
 /**
+ * Build a single-city route skeleton entirely from known trip data.
+ * No Claude call needed — the route is a single city with all data already
+ * provided by the frontend (lat/lng/countryCode/destination).
+ */
+export function buildSingleCityRouteOnly(tripIntent: TripIntent): Itinerary {
+  const {
+    destination,
+    destinationCountry,
+    destinationLat,
+    destinationLng,
+    destinationCountryCode,
+    dateStart,
+    dateEnd,
+  } = tripIntent;
+
+  const durationDays = dateStart && dateEnd ? daysBetween(dateStart, dateEnd) : 7;
+  const cityId = (destination ?? "city").toLowerCase().replace(/\s+/g, "-");
+
+  const route: CityStop[] = [
+    {
+      id: cityId,
+      city: destination ?? "",
+      country: destinationCountry ?? "",
+      lat: destinationLat ?? 0,
+      lng: destinationLng ?? 0,
+      days: durationDays,
+      countryCode: destinationCountryCode ?? "",
+    },
+  ];
+
+  const days: TripDay[] = Array.from({ length: durationDays }, (_, i) => ({
+    day: i + 1,
+    date: dateStart ? formatDateShort(addDays(dateStart, i)) : `Day ${i + 1}`,
+    city: destination ?? "",
+    isTravel: false as const,
+    activities: [],
+  }));
+
+  return { route, days };
+}
+
+/**
  * Generate only the route and day stubs (empty activities).
  * Much faster/cheaper than full generation — activities are added per-city later.
+ * For single-city trips, skips the Claude call entirely and builds the skeleton
+ * programmatically from the known trip data.
  */
 export async function generateRouteOnly(
   profile: UserProfile,
@@ -305,6 +346,14 @@ export async function generateRouteOnly(
   preSelectedCities?: CityWithDays[],
   options?: { signal?: AbortSignal }
 ): Promise<Itinerary> {
+  if (tripIntent.tripType === "single-city") {
+    log.info("Route-only: Single-city — building skeleton without Claude", {
+      tripId: tripIntent.id,
+      destination: tripIntent.destination,
+    });
+    return buildSingleCityRouteOnly(tripIntent);
+  }
+
   return generateWithConfig(
     ROUTE_ONLY_PROMPT_CONFIG,
     profile,

@@ -7,7 +7,6 @@ const mocks = vi.hoisted(() => ({
   assemblePrompt: vi.fn(() => "assembled-v1"),
   assembleSingleCityPrompt: vi.fn(() => "assembled-single"),
   assembleRouteOnlyPrompt: vi.fn(() => "assembled-route-only"),
-  assembleRouteOnlySingleCityPrompt: vi.fn(() => "assembled-route-only-single"),
   assembleCityActivitiesPrompt: vi.fn(() => "assembled-city-activities"),
   selectRoute: vi.fn(),
   enrichVisa: vi.fn(),
@@ -47,9 +46,7 @@ vi.mock("../prompts/single-city", () => ({
 
 vi.mock("../prompts/route-only", () => ({
   SYSTEM_PROMPT_ROUTE_ONLY: "system-route-only",
-  SYSTEM_PROMPT_ROUTE_ONLY_SINGLE_CITY: "system-route-only-single",
   assembleRouteOnlyPrompt: mocks.assembleRouteOnlyPrompt,
-  assembleRouteOnlySingleCityPrompt: mocks.assembleRouteOnlySingleCityPrompt,
 }));
 
 vi.mock("../prompts/city-activities", () => ({
@@ -221,24 +218,24 @@ describe("pipeline orchestration", () => {
     );
   });
 
-  it("generates route-only itinerary with single-city route-only prompt", async () => {
-    const routeOnly: Itinerary = {
-      ...coreItinerary,
-      days: [{ day: 1, date: "2026-06-01", city: "Paris", activities: [] }],
-    };
-    mockClaudeText(JSON.stringify(routeOnly));
-
+  it("generates route-only itinerary for single-city without calling Claude", async () => {
     const result = await generateRouteOnly(profile, singleCityIntent);
 
-    expect(mocks.assembleRouteOnlySingleCityPrompt).toHaveBeenCalledWith(profile, singleCityIntent);
-    expect(mocks.createMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        system: "system-route-only-single",
-        max_tokens: 4000,
-      }),
-      { signal: undefined }
-    );
-    expect(result.days[0].activities).toHaveLength(0);
+    // No Claude call — skeleton is built programmatically
+    expect(mocks.createMessage).not.toHaveBeenCalled();
+    expect(mocks.assembleRouteOnlyPrompt).not.toHaveBeenCalled();
+
+    // Route has exactly one city matching the intent
+    expect(result.route).toHaveLength(1);
+    expect(result.route[0].city).toBe("Paris");
+    expect(result.route[0].country).toBe("France");
+
+    // Days cover the full trip duration with empty activities
+    expect(result.days).toHaveLength(4); // 2026-06-01 → 2026-06-05 = 4 days
+    for (const day of result.days) {
+      expect(day.activities).toHaveLength(0);
+      expect(day.isTravel).toBe(false);
+    }
   });
 
   it("validates city activity generation guard rails and success path", async () => {
