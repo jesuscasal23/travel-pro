@@ -1,18 +1,21 @@
 "use client";
 
-import { Home, Plane, Compass, User } from "lucide-react";
+import { Home, Plane, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useAuthStatus } from "@/hooks/api";
 
 const tabs = [
   { label: "Home", icon: Home, href: "/home" },
   { label: "Trips", icon: Plane, href: "/trips" },
-  { label: "Plan", icon: Compass, href: "/plan" },
   { label: "Profile", icon: User, href: "/profile" },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const isAuthenticated = useAuthStatus();
+
+  if (isAuthenticated !== true) return null;
 
   return (
     <nav className="fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 bg-white/85 shadow-[0_8px_24px_rgba(44,47,49,0.06)] backdrop-blur-xl dark:bg-slate-900/85">
