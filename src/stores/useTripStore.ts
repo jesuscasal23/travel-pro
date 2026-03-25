@@ -253,4 +253,11 @@ export const storeHydrationPromise = new Promise<void>((resolve) => {
     unsub();
     resolve();
   });
+  // Safety net: if onFinishHydration never fires (e.g. store already hydrated
+  // before the listener was registered in some bundler configurations), resolve
+  // after a short timeout so components don't spin indefinitely.
+  setTimeout(() => {
+    unsub();
+    resolve();
+  }, 500);
 });

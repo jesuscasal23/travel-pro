@@ -18,13 +18,15 @@ type TravelerPreferencesSource = "server" | "transient" | null;
 
 export function useTravelerPreferences(options?: UseTravelerPreferencesOptions) {
   const isAuthenticated = useAuthStatus();
-  const transientPreferences = useTripStore((state) => ({
-    nationality: state.nationality,
-    homeAirport: state.homeAirport,
-    travelStyle: state.travelStyle,
-    interests: state.interests,
-    pace: state.pace,
-  }));
+
+  // Use individual primitive selectors to avoid creating a new object on every
+  // render — object selectors without useShallow violate useSyncExternalStore's
+  // getSnapshot stability requirement and trigger an infinite render loop.
+  const nationality = useTripStore((s) => s.nationality);
+  const homeAirport = useTripStore((s) => s.homeAirport);
+  const travelStyle = useTripStore((s) => s.travelStyle);
+  const interests = useTripStore((s) => s.interests);
+  const pace = useTripStore((s) => s.pace);
 
   const profileQuery = useProfile({
     enabled: (options?.enabled ?? true) && isAuthenticated === true,
@@ -36,11 +38,19 @@ export function useTravelerPreferences(options?: UseTravelerPreferencesOptions) 
     }
 
     if (options?.includeTransientFallback) {
-      return toTravelerPreferences(transientPreferences);
+      return toTravelerPreferences({ nationality, homeAirport, travelStyle, interests, pace });
     }
 
     return null;
-  }, [options?.includeTransientFallback, profileQuery.data, transientPreferences]);
+  }, [
+    options?.includeTransientFallback,
+    profileQuery.data,
+    nationality,
+    homeAirport,
+    travelStyle,
+    interests,
+    pace,
+  ]);
 
   const source: TravelerPreferencesSource = profileQuery.data
     ? "server"

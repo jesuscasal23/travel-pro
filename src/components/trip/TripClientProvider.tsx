@@ -287,8 +287,11 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     if (!current || current.days.length === 0) return;
     const needsVisa = visaData && !current.visaData?.length;
     const needsWeather = weatherData && !current.weatherData?.length;
+    // Only sync accommodation when there are actual hotel results — an empty-hotels
+    // response (e.g. SerpApi unavailable) must not trigger repeated setItinerary calls.
     const needsAccommodation =
-      accommodationData && !current.accommodationData?.some((a) => a.hotels.length > 0);
+      accommodationData?.some((a) => a.hotels.length > 0) &&
+      !current.accommodationData?.some((a) => a.hotels.length > 0);
     if (!needsVisa && !needsWeather && !needsAccommodation) return;
     setItinerary({
       ...current,

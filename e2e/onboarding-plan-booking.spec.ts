@@ -110,7 +110,7 @@ test("E2E-26-01: onboarding — full navigation from get-started to /plan", asyn
   await page.getByRole("button", { name: /Continue/i }).click();
 
   await page.waitForURL("**/plan**");
-  await expect(page.getByText(/Where are you headed/i)).toBeVisible();
+  await expect(page.getByText(/Where to next/i)).toBeVisible();
 });
 
 // ============================================================
@@ -124,6 +124,17 @@ test("E2E-26-02: authenticated — create trip via API and verify trip view rend
   await page.route("**/sentry.io/**", (route) => route.abort());
 
   await loginViaUI(page);
+
+  // Ensure the test user has a profile — the trip view enrichment hooks
+  // can misbehave (infinite re-render) when the profile endpoint returns 404.
+  await page.request.patch("/api/v1/profile", {
+    data: {
+      nationality: "American",
+      homeAirport: "JFK",
+      travelStyle: "smart-budget",
+      interests: ["culture"],
+    },
+  });
 
   // Create a trip with a full itinerary directly via the API.
   // The trip view loads itinerary from the server (React Query → /api/v1/trips/:id),
@@ -149,8 +160,10 @@ test("E2E-26-02: authenticated — create trip via API and verify trip view rend
     // It then bootstraps TripClientProvider which fetches the itinerary from the server.
     await page.goto(`/trips/${trip.id}`);
 
-    // Trip overview should render the city name
-    await expect(page.getByText("Paris")).toBeVisible({ timeout: 15_000 });
+    // Trip overview should render the city name (multiple headings may match, use first)
+    await expect(page.getByRole("heading", { name: /Paris/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
 
     // Itinerary tab should be reachable.
     // Note: discoveryStatus is "pending" on newly created trips, so the itinerary

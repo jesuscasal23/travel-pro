@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config as loadEnv } from "dotenv";
+
+// Load .env.local so NEXT_PUBLIC_* vars are available when Playwright starts the dev server.
+// Without this, webServer.env falls back to dummy localhost values which break real auth.
+loadEnv({ path: ".env.local" });
 
 export default defineConfig({
   testDir: "./e2e",
