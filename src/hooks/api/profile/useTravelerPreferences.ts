@@ -38,7 +38,13 @@ export function useTravelerPreferences(options?: UseTravelerPreferencesOptions) 
     }
 
     if (options?.includeTransientFallback) {
-      return toTravelerPreferences({ nationality, homeAirport, travelStyle, interests, pace });
+      return toTravelerPreferences({
+        nationality,
+        homeAirport,
+        travelStyle: travelStyle ?? undefined,
+        interests,
+        pace: pace ?? undefined,
+      });
     }
 
     return null;

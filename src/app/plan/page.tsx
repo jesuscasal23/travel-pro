@@ -260,9 +260,9 @@ export default function PlanPage() {
         profile: {
           nationality: effectiveNationality,
           homeAirport: effectiveHomeAirport,
-          travelStyle,
+          travelStyle: travelStyle ?? "smart-budget",
           interests,
-          pace,
+          pace: pace ?? undefined,
         },
         tripIntent: {
           id: "speculative",
@@ -297,9 +297,9 @@ export default function PlanPage() {
         await saveProfileMutation.mutateAsync({
           nationality: effectiveNationality,
           homeAirport: effectiveHomeAirport,
-          travelStyle,
+          travelStyle: travelStyle ?? undefined,
           interests,
-          pace,
+          pace: pace ?? undefined,
           onboardingCompleted: true,
         });
       } catch {
