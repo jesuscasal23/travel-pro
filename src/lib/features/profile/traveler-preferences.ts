@@ -12,7 +12,9 @@ type TravelerPreferencesInput = Partial<TravelerPreferences> & {
   activityLevel?: string | null;
   nationality?: string | null;
   homeAirport?: string | null;
+  travelStyle?: TravelStyle | null;
   interests?: string[] | null;
+  pace?: ActivityPace | null;
   languagesSpoken?: string[] | null;
 };
 

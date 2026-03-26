@@ -7,9 +7,9 @@ interface TripStoreState {
   // Profile inputs reused across planner and profile screen
   nationality: string;
   homeAirport: string;
-  travelStyle: TravelStyle;
+  travelStyle: TravelStyle | null;
   interests: string[];
-  pace: ActivityPace;
+  pace: ActivityPace | null;
 
   // Quick Plan questionnaire
   planStep: number;
@@ -101,9 +101,9 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
       // Profile defaults
       nationality: "",
       homeAirport: "",
-      travelStyle: "smart-budget",
+      travelStyle: null,
       interests: [],
-      pace: "moderate" as ActivityPace,
+      pace: null,
       // Plan defaults
       ...initialPlanState,
 
@@ -172,9 +172,9 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()(
         set({
           nationality: "",
           homeAirport: "",
-          travelStyle: "smart-budget",
+          travelStyle: null,
           interests: [],
-          pace: "moderate" as ActivityPace,
+          pace: null,
           ...initialPlanState,
         }),
     }),

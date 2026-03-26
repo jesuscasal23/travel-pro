@@ -114,7 +114,10 @@ export default function RhythmPage() {
           <button
             type="button"
             onClick={() => router.push("/plan")}
-            className="bg-ink shadow-dark-cta flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985]"
+            disabled={!pace}
+            className={`flex w-full items-center justify-center gap-3 rounded-[24px] px-6 py-5 text-lg font-bold text-white transition-transform duration-200 active:scale-[0.985] ${
+              !pace ? "bg-disabled cursor-not-allowed shadow-none" : "bg-ink shadow-dark-cta"
+            }`}
           >
             <span>Continue</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
