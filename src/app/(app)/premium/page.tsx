@@ -2,34 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Crown, Search, Bell, Sparkles, ShieldOff } from "lucide-react";
-import { BackButton } from "@/components/ui/BackButton";
+import { Crown, Search, Bell, Sparkles, ShieldOff, Check } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { useToastStore } from "@/stores/useToastStore";
 
 type Plan = "monthly" | "annual";
 
 const features = [
-  {
-    icon: Search,
-    title: "Unlimited searches",
-    description: "Search thousands of flights and hotels without daily restrictions",
-  },
-  {
-    icon: Bell,
-    title: "Real-time smart price alerts",
-    description: "Get notified the exact second a price drops",
-  },
-  {
-    icon: Sparkles,
-    title: "Exclusive member-only deals",
-    description: "Access hidden fares and private hotel rates",
-  },
-  {
-    icon: ShieldOff,
-    title: "Ad-free experience",
-    description: "Zero distractions while you plan your perfect trip",
-  },
+  { icon: Search, title: "Unlimited flight & hotel searches" },
+  { icon: Bell, title: "Real-time smart price alerts" },
+  { icon: Sparkles, title: "Exclusive member-only deals" },
+  { icon: ShieldOff, title: "Completely ad-free experience" },
 ] as const;
 
 export default function PremiumPage() {
@@ -45,103 +28,87 @@ export default function PremiumPage() {
   };
 
   const ctaText =
-    selectedPlan === "annual"
-      ? "Start My 7-Day Free Trial — $69.99/yr"
-      : "Start My 7-Day Free Trial — $9.99/mo";
+    selectedPlan === "annual" ? "Start Free Trial — $69.99/yr" : "Start Free Trial — $9.99/mo";
 
   return (
     <div className="relative flex h-dvh flex-col">
       {/* Hero gradient */}
-      <div className="from-brand-primary via-app-indigo to-app-violet relative shrink-0 overflow-hidden bg-gradient-to-br px-6 pt-6 pb-10 text-white">
-        {/* Back button */}
-        <div className="mb-6">
-          <BackButton href="/home" />
-        </div>
-
-        {/* Premium icon + badge */}
+      <div className="from-brand-primary via-app-indigo to-app-violet relative shrink-0 overflow-hidden bg-gradient-to-br px-6 pt-10 pb-8 text-white">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-            <Crown size={32} strokeWidth={1.8} />
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+            <Crown size={28} strokeWidth={1.8} />
           </div>
-          <Badge variant="brand" className="mb-3 bg-white/20 text-white backdrop-blur-sm">
-            PREMIUM
-          </Badge>
-          <h1 className="font-display text-3xl font-bold tracking-tight">
+          <h1 className="font-display text-2xl font-bold tracking-tight">
             Unlock the full experience
           </h1>
-          <p className="mt-2 text-sm text-white/75">
+          <p className="mt-1.5 text-sm text-white/75">
             Travel smarter with powerful tools built for explorers
           </p>
         </div>
       </div>
 
-      {/* Scrollable content */}
-      <div className="dark:bg-background flex-1 overflow-y-auto bg-white">
-        {/* Feature bento list */}
-        <div className="space-y-3 px-6 pt-8">
+      {/* Content — no scroll */}
+      <div className="dark:bg-background flex flex-1 flex-col justify-between bg-white px-6 pt-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        {/* Feature list */}
+        <div className="space-y-3">
           {features.map((f) => (
-            <div
-              key={f.title}
-              className="border-edge/60 dark:border-edge/20 dark:bg-surface-soft/10 flex items-start gap-4 rounded-2xl border bg-white p-4 dark:bg-white/5"
-            >
-              <div className="bg-brand-primary-soft dark:bg-brand-primary/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-                <f.icon size={20} className="text-brand-primary" strokeWidth={2} />
+            <div key={f.title} className="flex items-center gap-3">
+              <div className="bg-brand-primary-soft dark:bg-brand-primary/15 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+                <f.icon size={18} className="text-brand-primary" strokeWidth={2} />
               </div>
-              <div className="min-w-0">
-                <p className="text-ink text-sm font-bold dark:text-white">{f.title}</p>
-                <p className="text-dim mt-0.5 text-[13px] leading-snug dark:text-white/60">
-                  {f.description}
-                </p>
-              </div>
+              <p className="text-ink text-[14px] font-semibold dark:text-white">{f.title}</p>
             </div>
           ))}
         </div>
 
-        {/* Pricing cards */}
-        <div className="mt-8 space-y-3 px-6">
-          <PlanCard
-            label="Annual"
-            price="$69.99"
-            period="/year"
-            badge="Best Value"
-            subtitle="$5.83/mo — save 42%"
-            selected={selectedPlan === "annual"}
-            onSelect={() => setSelectedPlan("annual")}
-          />
-          <PlanCard
-            label="Monthly"
-            price="$9.99"
-            period="/month"
-            selected={selectedPlan === "monthly"}
-            onSelect={() => setSelectedPlan("monthly")}
-          />
-        </div>
+        {/* Pricing + CTA + footer */}
+        <div>
+          {/* Pricing cards */}
+          <div className="mt-6 space-y-2.5">
+            <PlanCard
+              label="Annual"
+              price="$69.99"
+              period="/yr"
+              badge="Best Value"
+              subtitle="$5.83/mo — save 42%"
+              selected={selectedPlan === "annual"}
+              onSelect={() => setSelectedPlan("annual")}
+            />
+            <PlanCard
+              label="Monthly"
+              price="$9.99"
+              period="/mo"
+              selected={selectedPlan === "monthly"}
+              onSelect={() => setSelectedPlan("monthly")}
+            />
+          </div>
 
-        {/* CTA */}
-        <div className="mt-8 px-6">
+          {/* CTA */}
           <button
             onClick={handleSubscribe}
-            className="shadow-brand-sm bg-brand-primary w-full rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
+            className="shadow-brand-sm bg-brand-primary mt-5 w-full rounded-2xl px-6 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
           >
             {ctaText}
           </button>
-        </div>
+          <p className="text-dim mt-1.5 text-center text-[11px] dark:text-white/40">
+            7-day free trial, cancel anytime
+          </p>
 
-        {/* Footer links */}
-        <div className="mt-6 flex flex-col items-center gap-3 px-6 pb-[calc(2rem+env(safe-area-inset-bottom))]">
-          <button
-            onClick={handleRestore}
-            className="text-dim hover:text-ink text-[13px] font-semibold underline underline-offset-2 transition-colors dark:text-white/50"
-          >
-            Restore Purchase
-          </button>
-          <div className="text-label flex gap-3 text-[12px] dark:text-white/40">
+          {/* Footer links */}
+          <div className="text-label mt-4 flex items-center justify-center gap-3 text-[11px] dark:text-white/40">
+            <button
+              onClick={handleRestore}
+              className="hover:text-dim underline underline-offset-2 transition-colors"
+            >
+              Restore Purchase
+            </button>
+            <span>·</span>
             <Link href="/privacy" className="hover:text-dim underline underline-offset-2">
-              Terms of Service
+              Terms
             </Link>
             <span>·</span>
             <Link href="/privacy" className="hover:text-dim underline underline-offset-2">
-              Privacy Policy
+              Privacy
             </Link>
           </div>
         </div>
@@ -167,7 +134,7 @@ function PlanCard({ label, price, period, badge, subtitle, selected, onSelect }:
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all ${
+      className={`flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all ${
         selected
           ? "border-brand-primary bg-brand-primary-soft/50 dark:bg-brand-primary/10 shadow-brand-sm/30"
           : "border-edge/60 dark:border-edge/20 hover:border-edge dark:hover:border-edge/40 bg-white dark:bg-white/5"
