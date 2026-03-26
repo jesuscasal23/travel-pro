@@ -6,7 +6,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require authentication.
-const PROTECTED_PREFIXES = ["/profile", "/admin", "/trips", "/home", "/bookings", "/discover"];
+const PROTECTED_PREFIXES = [
+  "/profile",
+  "/admin",
+  "/trips",
+  "/home",
+  "/bookings",
+  "/discover",
+  "/premium",
+];
 
 // Routes that are always public
 const PUBLIC_PREFIXES = [
@@ -22,7 +30,6 @@ const PUBLIC_PREFIXES = [
   "/plan",
   "/trip/",
   "/share",
-  "/premium",
 ];
 
 function isProtected(pathname: string): boolean {
@@ -220,13 +227,75 @@ export async function proxy(request: NextRequest) {
     return next();
   }
 
-  // Apply rate limiting before auth check for API routes
+  // Apply rate limiting + premium gate for API routes
   if (pathname.startsWith("/api/")) {
     const rateLimitResponse = await checkRateLimit(request);
     if (rateLimitResponse) {
       rateLimitResponse.headers.set("x-request-id", requestId);
       return rateLimitResponse;
     }
+
+    // ── Premium paywall gate for API ────────────────────────────
+    // All /api/v1/* routes require a premium subscription.
+    if (
+      pathname.startsWith("/api/v1/") &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
+      const response = NextResponse.next({ request: { headers: requestHeaders } });
+      response.headers.set("x-request-id", requestId);
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+              cookiesToSet.forEach(({ name, value, options }) =>
+                response.cookies.set(name, value, options)
+              );
+            },
+          },
+        }
+      );
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return new NextResponse(
+          JSON.stringify({ error: "Unauthorized", message: "Authentication required." }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json", "x-request-id": requestId },
+          }
+        );
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_premium")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile?.is_premium) {
+        return new NextResponse(
+          JSON.stringify({ error: "Forbidden", message: "Premium subscription required." }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json", "x-request-id": requestId },
+          }
+        );
+      }
+
+      return response;
+    }
+
     return next();
   }
 
@@ -274,6 +343,24 @@ export async function proxy(request: NextRequest) {
       const redirect = NextResponse.redirect(loginUrl);
       redirect.headers.set("x-request-id", requestId);
       return redirect;
+    }
+
+    // ── Premium paywall gate ──────────────────────────────────────
+    // Authenticated non-premium users are redirected to /premium
+    // unless they are already on /premium.
+    if (!pathname.startsWith("/premium")) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_premium")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile?.is_premium) {
+        const premiumUrl = new URL("/premium", request.url);
+        const redirect = NextResponse.redirect(premiumUrl);
+        redirect.headers.set("x-request-id", requestId);
+        return redirect;
+      }
     }
 
     return response;
