@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, LocateFixed, MapPinned, Search } from "lucide-react";
 import { CITIES, type CityEntry } from "@/data/cities";
 import { regions } from "@/data/sampleData";
-import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { travelFieldErrorClass, travelInputClass } from "@/components/ui/styles";
 import { StepBadge } from "./StepBadge";
 
@@ -69,18 +69,18 @@ function getSelectedLabel({
 }
 
 export function DestinationStep({ errors, clearError, step, totalSteps }: DestinationStepProps) {
-  const tripType = useTripStore((s) => s.tripType);
-  const setTripType = useTripStore((s) => s.setTripType);
-  const region = useTripStore((s) => s.region);
-  const setRegion = useTripStore((s) => s.setRegion);
-  const destination = useTripStore((s) => s.destination);
-  const destinationCountry = useTripStore((s) => s.destinationCountry);
-  const setDestination = useTripStore((s) => s.setDestination);
-  const clearDestination = useTripStore((s) => s.clearDestination);
-  const dateStart = useTripStore((s) => s.dateStart);
-  const setDateStart = useTripStore((s) => s.setDateStart);
-  const dateEnd = useTripStore((s) => s.dateEnd);
-  const setDateEnd = useTripStore((s) => s.setDateEnd);
+  const tripType = usePlanFormStore((s) => s.tripType);
+  const setTripType = usePlanFormStore((s) => s.setTripType);
+  const region = usePlanFormStore((s) => s.region);
+  const setRegion = usePlanFormStore((s) => s.setRegion);
+  const destination = usePlanFormStore((s) => s.destination);
+  const destinationCountry = usePlanFormStore((s) => s.destinationCountry);
+  const setDestination = usePlanFormStore((s) => s.setDestination);
+  const clearDestination = usePlanFormStore((s) => s.clearDestination);
+  const dateStart = usePlanFormStore((s) => s.dateStart);
+  const setDateStart = usePlanFormStore((s) => s.setDateStart);
+  const dateEnd = usePlanFormStore((s) => s.dateEnd);
+  const setDateEnd = usePlanFormStore((s) => s.setDateEnd);
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);

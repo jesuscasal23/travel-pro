@@ -4,9 +4,11 @@
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler, parseAndValidateRequest, requireAuth } from "@/lib/api/helpers";
+import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { findProfileByUserId } from "@/lib/features/profile/profile-service";
 import { CreateTripInputSchema } from "@/lib/features/trips/schemas";
 import { createTrip, listTripsForProfile } from "@/lib/features/trips/trip-collection-service";
+import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 export const dynamic = "force-dynamic";
 
@@ -39,12 +41,24 @@ export const GET = apiHandler("GET /api/v1/trips", async () => {
 });
 
 export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) => {
-  const userId = await requireAuth();
+  const userId = await getAuthenticatedUserId();
   const data = await parseAndValidateRequest(req, CreateTripInputSchema);
 
-  const profile = await findProfileByUserId(userId);
-  const profileId = profile?.id ?? null;
+  let profileId: string | null = null;
+  if (userId) {
+    const profile = await findProfileByUserId(userId);
+    profileId = profile?.id ?? null;
+  }
 
   const trip = await createTrip(data, profileId);
-  return NextResponse.json({ trip }, { status: 201 });
+
+  const response = NextResponse.json({ trip }, { status: 201 });
+
+  // Guest trips: set an httpOnly owner cookie so the guest can access their trip
+  if (!userId) {
+    const cookie = createGuestTripOwnerCookie(trip.id);
+    response.cookies.set(cookie);
+  }
+
+  return response;
 });

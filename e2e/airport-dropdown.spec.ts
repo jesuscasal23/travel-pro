@@ -14,31 +14,29 @@ test.beforeEach(async ({ page }) => {
 
 test("airport dropdown is visible and selectable in the planner profile step", async ({ page }) => {
   await page.goto("/plan");
-  await expect(page.getByText("Where are you headed?")).toBeVisible();
 
-  await page.getByPlaceholder("Search for a city").fill("Paris");
-  await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: /Next/i }).click();
+  // Step 1: Destination — fill city + dates
+  await expect(page.getByText("Where to")).toBeVisible();
+  await page.getByPlaceholder("Search cities, countries...").fill("Paris");
+  const parisOption = page
+    .locator("button")
+    .filter({ hasText: /Paris.*France/ })
+    .first();
+  await parisOption.click();
 
-  await expect(page.getByText("When are you going?")).toBeVisible();
+  // Fill dates
   await page.locator('input[type="date"]').first().fill("2026-10-01");
   await page.locator('input[type="date"]').nth(1).fill("2026-10-08");
-  await page.getByRole("button", { name: /Next/i }).click();
 
-  await expect(page.getByText("What level of trip are you after?")).toBeVisible();
-  await page.getByRole("button", { name: /Comfort/i }).click();
-  await page.getByRole("button", { name: /Next/i }).click();
+  // Advance to Profile step
+  await page.getByRole("button", { name: /Continue/i }).click();
 
-  await expect(page.getByText("What should fill the trip?")).toBeVisible();
-  await page.getByRole("button", { name: /Balanced/i }).click();
-  await page.getByRole("button", { name: /Culture/i }).click();
-  await page.getByRole("button", { name: /Next/i }).click();
-
-  await expect(page.getByText("Tell us a bit about you")).toBeVisible();
+  // Step 2: Profile — nationality + airport
+  await expect(page.getByText("The essentials")).toBeVisible();
   await page.locator("select").selectOption("Germany");
 
   // Focus the airport input and type a query
-  const input = page.getByPlaceholder("Search airport or city…");
+  const input = page.getByPlaceholder("Search airport or city...");
   await input.click();
   await input.fill("Frank");
 

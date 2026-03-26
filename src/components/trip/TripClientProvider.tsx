@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import {
   useVisaEnrichment,
@@ -13,7 +13,8 @@ import {
   useRecordActivitySwipe,
 } from "@/hooks/api";
 import { useShallow } from "zustand/shallow";
-import { useTripStore, storeHydrationPromise } from "@/stores/useTripStore";
+import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import {
@@ -22,7 +23,7 @@ import {
   setDiscoveryCards,
   createDiscoveryQueueState,
 } from "@/lib/features/trips/discovery-queue";
-import type { DiscoveryStatus, Itinerary } from "@/types";
+import type { CityAccommodation, DiscoveryStatus, Itinerary } from "@/types";
 
 interface TripClientProviderProps {
   tripId: string;
@@ -30,34 +31,13 @@ interface TripClientProviderProps {
 }
 
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
-  const {
-    itinerary,
-    dateStart,
-    setDateStart,
-    setDateEnd,
-    currentTripId,
-    setCurrentTripId,
-    setItinerary,
-    needsRegeneration,
-    setNeedsRegeneration,
-    travelers,
-  } = useTripStore(
+  const { needsRegeneration, setNeedsRegeneration } = useTripStore(
     useShallow((s) => ({
-      itinerary: s.itinerary,
-      dateStart: s.dateStart,
-      setDateStart: s.setDateStart,
-      setDateEnd: s.setDateEnd,
-      currentTripId: s.currentTripId,
-      setCurrentTripId: s.setCurrentTripId,
-      setItinerary: s.setItinerary,
       needsRegeneration: s.needsRegeneration,
       setNeedsRegeneration: s.setNeedsRegeneration,
-      travelers: s.travelers,
     }))
   );
 
-  const route = itinerary?.route ?? [];
-  const days = itinerary?.days ?? [];
   const posthog = usePostHog();
   const isAuthenticated = useAuthStatus();
 
@@ -71,77 +51,77 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const requestProfile = travelerPreferences.source === "server" ? undefined : transientProfile;
   const hasDiscoveryProfile = travelerPreferences.source === "server" || requestProfile !== null;
 
-  const [storeReady, setStoreReady] = useState(false);
-  useEffect(() => {
-    void storeHydrationPromise.then(() => setStoreReady(true));
-  }, []);
-
-  const tripQueryEnabled = storeReady && tripId !== "guest";
+  // Trip data from React Query — the single source of truth for trip identity/dates
+  const tripQueryEnabled = tripId !== "guest";
   const tripQuery = useTrip(tripId, { enabled: tripQueryEnabled });
+  const tripData = tripQuery.data;
+
+  // For guests, fall back to the plan form store for dates/travelers
+  const planFormDateStart = usePlanFormStore((s) => s.dateStart);
+  const planFormTravelers = usePlanFormStore((s) => s.travelers);
+  const dateStart = tripData?.dateStart ?? planFormDateStart;
+  const travelers = tripData?.travelers ?? planFormTravelers;
+
+  // ── Local itinerary state ────────────────────────────────────────────────────
+  // The itinerary lives here, not in Zustand. It starts as the DB value and is
+  // enriched in-place as visa/weather/accommodation data arrives.
+
+  const [localItinerary, setLocalItinerary] = useState<Itinerary | null>(null);
+  // Track which tripId the local state belongs to so we re-sync on navigation
+  const localTripIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!tripQueryEnabled || tripQuery.isPending) return;
 
     if (tripQuery.data === null) {
-      setCurrentTripId("");
-      setItinerary(null);
+      localTripIdRef.current = null;
+      setLocalItinerary(null);
       return;
     }
 
     const dbItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
     if (!dbItinerary) {
-      if (useTripStore.getState().currentTripId !== tripId) {
-        setCurrentTripId(tripId);
-        setItinerary(null);
+      if (localTripIdRef.current !== tripId) {
+        localTripIdRef.current = tripId;
+        setLocalItinerary(null);
       }
       return;
     }
 
-    const local = useTripStore.getState().itinerary;
-    const localTripId = useTripStore.getState().currentTripId;
     const dbHasActivities = dbItinerary.days?.some(
       (d: { activities?: unknown[] }) => d.activities && d.activities.length > 0
     );
-    const localHasActivities = local?.days?.some((d) => d.activities && d.activities.length > 0);
-    const shouldSync =
-      localTripId !== tripId ||
-      !local ||
-      local.route.length === 0 ||
-      (local.days.length === 0 && dbItinerary.route.length > 0) ||
-      (dbHasActivities && !localHasActivities);
 
-    if (shouldSync) {
-      setCurrentTripId(tripId);
-      setItinerary(dbItinerary);
-    }
+    setLocalItinerary((prev) => {
+      const localHasActivities = prev?.days?.some((d) => d.activities && d.activities.length > 0);
+      const shouldSync =
+        localTripIdRef.current !== tripId ||
+        !prev ||
+        prev.route.length === 0 ||
+        (prev.days.length === 0 && dbItinerary.route.length > 0) ||
+        (dbHasActivities && !localHasActivities);
 
-    if (tripQuery.data?.dateStart && !useTripStore.getState().dateStart) {
-      setDateStart(tripQuery.data.dateStart);
-    }
-    if (tripQuery.data?.dateEnd && !useTripStore.getState().dateEnd) {
-      setDateEnd(tripQuery.data.dateEnd);
-    }
-  }, [
-    tripId,
-    tripQuery.data,
-    tripQuery.isPending,
-    tripQueryEnabled,
-    setCurrentTripId,
-    setItinerary,
-    setDateStart,
-    setDateEnd,
-  ]);
+      if (shouldSync) {
+        localTripIdRef.current = tripId;
+        return dbItinerary;
+      }
+      return prev;
+    });
+  }, [tripId, tripQuery.data, tripQuery.isPending, tripQueryEnabled]);
+
+  // ── Loading / error states ───────────────────────────────────────────────────
 
   const tripServerItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
   const tripServerDiscoveryStatus = (tripQuery.data?.itineraries?.[0]?.discoveryStatus ??
     "completed") as DiscoveryStatus;
   const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
   const tripHydrationPending =
-    tripId !== "guest" && Boolean(tripServerItinerary) && (currentTripId !== tripId || !itinerary);
+    tripId !== "guest" && Boolean(tripServerItinerary) && !localItinerary;
   const tripUnavailable =
     tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
-  const tripLoadFailedWithoutLocal =
-    tripId !== "guest" && tripQuery.isError && (!itinerary || currentTripId !== tripId);
+  const tripLoadFailedWithoutLocal = tripId !== "guest" && tripQuery.isError && !localItinerary;
+
+  // ── Activity discovery ───────────────────────────────────────────────────────
 
   const discoverActivitiesMutation = useDiscoverActivities();
   const recordActivitySwipeMutation = useRecordActivitySwipe();
@@ -154,12 +134,12 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   const discoveryCards = queueState.cards;
   const discoveryStatus = discoveryStatusOverride ?? tripServerDiscoveryStatus;
-  const discoveryCity = itinerary?.route?.[0];
+  const discoveryCity = localItinerary?.route?.[0];
   const shouldRunDiscovery =
     tripId !== "guest" &&
-    !!itinerary &&
-    itinerary.days.length === 0 &&
-    itinerary.route.length > 0 &&
+    !!localItinerary &&
+    localItinerary.days.length === 0 &&
+    localItinerary.route.length > 0 &&
     (discoveryStatus === "pending" || discoveryStatus === "in_progress");
 
   useEffect(() => {
@@ -230,18 +210,24 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     });
   };
 
+  // ── Enrichment ───────────────────────────────────────────────────────────────
+
+  const route = localItinerary?.route ?? [];
+
   const shouldEnrich = !!(
-    itinerary &&
-    itinerary.days.length > 0 &&
-    itinerary.route.length > 0 &&
-    !(itinerary.visaData?.length && itinerary.weatherData?.length)
+    localItinerary &&
+    localItinerary.days.length > 0 &&
+    localItinerary.route.length > 0 &&
+    !(localItinerary.visaData?.length && localItinerary.weatherData?.length)
   );
 
-  const hasAccommodationWithHotels = itinerary?.accommodationData?.some((a) => a.hotels.length > 0);
+  const hasAccommodationWithHotels = localItinerary?.accommodationData?.some(
+    (a) => a.hotels.length > 0
+  );
   const shouldEnrichAccommodation = !!(
-    itinerary &&
-    itinerary.days.length > 0 &&
-    itinerary.route.length > 0 &&
+    localItinerary &&
+    localItinerary.days.length > 0 &&
+    localItinerary.route.length > 0 &&
     !hasAccommodationWithHotels
   );
 
@@ -249,49 +235,56 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     data: visaData,
     isLoading: visaLoading,
     error: visaError,
-  } = useVisaEnrichment(nationality, itinerary?.route ?? [], shouldEnrich);
+  } = useVisaEnrichment(nationality, route, shouldEnrich);
   const {
     data: weatherData,
     isLoading: weatherLoading,
     error: weatherError,
-  } = useWeatherEnrichment(itinerary?.route ?? [], dateStart, shouldEnrich);
+  } = useWeatherEnrichment(route, dateStart, shouldEnrich);
   const {
     data: accommodationData,
     isLoading: accommodationLoading,
     error: accommodationError,
   } = useAccommodationEnrichment(
-    itinerary?.route ?? [],
+    route,
     dateStart,
-    travelers || 1,
+    travelers,
     travelStyle || "smart-budget",
     shouldEnrichAccommodation
   );
 
+  // Merge enrichment results into local itinerary state
   useEffect(() => {
     if (!visaData && !weatherData && !accommodationData) return;
-    const current = useTripStore.getState().itinerary;
-    if (!current || current.days.length === 0) return;
-    const needsVisa = visaData && !current.visaData?.length;
-    const needsWeather = weatherData && !current.weatherData?.length;
-    // Only sync accommodation when there are actual hotel results — an empty-hotels
-    // response (e.g. SerpApi unavailable) must not trigger repeated setItinerary calls.
-    const needsAccommodation =
-      accommodationData?.some((a) => a.hotels.length > 0) &&
-      !current.accommodationData?.some((a) => a.hotels.length > 0);
-    if (!needsVisa && !needsWeather && !needsAccommodation) return;
-    setItinerary({
-      ...current,
-      ...(needsVisa ? { visaData } : {}),
-      ...(needsWeather ? { weatherData } : {}),
-      ...(needsAccommodation ? { accommodationData } : {}),
+    setLocalItinerary((prev) => {
+      if (!prev || prev.days.length === 0) return prev;
+      const needsVisa = visaData && !prev.visaData?.length;
+      const needsWeather = weatherData && !prev.weatherData?.length;
+      const needsAccommodation =
+        accommodationData?.some((a) => a.hotels.length > 0) &&
+        !prev.accommodationData?.some((a) => a.hotels.length > 0);
+      if (!needsVisa && !needsWeather && !needsAccommodation) return prev;
+      return {
+        ...prev,
+        ...(needsVisa ? { visaData } : {}),
+        ...(needsWeather ? { weatherData } : {}),
+        ...(needsAccommodation ? { accommodationData } : {}),
+      };
     });
-  }, [visaData, weatherData, accommodationData, setItinerary]);
+  }, [visaData, weatherData, accommodationData]);
+
+  // Callback for AccommodationTab's manual refetch — updates local state directly
+  const handleAccommodationLoaded = useCallback((data: CityAccommodation[]) => {
+    setLocalItinerary((prev) => (prev ? { ...prev, accommodationData: data } : prev));
+  }, []);
 
   useEffect(() => {
     posthog?.capture("itinerary_viewed", { trip_id: tripId, city_count: route.length });
   }, [posthog, tripId, route.length]);
 
-  if (!storeReady || tripSyncPending || tripHydrationPending) {
+  // ── Render guards ────────────────────────────────────────────────────────────
+
+  if (tripSyncPending || tripHydrationPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[image:var(--gradient-page-trip)]">
         <div className="border-brand-primary h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent" />
@@ -303,22 +296,24 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 
-  if (!itinerary) {
+  if (!localItinerary) {
     return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 
   const countries = [...new Set(route.map((r) => r.country))];
   const singleCity = route.length === 1;
   const tripTitle = singleCity ? `${route[0].city}, ${route[0].country}` : countries.join(", ");
-  const totalDays = days.length || route.reduce((sum, r) => sum + r.days, 0);
+  const totalDays = localItinerary.days.length || route.reduce((sum, r) => sum + r.days, 0);
 
   const contextValue: TripContextValue = {
-    itinerary,
+    itinerary: localItinerary,
     tripId,
     tripTitle,
     totalDays,
     countries,
     isAuthenticated,
+    dateStart,
+    travelers,
     isPartialItinerary: false,
     isGenerating: false,
     generationError: null,
@@ -332,6 +327,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     weatherError: !!weatherError,
     accommodationLoading: accommodationLoading && shouldEnrichAccommodation,
     accommodationError: !!accommodationError,
+    onAccommodationLoaded: handleAccommodationLoaded,
     discoveryStatus,
     discoveryCards,
     discoveryCursor: queueState.cursor,

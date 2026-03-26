@@ -5,8 +5,8 @@ import { MotionConfig } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { useToastStore } from "@/stores/useToastStore";
 import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { ToastContainer } from "@/components/ui/Toast";
-import type { Itinerary } from "@/types";
 import type { PostHog } from "posthog-js";
 import { createClient } from "@/lib/core/supabase-client";
 import { queryKeys } from "@/hooks/api/keys";
@@ -14,12 +14,7 @@ import { queryKeys } from "@/hooks/api/keys";
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => {
     const mutationCache = new MutationCache({
-      onError: (_error, _variables, context, mutation) => {
-        // Rollback Zustand itinerary if previous snapshot exists
-        const ctx = context as { previousItinerary?: unknown } | undefined;
-        if (ctx?.previousItinerary) {
-          useTripStore.getState().setItinerary(ctx.previousItinerary as Itinerary);
-        }
+      onError: (_error, _variables, _context, mutation) => {
         // Show global error toast for mutations that opt-in via meta
         const meta = mutation.options.meta as { errorToast?: string } | undefined;
         if (meta?.errorToast) {
@@ -80,6 +75,7 @@ export function Providers({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         useTripStore.getState().resetAll();
+        usePlanFormStore.getState().resetPlanForm();
       }
       void queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });

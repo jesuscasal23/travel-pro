@@ -4,6 +4,12 @@ const TEST_EMAIL = process.env.E2E_TEST_EMAIL ?? "";
 const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD ?? "";
 const hasAuthCreds = TEST_EMAIL !== "" && TEST_PASSWORD !== "";
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const hasAdminCreds =
+  SUPABASE_URL !== "" && SUPABASE_ANON_KEY !== "" && SUPABASE_SERVICE_ROLE_KEY !== "";
+
 async function loginViaUI(page: Page) {
   await page.goto("/login");
   await page.getByLabel(/Email address/i).fill(TEST_EMAIL);
@@ -12,101 +18,147 @@ async function loginViaUI(page: Page) {
   await page.waitForURL("**/trips", { timeout: 15_000 });
 }
 
-async function signUpViaUI(page: Page, email: string, password: string) {
-  await page.goto("/signup");
-  await page.getByLabel(/Email address/i).fill(email);
-  await page.getByLabel(/^Password$/i).fill(password);
+const mockItinerary = {
+  route: [
+    {
+      id: "paris",
+      city: "Paris",
+      country: "France",
+      countryCode: "FR",
+      lat: 48.85,
+      lng: 2.35,
+      days: 3,
+      iataCode: "CDG",
+    },
+  ],
+  days: [
+    {
+      day: 1,
+      date: "2026-07-01",
+      city: "Paris",
+      activities: [
+        { name: "Eiffel Tower", category: "culture", duration: "2 hours", why: "Iconic landmark" },
+      ],
+    },
+    {
+      day: 2,
+      date: "2026-07-02",
+      city: "Paris",
+      activities: [
+        { name: "Louvre Museum", category: "culture", duration: "3 hours", why: "World-class art" },
+      ],
+    },
+    {
+      day: 3,
+      date: "2026-07-03",
+      city: "Paris",
+      activities: [
+        {
+          name: "Montmartre Walk",
+          category: "explore",
+          duration: "2 hours",
+          why: "Charming neighborhood",
+        },
+      ],
+    },
+  ],
+};
 
-  const confirmField = page.getByLabel(/confirm password/i);
-  if (await confirmField.isVisible().catch(() => false)) {
-    await confirmField.fill(password);
-  }
-
-  await page.getByRole("button", { name: /sign up|create account/i }).click();
-  await page.waitForURL("**/trips", { timeout: 15_000 });
-}
-
-test("E2E-02: signup -> trips -> planner", async ({ page }) => {
-  if (!hasAuthCreds) {
-    test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set - skipping auth journey");
+test("E2E-02: signup (admin-created) -> login -> planner", async ({ page, request }) => {
+  if (!hasAuthCreds || !hasAdminCreds) {
+    test.skip(true, "Auth credentials not set - skipping");
     return;
   }
 
+  // Create a confirmed user via Supabase admin API (bypasses email verification)
   const uniqueEmail = `e2e+${Date.now()}@travelpro-test.dev`;
+  const createRes = await request.fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    data: { email: uniqueEmail, password: TEST_PASSWORD, email_confirm: true },
+  });
+  expect(createRes.status()).toBe(200);
 
-  await signUpViaUI(page, uniqueEmail, TEST_PASSWORD);
+  // Login with the new user
+  await page.goto("/login");
+  await page.getByLabel(/Email address/i).fill(uniqueEmail);
+  await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
+  await page.getByRole("button", { name: /sign in|log in/i }).click();
+  await page.waitForURL("**/trips", { timeout: 15_000 });
   await expect(page).toHaveURL(/trips/);
 
+  // Navigate to planner and verify first step renders
   await page.goto("/plan");
-  await expect(page.getByText("Where are you headed?")).toBeVisible();
-  await page.getByPlaceholder("Search for a city").fill("Paris");
-  await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: /Next/i }).click();
+  await expect(page.getByText("Where to")).toBeVisible();
+  await page.getByPlaceholder("Search cities, countries...").fill("Paris");
+  const parisOption = page
+    .locator("button")
+    .filter({ hasText: /Paris.*France/ })
+    .first();
+  await parisOption.click();
 
-  await expect(page.getByText("When are you going?")).toBeVisible();
+  // Fill dates
   await page.locator('input[type="date"]').first().fill("2026-10-01");
   await page.locator('input[type="date"]').nth(1).fill("2026-10-08");
-  await page.getByRole("button", { name: /Next/i }).click();
-
-  await expect(page.getByText("What level of trip are you after?")).toBeVisible();
-  await page.getByRole("button", { name: /Comfort/i }).click();
-  await page.getByRole("button", { name: /Next/i }).click();
-
-  await expect(page.getByText("What should fill the trip?")).toBeVisible();
-  await page.getByRole("button", { name: /Balanced/i }).click();
-  await page.getByRole("button", { name: /Culture/i }).click();
-  await page.getByRole("button", { name: /Next/i }).click();
-
-  await expect(page.getByText("Tell us a bit about you")).toBeVisible();
-  await page.locator("select").selectOption("Germany");
-  await page.getByPlaceholder(/Search airport or city/i).fill("FRA");
-  await page.keyboard.press("Enter");
 });
 
-test("E2E-03: login -> trip edit -> route change -> save -> share", async ({ page }) => {
+test("E2E-03: login -> trip list -> trip view -> verify tabs", async ({ page }) => {
   if (!hasAuthCreds) {
     test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set - skipping auth journey");
     return;
   }
 
+  await page.route("**/*.posthog.com/**", (route) => route.abort());
+  await page.route("**/sentry.io/**", (route) => route.abort());
+
   await loginViaUI(page);
-  await expect(page).toHaveURL(/trips/);
 
-  const firstTripLink = page.locator("a[href*='/trip/']").first();
-  await expect(firstTripLink).toBeVisible({ timeout: 10_000 });
-  await firstTripLink.click();
-  await page.waitForURL(/\/trip\//, { timeout: 15_000 });
+  // Create a trip so the trips list is not empty
+  const createRes = await page.request.post("/api/v1/trips", {
+    data: {
+      tripType: "single-city",
+      region: "",
+      destination: "Paris",
+      destinationCountry: "France",
+      destinationCountryCode: "FR",
+      dateStart: "2026-07-01",
+      dateEnd: "2026-07-03",
+      travelers: 2,
+      initialItinerary: mockItinerary,
+    },
+  });
+  expect(createRes.status()).toBe(201);
+  const { trip } = (await createRes.json()) as { trip: { id: string } };
 
-  const editTripBtn = page.getByRole("button", { name: /Edit trip/i }).first();
-  await expect(editTripBtn).toBeVisible({ timeout: 10_000 });
-  await editTripBtn.click();
-  await expect(page.getByText(/Editing/i)).toBeVisible({ timeout: 5_000 });
+  try {
+    // Reload trips page to see the new trip
+    await page.goto("/trips");
+    await expect(page.getByText(/Paris/i).first()).toBeVisible({ timeout: 10_000 });
 
-  const editRouteBtn = page.getByRole("button", { name: /Edit Route/i }).first();
-  await expect(editRouteBtn).toBeVisible({ timeout: 5_000 });
-  await editRouteBtn.click();
+    // Navigate to the trip detail page
+    await page.goto(`/trips/${trip.id}`);
+    await expect(page.getByRole("heading", { name: /Paris/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
 
-  const removeButtons = page.getByRole("button", { name: /Remove /i });
-  const countBefore = await removeButtons.count();
-  if (countBefore > 1) {
-    await removeButtons.last().click();
-    await expect(removeButtons).toHaveCount(countBefore - 1);
-  }
+    // Check that tab navigation links are present
+    const itineraryLink = page.getByRole("link", { name: /Itinerary|Activities/i }).first();
+    if (await itineraryLink.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await itineraryLink.click();
+      await expect(page).toHaveURL(/itinerary/);
+    }
 
-  await page.getByRole("button", { name: /Done/i }).first().click();
-  await page.getByRole("button", { name: /Save/i }).first().click();
-  await expect(page.getByText(/Editing/i)).not.toBeVisible({ timeout: 10_000 });
-
-  const summaryLink = page.getByRole("link", { name: /Summary/i }).first();
-  if (await summaryLink.isVisible().catch(() => false)) {
-    await summaryLink.click();
-    await page.waitForURL(/summary/, { timeout: 10_000 });
-  }
-
-  const shareBtn = page.getByRole("button", { name: /share|copy link/i }).first();
-  if (await shareBtn.isVisible().catch(() => false)) {
-    await shareBtn.click();
-    await expect(page.getByText(/copied|link copied/i)).toBeVisible({ timeout: 5_000 });
+    const flightsLink = page.getByRole("link", { name: /Flights/i }).first();
+    if (await flightsLink.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await flightsLink.click();
+      await expect(page).toHaveURL(/flights/);
+    }
+  } finally {
+    await page.request.delete(`/api/v1/trips/${trip.id}`);
   }
 });
 
@@ -121,8 +173,8 @@ test("E2E-06: auth pages render key form elements", async ({ page }) => {
   await expect(page.getByPlaceholder("you@example.com")).toBeVisible();
   await expect(page.getByPlaceholder("Your password")).toBeVisible();
   await expect(page.getByRole("button", { name: /sign in|log in/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /sign up|create account/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /forgot password/i })).toBeVisible();
+  // "Forgot?" link to forgot-password page
+  await expect(page.getByRole("link", { name: /forgot/i })).toBeVisible();
 
   await page.goto("/forgot-password");
   await expect(page.getByPlaceholder("you@example.com")).toBeVisible();

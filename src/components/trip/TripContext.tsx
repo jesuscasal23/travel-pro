@@ -1,7 +1,12 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { ActivityDiscoveryCandidate, DiscoveryStatus, Itinerary } from "@/types";
+import type {
+  ActivityDiscoveryCandidate,
+  CityAccommodation,
+  DiscoveryStatus,
+  Itinerary,
+} from "@/types";
 
 export interface TripContextValue {
   // Core trip identity
@@ -11,6 +16,10 @@ export interface TripContextValue {
   totalDays: number;
   countries: string[];
   isAuthenticated: boolean | null;
+
+  // Trip dates and party size (from DB, not from form store)
+  dateStart: string;
+  travelers: number;
 
   // Generation state
   isPartialItinerary: boolean;
@@ -28,6 +37,8 @@ export interface TripContextValue {
   weatherError: boolean;
   accommodationLoading: boolean;
   accommodationError: boolean;
+  /** Called by AccommodationTab after a manual refetch to update the itinerary. */
+  onAccommodationLoaded: (data: CityAccommodation[]) => void;
 
   // Activity discovery swipe flow
   discoveryStatus: DiscoveryStatus;

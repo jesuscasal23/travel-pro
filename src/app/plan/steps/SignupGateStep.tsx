@@ -2,23 +2,24 @@
 
 import { CalendarDays, MapPin } from "lucide-react";
 import { useShallow } from "zustand/shallow";
-import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useProfileState } from "@/hooks/useProfileState";
 import { regions } from "@/data/sampleData";
 import { travelStyles } from "@/data/travelStyles";
 import { formatDateRange, daysBetween } from "@/lib/utils/format/date";
 
 export function SignupGateStep() {
-  const { tripType, region, destination, destinationCountry, dateStart, dateEnd } = useTripStore(
-    useShallow((s) => ({
-      tripType: s.tripType,
-      region: s.region,
-      destination: s.destination,
-      destinationCountry: s.destinationCountry,
-      dateStart: s.dateStart,
-      dateEnd: s.dateEnd,
-    }))
-  );
+  const { tripType, region, destination, destinationCountry, dateStart, dateEnd } =
+    usePlanFormStore(
+      useShallow((s) => ({
+        tripType: s.tripType,
+        region: s.region,
+        destination: s.destination,
+        destinationCountry: s.destinationCountry,
+        dateStart: s.dateStart,
+        dateEnd: s.dateEnd,
+      }))
+    );
   const { travelStyle, interests, pace } = useProfileState();
 
   const regionLabel = regions.find((r) => r.id === region)?.name ?? region;

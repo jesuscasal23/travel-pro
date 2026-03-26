@@ -12,6 +12,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
 import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import {
   mockFramerMotion,
   mockNextLink,
@@ -67,15 +68,18 @@ import PlanPage from "@/app/plan/page";
 
 // ── Store setup ───────────────────────────────────────────────────────────────
 
-/** Prime the store so the questionnaire is on the final step with valid answers. */
+/** Prime both stores so the questionnaire is on the final step with valid answers. */
 function setValidFinalStepState() {
   act(() => {
     useTripStore.setState({
-      planStep: 4,
       nationality: "German",
       homeAirport: "FRA",
       travelStyle: "smart-budget",
       interests: [],
+      isGenerating: false,
+    });
+    usePlanFormStore.setState({
+      planStep: 4,
       tripType: "single-city",
       destination: "Bangkok",
       destinationCountry: "Thailand",
@@ -86,8 +90,6 @@ function setValidFinalStepState() {
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
       travelers: 2,
-      isGenerating: false,
-      itinerary: null,
     });
   });
 }
@@ -194,7 +196,7 @@ describe("PlanPage — authenticated API failure", () => {
 
     await waitFor(() => screen.getByText(/failed to create trip|something went wrong/i));
 
-    // Store itinerary must remain null — partial itinerary only set on success
-    expect(useTripStore.getState().itinerary).toBeNull();
+    // isGenerating must be cleared on failure — no loading state stuck
+    expect(useTripStore.getState().isGenerating).toBe(false);
   }, 15_000);
 });

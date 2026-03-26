@@ -24,7 +24,6 @@ import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
 import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
 import { Badge } from "@/components/ui/Badge";
 import { AlertBox } from "@/components/ui/AlertBox";
-import { useTripStore } from "@/stores/useTripStore";
 import { useTripContext } from "../TripContext";
 import type {
   Itinerary,
@@ -223,7 +222,8 @@ function HotelBookingConfirmation({
 
 /* ─── Main AccommodationTab ─── */
 export function AccommodationTab({ itinerary, tripId }: AccommodationTabProps) {
-  const { accommodationLoading, accommodationError } = useTripContext();
+  const { accommodationLoading, accommodationError, dateStart, travelers, onAccommodationLoaded } =
+    useTripContext();
   const accommodationData = itinerary.accommodationData;
   const route = itinerary.route;
 
@@ -237,11 +237,8 @@ export function AccommodationTab({ itinerary, tripId }: AccommodationTabProps) {
     [confirmMutation, tripId]
   );
 
-  const dateStart = useTripStore((s) => s.dateStart);
-  const travelers = useTripStore((s) => s.travelers) || 1;
   const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
   const travelStyle = travelerPreferences.data?.travelStyle ?? "smart-budget";
-  const setItinerary = useTripStore((s) => s.setItinerary);
   const queryClient = useQueryClient();
 
   const [refetching, setRefetching] = useState(false);
@@ -256,20 +253,13 @@ export function AccommodationTab({ itinerary, tripId }: AccommodationTabProps) {
           fetchAccommodationEnrichment(route, dateStart, travelers, travelStyle, signal),
         staleTime: 0,
       });
-
-      const current = useTripStore.getState().itinerary;
-      if (current) {
-        setItinerary({
-          ...current,
-          accommodationData: data as CityAccommodation[],
-        });
-      }
+      onAccommodationLoaded(data as CityAccommodation[]);
     } catch {
       // Errors surface via the accommodationError context flag
     } finally {
       setRefetching(false);
     }
-  }, [dateStart, queryClient, route, setItinerary, travelers, travelStyle]);
+  }, [dateStart, queryClient, route, onAccommodationLoaded, travelers, travelStyle]);
 
   /* ─── Loading state ─── */
   if (accommodationLoading) {

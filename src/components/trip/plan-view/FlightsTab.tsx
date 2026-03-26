@@ -9,7 +9,7 @@ import { useBatchFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
 import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
-import { useTripStore } from "@/stores/useTripStore";
+import { useTripContext } from "@/components/trip/TripContext";
 import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
 import type { Itinerary, BookingClick, BookingClickMetadata, FlightDirection } from "@/types";
 import type { FlightLegResults } from "@/lib/flights/types";
@@ -47,8 +47,7 @@ function findClickForLeg(
 export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
   const homeAirport = travelerPreferences.data?.homeAirport ?? "";
-  const travelers = useTripStore((s) => s.travelers) || 1;
-  const dateStart = useTripStore((s) => s.dateStart);
+  const { travelers, dateStart } = useTripContext();
 
   const { route, flightOptions, flightLegs } = itinerary;
   const homeIata = extractHomeAirportIata(homeAirport);

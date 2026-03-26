@@ -3,7 +3,7 @@
 import { travelStyles } from "@/data/travelStyles";
 import { regions } from "@/data/sampleData";
 import { useShallow } from "zustand/shallow";
-import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useProfileState } from "@/hooks/useProfileState";
 import { StepBadge } from "./StepBadge";
 
@@ -13,7 +13,7 @@ interface OverviewStepProps {
 }
 
 export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
-  const { tripType, region, destination, destinationCountry } = useTripStore(
+  const { tripType, region, destination, destinationCountry } = usePlanFormStore(
     useShallow((s) => ({
       tripType: s.tripType,
       region: s.region,

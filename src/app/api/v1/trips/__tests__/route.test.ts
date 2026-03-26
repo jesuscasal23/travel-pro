@@ -13,6 +13,18 @@ vi.mock("@/lib/core/supabase-server", () => ({
   getAuthenticatedUserId: vi.fn(),
 }));
 
+vi.mock("@/lib/api/guest-trip-ownership", () => ({
+  createGuestTripOwnerCookie: vi.fn().mockReturnValue({
+    name: "travelpro_guest_trip_trip-new",
+    value: "v1.sig",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+    path: "/",
+    maxAge: 7776000,
+  }),
+}));
+
 vi.mock("@/lib/core/logger", () => ({
   createLogger: () => ({
     debug: vi.fn(),
@@ -93,7 +105,7 @@ describe("/api/v1/trips", () => {
     expect(json.error).toBe("Validation failed");
   });
 
-  it("POST returns 401 when unauthenticated", async () => {
+  it("POST creates guest trip when unauthenticated", async () => {
     mockAuth.mockResolvedValue(null);
 
     const req = new NextRequest("http://localhost:3000/api/v1/trips", {
@@ -111,9 +123,11 @@ describe("/api/v1/trips", () => {
     const res = await POST(req);
     const json = await res.json();
 
-    expect(res.status).toBe(401);
-    expect(json.error).toBe("Unauthorized");
-    expect(mockPrisma.trip.create).not.toHaveBeenCalled();
+    expect(res.status).toBe(201);
+    expect(json.trip.id).toBe("trip-new");
+    expect(mockPrisma.trip.create).toHaveBeenCalled();
+    // profile is not linked for guest trips
+    expect(mockPrisma.profile.findUnique).not.toHaveBeenCalled();
   });
 
   it("POST creates trip", async () => {

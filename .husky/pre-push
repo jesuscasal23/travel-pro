@@ -1,3 +1,14 @@
 #!/usr/bin/env sh
 
 npm run typecheck && npm run test
+
+# Optional e2e tests — only if dev server is running, you opt in, and stdin is a tty
+if curl -sf http://localhost:3000/api/health > /dev/null 2>&1 && [ -t 0 ]; then
+  printf "\nDev server detected. Run e2e tests before pushing? [y/N] "
+  read -r answer
+  if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+    npm run test:e2e
+  else
+    echo "Skipping e2e tests."
+  fi
+fi

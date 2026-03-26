@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Loader2, Sparkles, UserPlus } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useToastStore } from "@/stores/useToastStore";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +19,7 @@ import {
   useCreateTrip,
   useSaveProfile,
 } from "@/hooks/api";
+import { queryKeys } from "@/hooks/api/keys";
 import { slideVariants } from "@/lib/animations";
 import { normalizeInterests } from "@/lib/features/profile/interests";
 import { DestinationStep } from "./steps/DestinationStep";
@@ -24,7 +27,7 @@ import { ProfileStep } from "./steps/ProfileStep";
 import { PrioritiesStep } from "./steps/PrioritiesStep";
 import { OverviewStep } from "./steps/OverviewStep";
 import { SignupGateStep } from "./steps/SignupGateStep";
-import type { CityStop, Itinerary } from "@/types";
+import type { CityStop } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
 import { citiesToRoute } from "@/lib/utils/trip/cities-to-route";
 import { daysBetween } from "@/lib/utils/format/date";
@@ -33,20 +36,17 @@ import Link from "next/link";
 export default function PlanPage() {
   const router = useRouter();
   const posthog = usePostHog();
+  const queryClient = useQueryClient();
   const isAuthenticated = useAuthStatus();
   const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [showSignupGate, setShowSignupGate] = useState(false);
 
+  // Plan form fields — persisted across navigation and signup redirect
   const {
     planStep,
     setPlanStep,
-    nationality,
-    homeAirport,
-    travelStyle,
-    interests,
-    pace,
     tripType,
     tripDescription,
     planningPriorities,
@@ -59,11 +59,11 @@ export default function PlanPage() {
     dateStart,
     dateEnd,
     travelers,
-    isGenerating,
-    setIsGenerating,
-    setCurrentTripId,
-    setItinerary,
-  } = useTripStore();
+  } = usePlanFormStore();
+
+  // Profile fields and generation UI state — transient
+  const { nationality, homeAirport, travelStyle, interests, pace, isGenerating, setIsGenerating } =
+    useTripStore();
 
   const fetchRoute = useFetchRouteSelection();
   const createTripMutation = useCreateTrip();
@@ -195,14 +195,6 @@ export default function PlanPage() {
     dayCount,
   ]);
 
-  const buildPartialItinerary = useCallback(
-    (route: CityStop[]): Itinerary => ({
-      route,
-      days: [],
-    }),
-    []
-  );
-
   const prioritySummary =
     planningPriorities.length === 0
       ? ""
@@ -326,11 +318,11 @@ export default function PlanPage() {
         dateEnd,
         travelers,
         ...(combinedDescription ? { description: combinedDescription } : {}),
-        initialItinerary: buildPartialItinerary(route),
+        initialItinerary: { route, days: [] },
       });
 
-      setItinerary(buildPartialItinerary(route));
-      setCurrentTripId(trip.id);
+      // Prime React Query cache so TripClientProvider renders immediately on navigation
+      queryClient.setQueryData(queryKeys.trips.detail(trip.id), trip);
       posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
       router.push(`/trips/${trip.id}`);
     } catch (err) {
@@ -361,14 +353,12 @@ export default function PlanPage() {
     travelStyle,
     interests,
     setIsGenerating,
-    setCurrentTripId,
-    setItinerary,
     pace,
     saveProfileMutation,
     singleCityRoute,
-    buildPartialItinerary,
     fetchRoute,
     createTripMutation,
+    queryClient,
     router,
     posthog,
     isAuthenticated,

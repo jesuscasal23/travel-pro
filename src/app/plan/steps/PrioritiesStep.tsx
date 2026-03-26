@@ -1,6 +1,6 @@
 "use client";
 
-import { useTripStore } from "@/stores/useTripStore";
+import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { StepBadge } from "./StepBadge";
 import {
   Compass,
@@ -73,8 +73,8 @@ interface PrioritiesStepProps {
 }
 
 export function PrioritiesStep({ step, totalSteps }: PrioritiesStepProps) {
-  const planningPriorities = useTripStore((s) => s.planningPriorities);
-  const togglePlanningPriority = useTripStore((s) => s.togglePlanningPriority);
+  const planningPriorities = usePlanFormStore((s) => s.planningPriorities);
+  const togglePlanningPriority = usePlanFormStore((s) => s.togglePlanningPriority);
 
   return (
     <div className="space-y-6 pb-1">
