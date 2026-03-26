@@ -840,12 +840,6 @@
             <td style="color: var(--red)">Yes</td>
             <td><code>dateEnd &gt; dateStart</code></td>
           </tr>
-          <tr>
-            <td>Flexible Dates</td>
-            <td><code>flexibleDates</code></td>
-            <td style="color: var(--text-muted)">No</td>
-            <td>boolean, default false (&plusmn;3 days)</td>
-          </tr>
         </table>
 
         <h4 style="margin-top: 12px">Destination picker &mdash; varies by trip type</h4>
@@ -1433,11 +1427,6 @@
       <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
       <div class="compare-cell"><span class="yes">Required</span> (&gt; start)</div>
 
-      <div class="compare-label">flexibleDates</div>
-      <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
-      <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
-      <div class="compare-cell"><span class="opt">Optional</span> (default: false)</div>
-
       <div class="compare-label">budget</div>
       <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
       <div class="compare-cell"><span class="yes">Required</span> (&ge; 1000)</div>
@@ -1708,13 +1697,6 @@
       them. Amadeus optimization requires owner auth and is only useful for multi-leg routes. For
       single-city, a simple "search flights" link to Skyscanner would be more appropriate than the
       optimization endpoint.
-    </div>
-
-    <div class="obs obs">
-      <strong>flexibleDates field is collected but impact is unclear</strong><br />
-      The <code>flexibleDates</code> boolean (&plusmn;3 days) is stored and sent to the API, but
-      it's unclear how the generation prompts use it. The Amadeus flight search doesn't use flexible
-      dates either. Verify this field actually affects output, or remove it.
     </div>
 
     <div class="obs obs">

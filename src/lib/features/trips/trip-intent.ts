@@ -14,7 +14,6 @@ export function tripToIntent(trip: TripIntentRecord): TripIntent {
     destinationCountryCode: trip.destinationCountryCode ?? undefined,
     dateStart: trip.dateStart,
     dateEnd: trip.dateEnd,
-    flexibleDates: trip.flexibleDates,
     travelers: trip.travelers,
     description: trip.description ?? undefined,
   };

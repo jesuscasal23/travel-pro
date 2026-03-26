@@ -155,6 +155,17 @@ export type DiscoveryStatus = "pending" | "in_progress" | "completed";
 /** Activity pace — how many activities per day the traveler prefers */
 export type ActivityPace = "relaxed" | "moderate" | "active";
 
+/** Vibe slider keys from onboarding — each value is 0-100 */
+export type VibeKey =
+  | "adventureComfort"
+  | "socialQuiet"
+  | "luxuryBudget"
+  | "structuredSpontaneous"
+  | "warmMixed";
+
+/** Vibe scores collected during onboarding (all values 0–100) */
+export type VibeScores = Record<VibeKey, number>;
+
 /** Trip type — single-city (one destination) or multi-city (multiple explicit cities) */
 export type TripType = "single-city" | "multi-city";
 
@@ -181,6 +192,7 @@ export interface UserProfile {
   travelStyle: TravelStyle;
   interests: string[];
   pace?: ActivityPace;
+  vibes?: VibeScores;
 }
 
 /** Trip planning intent from questionnaire */
@@ -196,7 +208,6 @@ export interface TripIntent {
   destinationLng?: number;
   dateStart: string;
   dateEnd: string;
-  flexibleDates?: boolean;
   travelers: number;
   description?: string;
 }

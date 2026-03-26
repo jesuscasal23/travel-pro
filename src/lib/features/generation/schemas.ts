@@ -21,7 +21,6 @@ export const TripIntentInputSchema = z
     destinationLng: z.number().optional(),
     dateStart: z.string().max(20),
     dateEnd: z.string().max(20),
-    flexibleDates: z.boolean().default(false),
     travelers: z.number().int().min(1).max(20),
   })
   .refine(

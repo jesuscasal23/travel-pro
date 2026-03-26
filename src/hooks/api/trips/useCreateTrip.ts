@@ -11,7 +11,6 @@ interface CreateTripParams {
   destinationCountryCode?: string;
   dateStart: string;
   dateEnd: string;
-  flexibleDates?: boolean;
   travelers: number;
   description?: string;
   initialItinerary?: Pick<Itinerary, "route" | "days">;

@@ -186,7 +186,7 @@ VisaInfo     { country, countryCode, requirement, maxStayDays, notes, icon, labe
 CityWeather  { city, temp, condition, icon }
 Itinerary    { route: CityStop[], days: TripDay[], budget, visaData, weatherData, flightLegs? }
 UserProfile  { nationality, homeAirport, travelStyle, interests }
-TripIntent   { id, tripType?, region, destination?, dateStart, dateEnd, flexibleDates, budget, travelers }
+TripIntent   { id, tripType?, region, destination?, dateStart, dateEnd, budget, travelers }
 TravelStyle  = "backpacker" | "comfort" | "luxury"
 TripType     = "single-city" | "multi-city"
 ```

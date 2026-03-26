@@ -13,7 +13,6 @@ export const TRIP_INTENT_SELECT = {
   destinationCountryCode: true,
   dateStart: true,
   dateEnd: true,
-  flexibleDates: true,
   travelers: true,
   description: true,
 } satisfies Prisma.TripSelect;

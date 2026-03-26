@@ -267,7 +267,6 @@ describe("GET /api/v1/trips/:id", () => {
         destinationCountryCode: null,
         dateStart: "2026-06-01",
         dateEnd: "2026-06-10",
-        flexibleDates: false,
         travelers: 2,
         description: null,
         itineraries: [

@@ -61,7 +61,6 @@ describe("TripIntentInputSchema", () => {
     region: "Southeast Asia",
     dateStart: "2026-03-01",
     dateEnd: "2026-03-15",
-    flexibleDates: true,
     travelers: 2,
   };
 

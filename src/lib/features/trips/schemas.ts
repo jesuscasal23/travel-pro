@@ -9,7 +9,6 @@ export const CreateTripInputSchema = z.object({
   destinationCountryCode: z.string().max(10).optional(),
   dateStart: z.string().max(20),
   dateEnd: z.string().max(20),
-  flexibleDates: z.boolean().default(false),
   travelers: z.number().int().min(1).max(20).default(2),
   description: z.string().max(2000).optional(),
   initialItinerary: itineraryCoreSchema.optional(),

@@ -1235,8 +1235,8 @@ Viewer clicks affiliate link   ──▶ GET /api/v1/affiliate/redirect
 │ activityLevel?│       │ destCode?     │       │ generationStatus  │       └──────────────────┘
 │ languages[]   │       │ dateStart     │       │ generationJobId?  │
 │ onboarding    │       │ dateEnd       │       │ createdAt         │
-│ createdAt     │       │ flexibleDates │       │ updatedAt         │
-│ updatedAt     │       │ budget        │       └──────────────────┘
+│ createdAt     │       │ budget        │       │ updatedAt         │
+│ updatedAt     │       └──────────────────┘
 └──────────────┘       │ travelers     │
                         │ shareToken?   │       ┌──────────────────┐
                         │ createdAt     │──1:N─▶│  AffiliateClick   │
@@ -1508,13 +1508,6 @@ interface VisaInfo {
         <td>Yes</td>
         <td>Plan step 3</td>
         <td>Generation, optimization</td>
-      </tr>
-      <tr>
-        <td><code>flexibleDates</code></td>
-        <td>boolean</td>
-        <td>Yes</td>
-        <td>Plan step 3</td>
-        <td>Generation (±3 days)</td>
       </tr>
       <tr>
         <td><code>budget</code></td>

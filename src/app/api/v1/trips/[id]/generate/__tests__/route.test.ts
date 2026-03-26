@@ -108,7 +108,6 @@ describe("POST /api/v1/trips/:id/generate", () => {
       destinationLng: -9.14,
       dateStart: "2026-06-01",
       dateEnd: "2026-06-10",
-      flexibleDates: false,
       travelers: 2,
       description: null,
     });
@@ -177,7 +176,6 @@ describe("POST /api/v1/trips/:id/generate", () => {
       destinationLng: -9.14,
       dateStart: "2026-06-01",
       dateEnd: "2026-06-10",
-      flexibleDates: false,
       travelers: 2,
       description: null,
     });

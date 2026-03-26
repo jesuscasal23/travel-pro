@@ -1594,15 +1594,6 @@
             "map": "date_end"
           },
           {
-            "name": "flexibleDates",
-            "type": "Boolean",
-            "isId": false,
-            "isRequired": true,
-            "isUnique": false,
-            "default": "false",
-            "map": "flexible_dates"
-          },
-          {
             "name": "travelers",
             "type": "Int",
             "isId": false,

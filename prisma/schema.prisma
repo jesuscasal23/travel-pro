@@ -23,6 +23,7 @@ model Profile {
   travelStyle         String   @map("travel_style")
   interests           String[]
   activityLevel       String?  @map("activity_level") // legacy column name; stores pace values ("relaxed" | "moderate" | "active")
+  vibes               Json?    // VibeScores: { adventureComfort, socialQuiet, luxuryBudget, structuredSpontaneous, warmMixed } (0–100)
   languagesSpoken     String[] @map("languages_spoken")
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
   isPremium           Boolean  @default(false) @map("is_premium")
@@ -52,7 +53,6 @@ model Trip {
   destinationCountryCode String? @map("destination_country_code")
   dateStart              String  @map("date_start")
   dateEnd       String   @map("date_end")
-  flexibleDates Boolean  @default(false) @map("flexible_dates")
   travelers     Int      @default(2)
   description   String?
 

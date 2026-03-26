@@ -159,7 +159,6 @@ async function main() {
       region: "Asia",
       dateStart: "2025-03-15",
       dateEnd: "2025-04-05",
-      flexibleDates: false,
       budget: 10000,
       travelers: 2,
     },
