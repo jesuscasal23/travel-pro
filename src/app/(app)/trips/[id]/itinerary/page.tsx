@@ -13,7 +13,6 @@ export default function TripItineraryPage() {
     discoveryCursor,
     discoveryTotalTarget,
     discoveryIsLoading,
-    discoveryHasPendingBatches,
     discoveryError,
     onDiscoverySwipe,
   } = useTripContext();
@@ -31,7 +30,6 @@ export default function TripItineraryPage() {
           cursor={discoveryCursor}
           totalTarget={discoveryTotalTarget}
           isLoading={discoveryIsLoading}
-          hasPendingBatches={discoveryHasPendingBatches}
           error={discoveryError}
           isMultiCity={itinerary.route.length > 1}
           onSwipe={onDiscoverySwipe}

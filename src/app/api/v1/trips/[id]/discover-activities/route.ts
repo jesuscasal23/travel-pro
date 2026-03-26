@@ -1,7 +1,7 @@
 import { apiHandler, assertTripAccess, parseAndValidateRequest } from "@/lib/api/helpers";
 import { resolveTripUserProfile } from "@/lib/features/profile/profile-service";
 import { DiscoverActivitiesInputSchema } from "@/lib/features/trips/schemas";
-import { discoverActivitiesBatch } from "@/lib/features/trips/discover-activities-service";
+import { discoverActivities } from "@/lib/features/trips/discover-activities-service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -14,17 +14,15 @@ export const POST = apiHandler(
       throw new Error("Trip access unexpectedly missing for discover activities request");
     }
 
-    const {
-      profile: requestProfile,
-      cityId,
-      batchIndex,
-    } = await parseAndValidateRequest(req, DiscoverActivitiesInputSchema);
+    const { profile: requestProfile, cityId } = await parseAndValidateRequest(
+      req,
+      DiscoverActivitiesInputSchema
+    );
     const profile = await resolveTripUserProfile(tripAccess.profileId, requestProfile);
-    const activities = await discoverActivitiesBatch({
+    const activities = await discoverActivities({
       tripId: params.id,
       profile,
       cityId,
-      batchIndex,
       signal: req.signal,
     });
 

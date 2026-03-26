@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import {
   useVisaEnrichment,
@@ -18,11 +18,9 @@ import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import {
   DISCOVERY_TOTAL_CARDS,
-  DISCOVERY_TOTAL_BATCHES,
   advanceDiscoveryCursor,
-  appendDiscoveryBatch,
+  setDiscoveryCards,
   createDiscoveryQueueState,
-  getOrderedDiscoveryCards,
 } from "@/lib/features/trips/discovery-queue";
 import type { DiscoveryStatus, Itinerary } from "@/types";
 
@@ -146,23 +144,17 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     tripId !== "guest" && tripQuery.isError && (!itinerary || currentTripId !== tripId);
 
   const discoverActivitiesMutation = useDiscoverActivities();
-  const discoverMutateRef = useRef(discoverActivitiesMutation.mutateAsync);
-  useEffect(() => {
-    discoverMutateRef.current = discoverActivitiesMutation.mutateAsync;
-  });
   const recordActivitySwipeMutation = useRecordActivitySwipe();
   const [queueState, setQueueState] = useState(createDiscoveryQueueState);
-  const [nextBatchIndex, setNextBatchIndex] = useState(0);
-  const [discoveryBatchesDone, setDiscoveryBatchesDone] = useState(false);
+  const [discoveryDone, setDiscoveryDone] = useState(false);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
   const [discoveryStatusOverride, setDiscoveryStatusOverride] = useState<DiscoveryStatus | null>(
     null
   );
 
-  const discoveryCards = useMemo(() => getOrderedDiscoveryCards(queueState), [queueState]);
+  const discoveryCards = queueState.cards;
   const discoveryStatus = discoveryStatusOverride ?? tripServerDiscoveryStatus;
   const discoveryCity = itinerary?.route?.[0];
-  const discoveryBatchLoading = discoverActivitiesMutation.isPending;
   const shouldRunDiscovery =
     tripId !== "guest" &&
     !!itinerary &&
@@ -173,9 +165,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   useEffect(() => {
     if (
       !shouldRunDiscovery ||
-      discoveryBatchesDone ||
-      discoveryBatchLoading ||
-      nextBatchIndex >= DISCOVERY_TOTAL_BATCHES ||
+      discoveryDone ||
+      discoverActivitiesMutation.isPending ||
       !discoveryCity ||
       !hasDiscoveryProfile
     ) {
@@ -184,40 +175,34 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
     let cancelled = false;
 
-    discoverMutateRef
-      .current({
+    discoverActivitiesMutation
+      .mutateAsync({
         tripId,
         cityId: discoveryCity.id,
-        batchIndex: nextBatchIndex,
         profile: requestProfile ?? undefined,
       })
       .then((activities) => {
         if (cancelled) return;
         setDiscoveryError(null);
         setDiscoveryStatusOverride("in_progress");
-        setQueueState((prev) => appendDiscoveryBatch(prev, nextBatchIndex, activities));
-        const next = nextBatchIndex + 1;
-        setNextBatchIndex(next);
-        if (next >= DISCOVERY_TOTAL_BATCHES) {
-          setDiscoveryBatchesDone(true);
-        }
+        setQueueState((prev) => setDiscoveryCards(prev, activities));
+        setDiscoveryDone(true);
       })
       .catch((error) => {
         if (cancelled) return;
         setDiscoveryError(
           error instanceof Error ? error.message : "Could not load activity recommendations"
         );
-        setDiscoveryBatchesDone(true);
+        setDiscoveryDone(true);
       });
 
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutation excluded to prevent re-trigger loop (see commit b63f7fa)
   }, [
     shouldRunDiscovery,
-    discoveryBatchesDone,
-    discoveryBatchLoading,
-    nextBatchIndex,
+    discoveryDone,
     discoveryCity,
     hasDiscoveryProfile,
     tripId,
@@ -229,9 +214,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     if (!card || !discoveryCity) return;
 
     const nextCursor = queueState.cursor + 1;
-    const isFinalSwipe =
-      nextCursor >= DISCOVERY_TOTAL_CARDS ||
-      (discoveryBatchesDone && nextCursor >= discoveryCards.length);
+    const isFinalSwipe = nextCursor >= DISCOVERY_TOTAL_CARDS || nextCursor >= discoveryCards.length;
 
     setQueueState((prev) => advanceDiscoveryCursor(prev));
     if (isFinalSwipe) {
@@ -355,9 +338,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     discoveryTotalTarget: DISCOVERY_TOTAL_CARDS,
     discoveryIsLoading:
       shouldRunDiscovery &&
-      (discoveryBatchLoading ||
-        (discoveryCards.length === 0 && !discoveryError && !discoveryBatchesDone)),
-    discoveryHasPendingBatches: shouldRunDiscovery && !discoveryBatchesDone,
+      (discoverActivitiesMutation.isPending ||
+        (discoveryCards.length === 0 && !discoveryError && !discoveryDone)),
     discoveryError,
     onDiscoverySwipe: handleDiscoverySwipe,
   };

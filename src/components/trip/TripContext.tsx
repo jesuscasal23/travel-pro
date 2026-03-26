@@ -35,7 +35,6 @@ export interface TripContextValue {
   discoveryCursor: number;
   discoveryTotalTarget: number;
   discoveryIsLoading: boolean;
-  discoveryHasPendingBatches: boolean;
   discoveryError: string | null;
   onDiscoverySwipe: (decision: "liked" | "disliked") => void;
 }

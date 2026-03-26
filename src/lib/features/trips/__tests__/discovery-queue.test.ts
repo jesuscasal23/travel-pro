@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   advanceDiscoveryCursor,
-  appendDiscoveryBatch,
+  setDiscoveryCards,
   createDiscoveryQueueState,
-  getOrderedDiscoveryCards,
 } from "../discovery-queue";
 
-const batch0 = [
+const cards = [
   {
     name: "A1",
     description: "A1 desc",
@@ -15,9 +14,6 @@ const batch0 = [
     googleMapsUrl: "https://maps.google.com/?q=A1",
     imageUrl: null as null,
   },
-];
-
-const batch1 = [
   {
     name: "B1",
     description: "B1 desc",
@@ -29,14 +25,10 @@ const batch1 = [
 ];
 
 describe("discovery-queue", () => {
-  it("keeps deterministic card order even when batches arrive out of order", () => {
+  it("sets discovery cards on the queue state", () => {
     let state = createDiscoveryQueueState();
-
-    state = appendDiscoveryBatch(state, 1, batch1);
-    state = appendDiscoveryBatch(state, 0, batch0);
-
-    const cards = getOrderedDiscoveryCards(state);
-    expect(cards.map((card) => card.name)).toEqual(["A1", "B1"]);
+    state = setDiscoveryCards(state, cards);
+    expect(state.cards.map((card) => card.name)).toEqual(["A1", "B1"]);
   });
 
   it("advances queue cursor after each swipe decision", () => {

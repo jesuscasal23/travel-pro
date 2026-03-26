@@ -11,7 +11,6 @@ interface MobileDiscoveryTabProps {
   cursor: number;
   totalTarget: number;
   isLoading: boolean;
-  hasPendingBatches: boolean;
   error: string | null;
   isMultiCity: boolean;
   onSwipe: (decision: "liked" | "disliked") => void;
@@ -25,7 +24,6 @@ export function MobileDiscoveryTab({
   cursor,
   totalTarget,
   isLoading,
-  hasPendingBatches,
   error,
   isMultiCity,
   onSwipe,
@@ -179,13 +177,6 @@ export function MobileDiscoveryTab({
           Like
         </button>
       </div>
-
-      {hasPendingBatches ? (
-        <div className="text-dim flex items-center gap-2 px-1 text-xs">
-          <div className="border-brand-primary h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent" />
-          <span>Loading more activity cards...</span>
-        </div>
-      ) : null}
 
       {error ? <p className="text-app-red px-1 text-xs">{error}</p> : null}
     </div>

@@ -5,7 +5,6 @@ import type { ActivityDiscoveryCandidate, UserProfile } from "@/types";
 interface DiscoverActivitiesParams {
   tripId: string;
   cityId: string;
-  batchIndex: number;
   profile?: UserProfile;
 }
 
@@ -18,7 +17,6 @@ export function useDiscoverActivities() {
     mutationFn: async ({
       tripId,
       cityId,
-      batchIndex,
       profile,
     }: DiscoverActivitiesParams): Promise<ActivityDiscoveryCandidate[]> => {
       const data = await apiFetch<DiscoverActivitiesResponse>(
@@ -28,7 +26,6 @@ export function useDiscoverActivities() {
           method: "POST",
           body: {
             cityId,
-            batchIndex,
             ...(profile ? { profile } : {}),
           },
           fallbackMessage: "Activity discovery failed",

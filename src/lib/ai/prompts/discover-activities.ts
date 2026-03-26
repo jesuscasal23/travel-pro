@@ -5,7 +5,7 @@ export const SYSTEM_PROMPT_DISCOVER_ACTIVITIES = `You are an expert local travel
 Output ONLY valid JSON.
 No markdown, no code fences, no extra keys.
 
-Return a JSON array with up to 5 activity objects. Each object must include:
+Return a JSON array with up to 25 activity objects. Each object must include:
 - name (string)
 - description (string, 1-2 sentences, why it fits the traveler)
 - category (string)
@@ -13,15 +13,14 @@ Return a JSON array with up to 5 activity objects. Each object must include:
 
 Rules:
 - Activity ideas must be specific and realistic for the city.
-- Keep recommendations diverse for each batch.
+- Ensure diversity across categories — cover culture, food, nature, nightlife, adventure, relaxation, and other interests relevant to the traveler.
 - Do not include prices, ratings, or review counts.
 - Descriptions must be concise and personal to the profile.`;
 
 export function assembleDiscoverActivitiesPrompt(
   profile: UserProfile,
   intent: TripIntent,
-  city: CityStop,
-  batchIndex: number
+  city: CityStop
 ): string {
   return `Generate activity swipe cards for this trip.
 
@@ -43,7 +42,5 @@ Target city:
 - Country: ${city.country}
 - Country code: ${city.countryCode}
 
-Batch index: ${batchIndex} (0-based, total planned batches: 5)
-
-Return JSON array only (no wrapper object), max 5 activities.`;
+Return JSON array only (no wrapper object), max 25 activities.`;
 }

@@ -57,7 +57,6 @@ export const DiscoverActivitiesInputSchema = z.object({
     })
     .optional(),
   cityId: z.string().min(1).max(100),
-  batchIndex: z.number().int().min(0).max(4),
 });
 
 export const RecordActivitySwipeInputSchema = z.object({

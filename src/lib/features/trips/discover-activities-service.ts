@@ -24,20 +24,19 @@ const ClaudeDiscoverActivitySchema = z.object({
   duration: z.string().min(1).max(40),
 });
 
-const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(5);
+const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(25);
 
-interface DiscoverActivitiesBatchInput {
+interface DiscoverActivitiesInput {
   tripId: string;
   profile: UserProfile;
   cityId: string;
-  batchIndex: number;
   signal?: AbortSignal;
 }
 
-export async function discoverActivitiesBatch(
-  input: DiscoverActivitiesBatchInput
+export async function discoverActivities(
+  input: DiscoverActivitiesInput
 ): Promise<ActivityDiscoveryCandidate[]> {
-  const { tripId, profile, cityId, batchIndex, signal } = input;
+  const { tripId, profile, cityId, signal } = input;
   const t0 = Date.now();
 
   const { intent } = await loadTripContext(tripId);
@@ -62,14 +61,13 @@ export async function discoverActivitiesBatch(
     });
   }
 
-  log.info("Generating activity discovery batch", {
+  log.info("Generating activity discovery", {
     tripId,
     cityId,
     city: city.city,
-    batchIndex,
   });
 
-  const userPrompt = assembleDiscoverActivitiesPrompt(profile, intent, city, batchIndex);
+  const userPrompt = assembleDiscoverActivitiesPrompt(profile, intent, city);
   const modelResult = await callClaude(
     userPrompt,
     SYSTEM_PROMPT_DISCOVER_ACTIVITIES,
@@ -105,10 +103,9 @@ export async function discoverActivitiesBatch(
     imageUrl: null,
   }));
 
-  log.info("Discovery batch generated", {
+  log.info("Discovery activities generated", {
     tripId,
     cityId,
-    batchIndex,
     activityCount: activities.length,
     durationMs: Date.now() - t0,
   });
