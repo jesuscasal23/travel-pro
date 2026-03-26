@@ -351,7 +351,7 @@ export default function PlanPage() {
             <Button
               variant="brand"
               fullWidth
-              onClick={() => router.push(`/signup?next=${encodeURIComponent("/plan")}`)}
+              onClick={() => router.push("/premium")}
               className="shadow-brand-xl gap-2 rounded-[24px] py-5 text-lg"
             >
               <UserPlus className="h-5 w-5" />
