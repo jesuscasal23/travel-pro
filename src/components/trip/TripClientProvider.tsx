@@ -115,8 +115,10 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const tripServerDiscoveryStatus = (tripQuery.data?.itineraries?.[0]?.discoveryStatus ??
     "completed") as DiscoveryStatus;
   const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
+  // Show spinner while the useEffect syncs server data → local state.
+  // Covers both "itinerary exists but not synced" and "query just resolved, effect pending".
   const tripHydrationPending =
-    tripId !== "guest" && Boolean(tripServerItinerary) && !localItinerary;
+    tripId !== "guest" && tripQuery.isSuccess && tripQuery.data !== null && !localItinerary;
   const tripUnavailable =
     tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
   const tripLoadFailedWithoutLocal = tripId !== "guest" && tripQuery.isError && !localItinerary;
@@ -293,10 +295,26 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   }
 
   if (tripUnavailable || tripLoadFailedWithoutLocal) {
+    console.warn("[TripClientProvider] Trip not found", {
+      tripId,
+      reason: tripUnavailable ? "api_returned_null" : "query_error_no_local",
+      queryStatus: tripQuery.status,
+      queryError: tripQuery.error?.message,
+      hasLocalItinerary: !!localItinerary,
+      isAuthenticated,
+    });
     return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 
   if (!localItinerary) {
+    console.warn("[TripClientProvider] No local itinerary available", {
+      tripId,
+      queryStatus: tripQuery.status,
+      hasServerData: !!tripQuery.data,
+      hasServerItinerary: !!tripServerItinerary,
+      itineraryCount: tripQuery.data?.itineraries?.length ?? 0,
+      isAuthenticated,
+    });
     return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 

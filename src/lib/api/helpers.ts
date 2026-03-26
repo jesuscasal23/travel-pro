@@ -149,6 +149,16 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
         return response;
       } catch (err) {
         if (err instanceof ApiError) {
+          log.warn("API error response", {
+            route: routeName,
+            requestId,
+            method: req.method,
+            path: req.nextUrl?.pathname,
+            status: err.status,
+            error: err.message,
+            errorType: err.constructor.name,
+            ...(err.details ? { details: err.details } : {}),
+          });
           const body: Record<string, unknown> = { error: err.message };
           if (err.details) body.details = err.details;
           const response = NextResponse.json(body, { status: err.status });

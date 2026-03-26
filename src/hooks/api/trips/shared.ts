@@ -41,6 +41,12 @@ export async function fetchTrip(tripId: string): Promise<TripDetail | null> {
     return data.trip ?? null;
   } catch (error) {
     if (error instanceof ApiError && (error.status === 403 || error.status === 404)) {
+      console.warn(
+        "[fetchTrip] Trip fetch returned %d for tripId=%s (requestId=%s)",
+        error.status,
+        tripId,
+        error.requestId
+      );
       return null;
     }
     throw error;
