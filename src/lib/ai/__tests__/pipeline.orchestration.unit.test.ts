@@ -149,8 +149,6 @@ describe("pipeline orchestration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockClaudeText(JSON.stringify(coreItinerary));
-    mocks.enrichVisa.mockResolvedValue([{ country: "France" }]);
-    mocks.enrichWeather.mockResolvedValue([{ city: "Paris" }]);
     mocks.discoverNewCities.mockResolvedValue(undefined);
     mocks.prismaFindFirst.mockResolvedValue({ id: "itin-1" });
     mocks.prismaUpdate.mockResolvedValue({});
@@ -233,19 +231,22 @@ describe("pipeline orchestration", () => {
     }
   });
 
-  it("runs full itinerary generation with enrichment and persists to existing record", async () => {
+  it("runs full itinerary generation and persists to existing record without enrichment", async () => {
     const result = await generateItinerary(profile, multiCityIntent);
 
-    expect(mocks.enrichVisa).toHaveBeenCalledWith("German", coreItinerary.route);
-    expect(mocks.enrichWeather).toHaveBeenCalledWith(
-      coreItinerary.route,
-      multiCityIntent.dateStart
-    );
+    // Visa and weather enrichment are client-side only — never called in the pipeline
+    expect(mocks.enrichVisa).not.toHaveBeenCalled();
+    expect(mocks.enrichWeather).not.toHaveBeenCalled();
+
+    // Core itinerary is persisted to the existing active record
     expect(mocks.prismaFindFirst).toHaveBeenCalledWith({
       where: { tripId: "trip-1", isActive: true },
     });
     expect(mocks.prismaUpdate).toHaveBeenCalledTimes(1);
-    expect(result.visaData).toEqual([{ country: "France" }]);
-    expect(result.weatherData).toEqual([{ city: "Paris" }]);
+
+    // Result contains core data only — no visa or weather
+    expect(result.route[0].city).toBe("Paris");
+    expect(result.visaData).toBeUndefined();
+    expect(result.weatherData).toBeUndefined();
   });
 });
