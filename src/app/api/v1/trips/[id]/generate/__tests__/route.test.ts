@@ -157,7 +157,7 @@ describe("POST /api/v1/trips/:id/generate", () => {
     expect(body).toContain('"stage":"done"');
     expect(mocks.createGeneratingRecord).toHaveBeenCalledWith({
       tripId: "trip-1",
-      promptVersion: "v2",
+      promptVersion: "skeleton-v1",
     });
     expect(mocks.activateGeneratedItinerary).toHaveBeenCalled();
   });

@@ -245,7 +245,7 @@ export default function PlanPage() {
 
       // Prime React Query cache so TripClientProvider renders immediately on navigation
       queryClient.setQueryData(queryKeys.trips.detail(trip.id), trip);
-      posthog?.capture("itinerary_generation_started", {
+      posthog?.capture("itinerary_build_started", {
         trip_id: trip.id,
         city_count: selectedCities.length,
       });

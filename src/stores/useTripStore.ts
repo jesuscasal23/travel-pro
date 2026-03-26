@@ -12,9 +12,9 @@ interface TripStoreState {
   interests: string[];
   pace: ActivityPace | null;
 
-  // Transient generation UI state
-  isGenerating: boolean;
-  needsRegeneration: boolean;
+  // Transient itinerary build UI state
+  isGenerating: boolean; // true while the /generate stream is in flight
+  needsRegeneration: boolean; // true when the user edits the route and activities are stale
 }
 
 interface TripStoreActions {

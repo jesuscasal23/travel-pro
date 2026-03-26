@@ -155,10 +155,10 @@ export type DiscoveryStatus = "pending" | "in_progress" | "completed";
 /** Activity pace — how many activities per day the traveler prefers */
 export type ActivityPace = "relaxed" | "moderate" | "active";
 
-/** Trip type — single-city (one destination) or multi-city (region-based route) */
-export type TripType = "single-city" | "single-country" | "multi-city";
+/** Trip type — single-city (one destination) or multi-city (multiple explicit cities) */
+export type TripType = "single-city" | "multi-city";
 
-/** Full itinerary result from AI pipeline */
+/** Full itinerary — route skeleton built from user-provided cities, enriched with activities, flights, visa, and weather */
 export interface Itinerary {
   route: CityStop[];
   days: TripDay[];

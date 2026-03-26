@@ -92,9 +92,9 @@ describe("TripIntentInputSchema", () => {
     }
   });
 
-  it("rejects multi-city without region", () => {
+  it("accepts multi-city without region (cities are passed separately)", () => {
     const result = TripIntentInputSchema.safeParse({ ...validMultiCity, region: "" });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("rejects single-city without destination", () => {

@@ -12,7 +12,7 @@ export const ProfileInputSchema = z.object({
 export const TripIntentInputSchema = z
   .object({
     id: z.string().max(100),
-    tripType: z.enum(["single-city", "single-country", "multi-city"]).default("multi-city"),
+    tripType: z.enum(["single-city", "multi-city"]).default("multi-city"),
     region: z.string().max(100).default(""),
     destination: z.string().max(100).optional(),
     destinationCountry: z.string().max(100).optional(),
@@ -26,13 +26,11 @@ export const TripIntentInputSchema = z
   })
   .refine(
     (data) => {
-      if (data.tripType === "multi-city") return data.region.length > 0;
-      if (data.tripType === "single-country") return !!data.destinationCountry;
+      if (data.tripType === "multi-city") return true; // cities provided separately via route
       return !!data.destination;
     },
     {
-      message:
-        "Multi-country trips require region; single-country requires country; single-city requires destination",
+      message: "Single-city trips require a destination",
     }
   );
 

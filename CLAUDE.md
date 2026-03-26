@@ -5,7 +5,7 @@
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript 5
 - **Styling**: Tailwind v4 — design tokens in `src/app/globals.css` via `@theme inline` (no `tailwind.config.ts`)
 - **State**: Zustand 5 with `persist` middleware → localStorage (`src/stores/useTripStore.ts`)
-- **AI**: Anthropic SDK — Haiku (`claude-haiku-4-5-20251001`) for generation, Sonnet for full regen
+- **AI**: Anthropic SDK — Haiku (`claude-haiku-4-5-20251001`) for activity discovery per city
 - **DB**: Prisma 7 + Supabase PostgreSQL (`prisma/schema.prisma`, config in `prisma.config.ts`)
 - **Auth**: Supabase Auth (email/password) + SSR middleware
 - **Maps**: MapLibre GL / react-map-gl v8 (open-source, not Mapbox GL)
@@ -54,12 +54,11 @@ src/
 │   │   ├── bookings/          # Travel wallet (mock — future feature)
 │   │   └── profile/           # Settings hub: auth-aware, sign out, travel DNA
 │   ├── dashboard/             # Redirect → /home (backwards compatibility)
-│   ├── plan/                  # Multi-step questionnaire + SSE generation
+│   ├── plan/                  # Multi-step questionnaire: city picker → profile → priorities → overview
 │   ├── trip/[id]/             # 40/60 map+timeline, edit (drag-drop), summary (tabs+share+PDF)
 │   ├── share/[token]/         # Public read-only view + growth CTA
 │   ├── auth/callback/         # Supabase OAuth callback
 │   └── api/
-│       ├── generate/          # Phase 0 routes (direct + select-route)
 │       ├── health/            # Health check
 │       └── v1/                # REST API: trips, profile, affiliate
 ├── components/
@@ -71,13 +70,12 @@ src/
 │   ├── Navbar.tsx, Providers.tsx, ThemeToggle.tsx, CookieConsent.tsx
 │   └── TravelStylePicker.tsx, WorldMapSVG.tsx
 ├── lib/
-│   ├── ai/                    # pipeline, enrichment
-│   │   └── prompts/           # main (v1.ts), single-city, route-selector, city-activities
+│   ├── ai/                    # enrichment only (enrich-visa, enrich-weather); prompts/city-activities for discovery
 │   ├── api/                   # helpers (auth guards, apiHandler), errors
 │   ├── core/                  # prisma, logger, request-context, abort (canonical locations)
 │   ├── features/              # Domain services (canonical location for all business logic)
 │   │   ├── trips/             # itinerary-service, trip-query, trip-collection, trip-edit, trip-share, city-activity, flight-optimization, flight-search, query-shapes, schemas, serializer
-│   │   ├── generation/        # trip-generation-service, route-selection, city-discovery, schemas
+│   │   ├── generation/        # trip-generation-service (skeleton builder + SSE), schemas
 │   │   ├── profile/           # profile-service, schemas, query-shapes, serializer, interests, pace
 │   │   ├── enrichment/        # schemas, transforms (routes call lib/ai/enrich-* directly)
 │   │   ├── affiliate/         # redirect-service, redirect-utils, link-generator, schema
@@ -130,7 +128,7 @@ import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
 
 - Treat React Query as the default owner for frontend server state.
 - Keep server-state hooks under `src/hooks/api/`.
-- Organize `src/hooks/api/` by feature folder, for example `trips/`, `profile/`, `admin/`, `enrichment/`, `flights/`, `auth/`, `route-selection/`.
+- Organize `src/hooks/api/` by feature folder, for example `trips/`, `profile/`, `admin/`, `enrichment/`, `flights/`, `auth/`.
 - Prefer one hook file per query or mutation use case, for example `src/hooks/api/trips/useTrip.ts` or `src/hooks/api/profile/useSaveProfile.ts`.
 - Keep feature-local shared helpers near the hooks that use them, for example `shared.ts` files for request helpers or shared types.
 - Keep cross-feature query keys centralized in `src/hooks/api/keys.ts`.
@@ -154,11 +152,13 @@ const RouteMap = dynamic(() => import("@/components/map/RouteMap"), { ssr: false
 ### Zustand Store
 
 ```ts
-// Persisted: onboardingStep, nationality, homeAirport, travelStyle, interests, displayName,
-//   tripType, region, destination, destinationCountry, destinationCountryCode,
-//   destinationLat, destinationLng, dateStart, dateEnd, flexibleDates, budget,
-//   travelers, currentTripId, itinerary
-// Transient (NOT persisted): planStep, generationStep, isGenerating
+// useTripStore (transient — NOT persisted):
+//   nationality, homeAirport, travelStyle, interests, pace  — guest profile inputs
+//   isGenerating, needsRegeneration                         — itinerary build UI state
+
+// usePlanFormStore (persisted via localStorage):
+//   planStep, selectedCities, tripDescription, planningPriorities,
+//   dateStart, dateEnd, travelers
 ```
 
 ### Lazy Initialization
@@ -191,32 +191,30 @@ TravelStyle  = "backpacker" | "comfort" | "luxury"
 TripType     = "single-city" | "multi-city"
 ```
 
-## AI Pipeline (`src/lib/ai/`)
+## Itinerary Build Pipeline
 
-1. **Route selection** (multi-city only): Haiku picks cities via `selectRoute()` → `CityWithDays[]`
-2. **Prompt assembly**: `assemblePrompt()` or `assembleSingleCityPrompt()` with profile + intent + optional flight skeleton
-3. **Claude Haiku call**: maxTokens 10,000 (multi-city) / 4,000 (single-city), temp 0.7, 50s timeout
-4. **Parse + validate**: `extractJSON()` strips fences → Zod schema validation
-5. **Enrichment** (parallel): `enrichVisa()` (Passport Index static data, 199×227) + `enrichWeather()` (Open-Meteo + Redis 7d cache)
-6. **Persist** to Prisma (best-effort, non-blocking)
+**No AI is used to generate the route or itinerary skeleton.** The user picks concrete cities in the plan questionnaire. The skeleton is built deterministically in `buildRouteFromCities()`.
 
-Content filtering retry: backoff, max 2 retries.
+1. **Skeleton** (`src/lib/features/generation/trip-generation-service.ts`): Days are distributed evenly across user-selected cities → `Itinerary` with empty activity lists.
+2. **Flight prefetch** (non-blocking): SerpApi searched for each leg; results stored in `itinerary.flightOptions`.
+3. **Persist** to Prisma (active itinerary record).
+4. **Activity discovery** (separate, client-triggered): Claude Haiku (`claude-haiku-4-5-20251001`) generates swipeable activity candidates per city via `useDiscoverActivities`. maxTokens 4,000, temp 0.7.
+5. **Enrichment** (parallel, client-triggered): `enrichVisa()` (Passport Index static data) + `enrichWeather()` (Open-Meteo + Redis 7d cache).
 
 ## API Routes
 
-| Route                          | Methods            | Auth                             | Notes                                           |
-| ------------------------------ | ------------------ | -------------------------------- | ----------------------------------------------- |
-| `/api/generate/select-route`   | POST               | Public (10/min IP)               | Haiku route selection (multi-city)              |
-| `/api/health`                  | GET                | None                             | Env check (anthropic, supabase, db)             |
-| `/api/v1/trips`                | GET, POST          | GET: auth, POST: optional        | List/create trips                               |
-| `/api/v1/trips/[id]`           | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version             |
-| `/api/v1/trips/[id]/generate`  | POST               | Public                           | SSE stream (route→activities→visa→weather→done) |
-| `/api/v1/trips/[id]/optimize`  | POST               | Owner                            | SerpApi flight price optimization               |
-| `/api/v1/trips/[id]/share`     | GET                | Owner                            | Generate/return share token + URL               |
-| `/api/v1/trips/shared/[token]` | GET                | Public (60/min)                  | Fetch shared itinerary                          |
-| `/api/v1/profile`              | GET, PATCH, DELETE | Auth                             | Upsert profile, GDPR account delete             |
-| `/api/v1/profile/export`       | GET                | Auth                             | GDPR data export (all user data as JSON)        |
-| `/api/v1/affiliate/redirect`   | GET                | Public                           | Log click + 302 redirect (domain whitelist)     |
+| Route                          | Methods            | Auth                             | Notes                                                              |
+| ------------------------------ | ------------------ | -------------------------------- | ------------------------------------------------------------------ |
+| `/api/health`                  | GET                | None                             | Env check (supabase, db)                                           |
+| `/api/v1/trips`                | GET, POST          | GET: auth, POST: optional        | List/create trips                                                  |
+| `/api/v1/trips/[id]`           | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version                                |
+| `/api/v1/trips/[id]/generate`  | POST               | Public                           | SSE stream: builds skeleton from stored cities, prefetches flights |
+| `/api/v1/trips/[id]/optimize`  | POST               | Owner                            | SerpApi flight price optimization                                  |
+| `/api/v1/trips/[id]/share`     | GET                | Owner                            | Generate/return share token + URL                                  |
+| `/api/v1/trips/shared/[token]` | GET                | Public (60/min)                  | Fetch shared itinerary                                             |
+| `/api/v1/profile`              | GET, PATCH, DELETE | Auth                             | Upsert profile, GDPR account delete                                |
+| `/api/v1/profile/export`       | GET                | Auth                             | GDPR data export (all user data as JSON)                           |
+| `/api/v1/affiliate/redirect`   | GET                | Public                           | Log click + 302 redirect (domain whitelist)                        |
 
 ## Database (5 models in `prisma/schema.prisma`)
 
@@ -233,7 +231,7 @@ Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { t
 - **Protected routes**: `/profile` → redirect to `/login?next=...` if unauthenticated
 - **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`, `/get-started`, `/onboarding`, `/home`, `/trips`, `/discover`, `/bookings`
 - **Rate limiting** (Upstash Redis sliding window):
-  - `/api/v1/trips/*/generate`: 5 req/hour (LLM cost protection)
+  - `/api/v1/trips/*/generate`: 5 req/hour (cost protection)
   - `/api/v1/trips/shared/*`: 60 req/min
   - `/api/v1/*` general: 30 req/min
 - Fail-open: requests pass through if Redis unavailable
@@ -260,7 +258,7 @@ Dark mode: `dark` class on `<html>` via ThemeToggle + inline script in root layo
 ## Required Env Vars
 
 ```
-ANTHROPIC_API_KEY              # AI generation
+ANTHROPIC_API_KEY              # Activity discovery (Claude Haiku)
 DATABASE_URL                   # Prisma → Supabase PostgreSQL
 NEXT_PUBLIC_SUPABASE_URL       # Supabase client
 NEXT_PUBLIC_SUPABASE_ANON_KEY  # Supabase client
@@ -292,8 +290,6 @@ Defined in `next.config.ts` (wrapped with `withSentryConfig`):
 - `worker-src blob:` required by MapLibre GL Web Workers
 - Add new external domains to `connect-src` before using any new APIs
 
-## Sample Data
+## Static Data Files
 
-`src/data/sampleData.ts` — Thomas & Lena's Asia trip (7 cities, 22 days, €10k, comfort).
-Exports: `sampleFullItinerary`, `sampleTrips`, `sampleRoute`, `sampleBudget`, `interestOptions`, `regions`.
-Separate data files: `airports-full.ts`, `nationalities.ts`, `cities.ts`, `visa-index.ts`, `travelStyles.ts`.
+`src/data/`: `airports-full.ts`, `nationalities.ts`, `cities.ts`, `visa-index.ts`, `travelStyles.ts`.

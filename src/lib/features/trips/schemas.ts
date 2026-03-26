@@ -2,7 +2,7 @@ import { z } from "zod";
 import { cityGeoSchema, itineraryCoreSchema } from "@/lib/itinerary/schema";
 
 export const CreateTripInputSchema = z.object({
-  tripType: z.enum(["single-city", "single-country", "multi-city"]).default("multi-city"),
+  tripType: z.enum(["single-city", "multi-city"]).default("multi-city"),
   region: z.string().max(100).default(""),
   destination: z.string().max(100).optional(),
   destinationCountry: z.string().max(100).optional(),

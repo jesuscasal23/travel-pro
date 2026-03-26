@@ -31,7 +31,7 @@ export function TripBanners({ variant }: TripBannersProps) {
           <div className={`flex items-center gap-2 ${wrapperClass} ${paddingClass}`}>
             <Loader2 className="text-brand-primary h-4 w-4 animate-spin" />
             <span className="text-brand-primary text-sm font-semibold">
-              Generating your itinerary...
+              Building your itinerary...
             </span>
           </div>
         </div>
@@ -43,7 +43,9 @@ export function TripBanners({ variant }: TripBannersProps) {
           <div
             className={`flex items-center justify-between gap-4 ${wrapperClass} ${paddingClass}`}
           >
-            <p className="text-surface-error-text text-sm">Generation failed. Please try again.</p>
+            <p className="text-surface-error-text text-sm">
+              Failed to build itinerary. Please try again.
+            </p>
             <Button size="xs" onClick={onRetry} className="shrink-0">
               Try again
             </Button>

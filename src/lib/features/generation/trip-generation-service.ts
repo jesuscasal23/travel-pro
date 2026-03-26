@@ -85,18 +85,6 @@ interface CreateTripGenerationStreamResponseInput {
 
 function getGenerationFailureMessage(error: unknown): string {
   if (error instanceof ServiceMisconfiguredError) {
-    const service =
-      typeof error.details === "object" &&
-      error.details !== null &&
-      "service" in error.details &&
-      typeof error.details.service === "string"
-        ? error.details.service
-        : null;
-
-    if (service === "anthropic") {
-      return "AI generation is not configured. Add ANTHROPIC_API_KEY to .env.local and restart the dev server.";
-    }
-
     return "Trip generation is not configured on this server yet.";
   }
 
@@ -127,7 +115,7 @@ export async function createTripGenerationStreamResponse(
   try {
     ({ id: itineraryId } = await createGeneratingRecord({
       tripId: input.tripId,
-      promptVersion: "v2",
+      promptVersion: "skeleton-v1",
     }));
     log.info("Generating record created", {
       tripId: input.tripId,

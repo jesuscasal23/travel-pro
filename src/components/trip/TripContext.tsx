@@ -21,7 +21,10 @@ export interface TripContextValue {
   dateStart: string;
   travelers: number;
 
-  // Generation state
+  // Itinerary build state
+  // isGenerating / generationError are reserved for future use; currently always false/null.
+  // isPartialItinerary is true while the skeleton has no activities yet.
+  // needsRegeneration is set when the user edits the route and activities are stale.
   isPartialItinerary: boolean;
   isGenerating: boolean;
   generationError: string | null;
