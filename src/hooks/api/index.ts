@@ -11,10 +11,6 @@ export { useDiscoverActivities } from "./trips/useDiscoverActivities";
 export { useRecordActivitySwipe } from "./trips/useRecordActivitySwipe";
 export type { TripDetail } from "./trips/shared";
 
-// Route Selection
-export { useFetchRouteSelection } from "./route-selection/useFetchRouteSelection";
-export { buildCacheKey } from "./route-selection/shared";
-
 // Enrichment
 export { useVisaEnrichment } from "./enrichment/useVisaEnrichment";
 export { useWeatherEnrichment } from "./enrichment/useWeatherEnrichment";

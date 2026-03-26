@@ -1,18 +1,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { TripType } from "@/types";
+
+export interface SelectedCity {
+  city: string;
+  country: string;
+  countryCode: string;
+  lat: number;
+  lng: number;
+}
 
 interface PlanFormState {
   planStep: number;
-  tripType: TripType;
+  selectedCities: SelectedCity[];
   tripDescription: string;
   planningPriorities: string[];
-  region: string;
-  destination: string;
-  destinationCountry: string;
-  destinationCountryCode: string;
-  destinationLat: number;
-  destinationLng: number;
   dateStart: string;
   dateEnd: string;
   travelers: number;
@@ -20,19 +21,12 @@ interface PlanFormState {
 
 interface PlanFormActions {
   setPlanStep: (step: number) => void;
-  setTripType: (tripType: TripType) => void;
+  addCity: (city: SelectedCity) => void;
+  removeCity: (index: number) => void;
+  reorderCities: (cities: SelectedCity[]) => void;
   setTripDescription: (description: string) => void;
   setPlanningPriorities: (priorities: string[]) => void;
   togglePlanningPriority: (priority: string) => void;
-  setRegion: (region: string) => void;
-  setDestination: (
-    city: string,
-    country: string,
-    countryCode: string,
-    lat: number,
-    lng: number
-  ) => void;
-  clearDestination: () => void;
   setDateStart: (date: string) => void;
   setDateEnd: (date: string) => void;
   setTravelers: (count: number) => void;
@@ -41,15 +35,9 @@ interface PlanFormActions {
 
 const initialPlanFormState: PlanFormState = {
   planStep: 1,
-  tripType: "single-city",
+  selectedCities: [],
   tripDescription: "",
   planningPriorities: [],
-  region: "",
-  destination: "",
-  destinationCountry: "",
-  destinationCountryCode: "",
-  destinationLat: 0,
-  destinationLng: 0,
   dateStart: "",
   dateEnd: "",
   travelers: 2,
@@ -61,7 +49,15 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
       ...initialPlanFormState,
 
       setPlanStep: (step) => set({ planStep: step }),
-      setTripType: (tripType) => set({ tripType }),
+      addCity: (city) =>
+        set((state) => ({
+          selectedCities: [...state.selectedCities, city],
+        })),
+      removeCity: (index) =>
+        set((state) => ({
+          selectedCities: state.selectedCities.filter((_, i) => i !== index),
+        })),
+      reorderCities: (cities) => set({ selectedCities: cities }),
       setTripDescription: (tripDescription) => set({ tripDescription }),
       setPlanningPriorities: (planningPriorities) =>
         set({ planningPriorities: normalizePlanningPriorities(planningPriorities) }),
@@ -71,41 +67,24 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
             ? state.planningPriorities.filter((p) => p !== priority)
             : [...state.planningPriorities, priority],
         })),
-      setRegion: (region) => set({ region }),
-      setDestination: (city, country, countryCode, lat, lng) =>
-        set({
-          destination: city,
-          destinationCountry: country,
-          destinationCountryCode: countryCode,
-          destinationLat: lat,
-          destinationLng: lng,
-        }),
-      clearDestination: () =>
-        set({
-          destination: "",
-          destinationCountry: "",
-          destinationCountryCode: "",
-          destinationLat: 0,
-          destinationLng: 0,
-        }),
       setDateStart: (date) => set({ dateStart: date }),
       setDateEnd: (date) => set({ dateEnd: date }),
       setTravelers: (count) => set({ travelers: count }),
       resetPlanForm: () => set(initialPlanFormState),
     }),
     {
-      // New key — separate from the legacy "travel-pro-store" to avoid collisions
       name: "travel-pro-plan-form",
       merge: (persistedState, currentState) => {
-        const typedState = persistedState as Partial<PlanFormState> & {
+        const typed = persistedState as Partial<PlanFormState> & {
           planningPriority?: string;
           planningPriorities?: string[] | string;
         };
         return {
           ...currentState,
-          ...typedState,
+          ...typed,
+          selectedCities: Array.isArray(typed.selectedCities) ? typed.selectedCities : [],
           planningPriorities: normalizePlanningPriorities(
-            typedState.planningPriorities ?? typedState.planningPriority
+            typed.planningPriorities ?? typed.planningPriority
           ),
         };
       },
@@ -125,8 +104,7 @@ function normalizePlanningPriorities(priorities: string[] | string | undefined):
 
 /**
  * Resolves once the persisted plan form store has finished hydrating from
- * localStorage. Use this in components that depend on persisted form state
- * (e.g. the plan questionnaire) to avoid a flash of empty defaults.
+ * localStorage. Use this in components that depend on persisted form state.
  */
 export const planFormHydrationPromise = new Promise<void>((resolve) => {
   if (typeof window === "undefined") {

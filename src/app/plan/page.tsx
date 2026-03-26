@@ -11,14 +11,7 @@ import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useToastStore } from "@/stores/useToastStore";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/ui/Button";
-import {
-  useAuthStatus,
-  useProfile,
-  useFetchRouteSelection,
-  buildCacheKey,
-  useCreateTrip,
-  useSaveProfile,
-} from "@/hooks/api";
+import { useAuthStatus, useProfile, useCreateTrip, useSaveProfile } from "@/hooks/api";
 import { queryKeys } from "@/hooks/api/keys";
 import { slideVariants } from "@/lib/animations";
 import { normalizeInterests } from "@/lib/features/profile/interests";
@@ -29,7 +22,6 @@ import { OverviewStep } from "./steps/OverviewStep";
 import { SignupGateStep } from "./steps/SignupGateStep";
 import type { CityStop } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
-import { citiesToRoute } from "@/lib/utils/trip/cities-to-route";
 import { daysBetween } from "@/lib/utils/format/date";
 import Link from "next/link";
 
@@ -47,15 +39,9 @@ export default function PlanPage() {
   const {
     planStep,
     setPlanStep,
-    tripType,
+    selectedCities,
     tripDescription,
     planningPriorities,
-    region,
-    destination,
-    destinationCountry,
-    destinationCountryCode,
-    destinationLat,
-    destinationLng,
     dateStart,
     dateEnd,
     travelers,
@@ -65,7 +51,6 @@ export default function PlanPage() {
   const { nationality, homeAirport, travelStyle, interests, pace, isGenerating, setIsGenerating } =
     useTripStore();
 
-  const fetchRoute = useFetchRouteSelection();
   const createTripMutation = useCreateTrip();
   const saveProfileMutation = useSaveProfile();
   const { data: persistedProfile } = useProfile({ enabled: isAuthenticated === true });
@@ -79,9 +64,6 @@ export default function PlanPage() {
       return nextErrors;
     });
 
-  const isSingleCity = tripType === "single-city";
-  const isSingleCountry = tripType === "single-country";
-  const isMultiCountry = tripType === "multi-city";
   const effectiveNationality = nationality || persistedProfile?.nationality || "";
   const effectiveHomeAirport = homeAirport || persistedProfile?.homeAirport || "";
   const hasCoreProfile = Boolean(effectiveNationality && effectiveHomeAirport);
@@ -118,12 +100,7 @@ export default function PlanPage() {
 
   const canAdvance = () => {
     if (showDestination) {
-      const hasDestination = isSingleCity
-        ? !!destination
-        : isSingleCountry
-          ? !!destinationCountry
-          : !!region;
-      return hasDestination && !!dateStart && !!dateEnd && dayCount > 0;
+      return selectedCities.length > 0 && !!dateStart && !!dateEnd && dayCount > 0;
     }
     if (showDetails) {
       return !!effectiveNationality && !!effectiveHomeAirport;
@@ -131,22 +108,12 @@ export default function PlanPage() {
     if (showPriorities) {
       return planningPriorities.length > 0;
     }
-    if (showOverview) {
-      return true;
-    }
     return true;
   };
 
   const goNext = () => {
     if (showDestination) {
-      const fieldErrors = validate(destinationStepSchema, {
-        tripType,
-        region,
-        destination,
-        destinationCountry,
-        dateStart,
-        dateEnd,
-      });
+      const fieldErrors = validate(destinationStepSchema, { selectedCities, dateStart, dateEnd });
       if (fieldErrors) {
         setErrors(fieldErrors);
         return;
@@ -173,28 +140,6 @@ export default function PlanPage() {
     setPlanStep(step - 1);
   };
 
-  const singleCityRoute = useCallback((): CityStop[] => {
-    if (!destination) return [];
-    return [
-      {
-        id: destination.toLowerCase().replace(/\s+/g, "-"),
-        city: destination,
-        country: destinationCountry,
-        countryCode: destinationCountryCode,
-        lat: destinationLat,
-        lng: destinationLng,
-        days: dayCount || 7,
-      },
-    ];
-  }, [
-    destination,
-    destinationCountry,
-    destinationCountryCode,
-    destinationLat,
-    destinationLng,
-    dayCount,
-  ]);
-
   const prioritySummary =
     planningPriorities.length === 0
       ? ""
@@ -219,14 +164,7 @@ export default function PlanPage() {
       }
     }
 
-    const fieldErrors = validate(destinationStepSchema, {
-      tripType,
-      region,
-      destination,
-      destinationCountry,
-      dateStart,
-      dateEnd,
-    });
+    const fieldErrors = validate(destinationStepSchema, { selectedCities, dateStart, dateEnd });
     if (fieldErrors) {
       setErrors(fieldErrors);
       return;
@@ -234,50 +172,32 @@ export default function PlanPage() {
     setErrors({});
     setGenerateError(null);
 
+    const tripType = selectedCities.length === 1 ? "single-city" : "multi-city";
+    const firstCity = selectedCities[0];
+
     posthog?.capture("questionnaire_completed", {
       tripType,
-      region,
-      destination,
+      cityCount: selectedCities.length,
+      cities: selectedCities.map((c) => c.city),
       duration_days: dayCount,
       travelers,
     });
     setIsGenerating(true);
 
-    let route: CityStop[] = [];
-
-    if (isSingleCity) {
-      route = singleCityRoute();
-    } else {
-      const params = {
-        profile: {
-          nationality: effectiveNationality,
-          homeAirport: effectiveHomeAirport,
-          travelStyle: travelStyle ?? "smart-budget",
-          interests,
-          pace: pace ?? undefined,
-        },
-        tripIntent: {
-          id: "speculative",
-          tripType,
-          region,
-          destinationCountry,
-          destinationCountryCode,
-          dateStart,
-          dateEnd,
-          travelers,
-        },
-      };
-      const cacheKey = buildCacheKey(params);
-
-      try {
-        const cities = await fetchRoute(params, cacheKey);
-        if (cities && cities.length > 0) {
-          route = citiesToRoute(cities, dayCount);
-        }
-      } catch {
-        // Route selection failed — proceed without pre-selected cities
-      }
-    }
+    // Build initial route — even distribution of days across cities
+    const perCity = dayCount > 0 ? Math.floor(dayCount / selectedCities.length) : 1;
+    const route: CityStop[] = selectedCities.map((c, i) => ({
+      id: c.city.toLowerCase().replace(/\s+/g, "-"),
+      city: c.city,
+      country: c.country,
+      countryCode: c.countryCode,
+      lat: c.lat,
+      lng: c.lng,
+      days:
+        i === selectedCities.length - 1
+          ? Math.max(1, dayCount - perCity * (selectedCities.length - 1))
+          : Math.max(1, perCity),
+    }));
 
     const combinedDescription = [tripDescription.trim(), prioritySummary]
       .filter(Boolean)
@@ -308,12 +228,14 @@ export default function PlanPage() {
     try {
       const { trip } = await createTripMutation.mutateAsync({
         tripType,
-        region: isMultiCountry ? region : "",
-        ...(isSingleCity
-          ? { destination, destinationCountry, destinationCountryCode }
-          : isSingleCountry
-            ? { destinationCountry, destinationCountryCode }
-            : {}),
+        region: "",
+        ...(firstCity
+          ? {
+              destination: firstCity.city,
+              destinationCountry: firstCity.country,
+              destinationCountryCode: firstCity.countryCode,
+            }
+          : {}),
         dateStart,
         dateEnd,
         travelers,
@@ -323,7 +245,10 @@ export default function PlanPage() {
 
       // Prime React Query cache so TripClientProvider renders immediately on navigation
       queryClient.setQueryData(queryKeys.trips.detail(trip.id), trip);
-      posthog?.capture("itinerary_generation_started", { trip_id: trip.id, region });
+      posthog?.capture("itinerary_generation_started", {
+        trip_id: trip.id,
+        city_count: selectedCities.length,
+      });
       router.push(`/trips/${trip.id}`);
     } catch (err) {
       setIsGenerating(false);
@@ -333,17 +258,10 @@ export default function PlanPage() {
     }
   }, [
     needsProfileStep,
-    isSingleCity,
-    isSingleCountry,
-    isMultiCountry,
-    tripType,
-    region,
+    selectedCities,
     tripDescription,
     planningPriorities,
     prioritySummary,
-    destination,
-    destinationCountry,
-    destinationCountryCode,
     dateStart,
     dateEnd,
     travelers,
@@ -355,8 +273,6 @@ export default function PlanPage() {
     setIsGenerating,
     pace,
     saveProfileMutation,
-    singleCityRoute,
-    fetchRoute,
     createTripMutation,
     queryClient,
     router,

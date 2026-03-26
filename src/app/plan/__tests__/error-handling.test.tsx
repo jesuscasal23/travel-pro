@@ -80,13 +80,15 @@ function setValidFinalStepState() {
     });
     usePlanFormStore.setState({
       planStep: 4,
-      tripType: "single-city",
-      destination: "Bangkok",
-      destinationCountry: "Thailand",
-      destinationCountryCode: "TH",
-      destinationLat: 13.7563,
-      destinationLng: 100.5018,
-      region: "",
+      selectedCities: [
+        {
+          city: "Bangkok",
+          country: "Thailand",
+          countryCode: "TH",
+          lat: 13.7563,
+          lng: 100.5018,
+        },
+      ],
       dateStart: "2026-04-01",
       dateEnd: "2026-04-22",
       travelers: 2,

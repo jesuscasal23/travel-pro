@@ -8,7 +8,6 @@
 // ============================================================
 
 import Anthropic from "@anthropic-ai/sdk";
-import { SYSTEM_PROMPT_V1 } from "./prompts/v1";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
 import { abortableDelay, isAbortError } from "@/lib/core/abort";
@@ -53,7 +52,7 @@ interface ClaudeResult {
  */
 export async function callClaude(
   userPrompt: string,
-  systemPrompt: string = SYSTEM_PROMPT_V1,
+  systemPrompt: string = "",
   maxTokens: number = 10000,
   retryCount = 0,
   signal?: AbortSignal

@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, LocateFixed, MapPinned, Search } from "lucide-react";
+import { CalendarDays, MapPin, Search, X } from "lucide-react";
 import { CITIES, type CityEntry } from "@/data/cities";
-import { regions } from "@/data/sampleData";
-import { usePlanFormStore } from "@/stores/usePlanFormStore";
+import { usePlanFormStore, type SelectedCity } from "@/stores/usePlanFormStore";
 import { travelFieldErrorClass, travelInputClass } from "@/components/ui/styles";
 import { StepBadge } from "./StepBadge";
 
@@ -15,68 +14,23 @@ interface DestinationStepProps {
   totalSteps: number;
 }
 
-type SearchResult =
-  | {
-      key: string;
-      kind: "city";
-      label: string;
-      detail: string;
-      city: CityEntry;
-    }
-  | {
-      key: string;
-      kind: "country";
-      label: string;
-      detail: string;
-      country: { country: string; countryCode: string; lat: number; lng: number };
-    };
+const POPULAR_CITIES: SelectedCity[] = [
+  { city: "Bangkok", country: "Thailand", countryCode: "TH", lat: 13.756, lng: 100.502 },
+  { city: "Tokyo", country: "Japan", countryCode: "JP", lat: 35.689, lng: 139.692 },
+  { city: "Paris", country: "France", countryCode: "FR", lat: 48.857, lng: 2.347 },
+  { city: "Barcelona", country: "Spain", countryCode: "ES", lat: 41.388, lng: 2.17 },
+  { city: "Rome", country: "Italy", countryCode: "IT", lat: 41.9, lng: 12.483 },
+  { city: "Bali", country: "Indonesia", countryCode: "ID", lat: -8.409, lng: 115.189 },
+];
 
-const countries = (() => {
-  const seen = new Map<
-    string,
-    { country: string; countryCode: string; lat: number; lng: number }
-  >();
-  for (const city of CITIES) {
-    if (!seen.has(city.countryCode)) {
-      seen.set(city.countryCode, {
-        country: city.country,
-        countryCode: city.countryCode,
-        lat: city.lat,
-        lng: city.lng,
-      });
-    }
-  }
-  return Array.from(seen.values());
-})();
-
-function getSelectedLabel({
-  tripType,
-  destination,
-  destinationCountry,
-  region,
-}: {
-  tripType: string;
-  destination: string;
-  destinationCountry: string;
-  region: string;
-}) {
-  if (tripType === "multi-city") {
-    return regions.find((item) => item.id === region)?.name ?? "";
-  }
-  if (tripType === "single-country") return destinationCountry;
-  if (tripType === "single-city" && destination) return `${destination}, ${destinationCountry}`;
-  return "";
+function cityKey(city: SelectedCity) {
+  return `${city.countryCode}-${city.city}`;
 }
 
 export function DestinationStep({ errors, clearError, step, totalSteps }: DestinationStepProps) {
-  const tripType = usePlanFormStore((s) => s.tripType);
-  const setTripType = usePlanFormStore((s) => s.setTripType);
-  const region = usePlanFormStore((s) => s.region);
-  const setRegion = usePlanFormStore((s) => s.setRegion);
-  const destination = usePlanFormStore((s) => s.destination);
-  const destinationCountry = usePlanFormStore((s) => s.destinationCountry);
-  const setDestination = usePlanFormStore((s) => s.setDestination);
-  const clearDestination = usePlanFormStore((s) => s.clearDestination);
+  const selectedCities = usePlanFormStore((s) => s.selectedCities);
+  const addCity = usePlanFormStore((s) => s.addCity);
+  const removeCity = usePlanFormStore((s) => s.removeCity);
   const dateStart = usePlanFormStore((s) => s.dateStart);
   const setDateStart = usePlanFormStore((s) => s.setDateStart);
   const dateEnd = usePlanFormStore((s) => s.dateEnd);
@@ -86,44 +40,41 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedLabel = getSelectedLabel({ tripType, destination, destinationCountry, region });
+  const selectedKeys = useMemo(() => new Set(selectedCities.map(cityKey)), [selectedCities]);
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return [] as SearchResult[];
-
-    const cityResults: SearchResult[] = CITIES.filter(
+    if (!normalized) return [] as CityEntry[];
+    return CITIES.filter(
       (entry) =>
         entry.city.toLowerCase().includes(normalized) ||
         entry.country.toLowerCase().includes(normalized) ||
         entry.countryCode.toLowerCase().startsWith(normalized)
-    )
-      .slice(0, 5)
-      .map((entry) => ({
-        key: `city-${entry.countryCode}-${entry.city}`,
-        kind: "city" as const,
-        label: entry.city,
-        detail: entry.country,
-        city: entry,
-      }));
-
-    const countryResults: SearchResult[] = countries
-      .filter(
-        (entry) =>
-          entry.country.toLowerCase().includes(normalized) ||
-          entry.countryCode.toLowerCase().startsWith(normalized)
-      )
-      .slice(0, 5)
-      .map((entry) => ({
-        key: `country-${entry.countryCode}`,
-        kind: "country" as const,
-        label: entry.country,
-        detail: entry.countryCode,
-        country: entry,
-      }));
-
-    return [...cityResults, ...countryResults];
+    ).slice(0, 8);
   }, [query]);
+
+  const handleSelect = (entry: CityEntry) => {
+    const city: SelectedCity = {
+      city: entry.city,
+      country: entry.country,
+      countryCode: entry.countryCode,
+      lat: entry.lat,
+      lng: entry.lng,
+    };
+    if (!selectedKeys.has(cityKey(city))) {
+      addCity(city);
+      clearError("selectedCities");
+    }
+    setQuery("");
+    setOpen(false);
+  };
+
+  const handleAddPopular = (city: SelectedCity) => {
+    if (!selectedKeys.has(cityKey(city))) {
+      addCity(city);
+      clearError("selectedCities");
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -132,43 +83,9 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
         setQuery("");
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSelectResult = (result: SearchResult) => {
-    if (result.kind === "city") {
-      setTripType("single-city");
-      setRegion("");
-      setDestination(
-        result.city.city,
-        result.city.country,
-        result.city.countryCode,
-        result.city.lat,
-        result.city.lng
-      );
-      clearError("destination");
-      clearError("destinationCountry");
-      clearError("region");
-    } else {
-      setTripType("single-country");
-      setRegion("");
-      setDestination(
-        "",
-        result.country.country,
-        result.country.countryCode,
-        result.country.lat,
-        result.country.lng
-      );
-      clearError("destinationCountry");
-      clearError("destination");
-      clearError("region");
-    }
-
-    setOpen(false);
-    setQuery("");
-  };
 
   return (
     <div className="space-y-7 pb-2">
@@ -180,66 +97,95 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           <h2 className="text-navy text-[28px] leading-tight font-bold">
             Where to <span className="text-brand-primary italic">next?</span>
           </h2>
-          <p className="text-dim mt-2 text-sm">
-            Your dream trip starts with a single pin on the map.
-          </p>
+          <p className="text-dim mt-2 text-sm">Add one or more cities you want to visit.</p>
         </div>
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
+      {/* City search */}
       <div>
-        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Where</p>
+        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Cities</p>
 
         <div ref={containerRef} className="relative mt-3">
           <div className="text-subtext pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2">
-            {selectedLabel && !open ? (
-              <LocateFixed className="h-4 w-4" />
-            ) : (
-              <Search className="h-4 w-4" />
-            )}
+            <Search className="h-4 w-4" />
           </div>
           <input
             type="text"
-            value={open ? query : selectedLabel}
+            value={query}
             onFocus={() => setOpen(true)}
-            onChange={(event) => {
-              setQuery(event.target.value);
+            onChange={(e) => {
+              setQuery(e.target.value);
               setOpen(true);
             }}
-            placeholder="Search cities, countries..."
+            placeholder="Search cities..."
             className={`${travelInputClass} min-h-[58px] rounded-[18px] pl-11 text-[16px]`}
           />
 
           {open && results.length > 0 && (
             <div className="border-edge shadow-glass-lg absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white">
-              {results.map((result) => (
-                <button
-                  key={result.key}
-                  type="button"
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    handleSelectResult(result);
-                  }}
-                  className="border-edge/70 hover:bg-surface-hover flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0"
-                >
-                  <div>
-                    <p className="text-navy text-sm font-semibold">{result.label}</p>
-                    <p className="text-dim mt-0.5 text-xs">{result.detail}</p>
-                  </div>
-                  <MapPinned className="text-subtext h-4 w-4" />
-                </button>
-              ))}
+              {results.map((entry) => {
+                const key = `${entry.countryCode}-${entry.city}`;
+                const already = selectedKeys.has(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      if (!already) handleSelect(entry);
+                    }}
+                    disabled={already}
+                    className={`border-edge/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 ${
+                      already ? "cursor-default opacity-40" : "hover:bg-surface-hover"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-navy text-sm font-semibold">{entry.city}</p>
+                      <p className="text-dim mt-0.5 text-xs">{entry.country}</p>
+                    </div>
+                    <MapPin className="text-subtext h-4 w-4 shrink-0" />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {(errors.destination || errors.destinationCountry || errors.region) && (
-          <p className={`${travelFieldErrorClass} mt-2`}>
-            {errors.destination || errors.destinationCountry || errors.region}
-          </p>
+        {/* Selected cities list */}
+        {selectedCities.length > 0 && (
+          <ul className="mt-3 space-y-2">
+            {selectedCities.map((city, i) => (
+              <li
+                key={`${cityKey(city)}-${i}`}
+                className="border-edge/80 flex items-center gap-3 rounded-[16px] border bg-white px-4 py-3"
+              >
+                <span className="text-brand-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold">
+                  {i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-navy text-sm font-semibold">{city.city}</p>
+                  <p className="text-dim text-xs">{city.country}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeCity(i)}
+                  className="text-subtext hover:text-navy shrink-0 transition-colors"
+                  aria-label={`Remove ${city.city}`}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {errors.selectedCities && (
+          <p className={`${travelFieldErrorClass} mt-2`}>{errors.selectedCities}</p>
         )}
       </div>
 
+      {/* Dates */}
       <div>
         <label className="text-faint mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
           Start
@@ -250,8 +196,8 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
             type="date"
             value={dateStart}
             onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-            onChange={(event) => {
-              setDateStart(event.target.value);
+            onChange={(e) => {
+              setDateStart(e.target.value);
               clearError("dateStart");
             }}
             className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
@@ -272,8 +218,8 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
             value={dateEnd}
             min={dateStart}
             onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-            onChange={(event) => {
-              setDateEnd(event.target.value);
+            onChange={(e) => {
+              setDateEnd(e.target.value);
               clearError("dateEnd");
             }}
             className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
@@ -283,37 +229,30 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
         {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
       </div>
 
+      {/* Popular destinations */}
       <section>
         <p className="text-faint mb-3 text-[11px] font-bold tracking-[0.2em] uppercase">
-          Popular Right Now
+          Popular Destinations
         </p>
         <div className="flex flex-wrap gap-2.5">
-          {regions
-            .filter((item) => item.popular)
-            .map((item) => {
-              const isSelected = tripType === "multi-city" && region === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setTripType("multi-city");
-                    setRegion(item.id);
-                    clearDestination();
-                    clearError("region");
-                    clearError("destination");
-                    clearError("destinationCountry");
-                  }}
-                  className={`rounded-2xl border px-4 py-2.5 text-[12px] font-bold tracking-[0.08em] uppercase transition-all ${
-                    isSelected
-                      ? "border-brand-primary bg-brand-primary-soft text-brand-primary shadow-[var(--shadow-brand-md)]"
-                      : "border-edge/80 text-prose bg-white/88"
-                  }`}
-                >
-                  {item.name}
-                </button>
-              );
-            })}
+          {POPULAR_CITIES.map((city) => {
+            const isSelected = selectedKeys.has(cityKey(city));
+            return (
+              <button
+                key={cityKey(city)}
+                type="button"
+                onClick={() => handleAddPopular(city)}
+                disabled={isSelected}
+                className={`rounded-2xl border px-4 py-2.5 text-[12px] font-bold tracking-[0.08em] uppercase transition-all ${
+                  isSelected
+                    ? "border-brand-primary bg-brand-primary-soft text-brand-primary cursor-default opacity-60"
+                    : "border-edge/80 text-prose bg-white/88"
+                }`}
+              >
+                {city.city}
+              </button>
+            );
+          })}
         </div>
       </section>
     </div>

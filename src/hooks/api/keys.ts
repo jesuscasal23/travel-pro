@@ -20,10 +20,6 @@ export const queryKeys = {
     detail: () => [...queryKeys.profile.all, "detail"] as const,
     export: () => [...queryKeys.profile.all, "export"] as const,
   },
-  routeSelection: {
-    all: ["route-selection"] as const,
-    byParams: (key: string) => [...queryKeys.routeSelection.all, key] as const,
-  },
   admin: {
     all: ["admin"] as const,
     stats: () => [...queryKeys.admin.all, "stats"] as const,

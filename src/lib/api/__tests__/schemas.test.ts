@@ -1,10 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import {
-  ProfileInputSchema,
-  TripIntentInputSchema,
-  CityWithDaysInputSchema,
-} from "@/lib/features/generation/schemas";
+import { ProfileInputSchema, TripIntentInputSchema } from "@/lib/features/generation/schemas";
 import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
 
 // ── ProfileInputSchema ───────────────────────────────────────
@@ -120,38 +116,6 @@ describe("TripIntentInputSchema", () => {
 
   it("rejects non-integer travelers", () => {
     const result = TripIntentInputSchema.safeParse({ ...validMultiCity, travelers: 2.5 });
-    expect(result.success).toBe(false);
-  });
-});
-
-// ── CityWithDaysInputSchema ──────────────────────────────────
-
-describe("CityWithDaysInputSchema", () => {
-  const valid = {
-    id: "tokyo",
-    city: "Tokyo",
-    country: "Japan",
-    countryCode: "JP",
-    iataCode: "TYO",
-    lat: 35.68,
-    lng: 139.69,
-    minDays: 3,
-    maxDays: 5,
-  };
-
-  it("accepts valid city", () => {
-    const result = CityWithDaysInputSchema.safeParse(valid);
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects missing required fields", () => {
-    const { city: _unused, ...rest } = valid;
-    const result = CityWithDaysInputSchema.safeParse(rest);
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects string where number expected", () => {
-    const result = CityWithDaysInputSchema.safeParse({ ...valid, lat: "35.68" });
     expect(result.success).toBe(false);
   });
 });

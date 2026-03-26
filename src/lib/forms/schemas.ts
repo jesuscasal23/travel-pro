@@ -7,27 +7,14 @@ import { z } from "zod";
 // components (onboarding, plan, profile).
 // ============================================================
 
-/** Plan step 1: destination, trip type, and dates. */
+/** Plan step 1: selected cities and dates. */
 export const destinationStepSchema = z
   .object({
-    tripType: z.enum(["single-city", "single-country", "multi-city"]),
-    region: z.string(),
-    destination: z.string(),
-    destinationCountry: z.string(),
+    selectedCities: z
+      .array(z.object({ city: z.string() }).passthrough())
+      .min(1, "Please add at least one city"),
     dateStart: z.string().min(1, "Please select a start date"),
     dateEnd: z.string().min(1, "Please select an end date"),
-  })
-  .refine((d) => d.tripType !== "multi-city" || d.region.length > 0, {
-    message: "Please select a region",
-    path: ["region"],
-  })
-  .refine((d) => d.tripType !== "single-city" || d.destination.length > 0, {
-    message: "Please select a city",
-    path: ["destination"],
-  })
-  .refine((d) => d.tripType !== "single-country" || d.destinationCountry.length > 0, {
-    message: "Please select a country",
-    path: ["destinationCountry"],
   })
   .refine(
     (d) => {

@@ -1,12 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import type { Itinerary } from "@/types";
-import { ServiceMisconfiguredError } from "@/lib/api/errors";
 import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 const mocks = vi.hoisted(() => ({
-  generateRouteOnly: vi.fn(),
   createGeneratingRecord: vi.fn(),
   activateGeneratedItinerary: vi.fn(),
   markGenerationFailed: vi.fn(),
@@ -31,10 +28,6 @@ vi.mock("@/lib/core/prisma", () => ({
     profile: { findUnique: vi.fn() },
     trip: { findUnique: vi.fn() },
   },
-}));
-
-vi.mock("@/lib/ai/pipeline", () => ({
-  generateRouteOnly: mocks.generateRouteOnly,
 }));
 
 vi.mock("@/lib/features/trips/itinerary-service", () => ({
@@ -77,22 +70,6 @@ const mockPrisma = prisma as unknown as {
 };
 const mockAuth = getAuthenticatedUserId as ReturnType<typeof vi.fn>;
 
-const itinerary: Itinerary = {
-  route: [
-    {
-      id: "lisbon",
-      city: "Lisbon",
-      country: "Portugal",
-      countryCode: "PT",
-      lat: 1,
-      lng: 2,
-      days: 2,
-      iataCode: "LIS",
-    },
-  ],
-  days: [{ day: 1, date: "2026-06-01", city: "Lisbon", activities: [] }],
-};
-
 describe("POST /api/v1/trips/:id/generate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -122,11 +99,13 @@ describe("POST /api/v1/trips/:id/generate", () => {
     mockPrisma.trip.findUnique.mockResolvedValue({
       id: "trip-1",
       profileId: "profile-1",
-      tripType: "multi-city",
-      region: "europe",
-      destination: null,
-      destinationCountry: null,
-      destinationCountryCode: null,
+      tripType: "single-city",
+      region: "",
+      destination: "Lisbon",
+      destinationCountry: "Portugal",
+      destinationCountryCode: "PT",
+      destinationLat: 38.72,
+      destinationLng: -9.14,
       dateStart: "2026-06-01",
       dateEnd: "2026-06-10",
       flexibleDates: false,
@@ -137,7 +116,6 @@ describe("POST /api/v1/trips/:id/generate", () => {
     mocks.createGeneratingRecord.mockResolvedValue({ id: "itin-1" });
     mocks.activateGeneratedItinerary.mockResolvedValue(undefined);
     mocks.markGenerationFailed.mockResolvedValue(undefined);
-    mocks.generateRouteOnly.mockResolvedValue(itinerary);
     mocks.prefetchFlightsForRoute.mockResolvedValue(null);
   });
 
@@ -179,21 +157,9 @@ describe("POST /api/v1/trips/:id/generate", () => {
     expect(body).toContain('"stage":"done"');
     expect(mocks.createGeneratingRecord).toHaveBeenCalledWith({
       tripId: "trip-1",
-      promptVersion: "v1",
+      promptVersion: "v2",
     });
     expect(mocks.activateGeneratedItinerary).toHaveBeenCalled();
-    expect(mocks.generateRouteOnly).toHaveBeenCalledWith(
-      {
-        nationality: "German",
-        homeAirport: "FRA",
-        travelStyle: "smart-budget",
-        interests: ["food"],
-        pace: "moderate",
-      },
-      expect.any(Object),
-      undefined,
-      expect.any(Object)
-    );
   });
 
   it("falls back to client profile for guest-owned trips", async () => {
@@ -202,11 +168,13 @@ describe("POST /api/v1/trips/:id/generate", () => {
     mockPrisma.trip.findUnique.mockResolvedValue({
       id: "trip-1",
       profileId: null,
-      tripType: "multi-city",
-      region: "europe",
-      destination: null,
-      destinationCountry: null,
-      destinationCountryCode: null,
+      tripType: "single-city",
+      region: "",
+      destination: "Lisbon",
+      destinationCountry: "Portugal",
+      destinationCountryCode: "PT",
+      destinationLat: 38.72,
+      destinationLng: -9.14,
       dateStart: "2026-06-01",
       dateEnd: "2026-06-10",
       flexibleDates: false,
@@ -235,17 +203,6 @@ describe("POST /api/v1/trips/:id/generate", () => {
 
     expect(res.status).toBe(200);
     expect(body).toContain('"stage":"done"');
-    expect(mocks.generateRouteOnly).toHaveBeenCalledWith(
-      {
-        nationality: "Spanish",
-        homeAirport: "MAD",
-        travelStyle: "comfort-explorer",
-        interests: ["food"],
-      },
-      expect.any(Object),
-      undefined,
-      expect.any(Object)
-    );
   });
 
   it("returns 409 when a generation is already running for the trip", async () => {
@@ -278,25 +235,10 @@ describe("POST /api/v1/trips/:id/generate", () => {
     expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for unsupported prompt versions", async () => {
-    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ promptVersion: "v2" }),
-    });
-
-    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
-    const json = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(json.error).toBe("Validation failed");
-    expect(mocks.createGeneratingRecord).not.toHaveBeenCalled();
-  });
-
-  it("marks the itinerary as failed and closes the stream when generation is aborted", async () => {
+  it("marks the itinerary as failed and closes the stream when flight prefetch throws an abort", async () => {
     const aborted = new Error("Request aborted");
     aborted.name = "AbortError";
-    mocks.generateRouteOnly.mockRejectedValue(aborted);
+    mocks.prefetchFlightsForRoute.mockRejectedValue(aborted);
 
     const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
       method: "POST",
@@ -309,26 +251,6 @@ describe("POST /api/v1/trips/:id/generate", () => {
 
     expect(res.status).toBe(200);
     expect(body).not.toContain('"stage":"error"');
-    expect(mocks.markGenerationFailed).toHaveBeenCalledWith("itin-1");
-    expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
-  });
-
-  it("streams a specific error when Anthropic is not configured", async () => {
-    mocks.generateRouteOnly.mockRejectedValue(new ServiceMisconfiguredError("anthropic"));
-
-    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-1/generate", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({}),
-    });
-
-    const res = await POST(req, { params: Promise.resolve({ id: "trip-1" }) });
-    const body = await res.text();
-
-    expect(res.status).toBe(200);
-    expect(body).toContain(
-      "AI generation is not configured. Add ANTHROPIC_API_KEY to .env.local and restart the dev server."
-    );
     expect(mocks.markGenerationFailed).toHaveBeenCalledWith("itin-1");
     expect(mocks.activateGeneratedItinerary).not.toHaveBeenCalled();
   });

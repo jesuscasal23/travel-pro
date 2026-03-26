@@ -51,7 +51,6 @@ function makeSseResponse(lines: string[]): Response {
 
 const baseParams = {
   tripId: "trip-1",
-  promptVersion: "v1" as const,
 };
 
 const guestParams = {
@@ -111,7 +110,7 @@ describe("useTripGeneration", () => {
       "/api/v1/trips/trip-1/generate",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ promptVersion: "v1" }),
+        body: JSON.stringify({}),
       })
     );
     expect(global.fetch).toHaveBeenNthCalledWith(2, "/api/v1/trips/trip-1", expect.any(Object));
@@ -151,7 +150,6 @@ describe("useTripGeneration", () => {
     );
     const firstCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(JSON.parse(firstCall[1].body as string)).toEqual({
-      promptVersion: "v1",
       profile: guestParams.profile,
     });
   });

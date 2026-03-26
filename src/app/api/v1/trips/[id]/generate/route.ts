@@ -1,6 +1,6 @@
 // ============================================================
 // Travel Pro — POST /api/v1/trips/[id]/generate
-// Kick off AI generation for a trip and stream progress via SSE
+// Kick off route skeleton building for a trip and stream progress via SSE
 // ============================================================
 import { apiHandler, assertTripAccess, parseAndValidateRequest } from "@/lib/api/helpers";
 import { GenerateTripInputSchema } from "@/lib/features/generation/schemas";
@@ -27,20 +27,14 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
   }
   log.info("Trip access verified", { tripId: params.id, elapsed: `${Date.now() - t0}ms` });
 
-  const {
-    profile: requestProfile,
-    promptVersion,
-    cities,
-  } = await parseAndValidateRequest(req, GenerateTripInputSchema);
+  const { profile: requestProfile } = await parseAndValidateRequest(req, GenerateTripInputSchema);
   const profile = await resolveTripUserProfile(tripAccess.profileId, requestProfile);
   log.info("Request body validated", {
     tripId: params.id,
-    promptVersion,
     travelStyle: profile.travelStyle,
     hasNationality: !!profile.nationality,
     hasHomeAirport: !!profile.homeAirport,
     interestCount: profile.interests?.length ?? 0,
-    preSelectedCities: cities?.length ?? 0,
     elapsed: `${Date.now() - t0}ms`,
   });
 
@@ -56,8 +50,23 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
     elapsed: `${Date.now() - t0}ms`,
   });
 
+  // Build a single-city input from the trip intent for now.
+  // In a follow-up task the client will send an explicit cities array.
+  const cities = intent.destination
+    ? [
+        {
+          city: intent.destination,
+          country: intent.destinationCountry ?? "",
+          countryCode: intent.destinationCountryCode ?? "",
+          lat: intent.destinationLat ?? 0,
+          lng: intent.destinationLng ?? 0,
+        },
+      ]
+    : [];
+
   log.info("Starting SSE generation stream", {
     tripId: params.id,
+    cities: cities.map((c) => c.city),
     elapsed: `${Date.now() - t0}ms`,
   });
 
@@ -66,7 +75,6 @@ export const POST = apiHandler("POST /api/v1/trips/:id/generate", async (req, pa
     trip,
     intent,
     profile,
-    promptVersion,
     cities,
     signal: req.signal,
   });

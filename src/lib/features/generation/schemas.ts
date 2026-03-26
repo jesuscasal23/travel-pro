@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { itinerarySchema, cityGeoSchema } from "@/lib/itinerary/schema";
+import { itinerarySchema } from "@/lib/itinerary/schema";
 
 export const ProfileInputSchema = z.object({
   nationality: z.string().min(1).max(100),
@@ -36,24 +36,8 @@ export const TripIntentInputSchema = z
     }
   );
 
-export const SelectRouteInputSchema = z.object({
-  profile: ProfileInputSchema,
-  tripIntent: TripIntentInputSchema,
-});
-
-export const CityWithDaysInputSchema = cityGeoSchema.extend({
-  id: z.string(),
-  iataCode: z.string(),
-  minDays: z.number(),
-  maxDays: z.number(),
-});
-
-const PromptVersionSchema = z.literal("v1").default("v1");
-
 export const GenerateTripInputSchema = z.object({
   profile: ProfileInputSchema.optional(),
-  promptVersion: PromptVersionSchema,
-  cities: z.array(CityWithDaysInputSchema).optional(),
 });
 
 export const GenerateActivitiesInputSchema = z.object({

@@ -1,8 +1,6 @@
 "use client";
 
 import { travelStyles } from "@/data/travelStyles";
-import { regions } from "@/data/sampleData";
-import { useShallow } from "zustand/shallow";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useProfileState } from "@/hooks/useProfileState";
 import { StepBadge } from "./StepBadge";
@@ -13,23 +11,15 @@ interface OverviewStepProps {
 }
 
 export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
-  const { tripType, region, destination, destinationCountry } = usePlanFormStore(
-    useShallow((s) => ({
-      tripType: s.tripType,
-      region: s.region,
-      destination: s.destination,
-      destinationCountry: s.destinationCountry,
-    }))
-  );
+  const selectedCities = usePlanFormStore((s) => s.selectedCities);
   const { travelStyle, interests, pace } = useProfileState();
 
-  const regionLabel = regions.find((item) => item.id === region)?.name ?? region;
   const destinationLabel =
-    tripType === "multi-city"
-      ? regionLabel
-      : tripType === "single-country"
-        ? destinationCountry
-        : destination;
+    selectedCities.length === 0
+      ? "TBD"
+      : selectedCities.length === 1
+        ? `${selectedCities[0].city}, ${selectedCities[0].country}`
+        : selectedCities.map((c) => c.city).join(" → ");
   const budgetLabel =
     travelStyles.find((style) => style.id === travelStyle)?.label ?? "Smart Budget";
   const paceLabel =
@@ -56,9 +46,7 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
             <p className="text-faint text-[11px] font-bold tracking-[0.18em] uppercase">
               Destinations
             </p>
-            <p className="text-navy mt-2 text-[26px] leading-tight font-bold">
-              {destinationLabel || "TBD"}
-            </p>
+            <p className="text-navy mt-2 text-[26px] leading-tight font-bold">{destinationLabel}</p>
           </div>
         </div>
 

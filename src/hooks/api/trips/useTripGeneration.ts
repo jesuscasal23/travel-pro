@@ -15,18 +15,6 @@ interface GenerateParams {
     travelStyle: string;
     interests: string[];
   };
-  promptVersion: "v1";
-  cities?: Array<{
-    id: string;
-    city: string;
-    country: string;
-    countryCode: string;
-    iataCode: string;
-    lat: number;
-    lng: number;
-    minDays: number;
-    maxDays: number;
-  }>;
   onStage?: (stage: string) => void;
 }
 
@@ -34,22 +22,14 @@ export function useTripGeneration() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      tripId,
-      profile,
-      promptVersion,
-      cities,
-      onStage,
-    }: GenerateParams): Promise<Itinerary | null> => {
+    mutationFn: async ({ tripId, profile, onStage }: GenerateParams): Promise<Itinerary | null> => {
       const endpoint = `/api/v1/trips/${tripId}/generate`;
 
       const res = await apiFetchRaw(endpoint, {
         source: "useTripGeneration",
         method: "POST",
         body: {
-          promptVersion,
           ...(profile ? { profile } : {}),
-          ...(cities ? { cities } : {}),
         },
         fallbackMessage: "Generation failed",
       });

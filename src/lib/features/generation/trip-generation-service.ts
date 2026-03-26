@@ -1,18 +1,74 @@
-import { generateRouteOnly } from "@/lib/ai/pipeline";
 import { ApiError, ServiceMisconfiguredError } from "@/lib/api/errors";
 import { isAbortError, throwIfAborted } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
 import { prefetchFlightsForRoute } from "@/lib/flights";
-import type { CityWithDays } from "@/lib/flights/types";
 import {
   activateGeneratedItinerary,
   createGeneratingRecord,
   GenerationAlreadyInProgressError,
   markGenerationFailed,
 } from "@/lib/features/trips/itinerary-service";
-import type { Itinerary, TripIntent, UserProfile } from "@/types";
+import { addDays, daysBetween, formatDateShort } from "@/lib/utils/format/date";
+import type { CityStop, Itinerary, TripDay, TripIntent, UserProfile } from "@/types";
 
 const log = createLogger("trip-generation-service");
+
+// ── City input type ────────────────────────────────────────────────────────────
+
+export interface CityInput {
+  city: string;
+  country: string;
+  countryCode: string;
+  lat: number;
+  lng: number;
+  iataCode?: string;
+}
+
+// ── Route builder ──────────────────────────────────────────────────────────────
+
+/**
+ * Build a route skeleton programmatically from a user-provided city list.
+ * No AI call needed — days are distributed evenly across cities.
+ */
+export function buildRouteFromCities(
+  cities: CityInput[],
+  dateStart: string,
+  dateEnd: string
+): Itinerary {
+  const totalDays = dateStart && dateEnd ? Math.max(1, daysBetween(dateStart, dateEnd)) : 7;
+  const perCity = Math.floor(totalDays / cities.length);
+
+  const route: CityStop[] = cities.map((c, i) => ({
+    id: c.city.toLowerCase().replace(/\s+/g, "-"),
+    city: c.city,
+    country: c.country,
+    countryCode: c.countryCode,
+    lat: c.lat,
+    lng: c.lng,
+    iataCode: c.iataCode,
+    // Last city absorbs any remainder
+    days: i === cities.length - 1 ? totalDays - perCity * (cities.length - 1) : perCity,
+  }));
+
+  const days: TripDay[] = [];
+  let dayIndex = 0;
+  for (const stop of route) {
+    for (let d = 0; d < stop.days; d++) {
+      days.push({
+        day: dayIndex + 1,
+        date: dateStart ? formatDateShort(addDays(dateStart, dayIndex)) : `Day ${dayIndex + 1}`,
+        city: stop.city,
+        isTravel: false as const,
+        activities: [],
+      });
+      dayIndex++;
+    }
+  }
+
+  return { route, days };
+}
+
+// ── Service interface ──────────────────────────────────────────────────────────
 
 interface CreateTripGenerationStreamResponseInput {
   tripId: string;
@@ -23,8 +79,7 @@ interface CreateTripGenerationStreamResponseInput {
   };
   intent: TripIntent;
   profile: UserProfile;
-  promptVersion: string;
-  cities?: CityWithDays[];
+  cities: CityInput[];
   signal: AbortSignal;
 }
 
@@ -65,15 +120,14 @@ export async function createTripGenerationStreamResponse(
     travelStyle: input.profile.travelStyle,
     nationality: input.profile.nationality,
     homeAirport: input.profile.homeAirport,
-    promptVersion: input.promptVersion,
-    preSelectedCities: input.cities?.map((c) => c.city) ?? null,
+    cities: input.cities.map((c) => c.city),
   });
 
   let itineraryId: string;
   try {
     ({ id: itineraryId } = await createGeneratingRecord({
       tripId: input.tripId,
-      promptVersion: input.promptVersion,
+      promptVersion: "v2",
     }));
     log.info("Generating record created", {
       tripId: input.tripId,
@@ -111,28 +165,27 @@ export async function createTripGenerationStreamResponse(
 
       try {
         throwIfAborted(input.signal);
-        log.info("[SSE] Stage: route — starting AI generation", {
+        log.info("[SSE] Stage: route — building skeleton from city list", {
           tripId: input.tripId,
           itineraryId,
+          cityCount: input.cities.length,
           elapsed: elapsed(),
         });
         send({ stage: "route", message: "Planning your route...", pct: 20 });
 
         const tGen = Date.now();
-        const itinerary: Itinerary = await generateRouteOnly(
-          input.profile,
-          input.intent,
+        const itinerary: Itinerary = buildRouteFromCities(
           input.cities,
-          { signal: input.signal }
+          input.trip.dateStart,
+          input.trip.dateEnd
         );
-        log.info("[SSE] AI generation complete", {
+        log.info("[SSE] Route skeleton built", {
           tripId: input.tripId,
           itineraryId,
           routeCities: itinerary.route.map((r) => r.city),
           routeLength: itinerary.route.length,
           totalDays: itinerary.days.length,
-          hasVisaData: !!itinerary.visaData,
-          generationDuration: `${Date.now() - tGen}ms`,
+          buildDuration: `${Date.now() - tGen}ms`,
           elapsed: elapsed(),
         });
         throwIfAborted(input.signal);

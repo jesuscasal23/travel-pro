@@ -1,34 +1,23 @@
 "use client";
 
 import { CalendarDays, MapPin } from "lucide-react";
-import { useShallow } from "zustand/shallow";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useProfileState } from "@/hooks/useProfileState";
-import { regions } from "@/data/sampleData";
 import { travelStyles } from "@/data/travelStyles";
 import { formatDateRange, daysBetween } from "@/lib/utils/format/date";
 
 export function SignupGateStep() {
-  const { tripType, region, destination, destinationCountry, dateStart, dateEnd } =
-    usePlanFormStore(
-      useShallow((s) => ({
-        tripType: s.tripType,
-        region: s.region,
-        destination: s.destination,
-        destinationCountry: s.destinationCountry,
-        dateStart: s.dateStart,
-        dateEnd: s.dateEnd,
-      }))
-    );
+  const selectedCities = usePlanFormStore((s) => s.selectedCities);
+  const dateStart = usePlanFormStore((s) => s.dateStart);
+  const dateEnd = usePlanFormStore((s) => s.dateEnd);
   const { travelStyle, interests, pace } = useProfileState();
 
-  const regionLabel = regions.find((r) => r.id === region)?.name ?? region;
   const destinationLabel =
-    tripType === "multi-city"
-      ? regionLabel
-      : tripType === "single-country"
-        ? destinationCountry
-        : destination;
+    selectedCities.length === 0
+      ? ""
+      : selectedCities.length === 1
+        ? `${selectedCities[0].city}, ${selectedCities[0].country}`
+        : selectedCities.map((c) => c.city).join(" → ");
 
   const dateRange = formatDateRange(dateStart, dateEnd);
   const dayCount = dateStart && dateEnd ? daysBetween(dateStart, dateEnd) : 0;
