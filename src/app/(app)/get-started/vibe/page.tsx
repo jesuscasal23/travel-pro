@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -17,14 +16,9 @@ import {
 } from "lucide-react";
 import { GradientBackground } from "@/components/ui/GradientBackground";
 import { BackButton } from "@/components/ui/BackButton";
+import { useTripStore } from "@/stores/useTripStore";
 import type { LucideIcon } from "lucide-react";
-
-type VibeKey =
-  | "adventureComfort"
-  | "socialQuiet"
-  | "luxuryBudget"
-  | "structuredSpontaneous"
-  | "warmMixed";
+import type { VibeKey, VibeScores } from "@/types";
 
 type VibeSlider = {
   id: VibeKey;
@@ -72,15 +66,23 @@ const vibeSliders: VibeSlider[] = [
   },
 ];
 
+const DEFAULT_VIBES: VibeScores = {
+  adventureComfort: 50,
+  socialQuiet: 50,
+  luxuryBudget: 50,
+  structuredSpontaneous: 50,
+  warmMixed: 50,
+};
+
 export default function VibePage() {
   const router = useRouter();
-  const [vibes, setVibes] = useState<Record<VibeKey, number>>({
-    adventureComfort: 50,
-    socialQuiet: 50,
-    luxuryBudget: 50,
-    structuredSpontaneous: 50,
-    warmMixed: 50,
-  });
+  const storedVibes = useTripStore((s) => s.vibes);
+  const setVibesStore = useTripStore((s) => s.setVibes);
+  const vibes = storedVibes ?? DEFAULT_VIBES;
+
+  const setVibes = (updater: (prev: VibeScores) => VibeScores) => {
+    setVibesStore(updater(vibes));
+  };
 
   return (
     <GradientBackground>

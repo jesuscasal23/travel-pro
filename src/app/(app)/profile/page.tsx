@@ -105,6 +105,7 @@ export default function ProfilePage() {
       travelStyle: next.travelStyle,
       interests: next.interests,
       pace: next.pace,
+      vibes: next.vibes ?? null,
     });
   };
 
@@ -143,6 +144,7 @@ export default function ProfilePage() {
         travelStyle: formState.travelStyle,
         interests: formState.interests,
         pace: formState.pace,
+        vibes: formState.vibes,
         onboardingCompleted: true,
       });
       const next = toTravelerPreferences(

@@ -1,9 +1,10 @@
-import type { ActivityPace, TravelStyle, UserProfile } from "@/types";
+import type { ActivityPace, TravelStyle, UserProfile, VibeScores } from "@/types";
 import { normalizeInterest, normalizeInterests } from "./interests";
 import { resolvePaceInput } from "./pace";
 
 export interface TravelerPreferences extends Omit<UserProfile, "pace"> {
   pace: ActivityPace;
+  vibes?: VibeScores;
   onboardingCompleted: boolean;
   languagesSpoken: string[];
 }
@@ -15,6 +16,7 @@ type TravelerPreferencesInput = Partial<TravelerPreferences> & {
   travelStyle?: TravelStyle | null;
   interests?: string[] | null;
   pace?: ActivityPace | null;
+  vibes?: VibeScores | null;
   languagesSpoken?: string[] | null;
 };
 
@@ -24,6 +26,7 @@ export interface TravelerPreferencesPatch {
   travelStyle?: TravelStyle;
   interests?: string[];
   pace?: ActivityPace;
+  vibes?: VibeScores;
   onboardingCompleted?: boolean;
   languagesSpoken?: string[];
 }
@@ -58,6 +61,7 @@ export function toTravelerPreferences(
     travelStyle: input?.travelStyle ?? DEFAULT_TRAVELER_PREFERENCES.travelStyle,
     interests: normalizeInterests(input?.interests),
     pace,
+    vibes: input?.vibes ?? undefined,
     onboardingCompleted:
       input?.onboardingCompleted ?? DEFAULT_TRAVELER_PREFERENCES.onboardingCompleted,
     languagesSpoken: asStringArray(input?.languagesSpoken),
@@ -85,6 +89,7 @@ export function toTravelerProfile(preferences: TravelerPreferences): UserProfile
     travelStyle: preferences.travelStyle,
     interests: preferences.interests,
     pace: preferences.pace,
+    vibes: preferences.vibes,
   };
 }
 
@@ -98,6 +103,7 @@ export function toTravelerPreferencesPatch(
   if (input.travelStyle !== undefined) patch.travelStyle = input.travelStyle;
   if (input.interests !== undefined) patch.interests = normalizeInterests(input.interests);
   if (input.pace !== undefined) patch.pace = input.pace;
+  if (input.vibes !== undefined) patch.vibes = input.vibes;
   if (input.onboardingCompleted !== undefined) {
     patch.onboardingCompleted = input.onboardingCompleted;
   }

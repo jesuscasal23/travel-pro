@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { TravelStyle, ActivityPace } from "@/types";
+import type { TravelStyle, ActivityPace, VibeScores } from "@/types";
 import { normalizeInterest, normalizeInterests } from "@/lib/features/profile/interests";
 
 interface TripStoreState {
@@ -11,6 +11,7 @@ interface TripStoreState {
   travelStyle: TravelStyle | null;
   interests: string[];
   pace: ActivityPace | null;
+  vibes: VibeScores | null;
 
   // Transient itinerary build UI state
   isGenerating: boolean; // true while the /generate stream is in flight
@@ -24,6 +25,7 @@ interface TripStoreActions {
   setInterests: (interests: string[]) => void;
   toggleInterest: (interest: string) => void;
   setPace: (pace: ActivityPace) => void;
+  setVibes: (vibes: VibeScores) => void;
   setIsGenerating: (generating: boolean) => void;
   setNeedsRegeneration: (needs: boolean) => void;
   // Clears all profile state on sign-out
@@ -36,6 +38,7 @@ const initialState: TripStoreState = {
   travelStyle: null,
   interests: [],
   pace: null,
+  vibes: null,
   isGenerating: false,
   needsRegeneration: false,
 };
@@ -48,6 +51,7 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()((set) =>
   setTravelStyle: (style) => set({ travelStyle: style }),
   setInterests: (interests) => set({ interests: normalizeInterests(interests) }),
   setPace: (pace) => set({ pace }),
+  setVibes: (vibes) => set({ vibes }),
   toggleInterest: (interest) =>
     set((state) => {
       const normalized = normalizeInterest(interest);

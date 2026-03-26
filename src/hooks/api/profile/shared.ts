@@ -1,5 +1,5 @@
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
-import type { ActivityPace, TravelStyle, UserProfile } from "@/types";
+import type { ActivityPace, TravelStyle, UserProfile, VibeScores } from "@/types";
 
 export interface ProfileData {
   nationality: string;
@@ -7,6 +7,7 @@ export interface ProfileData {
   travelStyle?: TravelStyle;
   interests: string[];
   pace?: ActivityPace;
+  vibes?: VibeScores;
   onboardingCompleted?: boolean;
 }
 

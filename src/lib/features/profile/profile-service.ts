@@ -45,6 +45,7 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
       travelStyle: data.travelStyle ?? "smart-budget",
       interests,
       activityLevel: pace,
+      vibes: data.vibes ?? undefined,
       languagesSpoken: data.languagesSpoken ?? [],
       onboardingCompleted: data.onboardingCompleted ?? false,
     },
@@ -54,6 +55,7 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
       ...(data.travelStyle && { travelStyle: data.travelStyle }),
       ...(data.interests && { interests }),
       ...(pace && { activityLevel: pace }),
+      ...(data.vibes && { vibes: data.vibes }),
       ...(data.languagesSpoken && { languagesSpoken: data.languagesSpoken }),
       ...(data.onboardingCompleted !== undefined && {
         onboardingCompleted: data.onboardingCompleted,
@@ -136,6 +138,7 @@ export async function resolveTripUserProfile(
       travelStyle: profile.travelStyle as UserProfile["travelStyle"],
       interests: profile.interests,
       activityLevel: profile.activityLevel,
+      vibes: (profile.vibes as UserProfile["vibes"]) ?? undefined,
       onboardingCompleted: profile.onboardingCompleted,
       languagesSpoken: profile.languagesSpoken,
     })

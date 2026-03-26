@@ -48,8 +48,16 @@ export default function PlanPage() {
   } = usePlanFormStore();
 
   // Profile fields and generation UI state — transient
-  const { nationality, homeAirport, travelStyle, interests, pace, isGenerating, setIsGenerating } =
-    useTripStore();
+  const {
+    nationality,
+    homeAirport,
+    travelStyle,
+    interests,
+    pace,
+    vibes,
+    isGenerating,
+    setIsGenerating,
+  } = useTripStore();
 
   const createTripMutation = useCreateTrip();
   const saveProfileMutation = useSaveProfile();
@@ -81,6 +89,7 @@ export default function PlanPage() {
       travelStyle: persistedProfile.travelStyle,
       interests: normalizeInterests(persistedProfile.interests),
       pace: persistedProfile.pace ?? "moderate",
+      vibes: persistedProfile.vibes ?? null,
     });
     hydratedProfileRef.current = true;
   }, [persistedProfile]);
@@ -212,6 +221,7 @@ export default function PlanPage() {
           travelStyle: travelStyle ?? undefined,
           interests,
           pace: pace ?? undefined,
+          vibes: vibes ?? undefined,
           onboardingCompleted: true,
         });
       } catch {
@@ -272,6 +282,7 @@ export default function PlanPage() {
     interests,
     setIsGenerating,
     pace,
+    vibes,
     saveProfileMutation,
     createTripMutation,
     queryClient,
