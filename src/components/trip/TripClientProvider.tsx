@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import {
   useVisaEnrichment,
@@ -146,6 +146,10 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     tripId !== "guest" && tripQuery.isError && (!itinerary || currentTripId !== tripId);
 
   const discoverActivitiesMutation = useDiscoverActivities();
+  const discoverMutateRef = useRef(discoverActivitiesMutation.mutateAsync);
+  useEffect(() => {
+    discoverMutateRef.current = discoverActivitiesMutation.mutateAsync;
+  });
   const recordActivitySwipeMutation = useRecordActivitySwipe();
   const [queueState, setQueueState] = useState(createDiscoveryQueueState);
   const [nextBatchIndex, setNextBatchIndex] = useState(0);
@@ -180,8 +184,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
     let cancelled = false;
 
-    discoverActivitiesMutation
-      .mutateAsync({
+    discoverMutateRef
+      .current({
         tripId,
         cityId: discoveryCity.id,
         batchIndex: nextBatchIndex,
@@ -216,7 +220,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     nextBatchIndex,
     discoveryCity,
     hasDiscoveryProfile,
-    discoverActivitiesMutation,
     tripId,
     requestProfile,
   ]);
