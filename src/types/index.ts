@@ -48,7 +48,7 @@ export interface ActivityDiscoveryCandidate {
   category: string;
   duration: string;
   googleMapsUrl: string;
-  imageUrl: null;
+  imageUrl: string | null;
 }
 
 /** A single day in the itinerary */

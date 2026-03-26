@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check, ExternalLink, MapPin, X } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import { Check, ExternalLink, ImageOff, MapPin, X } from "lucide-react";
 import type { ActivityDiscoveryCandidate, DiscoveryStatus } from "@/types";
 
 interface MobileDiscoveryTabProps {
@@ -17,6 +17,33 @@ interface MobileDiscoveryTabProps {
 }
 
 const SWIPE_THRESHOLD = 110;
+const FEEDBACK_DEAD_ZONE = 20;
+
+function ActivityImage({ card }: { card: ActivityDiscoveryCandidate }) {
+  const [failed, setFailed] = useState(false);
+
+  if (card.imageUrl && !failed) {
+    return (
+      <img
+        src={card.imageUrl}
+        alt={card.name}
+        className="h-48 w-full object-cover"
+        loading="eager"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="from-brand-primary-soft to-app-blue-100 flex h-36 items-center justify-center bg-gradient-to-br">
+      {failed ? (
+        <ImageOff className="text-brand-primary h-8 w-8 opacity-50" />
+      ) : (
+        <MapPin className="text-brand-primary h-8 w-8" />
+      )}
+    </div>
+  );
+}
 
 export function MobileDiscoveryTab({
   status,
@@ -33,6 +60,13 @@ export function MobileDiscoveryTab({
   const nextCard = cards[cursor + 1];
   const swipedCount = Math.min(cursor, totalTarget);
   const isCompleted = status === "completed" || swipedCount >= totalTarget;
+
+  const dragX = useMotionValue(0);
+  const cardRotate = useTransform(dragX, [-200, 0, 200], [-12, 0, 12]);
+  const likeOpacity = useTransform(dragX, [FEEDBACK_DEAD_ZONE, SWIPE_THRESHOLD], [0, 1]);
+  const nopeOpacity = useTransform(dragX, [-SWIPE_THRESHOLD, -FEEDBACK_DEAD_ZONE], [1, 0]);
+  const nextCardScale = useTransform(dragX, [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD], [1, 0.96, 1]);
+  const nextCardOpacity = useTransform(dragX, [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD], [1, 0.8, 1]);
 
   const progressLabel = useMemo(() => {
     return `${Math.min(swipedCount, totalTarget)} / ${totalTarget}`;
@@ -101,31 +135,84 @@ export function MobileDiscoveryTab({
 
       <div className="relative min-h-[480px]">
         {nextCard ? (
-          <div className="shadow-glass-md absolute inset-x-4 top-4 rounded-[28px] border border-white/70 bg-white/75 p-5 opacity-80">
-            <p className="text-ink line-clamp-1 text-sm font-semibold">{nextCard.name}</p>
-            <p className="text-dim mt-1 line-clamp-2 text-xs">{nextCard.description}</p>
-          </div>
+          <motion.div
+            style={{ scale: nextCardScale, opacity: nextCardOpacity }}
+            className="shadow-glass-md absolute inset-x-2 top-2 rounded-[30px] border border-white/70 bg-white/85 p-5"
+          >
+            <div className="mb-4 overflow-hidden rounded-2xl border border-white/75">
+              <ActivityImage card={nextCard} />
+            </div>
+
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <h3 className="text-ink text-lg font-semibold tracking-[-0.02em]">{nextCard.name}</h3>
+              <span className="bg-brand-primary-soft text-brand-primary rounded-full px-2.5 py-1 text-xs font-semibold">
+                {nextCard.category}
+              </span>
+            </div>
+
+            <p className="text-dim text-sm">{nextCard.description}</p>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-label rounded-full border border-white/80 bg-white px-2.5 py-1 text-xs font-medium">
+                {nextCard.duration}
+              </span>
+              <span className="text-brand-primary inline-flex items-center gap-1 text-xs font-semibold">
+                Open in Google Maps
+                <ExternalLink className="h-3.5 w-3.5" />
+              </span>
+            </div>
+
+            <div className="mt-5 flex gap-3">
+              <div className="bg-surface-error-bg border-surface-error-border text-surface-error-text flex h-12 flex-1 items-center justify-center rounded-2xl border font-semibold">
+                <X className="mr-1 h-4 w-4" />
+                Skip
+              </div>
+              <div className="bg-brand-primary flex h-12 flex-1 items-center justify-center rounded-2xl font-semibold text-white">
+                <Check className="mr-1 h-4 w-4" />
+                Like
+              </div>
+            </div>
+          </motion.div>
         ) : null}
 
         <AnimatePresence mode="wait">
           <motion.div
             key={`${cursor}-${currentCard.name}`}
+            style={{ x: dragX, rotate: cardRotate }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             onDragEnd={(_, info) => {
               if (info.offset.x > SWIPE_THRESHOLD) onSwipe("liked");
-              if (info.offset.x < -SWIPE_THRESHOLD) onSwipe("disliked");
+              else if (info.offset.x < -SWIPE_THRESHOLD) onSwipe("disliked");
             }}
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -14, scale: 0.96 }}
             transition={{ duration: 0.22 }}
-            className="shadow-glass-xl absolute inset-x-0 top-0 rounded-[30px] border border-white/80 bg-white/92 p-5"
+            className="shadow-glass-xl absolute inset-x-0 top-0 rounded-[30px] border border-white/80 bg-white p-5"
           >
+            {/* LIKE stamp — upper-left, rotated */}
+            <motion.div
+              style={{ opacity: likeOpacity }}
+              className="border-app-green pointer-events-none absolute top-6 left-6 z-10 rotate-[-18deg] rounded-lg border-[3px] px-3 py-1"
+            >
+              <span className="text-app-green text-xl font-extrabold tracking-wider uppercase">
+                Like
+              </span>
+            </motion.div>
+
+            {/* NOPE stamp — upper-right, rotated */}
+            <motion.div
+              style={{ opacity: nopeOpacity }}
+              className="border-app-red pointer-events-none absolute top-6 right-6 z-10 rotate-[18deg] rounded-lg border-[3px] px-3 py-1"
+            >
+              <span className="text-app-red text-xl font-extrabold tracking-wider uppercase">
+                Nope
+              </span>
+            </motion.div>
+
             <div className="mb-4 overflow-hidden rounded-2xl border border-white/75">
-              <div className="from-brand-primary-soft to-app-blue-100 flex h-36 items-center justify-center bg-gradient-to-br">
-                <MapPin className="text-brand-primary h-8 w-8" />
-              </div>
+              <ActivityImage card={currentCard} />
             </div>
 
             <div className="mb-2 flex items-start justify-between gap-3">
@@ -153,29 +240,29 @@ export function MobileDiscoveryTab({
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => onSwipe("disliked")}
+                className="bg-surface-error-bg border-surface-error-border text-surface-error-text flex h-12 flex-1 items-center justify-center rounded-2xl border font-semibold"
+                aria-label="Dislike activity"
+              >
+                <X className="mr-1 h-4 w-4" />
+                Skip
+              </button>
+              <button
+                type="button"
+                onClick={() => onSwipe("liked")}
+                className="bg-brand-primary flex h-12 flex-1 items-center justify-center rounded-2xl font-semibold text-white"
+                aria-label="Like activity"
+              >
+                <Check className="mr-1 h-4 w-4" />
+                Like
+              </button>
+            </div>
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => onSwipe("disliked")}
-          className="bg-surface-error-bg border-surface-error-border text-surface-error-text flex h-12 flex-1 items-center justify-center rounded-2xl border font-semibold"
-          aria-label="Dislike activity"
-        >
-          <X className="mr-1 h-4 w-4" />
-          Skip
-        </button>
-        <button
-          type="button"
-          onClick={() => onSwipe("liked")}
-          className="bg-brand-primary flex h-12 flex-1 items-center justify-center rounded-2xl font-semibold text-white"
-          aria-label="Like activity"
-        >
-          <Check className="mr-1 h-4 w-4" />
-          Like
-        </button>
       </div>
 
       {error ? <p className="text-app-red px-1 text-xs">{error}</p> : null}

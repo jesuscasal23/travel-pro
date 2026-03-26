@@ -14,6 +14,7 @@ import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import type { ActivityDiscoveryCandidate, UserProfile } from "@/types";
 import { loadTripContext } from "./trip-query-service";
 import { findActiveItinerary } from "./itinerary-service";
+import { resolveActivityImages } from "./activity-image-service";
 
 const log = createLogger("discover-activities-service");
 
@@ -94,13 +95,16 @@ export async function discoverActivities(
     throw new Error(`Discovery activities schema validation failed: ${details}`);
   }
 
-  const activities: ActivityDiscoveryCandidate[] = parsed.data.map((activity) => ({
+  const imageUrls = await resolveActivityImages(parsed.data, city.city, signal);
+  throwIfAborted(signal);
+
+  const activities: ActivityDiscoveryCandidate[] = parsed.data.map((activity, i) => ({
     name: activity.name,
     description: activity.description,
     category: activity.category,
     duration: activity.duration,
     googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.name} ${city.city}`)}`,
-    imageUrl: null,
+    imageUrl: imageUrls[i] ?? null,
   }));
 
   log.info("Discovery activities generated", {
