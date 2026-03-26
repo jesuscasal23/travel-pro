@@ -4,16 +4,17 @@
 // Stage 1: Assemble prompt      (prompts/*)
 // Stage 2: Call Claude          (client.ts → callClaude)
 // Stage 3: Parse + validate     (parser.ts → parseAndValidate)
-// Stage 4: Enrich               (enrichment.ts → enrichVisa, enrichWeather)
-// Stage 5: Store via Prisma     (best-effort, non-blocking)
+// Stage 4: Store via Prisma     (best-effort, non-blocking)
+//
+// Visa and weather enrichment are intentionally excluded from this pipeline.
+// They are fetched client-side via /api/v1/enrich/visa and /api/v1/enrich/weather
+// after the core itinerary loads, so a slow or failed enrichment never blocks generation.
 // ============================================================
 
 import { SYSTEM_PROMPT_V1, assemblePrompt } from "./prompts/v1";
 import { SYSTEM_PROMPT_SINGLE_CITY, assembleSingleCityPrompt } from "./prompts/single-city";
 import { SYSTEM_PROMPT_ROUTE_ONLY, assembleRouteOnlyPrompt } from "./prompts/route-only";
 import { selectRoute } from "./prompts/route-selector";
-import { enrichVisa } from "./enrich-visa";
-import { enrichWeather } from "./enrich-weather";
 import { callClaude, getAnthropic } from "./client";
 import { parseAndValidate } from "./parser";
 import type { UserProfile, TripIntent, Itinerary, TripDay, CityStop } from "@/types";
@@ -359,7 +360,7 @@ export async function generateRouteOnly(
 }
 
 // ============================================================
-// generateItinerary (full pipeline: core + enrichment + persist)
+// generateItinerary (full pipeline: core + persist)
 // ============================================================
 
 export async function generateItinerary(
@@ -372,29 +373,10 @@ export async function generateItinerary(
   const t0 = Date.now();
   const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
 
-  const core = await generateCoreItinerary(profile, tripIntent, preSelectedCities, { signal });
+  const itinerary = await generateCoreItinerary(profile, tripIntent, preSelectedCities, { signal });
 
-  // Stage 4: Enrich (visa + weather) in parallel
+  // Stage 4: Persist via Prisma (best-effort)
   throwIfAborted(signal);
-  const t4 = Date.now();
-  const [visaData, weatherData] = await Promise.all([
-    enrichVisa(profile.nationality, core.route),
-    enrichWeather(core.route, tripIntent.dateStart),
-  ]);
-  log.info("Stage 4 (enrich) done", {
-    duration: `${((Date.now() - t4) / 1000).toFixed(1)}s`,
-    visaEntries: visaData.length,
-    weatherEntries: weatherData.length,
-    elapsed: elapsed(),
-  });
-
-  const itinerary: Itinerary = {
-    ...core,
-    visaData,
-    weatherData,
-  };
-
-  // Stage 5: Persist via Prisma (best-effort)
   const t5 = Date.now();
   try {
     const { getPrisma } = await import("@/lib/core/prisma");
@@ -411,12 +393,12 @@ export async function generateItinerary(
         data: { tripId: tripIntent.id, data: itinerary as object },
       });
     }
-    log.info("Stage 5 (DB persist) done", {
+    log.info("Stage 4 (DB persist) done", {
       duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`,
       elapsed: elapsed(),
     });
   } catch (e) {
-    log.error("Stage 5 (DB persist) failed", {
+    log.error("Stage 4 (DB persist) failed", {
       duration: `${((Date.now() - t5) / 1000).toFixed(1)}s`,
       error: getErrorMessage(e),
       elapsed: elapsed(),
