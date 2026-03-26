@@ -4,7 +4,7 @@ import type { ActivityPace, TravelStyle, UserProfile } from "@/types";
 export interface ProfileData {
   nationality: string;
   homeAirport: string;
-  travelStyle: TravelStyle;
+  travelStyle?: TravelStyle;
   interests: string[];
   pace?: ActivityPace;
   onboardingCompleted?: boolean;
