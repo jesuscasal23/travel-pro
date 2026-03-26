@@ -54,8 +54,9 @@ export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) =>
 
   const response = NextResponse.json({ trip }, { status: 201 });
 
-  // Guest trips: set an httpOnly owner cookie so the guest can access their trip
-  if (!userId) {
+  // Set guest owner cookie when no profile is linked — covers both true guests
+  // and authenticated users who haven't completed onboarding yet.
+  if (!profileId) {
     const cookie = createGuestTripOwnerCookie(trip.id);
     response.cookies.set(cookie);
   }

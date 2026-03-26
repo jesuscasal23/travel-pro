@@ -12,12 +12,20 @@ const globalForPrisma = globalThis as unknown as {
  *
  * Prisma v7 requires a driver adapter — we use @prisma/adapter-pg which
  * connects directly via the `pg` driver (no query-engine binary).
+ *
+ * Pool is capped at 2 connections per serverless instance to avoid exhausting
+ * Supabase's session-mode connection limit under concurrent invocations.
  */
 export function getPrisma(): PrismaClient {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
   const connectionString = getDatabaseUrl();
-  const adapter = new PrismaPg({ connectionString });
+  const adapter = new PrismaPg({
+    connectionString,
+    min: 0,
+    max: 2,
+    idleTimeoutMillis: 30_000,
+  });
   const client = new PrismaClient({ adapter });
 
   globalForPrisma.prisma = client;

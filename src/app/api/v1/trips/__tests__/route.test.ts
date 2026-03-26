@@ -130,6 +130,28 @@ describe("/api/v1/trips", () => {
     expect(mockPrisma.profile.findUnique).not.toHaveBeenCalled();
   });
 
+  it("POST sets guest cookie when authenticated user has no profile", async () => {
+    mockPrisma.profile.findUnique.mockResolvedValue(null);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tripType: "multi-city",
+        region: "europe",
+        dateStart: "2026-06-01",
+        dateEnd: "2026-06-10",
+        travelers: 2,
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    // Trip created with null profileId → guest cookie must be set
+    const setCookie = res.headers.get("set-cookie") ?? "";
+    expect(setCookie).toContain("travelpro_guest_trip_trip-new");
+  });
+
   it("POST creates trip", async () => {
     const req = new NextRequest("http://localhost:3000/api/v1/trips", {
       method: "POST",
