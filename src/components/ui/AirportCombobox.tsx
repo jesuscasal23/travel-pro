@@ -46,7 +46,14 @@ export function AirportCombobox({
   });
   const isBranded = variant === "branded";
 
-  const displayValue = value ? value.split("(")[0].trim() : "";
+  // Show "JFK – New York, US" instead of the full airport name for mobile readability
+  const displayValue = value
+    ? (() => {
+        const parenMatch = value.match(/\((.+)\)$/);
+        const code = value.split(" ")[0]; // e.g. "JFK"
+        return parenMatch ? `${code} – ${parenMatch[1]}` : value.split("(")[0].trim();
+      })()
+    : "";
 
   const handleSelect = useCallback(
     (a: AirportEntry) => {
