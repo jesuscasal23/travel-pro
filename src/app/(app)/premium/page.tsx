@@ -2,11 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Crown, Search, Bell, Sparkles, ShieldOff, Check } from "lucide-react";
+import {
+  Crown,
+  Search,
+  Bell,
+  Sparkles,
+  ShieldOff,
+  Infinity,
+  CalendarCheck,
+  MapPin,
+} from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { useToastStore } from "@/stores/useToastStore";
 
-type Plan = "monthly" | "annual";
+type Plan = "lifetime" | "yearly" | "per-trip";
 
 const features = [
   { icon: Search, title: "Unlimited flight & hotel searches" },
@@ -16,7 +25,8 @@ const features = [
 ] as const;
 
 export default function PremiumPage() {
-  const [selectedPlan, setSelectedPlan] = useState<Plan>("annual");
+  const [selectedPlan, setSelectedPlan] = useState<Plan>("yearly");
+  const [showMonthly, setShowMonthly] = useState(false);
   const toast = useToastStore((s) => s.toast);
 
   const handleSubscribe = () => {
@@ -27,8 +37,16 @@ export default function PremiumPage() {
     toast({ title: "Nothing to restore", description: "No previous purchase found." });
   };
 
-  const ctaText =
-    selectedPlan === "annual" ? "Start Free Trial — $69.99/yr" : "Start Free Trial — $9.99/mo";
+  const handleSelectYearly = () => {
+    setSelectedPlan("yearly");
+    setShowMonthly(true);
+  };
+
+  const ctaLabel: Record<Plan, string> = {
+    lifetime: "Get Lifetime Access",
+    yearly: showMonthly ? "Start Free Trial" : "Start Free Trial",
+    "per-trip": "Unlock This Trip",
+  };
 
   return (
     <div className="relative flex h-dvh flex-col">
@@ -47,8 +65,8 @@ export default function PremiumPage() {
         </div>
       </div>
 
-      {/* Content — no scroll */}
-      <div className="dark:bg-background flex flex-1 flex-col justify-between bg-white px-6 pt-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+      {/* Content */}
+      <div className="dark:bg-background flex flex-1 flex-col justify-between overflow-y-auto bg-white px-6 pt-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
         {/* Feature list */}
         <div className="space-y-3">
           {features.map((f) => (
@@ -65,21 +83,59 @@ export default function PremiumPage() {
         <div>
           {/* Pricing cards */}
           <div className="mt-6 space-y-2.5">
+            {/* Lifetime — psychological anchor */}
             <PlanCard
-              label="Annual"
-              price="$69.99"
-              period="/yr"
-              badge="Best Value"
-              subtitle="$5.83/mo — save 42%"
-              selected={selectedPlan === "annual"}
-              onSelect={() => setSelectedPlan("annual")}
+              icon={Infinity}
+              label="Lifetime"
+              price="499"
+              period=""
+              subtitle="One-time payment, forever yours"
+              selected={selectedPlan === "lifetime"}
+              onSelect={() => {
+                setSelectedPlan("lifetime");
+                setShowMonthly(false);
+              }}
             />
+
+            {/* Yearly — recommended */}
             <PlanCard
-              label="Monthly"
-              price="$9.99"
-              period="/mo"
-              selected={selectedPlan === "monthly"}
-              onSelect={() => setSelectedPlan("monthly")}
+              icon={CalendarCheck}
+              label="Yearly"
+              price="99"
+              period="/yr"
+              badge="Most Popular"
+              subtitle="7-day free trial included"
+              selected={selectedPlan === "yearly" && !showMonthly}
+              onSelect={handleSelectYearly}
+            />
+
+            {/* Monthly — revealed when yearly is selected */}
+            {showMonthly && (
+              <div className="border-brand-primary/20 ml-6 border-l-2 pl-3">
+                <PlanCard
+                  label="Monthly"
+                  price="12.99"
+                  period="/mo"
+                  subtitle="Cancel anytime"
+                  selected={selectedPlan === "yearly" && showMonthly}
+                  onSelect={() => setSelectedPlan("yearly")}
+                  compact
+                />
+              </div>
+            )}
+
+            {/* Per trip */}
+            <PlanCard
+              icon={MapPin}
+              label="Per Trip"
+              price="19.99"
+              period=""
+              subtitle="Unlock a single trip"
+              selected={selectedPlan === "per-trip"}
+              onSelect={() => {
+                setSelectedPlan("per-trip");
+                setShowMonthly(false);
+              }}
             />
           </div>
 
@@ -88,11 +144,13 @@ export default function PremiumPage() {
             onClick={handleSubscribe}
             className="shadow-brand-sm bg-brand-primary mt-5 w-full rounded-2xl px-6 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
           >
-            {ctaText}
+            {ctaLabel[selectedPlan]}
           </button>
-          <p className="text-dim mt-1.5 text-center text-[11px] dark:text-white/40">
-            7-day free trial, cancel anytime
-          </p>
+          {selectedPlan === "yearly" && (
+            <p className="text-dim mt-1.5 text-center text-[11px] dark:text-white/40">
+              7-day free trial, cancel anytime
+            </p>
+          )}
 
           {/* Footer links */}
           <div className="text-label mt-4 flex items-center justify-center gap-3 text-[11px] dark:text-white/40">
@@ -120,6 +178,7 @@ export default function PremiumPage() {
 /* ------------------------------------------------------------------ */
 
 interface PlanCardProps {
+  icon?: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
   label: string;
   price: string;
   period: string;
@@ -127,14 +186,27 @@ interface PlanCardProps {
   subtitle?: string;
   selected: boolean;
   onSelect: () => void;
+  compact?: boolean;
 }
 
-function PlanCard({ label, price, period, badge, subtitle, selected, onSelect }: PlanCardProps) {
+function PlanCard({
+  icon: Icon,
+  label,
+  price,
+  period,
+  badge,
+  subtitle,
+  selected,
+  onSelect,
+  compact,
+}: PlanCardProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all ${
+      className={`flex w-full items-center gap-3 rounded-2xl border-2 text-left transition-all ${
+        compact ? "px-3 py-2.5" : "px-4 py-3"
+      } ${
         selected
           ? "border-brand-primary bg-brand-primary-soft/50 dark:bg-brand-primary/10 shadow-brand-sm/30"
           : "border-edge/60 dark:border-edge/20 hover:border-edge dark:hover:border-edge/40 bg-white dark:bg-white/5"
@@ -152,20 +224,40 @@ function PlanCard({ label, price, period, badge, subtitle, selected, onSelect }:
       {/* Plan info */}
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-ink text-sm font-bold dark:text-white">{label}</span>
+          {Icon && (
+            <Icon
+              size={compact ? 14 : 16}
+              strokeWidth={2}
+              className={selected ? "text-brand-primary" : "text-dim dark:text-white/40"}
+            />
+          )}
+          <span
+            className={`text-ink font-bold dark:text-white ${compact ? "text-[13px]" : "text-sm"}`}
+          >
+            {label}
+          </span>
           {badge && (
             <Badge variant="brand" className="text-[9px]">
               {badge}
             </Badge>
           )}
         </div>
-        {subtitle && <p className="text-dim mt-0.5 text-[12px] dark:text-white/50">{subtitle}</p>}
+        {subtitle && (
+          <p
+            className={`text-dim dark:text-white/50 ${compact ? "mt-0 text-[11px]" : "mt-0.5 text-[12px]"}`}
+          >
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {/* Price */}
       <div className="text-right">
-        <span className="text-ink text-lg font-bold dark:text-white">{price}</span>
-        <span className="text-dim text-[12px] dark:text-white/50">{period}</span>
+        <span className="text-dim text-[12px] dark:text-white/50">&euro;</span>
+        <span className={`text-ink font-bold dark:text-white ${compact ? "text-base" : "text-lg"}`}>
+          {price}
+        </span>
+        {period && <span className="text-dim text-[12px] dark:text-white/50">{period}</span>}
       </div>
     </button>
   );
