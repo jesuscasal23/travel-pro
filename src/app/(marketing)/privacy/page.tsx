@@ -164,8 +164,8 @@ export default function PrivacyPage() {
             <h2 className="text-foreground mb-3 text-xl font-semibold">7. Contact</h2>
             <p className="text-muted-foreground">
               For privacy questions, email{" "}
-              <a href="mailto:privacy@travelpro.app" className="text-primary hover:underline">
-                privacy@travelpro.app
+              <a href="mailto:privacy@fichi.app" className="text-primary hover:underline">
+                privacy@fichi.app
               </a>
               . We respond within 72 hours.
             </p>

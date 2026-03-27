@@ -4,7 +4,7 @@ import { requirePageAuth } from "@/lib/auth/require-page-auth";
 import { parseItineraryData, getTripTitle } from "@/lib/utils/trip/trip-metadata";
 import { TripClientProvider } from "@/components/trip/TripClientProvider";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://travelpro.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fichi.app";
 
 interface Props {
   params: Promise<{ id: string }>;
