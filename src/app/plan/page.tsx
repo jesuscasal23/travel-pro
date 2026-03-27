@@ -33,7 +33,6 @@ export default function PlanPage() {
   const hydratedProfileRef = useRef(false);
   const [direction, setDirection] = useState(1);
   const [generateError, setGenerateError] = useState<string | null>(null);
-  const [showSignupGate, setShowSignupGate] = useState(false);
 
   // Plan form fields — persisted across navigation and signup redirect
   const {
@@ -103,7 +102,8 @@ export default function PlanPage() {
   const showPriorities = needsProfileStep ? step === 3 : step === 2;
   const showOverview = needsProfileStep ? step === 4 : step === 3;
   const isFinalStep = step === totalSteps;
-  const progress = showSignupGate ? 100 : Math.round((step / totalSteps) * 100);
+  const showSignupGate = isFinalStep && isAuthenticated === false;
+  const progress = Math.round((step / totalSteps) * 100);
 
   const dayCount = dateStart && dateEnd ? Math.max(0, daysBetween(dateStart, dateEnd)) : 0;
 
@@ -157,11 +157,6 @@ export default function PlanPage() {
         : `Top challenges: ${planningPriorities.join(", ")}`;
 
   const handleGenerate = useCallback(async () => {
-    if (isAuthenticated !== true) {
-      setShowSignupGate(true);
-      return;
-    }
-
     if (needsProfileStep) {
       const profileErrors = validate(onboardingStep1Schema, {
         nationality: effectiveNationality,
@@ -302,13 +297,7 @@ export default function PlanPage() {
         <div className="mb-3 flex items-center">
           <button
             type="button"
-            onClick={
-              showSignupGate
-                ? () => setShowSignupGate(false)
-                : step === 1
-                  ? () => router.push("/home")
-                  : goBack
-            }
+            onClick={step === 1 ? () => router.push("/home") : goBack}
             aria-label={step === 1 ? "Back to home" : "Go back"}
             className="hover:text-navy text-back-btn shadow-back-btn flex h-12 w-12 items-center justify-center rounded-2xl bg-white/92 backdrop-blur-sm transition-colors"
           >
@@ -319,15 +308,14 @@ export default function PlanPage() {
         <div className="relative overflow-x-clip overflow-y-visible">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              key={showSignupGate ? "gate" : step}
+              key={step}
               custom={direction}
               variants={slideVariants}
               initial="enter"
               animate="center"
               exit="exit"
             >
-              {showSignupGate && <SignupGateStep />}
-              {!showSignupGate && showDetails && (
+              {showDetails && (
                 <ProfileStep
                   errors={errors}
                   clearError={clearError}
@@ -335,7 +323,7 @@ export default function PlanPage() {
                   totalSteps={totalSteps}
                 />
               )}
-              {!showSignupGate && showDestination && (
+              {showDestination && (
                 <DestinationStep
                   errors={errors}
                   clearError={clearError}
@@ -343,12 +331,13 @@ export default function PlanPage() {
                   totalSteps={totalSteps}
                 />
               )}
-              {!showSignupGate && showPriorities && (
-                <PrioritiesStep step={step} totalSteps={totalSteps} />
-              )}
-              {!showSignupGate && showOverview && (
-                <OverviewStep step={step} totalSteps={totalSteps} />
-              )}
+              {showPriorities && <PrioritiesStep step={step} totalSteps={totalSteps} />}
+              {showOverview &&
+                (showSignupGate ? (
+                  <SignupGateStep />
+                ) : (
+                  <OverviewStep step={step} totalSteps={totalSteps} />
+                ))}
             </motion.div>
           </AnimatePresence>
         </div>
