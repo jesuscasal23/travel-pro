@@ -33,7 +33,6 @@ function formatDate(dateStr: string): string {
 interface FlightOptionsPanelProps {
   leg: FlightLegResults;
   tripId: string;
-  travelers: number;
   itineraryId?: string;
   direction?: FlightDirection;
   batchResults?: FlightSearchResult[];
@@ -47,7 +46,6 @@ interface FlightOptionsPanelProps {
 export function FlightOptionsPanel({
   leg,
   tripId,
-  travelers,
   itineraryId,
   batchResults,
   batchLoading,
@@ -85,7 +83,7 @@ export function FlightOptionsPanel({
   } = useFlightOptions({
     leg,
     tripId,
-    travelers,
+    travelers: 1,
     batchResults,
     batchLoading,
     batchError,
@@ -93,7 +91,6 @@ export function FlightOptionsPanel({
   });
 
   const formattedDate = formatDate(leg.departureDate);
-  const travelersLabel = `${travelers} traveler${travelers !== 1 ? "s" : ""}`;
 
   // ── Booking confirmation prompt ──
   const bookingConfirmation =
@@ -250,24 +247,6 @@ export function FlightOptionsPanel({
             <span className="text-[12px] font-medium">{formattedDate}</span>
           </div>
         )}
-        <div className="dark:bg-card inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm">
-          <span className="text-primary h-3.5 w-3.5">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-3.5 w-3.5"
-            >
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </span>
-          <span className="text-[12px] font-medium">{travelers}</span>
-        </div>
         {/* Filter icon button */}
         <button
           onClick={() => setShowFilters(!showFilters)}

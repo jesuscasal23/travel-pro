@@ -47,7 +47,7 @@ function findClickForLeg(
 export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const travelerPreferences = useTravelerPreferences({ includeTransientFallback: true });
   const homeAirport = travelerPreferences.data?.homeAirport ?? "";
-  const { travelers, dateStart } = useTripContext();
+  const { dateStart } = useTripContext();
 
   const { route, flightOptions, flightLegs } = itinerary;
   const homeIata = extractHomeAirportIata(homeAirport);
@@ -185,7 +185,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const { getResultsForLeg, isLoading: batchLoading } = useBatchFlightSearch(
     tripId,
     legs,
-    travelers,
+    1,
     hasLegsToFetch
   );
 
@@ -228,7 +228,6 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
             key={`${leg.fromIata}-${leg.toIata}-${i}`}
             leg={leg}
             tripId={tripId}
-            travelers={travelers}
             itineraryId={tripId}
             direction={leg.direction}
             batchResults={batch.results}

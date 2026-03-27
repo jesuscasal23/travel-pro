@@ -77,7 +77,7 @@ beforeEach(() => {
 
 describe("FlightOptionsPanel", () => {
   it("renders leg header with IATA codes and formatted date", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     expect(screen.getByText("CDG")).toBeInTheDocument();
     expect(screen.getByText("NRT")).toBeInTheDocument();
@@ -85,13 +85,13 @@ describe("FlightOptionsPanel", () => {
   });
 
   it("shows first 5 results by default", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     expect(getFlightRows()).toHaveLength(5);
   });
 
   it("expands to show all results when clicking 'Show more'", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     const showMore = screen.getByText(/Show 3 more/);
     fireEvent.click(showMore);
@@ -100,7 +100,7 @@ describe("FlightOptionsPanel", () => {
   });
 
   it("collapses back when clicking 'Show less'", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     fireEvent.click(screen.getByText(/Show 3 more/));
     fireEvent.click(screen.getByText(/Show less/));
@@ -109,7 +109,7 @@ describe("FlightOptionsPanel", () => {
   });
 
   it("toggles sort between cheapest and quickest", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     // Default sort is price — cheapest first (TK = Turkish Airlines)
     const firstCard = getFlightCard(getFlightRows()[0]);
@@ -127,26 +127,26 @@ describe("FlightOptionsPanel", () => {
   it("shows Skyscanner fallback when no results", () => {
     const emptyLeg: FlightLegResults = { ...baseLeg, results: [] };
 
-    render(<FlightOptionsPanel leg={emptyLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={emptyLeg} tripId="trip-1" />);
 
     expect(screen.getByText("Search on Skyscanner")).toBeInTheDocument();
   });
 
   it("triggers live search when clicking refresh", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     // Refresh is now an icon-only button — find by its RefreshCw svg class
     const allButtons = screen.getAllByRole("button");
     const refreshButton = allButtons.find((btn) => btn.querySelector(".lucide-refresh-cw"))!;
     fireEvent.click(refreshButton);
 
-    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 2, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("CDG", "NRT", "2026-06-01", 1, undefined);
   });
 
   it("shows skeleton loading during search", () => {
     mockHookState.loading = true;
 
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     // Skeleton loading shows animated pulse cards
     const skeletons = document.querySelectorAll(".animate-pulse");
@@ -156,7 +156,7 @@ describe("FlightOptionsPanel", () => {
   it("shows error message on search failure", () => {
     mockHookState.error = "Search failed";
 
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     expect(screen.getByText("Search failed")).toBeInTheDocument();
   });
@@ -169,7 +169,7 @@ describe("FlightOptionsPanel", () => {
     mockHookState.results = liveResults;
     mockHookState.fetchedAt = Date.now();
 
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     // Should show live results, not prefetched
     const rows = getFlightRows();
@@ -185,7 +185,7 @@ describe("FlightOptionsPanel", () => {
       results: [makeResult({ stops: 0 })],
     };
 
-    render(<FlightOptionsPanel leg={nonstopLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={nonstopLeg} tripId="trip-1" />);
 
     expect(screen.getByText("Direct")).toBeInTheDocument();
   });
@@ -196,7 +196,7 @@ describe("FlightOptionsPanel", () => {
       results: [makeResult({ stops: 2 })],
     };
 
-    render(<FlightOptionsPanel leg={multiStopLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={multiStopLeg} tripId="trip-1" />);
 
     expect(screen.getByText(/2 Stops/)).toBeInTheDocument();
   });
@@ -207,7 +207,7 @@ describe("FlightOptionsPanel", () => {
       results: baseLeg.results.slice(0, 4),
     };
 
-    render(<FlightOptionsPanel leg={shortLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={shortLeg} tripId="trip-1" />);
 
     expect(screen.queryByText(/Show \d+ more/)).not.toBeInTheDocument();
   });
@@ -218,9 +218,7 @@ describe("FlightOptionsPanel", () => {
       results: [makeResult()],
     };
 
-    render(
-      <FlightOptionsPanel leg={singleLeg} tripId="trip-1" travelers={2} itineraryId="itin-1" />
-    );
+    render(<FlightOptionsPanel leg={singleLeg} tripId="trip-1" itineraryId="itin-1" />);
 
     const links = screen.getAllByRole("link");
     // Every link (flight rows + "Book on Skyscanner") should be tracked
@@ -231,7 +229,7 @@ describe("FlightOptionsPanel", () => {
   });
 
   it("filters by nonstop when stops filter is selected", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     // Open filters via the SlidersHorizontal icon button
     const allButtons = screen.getAllByRole("button");
@@ -255,7 +253,7 @@ describe("FlightOptionsPanel", () => {
       results: [makeResult({ stops: 2 }), makeResult({ stops: 3, price: 800 })],
     };
 
-    render(<FlightOptionsPanel leg={stopsOnlyLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={stopsOnlyLeg} tripId="trip-1" />);
 
     const allButtons = screen.getAllByRole("button");
     const filterBtn = allButtons.find((btn) => btn.querySelector(".lucide-sliders-horizontal"))!;
@@ -272,7 +270,7 @@ describe("FlightOptionsPanel", () => {
   });
 
   it("clears filters when 'Clear filters' is clicked", () => {
-    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" travelers={2} />);
+    render(<FlightOptionsPanel leg={baseLeg} tripId="trip-1" />);
 
     const allButtons = screen.getAllByRole("button");
     const filterBtn = allButtons.find((btn) => btn.querySelector(".lucide-sliders-horizontal"))!;
