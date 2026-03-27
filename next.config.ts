@@ -12,7 +12,7 @@ const securityHeaders = [
       "default-src 'self'",
       // Next.js App Router requires unsafe-inline; unsafe-eval only needed in dev (HMR/Fast Refresh)
       // eu-assets.i.posthog.com: PostHog loads survey.js and other bundles from its CDN
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://eu-assets.i.posthog.com`,
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://eu-assets.i.posthog.com https://accounts.google.com`,
       // Tailwind v4 and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline'",
       // Carto basemap tiles, local assets
@@ -40,11 +40,15 @@ const securityHeaders = [
         // Carto basemap tiles (style JSON + vector tiles + glyphs + sprites)
         "https://*.basemaps.cartocdn.com",
         "https://basemaps.cartocdn.com",
+        // Google Identity Services (One Tap auth in standalone PWA)
+        "https://accounts.google.com",
       ].join(" "),
       // MapLibre GL JS uses Web Workers via blob: URLs
-      "worker-src blob:",
+      // 'self' for sw.js registration, blob: for MapLibre GL Web Workers
+      "worker-src 'self' blob:",
       "font-src 'self' https://fonts.gstatic.com",
-      "frame-src 'none'",
+      // Google Identity Services uses iframe for FedCM fallback
+      "frame-src https://accounts.google.com",
     ].join("; "),
   },
 ];

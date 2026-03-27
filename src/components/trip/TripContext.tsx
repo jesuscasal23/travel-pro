@@ -10,7 +10,7 @@ import type {
 
 export interface TripContextValue {
   // Core trip identity
-  itinerary: Itinerary;
+  itinerary: Itinerary | null;
   tripId: string;
   tripTitle: string;
   totalDays: number;

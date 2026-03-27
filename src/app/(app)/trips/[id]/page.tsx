@@ -9,10 +9,11 @@ export default function TripOverviewPage() {
   const { tripId, itinerary, isPartialItinerary, totalDays } = useTripContext();
 
   const nextSteps = [
-    !itinerary.flightLegs?.length
+    !itinerary ? { label: "Generate your itinerary", href: `/trip/${tripId}` } : null,
+    itinerary && !itinerary.flightLegs?.length
       ? { label: "Review flight options", href: `/trips/${tripId}/flights` }
       : null,
-    !(itinerary.accommodationData?.length ?? 0)
+    itinerary && !(itinerary.accommodationData?.length ?? 0)
       ? { label: "Compare accommodation options", href: `/trips/${tripId}/hotels` }
       : null,
     totalDays > 0

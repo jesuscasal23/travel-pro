@@ -1,14 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/core/supabase-client";
+import { GoogleOneTapButton } from "./GoogleOneTapButton";
 
 type GoogleAuthButtonProps = {
   next: string;
   disabled?: boolean;
   onError?: (message: string | null) => void;
 };
+
+// Detect if running inside an installed PWA (standalone mode).
+// useSyncExternalStore with getSnapshot/getServerSnapshot avoids hydration mismatches.
+const standaloneQuery =
+  typeof window !== "undefined" ? window.matchMedia("(display-mode: standalone)") : null;
+
+function subscribeStandalone(cb: () => void) {
+  standaloneQuery?.addEventListener("change", cb);
+  return () => standaloneQuery?.removeEventListener("change", cb);
+}
+
+function getStandaloneSnapshot() {
+  return standaloneQuery?.matches ?? false;
+}
+
+function getStandaloneServerSnapshot() {
+  return false;
+}
+
+function useIsStandalone() {
+  return useSyncExternalStore(
+    subscribeStandalone,
+    getStandaloneSnapshot,
+    getStandaloneServerSnapshot
+  );
+}
 
 function GoogleIcon() {
   return (
@@ -34,8 +61,15 @@ function GoogleIcon() {
 }
 
 export function GoogleAuthButton({ next, disabled = false, onError }: GoogleAuthButtonProps) {
+  const isStandalone = useIsStandalone();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Inside standalone PWA → use Google One Tap (inline, no redirect)
+  if (isStandalone) {
+    return <GoogleOneTapButton next={next} disabled={disabled} onError={onError} />;
+  }
+
+  // Normal browser → existing OAuth redirect flow
   const handleClick = async () => {
     setIsLoading(true);
     onError?.(null);

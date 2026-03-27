@@ -19,11 +19,13 @@ export function TripMobileShell({
   showBanners = false,
 }: TripMobileShellProps) {
   const { itinerary, tripId, tripTitle, totalDays } = useTripContext();
-  const heroStop = itinerary.route[0];
+  const route = itinerary?.route ?? [];
+  const days = itinerary?.days ?? [];
+  const heroStop = route[0];
   const [src, onImgError] = useCityImage(heroStop?.city ?? tripTitle, heroStop?.countryCode);
 
-  const firstDate = itinerary.days[0]?.date;
-  const lastDate = itinerary.days[itinerary.days.length - 1]?.date;
+  const firstDate = days[0]?.date;
+  const lastDate = days[days.length - 1]?.date;
 
   return (
     <div className="flex h-full flex-col bg-[image:var(--gradient-page-trip)]">
@@ -52,7 +54,7 @@ export function TripMobileShell({
                 Active Trip
               </div>
               <div className="absolute top-4 right-4 rounded-full border border-white/18 bg-white/12 px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-white uppercase backdrop-blur-md">
-                {itinerary.route.length} {itinerary.route.length === 1 ? "Stop" : "Stops"}
+                {route.length} {route.length === 1 ? "Stop" : "Stops"}
               </div>
               <div className="absolute inset-x-0 bottom-0 p-5 text-white">
                 <p className="text-[11px] font-semibold tracking-[0.18em] text-white/72 uppercase">

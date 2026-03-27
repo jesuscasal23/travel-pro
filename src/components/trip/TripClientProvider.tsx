@@ -116,9 +116,13 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     "completed") as DiscoveryStatus;
   const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
   // Show spinner while the useEffect syncs server data → local state.
-  // Covers both "itinerary exists but not synced" and "query just resolved, effect pending".
+  // Only wait if the server actually has an itinerary that needs hydrating.
   const tripHydrationPending =
-    tripId !== "guest" && tripQuery.isSuccess && tripQuery.data !== null && !localItinerary;
+    tripId !== "guest" &&
+    tripQuery.isSuccess &&
+    tripQuery.data !== null &&
+    !!tripServerItinerary &&
+    !localItinerary;
   const tripUnavailable =
     tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
   const tripLoadFailedWithoutLocal = tripId !== "guest" && tripQuery.isError && !localItinerary;
@@ -281,7 +285,9 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   }, []);
 
   useEffect(() => {
-    posthog?.capture("itinerary_viewed", { trip_id: tripId, city_count: route.length });
+    if (route.length > 0) {
+      posthog?.capture("itinerary_viewed", { trip_id: tripId, city_count: route.length });
+    }
   }, [posthog, tripId, route.length]);
 
   // ── Render guards ────────────────────────────────────────────────────────────
@@ -306,25 +312,17 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
   }
 
-  if (!localItinerary) {
-    console.warn("[TripClientProvider] No local itinerary available", {
-      tripId,
-      queryStatus: tripQuery.status,
-      hasServerData: !!tripQuery.data,
-      hasServerItinerary: !!tripServerItinerary,
-      itineraryCount: tripQuery.data?.itineraries?.length ?? 0,
-      isAuthenticated,
-    });
-    return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
-  }
-
   const countries = [...new Set(route.map((r) => r.country))];
   const singleCity = route.length === 1;
-  const tripTitle = singleCity ? `${route[0].city}, ${route[0].country}` : countries.join(", ");
-  const totalDays = localItinerary.days.length || route.reduce((sum, r) => sum + r.days, 0);
+  const tripTitle = singleCity
+    ? `${route[0].city}, ${route[0].country}`
+    : countries.length > 0
+      ? countries.join(", ")
+      : (tripData?.destination ?? "Untitled Trip");
+  const totalDays = localItinerary?.days.length || route.reduce((sum, r) => sum + r.days, 0);
 
   const contextValue: TripContextValue = {
-    itinerary: localItinerary,
+    itinerary: localItinerary ?? null,
     tripId,
     tripTitle,
     totalDays,
