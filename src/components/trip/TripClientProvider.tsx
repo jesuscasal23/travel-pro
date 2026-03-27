@@ -115,14 +115,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const tripServerDiscoveryStatus = (tripQuery.data?.itineraries?.[0]?.discoveryStatus ??
     "completed") as DiscoveryStatus;
   const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
-  // Show spinner while the useEffect syncs server data → local state.
-  // Only wait if the server actually has an itinerary that needs hydrating.
-  const tripHydrationPending =
-    tripId !== "guest" &&
-    tripQuery.isSuccess &&
-    tripQuery.data !== null &&
-    !!tripServerItinerary &&
-    !localItinerary;
   const tripUnavailable =
     tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
   const tripLoadFailedWithoutLocal = tripId !== "guest" && tripQuery.isError && !localItinerary;
@@ -292,7 +284,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   // ── Render guards ────────────────────────────────────────────────────────────
 
-  if (tripSyncPending || tripHydrationPending) {
+  if (tripSyncPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[image:var(--gradient-page-trip)]">
         <div className="border-brand-primary h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent" />
