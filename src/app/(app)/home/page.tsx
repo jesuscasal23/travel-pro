@@ -25,7 +25,6 @@ import {
   useManualBooking,
   useTravelerPreferences,
 } from "@/hooks/api";
-import { useProfile } from "@/hooks/api/profile/useProfile";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { useCityImage } from "@/hooks/useCityImage";
@@ -51,16 +50,14 @@ function getGreeting(): string {
 
 export default function HomePage() {
   const router = useRouter();
-  const { data: profile } = useProfile();
-  const { data: trips } = useTrips();
-  const tripList = trips ?? [];
+  const { trips: tripList, isSuperUser } = useTrips();
   const nextTrip = getNextTrip(tripList);
   const destination = nextTrip?.destination ?? "your destination";
 
   return (
     <AppScreen>
       {/* Super-admin paywall testing pill */}
-      {profile?.isSuperUser && (
+      {isSuperUser && (
         <button
           onClick={() => router.push("/premium")}
           className="bg-accent/10 text-accent hover:bg-accent/20 flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold transition-colors"

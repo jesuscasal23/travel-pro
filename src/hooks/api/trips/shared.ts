@@ -22,12 +22,17 @@ export interface TripDetail {
   itineraries: TripDetailItinerary[];
 }
 
-export async function fetchTrips(): Promise<TripSummary[]> {
-  const data = await apiFetch<{ trips?: TripSummary[] }>("/api/v1/trips", {
+export interface TripsResponse {
+  trips: TripSummary[];
+  isSuperUser: boolean;
+}
+
+export async function fetchTrips(): Promise<TripsResponse> {
+  const data = await apiFetch<{ trips?: TripSummary[]; isSuperUser?: boolean }>("/api/v1/trips", {
     source: "useTrips",
     fallbackMessage: "Failed to load trips",
   });
-  return data.trips ?? [];
+  return { trips: data.trips ?? [], isSuperUser: data.isSuperUser ?? false };
 }
 
 export async function fetchTrip(tripId: string): Promise<TripDetail | null> {

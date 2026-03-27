@@ -6,7 +6,7 @@ import { Plus, Loader2, Star, Trash2 } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { useRouter } from "next/navigation";
 import { CenteredState } from "@/components/ui/CenteredState";
-import { useTrips, useProfile, useDeleteAdminTrip } from "@/hooks/api";
+import { useTrips, useDeleteAdminTrip } from "@/hooks/api";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { TripCard } from "@/components/trip/TripCard";
 import { daysUntil } from "@/lib/utils/format/date";
@@ -111,11 +111,7 @@ function AdminDeleteButton({ tripId, tripName }: { tripId: string; tripName: str
 
 export function TripsPageClient() {
   const router = useRouter();
-  const { data: trips, isLoading, error } = useTrips();
-  const { data: profile } = useProfile();
-  const isSuperAdmin = profile?.isSuperUser === true;
-
-  const tripList = trips ?? [];
+  const { trips: tripList, isSuperUser: isSuperAdmin, isLoading, error } = useTrips();
 
   const upcoming = tripList.filter((t) => daysUntil(t.dateStart) !== null);
   const past = tripList.filter((t) => daysUntil(t.dateStart) === null);

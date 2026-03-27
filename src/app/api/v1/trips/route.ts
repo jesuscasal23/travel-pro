@@ -37,7 +37,7 @@ export const GET = apiHandler("GET /api/v1/trips", async () => {
     };
   });
 
-  return NextResponse.json({ trips: enrichedTrips });
+  return NextResponse.json({ trips: enrichedTrips, isSuperUser: profile.isSuperUser });
 });
 
 export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) => {
