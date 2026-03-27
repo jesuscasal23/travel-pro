@@ -25,6 +25,7 @@ import {
   useManualBooking,
   useTravelerPreferences,
 } from "@/hooks/api";
+import { useProfile } from "@/hooks/api/profile/useProfile";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { useCityImage } from "@/hooks/useCityImage";
@@ -50,6 +51,7 @@ function getGreeting(): string {
 
 export default function HomePage() {
   const router = useRouter();
+  const { data: profile } = useProfile();
   const { data: trips } = useTrips();
   const tripList = trips ?? [];
   const nextTrip = getNextTrip(tripList);
@@ -57,6 +59,17 @@ export default function HomePage() {
 
   return (
     <AppScreen>
+      {/* Super-admin paywall testing pill */}
+      {profile?.isSuperUser && (
+        <button
+          onClick={() => router.push("/premium")}
+          className="bg-accent/10 text-accent hover:bg-accent/20 flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold transition-colors"
+        >
+          <Shield className="h-4 w-4" />
+          Paywall
+        </button>
+      )}
+
       {/* Sticky Header */}
       <header className="dark:bg-card/85 shadow-glass-xs sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
         <div className="flex w-full items-center justify-between px-6 py-4">
