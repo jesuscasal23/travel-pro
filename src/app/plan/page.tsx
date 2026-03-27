@@ -98,8 +98,8 @@ export default function PlanPage() {
   const step = Math.min(Math.max(planStep, 1), totalSteps);
 
   // Which content to show based on step + profile completeness
-  const showDestination = step === 1;
-  const showDetails = needsProfileStep ? step === 2 : false;
+  const showDetails = needsProfileStep ? step === 1 : false;
+  const showDestination = needsProfileStep ? step === 2 : step === 1;
   const showPriorities = needsProfileStep ? step === 3 : step === 2;
   const showOverview = needsProfileStep ? step === 4 : step === 3;
   const isFinalStep = step === totalSteps;
@@ -121,13 +121,6 @@ export default function PlanPage() {
   };
 
   const goNext = () => {
-    if (showDestination) {
-      const fieldErrors = validate(destinationStepSchema, { selectedCities, dateStart, dateEnd });
-      if (fieldErrors) {
-        setErrors(fieldErrors);
-        return;
-      }
-    }
     if (showDetails) {
       const profileErrors = validate(onboardingStep1Schema, {
         nationality: effectiveNationality,
@@ -135,6 +128,13 @@ export default function PlanPage() {
       });
       if (profileErrors) {
         setErrors(profileErrors);
+        return;
+      }
+    }
+    if (showDestination) {
+      const fieldErrors = validate(destinationStepSchema, { selectedCities, dateStart, dateEnd });
+      if (fieldErrors) {
+        setErrors(fieldErrors);
         return;
       }
     }
@@ -327,16 +327,16 @@ export default function PlanPage() {
               exit="exit"
             >
               {showSignupGate && <SignupGateStep />}
-              {!showSignupGate && showDestination && (
-                <DestinationStep
+              {!showSignupGate && showDetails && (
+                <ProfileStep
                   errors={errors}
                   clearError={clearError}
                   step={step}
                   totalSteps={totalSteps}
                 />
               )}
-              {!showSignupGate && showDetails && (
-                <ProfileStep
+              {!showSignupGate && showDestination && (
+                <DestinationStep
                   errors={errors}
                   clearError={clearError}
                   step={step}
