@@ -17,15 +17,33 @@
 ## Commands
 
 ```bash
+# Development
 npm run dev            # Start dev server
 npm run build          # prisma generate && prisma migrate deploy && next build
+npm start              # Start production server
+
+# Testing
 npm test               # Vitest unit tests (pre-commit via husky)
+npm run test:watch     # Vitest watch mode
+npm run test:coverage  # Vitest with coverage
 npm run test:e2e       # Playwright e2e (requires dev server)
+npm run test:e2e:ui    # Playwright with UI
+npm run test:integration # Integration tests (separate config)
+npm run test:all       # Run all test suites
+
+# Code Quality
 npm run lint           # ESLint
+npm run typecheck      # TypeScript type checking
+npm run format         # Prettier format
+npm run format:check   # Prettier check (CI)
+npm run knip           # Detect unused exports/dependencies
+
+# Database
 npm run db:migrate     # prisma migrate dev (create new migration)
 npm run db:seed        # Prisma db seed
 npm run db:studio      # Prisma Studio GUI
 npm run db:generate    # Prisma generate client
+npm run db:sync-cities # Sync discovered cities to static data
 ```
 
 ## Database Migrations (IMPORTANT)
@@ -48,10 +66,11 @@ src/
 │   ├── (marketing)/           # Landing + privacy (public, Navbar wrapper)
 │   ├── (auth)/                # signup, login, forgot-password, reset-password
 │   ├── (app)/                 # Mobile-first app shell (430px container layout)
-│   │   ├── get-started/       # Onboarding entry (mobile landing + advantage/vibe/interests/budget/rhythm)
+│   │   ├── get-started/       # Onboarding entry (mobile landing + advantage/vibe/interests/budget/rhythm/personalization)
 │   │   ├── home/              # Dashboard: next trip, info cards, departure tasks
-│   │   ├── trips/             # Trip list (real API data via useTrips)
+│   │   ├── trips/             # Trip list + detail sub-pages: [id]/(budget|flights|hotels|itinerary|map)
 │   │   ├── bookings/          # Travel wallet (mock — future feature)
+│   │   ├── premium/           # Premium subscription page
 │   │   └── profile/           # Settings hub: auth-aware, sign out, travel DNA
 │   ├── dashboard/             # Redirect → /home (backwards compatibility)
 │   ├── plan/                  # Multi-step questionnaire: city picker → profile → priorities → overview
@@ -74,11 +93,11 @@ src/
 │   ├── api/                   # helpers (auth guards, apiHandler), errors
 │   ├── core/                  # prisma, logger, request-context, abort (canonical locations)
 │   ├── features/              # Domain services (canonical location for all business logic)
-│   │   ├── trips/             # itinerary-service, trip-query, trip-collection, trip-edit, trip-share, city-activity, flight-optimization, flight-search, query-shapes, schemas, serializer
+│   │   ├── trips/             # itinerary-service, trip-query-service, trip-collection-service, trip-edit-service, discover-activities-service, activity-swipe-service, activity-image-service, discovery-queue, trip-intent, query-shapes, schemas, trip-serializer
 │   │   ├── generation/        # trip-generation-service (skeleton builder + SSE), schemas
-│   │   ├── profile/           # profile-service, schemas, query-shapes, serializer, interests, pace
+│   │   ├── profile/           # profile-service, schemas, query-shapes, profile-serializer, interests, pace, traveler-preferences
 │   │   ├── enrichment/        # schemas, transforms (routes call lib/ai/enrich-* directly)
-│   │   ├── affiliate/         # redirect-service, redirect-utils, link-generator, schema
+│   │   ├── affiliate/         # redirect-service, redirect-utils, link-generator, booking-click-service, schema
 │   │   ├── health/            # health-service
 │   │   └── client-errors/     # service, schema
 │   ├── forms/                 # Form validation schemas (plan, onboarding, profile)
@@ -193,6 +212,8 @@ TripType     = "single-city" | "multi-city"
 
 ## Itinerary Build Pipeline
 
+A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itinerary | null`. Sub-pages under `/trips/[id]/*` must handle `null` with an appropriate empty state; `TripNotFound` is only shown when the **trip record itself** doesn't exist (404) or the user lacks access (403).
+
 **No AI is used to generate the route or itinerary skeleton.** The user picks concrete cities in the plan questionnaire. The skeleton is built deterministically in `buildRouteFromCities()`.
 
 1. **Skeleton** (`src/lib/features/generation/trip-generation-service.ts`): Days are distributed evenly across user-selected cities → `Itinerary` with empty activity lists.
@@ -203,33 +224,54 @@ TripType     = "single-city" | "multi-city"
 
 ## API Routes
 
-| Route                          | Methods            | Auth                             | Notes                                                              |
-| ------------------------------ | ------------------ | -------------------------------- | ------------------------------------------------------------------ |
-| `/api/health`                  | GET                | None                             | Env check (supabase, db)                                           |
-| `/api/v1/trips`                | GET, POST          | GET: auth, POST: optional        | List/create trips                                                  |
-| `/api/v1/trips/[id]`           | GET, PATCH, DELETE | GET: public, PATCH/DELETE: owner | PATCH creates new itinerary version                                |
-| `/api/v1/trips/[id]/generate`  | POST               | Public                           | SSE stream: builds skeleton from stored cities, prefetches flights |
-| `/api/v1/trips/[id]/optimize`  | POST               | Owner                            | SerpApi flight price optimization                                  |
-| `/api/v1/trips/[id]/share`     | GET                | Owner                            | Generate/return share token + URL                                  |
-| `/api/v1/trips/shared/[token]` | GET                | Public (60/min)                  | Fetch shared itinerary                                             |
-| `/api/v1/profile`              | GET, PATCH, DELETE | Auth                             | Upsert profile, GDPR account delete                                |
-| `/api/v1/profile/export`       | GET                | Auth                             | GDPR data export (all user data as JSON)                           |
-| `/api/v1/affiliate/redirect`   | GET                | Public                           | Log click + 302 redirect (domain whitelist)                        |
+| Route                                    | Methods            | Auth        | Notes                                                     |
+| ---------------------------------------- | ------------------ | ----------- | --------------------------------------------------------- |
+| `/api/health`                            | GET                | None        | Env check (supabase, db)                                  |
+| **Trips**                                |                    |             |                                                           |
+| `/api/v1/trips`                          | GET, POST          | Auth        | List/create trips                                         |
+| `/api/v1/trips/[id]`                     | GET, PATCH, DELETE | Trip access | PATCH creates new itinerary version                       |
+| `/api/v1/trips/[id]/generate`            | POST               | Trip access | SSE stream: builds skeleton, prefetches flights (max 60s) |
+| `/api/v1/trips/[id]/optimize`            | POST               | Trip access | SerpApi flight price optimization                         |
+| `/api/v1/trips/[id]/discover-activities` | POST               | Trip access | Claude Haiku activity discovery per city (max 60s)        |
+| `/api/v1/trips/[id]/activity-swipes`     | POST               | Trip access | Record activity like/dislike swipe                        |
+| `/api/v1/trips/[id]/flights`             | POST               | Trip access | Search flights for a trip leg                             |
+| `/api/v1/trips/[id]/booking-clicks`      | GET, POST, PATCH   | Auth + trip | Track/confirm booking clicks                              |
+| **Flights**                              |                    |             |                                                           |
+| `/api/v1/flights/book`                   | GET                | Optional    | Auto-submit booking form redirect                         |
+| `/api/v1/flights/booking-url`            | POST               | None        | Legacy booking URL generator                              |
+| **Enrichment**                           |                    |             |                                                           |
+| `/api/v1/enrich/weather`                 | POST               | None        | Weather data enrichment (Open-Meteo + Redis cache)        |
+| `/api/v1/enrich/visa`                    | POST               | None        | Visa requirement enrichment                               |
+| `/api/v1/enrich/accommodation`           | POST               | None        | Hotel/accommodation enrichment                            |
+| **Profile**                              |                    |             |                                                           |
+| `/api/v1/profile`                        | GET, PATCH, DELETE | Auth        | Upsert profile, GDPR account delete                       |
+| `/api/v1/profile/export`                 | GET                | Auth        | GDPR data export (all user data as JSON)                  |
+| **Other**                                |                    |             |                                                           |
+| `/api/v1/affiliate/redirect`             | GET                | Optional    | Log click + 302 redirect (domain whitelist)               |
+| `/api/v1/places/photo`                   | GET                | None        | Proxy Google Places photos                                |
+| `/api/v1/client-errors`                  | POST               | None        | Client-side error reporting                               |
+| **Admin**                                |                    |             |                                                           |
+| `/api/v1/admin/stats`                    | GET                | SuperUser   | Platform statistics                                       |
+| `/api/v1/admin/users`                    | GET                | SuperUser   | List all users                                            |
+| `/api/v1/admin/trips`                    | GET                | SuperUser   | List all trips                                            |
+| `/api/v1/admin/trips/[id]`               | DELETE             | SuperUser   | Delete trip (admin)                                       |
 
-## Database (5 models in `prisma/schema.prisma`)
+## Database (7 models in `prisma/schema.prisma`)
 
-- **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], activityLevel?, languagesSpoken[], onboardingCompleted
-- **Trip**: profileId?, tripType, region, destination?, dateStart, dateEnd, budget, travelers, shareToken?
-- **Itinerary**: tripId, data (Json), version, isActive, promptVersion, generationStatus, generationJobId?
-- **ItineraryEdit**: itineraryId, editType, editPayload (Json), description?
-- **AffiliateClick**: tripId?, provider, clickType, city?, destination?, url, ipHash?
+- **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], vibes? (Json), activityLevel?, languagesSpoken[], onboardingCompleted, isPremium, isSuperUser
+- **Trip**: profileId?, tripType, region, destination?, destinationCountry?, destinationCountryCode?, dateStart, dateEnd, travelers, description?
+- **Itinerary**: tripId, data (Json), version, isActive, promptVersion, generationStatus (pending|generating|complete|failed), discoveryStatus (pending|in_progress|completed), generationJobId?
+- **ActivitySwipe**: tripId, profileId?, activityName, destination, decision (liked|disliked), activityData (Json)
+- **ItineraryEdit**: itineraryId?, editType (adjust_days|remove_city|reorder_cities|add_city|regenerate_activities), editPayload (Json), description?
+- **AffiliateClick**: tripId?, provider (skyscanner|booking|getyourguide), clickType (flight|hotel|activity), city?, destination?, url, userId?, sessionId?, ipHash?, metadata? (Json), bookingConfirmed?
+- **DiscoveredCity**: city, country, countryCode, lat, lng, timesProposed, firstTripId?, approved — unique on (city, countryCode)
 
 Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { tripId } }` — tripId is not unique.
 
 ## Proxy (`src/proxy.ts`)
 
 - **Protected routes**: `/profile` → redirect to `/login?next=...` if unauthenticated
-- **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`, `/get-started`, `/onboarding`, `/home`, `/trips`, `/discover`, `/bookings`
+- **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`, `/get-started`, `/home`, `/trips`, `/bookings`, `/premium`
 - **Rate limiting** (Upstash Redis sliding window):
   - `/api/v1/trips/*/generate`: 5 req/hour (cost protection)
   - `/api/v1/trips/shared/*`: 60 req/min
