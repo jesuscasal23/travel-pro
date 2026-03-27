@@ -69,6 +69,7 @@ export async function discoverActivities(
   });
 
   const userPrompt = assembleDiscoverActivitiesPrompt(profile, intent, city);
+  const claudeStart = Date.now();
   const modelResult = await callClaude(
     userPrompt,
     SYSTEM_PROMPT_DISCOVER_ACTIVITIES,
@@ -76,6 +77,16 @@ export async function discoverActivities(
     0,
     signal
   );
+  const claudeDurationMs = Date.now() - claudeStart;
+  const elapsedSoFarMs = Date.now() - t0;
+  log.info("Claude call completed, starting image resolution", {
+    tripId,
+    cityId,
+    claudeDurationMs,
+    elapsedSoFarMs,
+    remainingBudgetMs: 60_000 - elapsedSoFarMs,
+    signalAborted: signal?.aborted ?? false,
+  });
   throwIfAborted(signal);
 
   const json = extractJSON(modelResult.text);
