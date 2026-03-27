@@ -76,7 +76,8 @@ export default function PlanPage() {
   const hasCoreProfile = Boolean(effectiveNationality && effectiveHomeAirport);
   const canSkipProfileStep = isAuthenticated === true && hasCoreProfile;
   const needsProfileStep = !canSkipProfileStep;
-  const totalSteps = needsProfileStep ? 4 : 3;
+  const needsPrioritiesStep = needsProfileStep; // only during onboarding
+  const totalSteps = needsProfileStep ? 4 : 1;
 
   useEffect(() => {
     if (hydratedProfileRef.current || !persistedProfile) return;
@@ -99,8 +100,8 @@ export default function PlanPage() {
   // Which content to show based on step + profile completeness
   const showDetails = needsProfileStep ? step === 1 : false;
   const showDestination = needsProfileStep ? step === 2 : step === 1;
-  const showPriorities = needsProfileStep ? step === 3 : step === 2;
-  const showOverview = needsProfileStep ? step === 4 : step === 3;
+  const showPriorities = needsPrioritiesStep && step === 3;
+  const showOverview = needsProfileStep ? step === 4 : false;
   const isFinalStep = step === totalSteps;
   const showSignupGate = isFinalStep && isAuthenticated === false;
   const progress = Math.round((step / totalSteps) * 100);
