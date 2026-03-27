@@ -1,6 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
-import { queryKeys } from "@/hooks/api/keys";
 import type { DiscoveryStatus, Itinerary, TripSummary, TripType } from "@/types";
 
 export interface TripDetailItinerary {
@@ -51,33 +49,4 @@ export async function fetchTrip(tripId: string): Promise<TripDetail | null> {
     }
     throw error;
   }
-}
-
-/**
- * Optimistically update the active itinerary data in the trip detail cache,
- * then invalidate so background refetch picks up the server state.
- */
-export function updateTripDetailCache(
-  queryClient: QueryClient,
-  tripId: string,
-  newData: Itinerary
-): void {
-  queryClient.setQueryData(
-    queryKeys.trips.detail(tripId),
-    (
-      previous:
-        | {
-            itineraries?: Array<Record<string, unknown>>;
-          }
-        | null
-        | undefined
-    ) => {
-      if (!previous?.itineraries?.length) return previous;
-      const [first, ...rest] = previous.itineraries;
-      return {
-        ...previous,
-        itineraries: [{ ...first, data: newData }, ...rest],
-      };
-    }
-  );
 }

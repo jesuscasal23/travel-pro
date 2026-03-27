@@ -91,8 +91,6 @@ model Itinerary {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  edits ItineraryEdit[]
-
   @@index([tripId])
   @@index([tripId, isActive])
   @@index([generationStatus])
@@ -121,25 +119,6 @@ model ActivitySwipe {
   @@index([profileId])
   @@index([createdAt])
   @@map("activity_swipes")
-}
-
-// ============================================================
-// ItineraryEdit — audit log of edit actions
-// ============================================================
-
-model ItineraryEdit {
-  id          String    @id @default(uuid())
-  itineraryId String?   @map("itinerary_id")
-  itinerary   Itinerary? @relation(fields: [itineraryId], references: [id], onDelete: SetNull)
-
-  editType    String  @map("edit_type") // adjust_days | remove_city | reorder_cities | add_city | regenerate_activities
-  editPayload Json    @map("edit_payload")
-  description String?
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([itineraryId])
-  @@map("itinerary_edits")
 }
 
 // ============================================================

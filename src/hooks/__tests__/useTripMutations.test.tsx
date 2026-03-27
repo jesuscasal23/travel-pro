@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useCreateTrip, useSaveTripEdit } from "@/hooks/api";
+import { useCreateTrip } from "@/hooks/api";
 
 const originalFetch = global.fetch;
 
@@ -97,57 +97,5 @@ describe("useTripMutations", () => {
       })
     ).rejects.toThrow(/Failed to create trip/);
     expect(mockReportApiError).toHaveBeenCalled();
-  });
-
-  it("saves trip edits via PATCH and exposes save-failure meta message", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ ok: true }),
-    } as Response);
-
-    const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-    const { result } = renderHook(() => useSaveTripEdit(), {
-      wrapper: createWrapper(queryClient),
-    });
-
-    await act(async () => {
-      const output = await result.current.mutateAsync({
-        tripId: "trip-1",
-        editType: "route-update",
-        editPayload: { changed: true },
-        description: "Updated route",
-        data: { route: [], days: [] },
-      });
-      expect(output).toEqual({ ok: true });
-    });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/v1/trips/trip-1",
-      expect.objectContaining({ method: "PATCH" })
-    );
-
-    const mutation = queryClient.getMutationCache().getAll()[0];
-    expect(mutation?.options.meta).toEqual({
-      errorToast: "Your trip edits couldn't be saved. They may be lost on refresh.",
-    });
-  });
-
-  it("throws when save trip edit endpoint returns non-ok", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: false } as Response);
-
-    const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-    const { result } = renderHook(() => useSaveTripEdit(), {
-      wrapper: createWrapper(queryClient),
-    });
-
-    await expect(
-      result.current.mutateAsync({
-        tripId: "trip-1",
-        editType: "route-update",
-        editPayload: { changed: true },
-        description: "Updated route",
-        data: { route: [], days: [] },
-      })
-    ).rejects.toThrow("Save failed");
   });
 });

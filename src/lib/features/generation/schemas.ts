@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { itinerarySchema } from "@/lib/itinerary/schema";
 
 export const ProfileInputSchema = z.object({
   nationality: z.string().min(1).max(100),
@@ -40,17 +39,4 @@ export const GenerateTripInputSchema = z.object({
 export const GenerateActivitiesInputSchema = z.object({
   profile: ProfileInputSchema.optional(),
   cityId: z.string().min(1).max(100),
-});
-
-export const EditItineraryInputSchema = z.object({
-  editType: z.enum([
-    "adjust_days",
-    "remove_city",
-    "reorder_cities",
-    "add_city",
-    "regenerate_activities",
-  ]),
-  editPayload: z.record(z.string(), z.unknown()),
-  description: z.string().optional(),
-  data: itinerarySchema.optional(),
 });
