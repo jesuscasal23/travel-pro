@@ -1,200 +1,140 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
-import { LayoutList, Plane, Hotel, Zap, DollarSign } from "lucide-react";
-import type { Itinerary } from "@/types";
+import { LayoutList, Plane, Hotel, Zap, DollarSign, Construction } from "lucide-react";
 
 interface BudgetTabProps {
-  itinerary: Itinerary;
   tripId: string;
 }
 
-/** Parse a cost string like "€45", "€12-15", "$30", "~€100" → numeric EUR value or null */
-function parseCost(raw: string): number | null {
-  // Strip currency symbols, tildes, "approx", etc. Take the first number found.
-  const match = raw.replace(/[~≈approx\s]/gi, "").match(/(\d+(?:\.\d+)?)/);
-  return match ? parseFloat(match[1]) : null;
-}
+const exampleBreakdown = {
+  flights: 420,
+  hotels: 680,
+  activities: 195,
+};
 
-interface CityBudget {
-  city: string;
-  activityTotal: number;
-  activityCount: number;
-  items: { name: string; cost: number }[];
-}
-
-function deriveCityBudgets(itinerary: Itinerary): CityBudget[] {
-  const cityMap: Map<string, CityBudget> = new Map();
-
-  for (const day of itinerary.days) {
-    if (!cityMap.has(day.city)) {
-      cityMap.set(day.city, { city: day.city, activityTotal: 0, activityCount: 0, items: [] });
-    }
-    const entry = cityMap.get(day.city)!;
-    for (const activity of day.activities) {
-      if (activity.cost) {
-        const amount = parseCost(activity.cost);
-        if (amount !== null && amount > 0) {
-          entry.activityTotal += amount;
-          entry.activityCount += 1;
-          entry.items.push({ name: activity.name, cost: amount });
-        }
-      }
-    }
-  }
-
-  return [...cityMap.values()];
-}
+const exampleCities = [
+  {
+    city: "Barcelona",
+    items: [
+      { name: "Sagrada Familia tickets", cost: 26 },
+      { name: "Gothic Quarter food tour", cost: 65 },
+      { name: "Park Guell entry", cost: 13 },
+    ],
+  },
+  {
+    city: "Lisbon",
+    items: [
+      { name: "Sintra day trip", cost: 45 },
+      { name: "Tram 28 pass", cost: 7 },
+      { name: "Pasteis de Belem tasting", cost: 12 },
+    ],
+  },
+];
 
 function formatEur(amount: number) {
   return `€${Math.round(amount).toLocaleString()}`;
 }
 
-export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
-  const cityBudgets = useMemo(() => deriveCityBudgets(itinerary), [itinerary]);
-  const totalActivityCost = cityBudgets.reduce((sum, c) => sum + c.activityTotal, 0);
-  const hasActivityCosts = totalActivityCost > 0;
-
-  // Flight total: prefer optimized legs, fall back to cheapest from flightOptions
-  let flightTotal = itinerary.flightLegs?.reduce((s, l) => s + l.price, 0) ?? 0;
-  if (flightTotal === 0 && itinerary.flightOptions) {
-    flightTotal = itinerary.flightOptions.reduce((sum, leg) => {
-      const cheapest = leg.results[0];
-      return sum + (cheapest?.price ?? 0);
-    }, 0);
-  }
-  const hasFlights = flightTotal > 0;
-
-  // Accommodation total from enrichment data (cheapest hotel per city × nights)
-  const accommodationTotal = (itinerary.accommodationData ?? []).reduce((sum, city) => {
-    const cheapest = city.hotels.reduce(
-      (min, h) => (h.pricePerNight != null && h.pricePerNight < min ? h.pricePerNight : min),
-      Infinity
-    );
-    if (cheapest === Infinity) return sum;
-    // Estimate nights from check-in/check-out
-    const nights =
-      city.checkIn && city.checkOut
-        ? Math.max(
-            1,
-            Math.round(
-              (new Date(city.checkOut).getTime() - new Date(city.checkIn).getTime()) / 86400000
-            )
-          )
-        : 1;
-    return sum + cheapest * nights;
-  }, 0);
-  const hasAccommodation = accommodationTotal > 0;
-
-  const grandTotal = totalActivityCost + flightTotal + accommodationTotal;
+export function BudgetTab({ tripId }: BudgetTabProps) {
+  const grandTotal =
+    exampleBreakdown.flights + exampleBreakdown.hotels + exampleBreakdown.activities;
 
   return (
     <div className="space-y-8">
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {hasFlights && (
-          <div className="card-travel bg-background p-4">
-            <div className="mb-1 flex items-center gap-2">
-              <Plane className="text-primary h-4 w-4" />
-              <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                Flights
-              </span>
-            </div>
-            <p className="text-foreground text-xl font-bold">{formatEur(flightTotal)}</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">Optimized</p>
-          </div>
-        )}
-
-        {hasAccommodation && (
-          <div className="card-travel bg-background p-4">
-            <div className="mb-1 flex items-center gap-2">
-              <Hotel className="text-primary h-4 w-4" />
-              <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                Hotels
-              </span>
-            </div>
-            <p className="text-foreground text-xl font-bold">{formatEur(accommodationTotal)}</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">Cheapest per city</p>
-          </div>
-        )}
-
-        {hasActivityCosts && (
-          <div className="card-travel bg-background p-4">
-            <div className="mb-1 flex items-center gap-2">
-              <Zap className="text-primary h-4 w-4" />
-              <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                Activities
-              </span>
-            </div>
-            <p className="text-foreground text-xl font-bold">{formatEur(totalActivityCost)}</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">Across all cities</p>
-          </div>
-        )}
-
-        {(hasFlights || hasAccommodation || hasActivityCosts) && (
-          <div
-            className={`card-travel bg-primary/5 border-primary/20 p-4 ${
-              [hasFlights, hasAccommodation, hasActivityCosts].filter(Boolean).length >= 3
-                ? "col-span-2 sm:col-span-1"
-                : ""
-            }`}
-          >
-            <div className="mb-1 flex items-center gap-2">
-              <DollarSign className="text-primary h-4 w-4" />
-              <span className="text-primary text-xs font-medium tracking-wide uppercase">
-                Tracked Total
-              </span>
-            </div>
-            <p className="text-foreground text-xl font-bold">{formatEur(grandTotal)}</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">
-              {!hasAccommodation && !hasFlights ? "Activities only" : "Estimated total"}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* No cost data state */}
-      {!hasActivityCosts && !hasFlights && !hasAccommodation && (
-        <div className="text-muted-foreground py-8 text-center">
-          <DollarSign className="mx-auto mb-2 h-8 w-8 opacity-30" />
-          <p className="text-sm">No cost data in this itinerary yet.</p>
-          <p className="mt-1 text-xs">
-            Activity costs appear here once your itinerary is generated.
+      {/* In development banner */}
+      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+        <Construction className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div>
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+            Budget tracking is in development
+          </p>
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+            The values below are examples only. Personalized budget estimates based on your trip
+            details are coming soon.
           </p>
         </div>
-      )}
+      </div>
 
-      {/* Per-city breakdown */}
-      {cityBudgets.filter((c) => c.activityTotal > 0).length > 0 && (
-        <div>
-          <h2 className="text-foreground mb-3 text-base font-semibold">Activity costs by city</h2>
-          <div className="space-y-3">
-            {cityBudgets
-              .filter((c) => c.activityTotal > 0)
-              .map((cb) => (
-                <div key={cb.city} className="card-travel bg-background">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-foreground font-semibold">{cb.city}</h3>
-                    <span className="text-primary text-sm font-bold">
-                      {formatEur(cb.activityTotal)}
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="card-travel bg-background p-4 opacity-70">
+          <div className="mb-1 flex items-center gap-2">
+            <Plane className="text-primary h-4 w-4" />
+            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Flights
+            </span>
+          </div>
+          <p className="text-foreground text-xl font-bold">
+            ~{formatEur(exampleBreakdown.flights)}
+          </p>
+          <p className="text-muted-foreground mt-0.5 text-xs">Example estimate</p>
+        </div>
+
+        <div className="card-travel bg-background p-4 opacity-70">
+          <div className="mb-1 flex items-center gap-2">
+            <Hotel className="text-primary h-4 w-4" />
+            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Hotels
+            </span>
+          </div>
+          <p className="text-foreground text-xl font-bold">~{formatEur(exampleBreakdown.hotels)}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">Example estimate</p>
+        </div>
+
+        <div className="card-travel bg-background p-4 opacity-70">
+          <div className="mb-1 flex items-center gap-2">
+            <Zap className="text-primary h-4 w-4" />
+            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Activities
+            </span>
+          </div>
+          <p className="text-foreground text-xl font-bold">
+            ~{formatEur(exampleBreakdown.activities)}
+          </p>
+          <p className="text-muted-foreground mt-0.5 text-xs">Example estimate</p>
+        </div>
+
+        <div className="card-travel bg-primary/5 border-primary/20 col-span-2 p-4 opacity-70 sm:col-span-1">
+          <div className="mb-1 flex items-center gap-2">
+            <DollarSign className="text-primary h-4 w-4" />
+            <span className="text-primary text-xs font-medium tracking-wide uppercase">
+              Example Total
+            </span>
+          </div>
+          <p className="text-foreground text-xl font-bold">~{formatEur(grandTotal)}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">Not based on your trip</p>
+        </div>
+      </div>
+
+      {/* Example per-city breakdown */}
+      <div>
+        <h2 className="text-foreground mb-3 text-base font-semibold">
+          Example activity costs by city
+        </h2>
+        <div className="space-y-3">
+          {exampleCities.map((cb) => (
+            <div key={cb.city} className="card-travel bg-background opacity-70">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-foreground font-semibold">{cb.city}</h3>
+                <span className="text-primary text-sm font-bold">
+                  ~{formatEur(cb.items.reduce((s, i) => s + i.cost, 0))}
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {cb.items.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground mr-4 truncate">{item.name}</span>
+                    <span className="text-foreground shrink-0 font-medium">
+                      ~{formatEur(item.cost)}
                     </span>
                   </div>
-                  <div className="space-y-1.5">
-                    {cb.items.map((item, i) => (
-                      <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground mr-4 truncate">{item.name}</span>
-                        <span className="text-foreground shrink-0 font-medium">
-                          {formatEur(item.cost)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Book & export section */}
       <div>
@@ -210,7 +150,7 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
             <div>
               <p className="text-foreground text-sm font-medium">Search Flights</p>
               <p className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
-                Skyscanner →
+                Skyscanner &rarr;
               </p>
             </div>
           </a>
@@ -224,13 +164,12 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
             <div>
               <p className="text-foreground text-sm font-medium">Find Hotels</p>
               <p className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
-                Booking.com →
+                Booking.com &rarr;
               </p>
             </div>
           </a>
         </div>
 
-        {/* Link back to the trip overview */}
         <Link
           href={`/trips/${tripId}`}
           className="border-border hover:border-primary hover:bg-primary/5 group mt-3 flex items-center justify-between rounded-xl border p-4 transition-all"
@@ -240,7 +179,7 @@ export function BudgetTab({ itinerary, tripId }: BudgetTabProps) {
             <div>
               <p className="text-foreground text-sm font-medium">Trip overview</p>
               <p className="text-muted-foreground group-hover:text-primary text-xs transition-colors">
-                Itinerary, bookings, map →
+                Itinerary, bookings, map &rarr;
               </p>
             </div>
           </div>
