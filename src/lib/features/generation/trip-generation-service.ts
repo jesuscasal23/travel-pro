@@ -2,6 +2,7 @@ import { ApiError, ServiceMisconfiguredError } from "@/lib/api/errors";
 import { isAbortError, throwIfAborted } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
 import { prefetchFlightsForRoute } from "@/lib/flights";
+import { lookupIata } from "@/lib/flights/city-iata-map";
 import {
   activateGeneratedItinerary,
   createGeneratingRecord,
@@ -45,7 +46,7 @@ export function buildRouteFromCities(
     countryCode: c.countryCode,
     lat: c.lat,
     lng: c.lng,
-    iataCode: c.iataCode,
+    iataCode: c.iataCode ?? lookupIata(c.city),
     // Last city absorbs any remainder
     days: i === cities.length - 1 ? totalDays - perCity * (cities.length - 1) : perCity,
   }));

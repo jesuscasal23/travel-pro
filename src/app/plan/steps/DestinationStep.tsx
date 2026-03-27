@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, MapPin, Search, X } from "lucide-react";
+import { CalendarDays, MapPin, Plane, Search, X } from "lucide-react";
 import { CITIES, type CityEntry } from "@/data/cities";
+import { AIRPORTS } from "@/data/airports-full";
+import { lookupIata } from "@/lib/flights/city-iata-map";
 import { usePlanFormStore, type SelectedCity } from "@/stores/usePlanFormStore";
 import { travelFieldErrorClass, travelInputClass } from "@/components/ui/styles";
 import { StepBadge } from "./StepBadge";
@@ -27,10 +29,106 @@ function cityKey(city: SelectedCity) {
   return `${city.countryCode}-${city.city}`;
 }
 
+function AirportPicker({
+  countryCode,
+  cityName,
+  onSelect,
+}: {
+  countryCode: string;
+  cityName: string;
+  onSelect: (iata: string) => void;
+}) {
+  const [airportQuery, setAirportQuery] = useState("");
+  const [airportOpen, setAirportOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  const countryAirports = useMemo(
+    () => AIRPORTS.filter((a) => a.country === countryCode),
+    [countryCode]
+  );
+
+  const filteredAirports = useMemo(() => {
+    const q = airportQuery.trim().toLowerCase();
+    if (!q) return countryAirports.slice(0, 8);
+    return countryAirports
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.city.toLowerCase().includes(q) ||
+          a.iata.toLowerCase().includes(q)
+      )
+      .slice(0, 8);
+  }, [airportQuery, countryAirports]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setAirportOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={pickerRef} className="relative mt-1 mr-4 ml-9">
+      <div className="flex items-center gap-2 rounded-[12px] border border-amber-200 bg-amber-50 px-3 py-2">
+        <Plane className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+        <p className="text-xs text-amber-800">
+          Select the airport for <span className="font-semibold">{cityName}</span>
+        </p>
+      </div>
+      <div className="relative mt-1.5">
+        <Search className="text-subtext pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2" />
+        <input
+          type="text"
+          value={airportQuery}
+          onFocus={() => setAirportOpen(true)}
+          onChange={(e) => {
+            setAirportQuery(e.target.value);
+            setAirportOpen(true);
+          }}
+          placeholder="Search airports..."
+          className={`${travelInputClass} min-h-[44px] rounded-[12px] pl-9 text-[14px]`}
+        />
+        {airportOpen && filteredAirports.length > 0 && (
+          <div className="border-edge shadow-glass-lg absolute top-[calc(100%+0.25rem)] z-40 w-full overflow-hidden rounded-[16px] border bg-white">
+            {filteredAirports.map((airport) => (
+              <button
+                key={airport.iata}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onSelect(airport.iata);
+                }}
+                className="border-edge/70 hover:bg-surface-hover flex w-full items-center gap-3 border-b px-3 py-2.5 text-left last:border-b-0"
+              >
+                <span className="text-brand-primary shrink-0 text-xs font-bold">
+                  {airport.iata}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-navy truncate text-sm font-medium">{airport.name}</p>
+                  <p className="text-dim text-xs">{airport.city}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {airportOpen && filteredAirports.length === 0 && airportQuery.trim() && (
+          <div className="border-edge absolute top-[calc(100%+0.25rem)] z-40 w-full rounded-[16px] border bg-white px-4 py-3 text-center">
+            <p className="text-dim text-sm">No airports found</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function DestinationStep({ errors, clearError, step, totalSteps }: DestinationStepProps) {
   const selectedCities = usePlanFormStore((s) => s.selectedCities);
   const addCity = usePlanFormStore((s) => s.addCity);
   const removeCity = usePlanFormStore((s) => s.removeCity);
+  const updateCityIata = usePlanFormStore((s) => s.updateCityIata);
   const dateStart = usePlanFormStore((s) => s.dateStart);
   const setDateStart = usePlanFormStore((s) => s.setDateStart);
   const dateEnd = usePlanFormStore((s) => s.dateEnd);
@@ -54,12 +152,14 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   }, [query]);
 
   const handleSelect = (entry: CityEntry) => {
+    const iataCode = lookupIata(entry.city);
     const city: SelectedCity = {
       city: entry.city,
       country: entry.country,
       countryCode: entry.countryCode,
       lat: entry.lat,
       lng: entry.lng,
+      iataCode,
     };
     if (!selectedKeys.has(cityKey(city))) {
       addCity(city);
@@ -71,7 +171,8 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
 
   const handleAddPopular = (city: SelectedCity) => {
     if (!selectedKeys.has(cityKey(city))) {
-      addCity(city);
+      const iataCode = city.iataCode ?? lookupIata(city.city);
+      addCity({ ...city, iataCode });
       clearError("selectedCities");
     }
   };
@@ -156,25 +257,38 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
         {selectedCities.length > 0 && (
           <ul className="mt-3 space-y-2">
             {selectedCities.map((city, i) => (
-              <li
-                key={`${cityKey(city)}-${i}`}
-                className="border-edge/80 flex items-center gap-3 rounded-[16px] border bg-white px-4 py-3"
-              >
-                <span className="text-brand-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-navy text-sm font-semibold">{city.city}</p>
-                  <p className="text-dim text-xs">{city.country}</p>
+              <li key={`${cityKey(city)}-${i}`}>
+                <div className="border-edge/80 flex items-center gap-3 rounded-[16px] border bg-white px-4 py-3">
+                  <span className="text-brand-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-navy text-sm font-semibold">
+                      {city.city}
+                      {city.iataCode && (
+                        <span className="text-dim ml-1.5 text-xs font-normal">
+                          ({city.iataCode})
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-dim text-xs">{city.country}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeCity(i)}
+                    className="text-subtext hover:text-navy shrink-0 transition-colors"
+                    aria-label={`Remove ${city.city}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeCity(i)}
-                  className="text-subtext hover:text-navy shrink-0 transition-colors"
-                  aria-label={`Remove ${city.city}`}
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                {!city.iataCode && (
+                  <AirportPicker
+                    countryCode={city.countryCode}
+                    cityName={city.city}
+                    onSelect={(iata) => updateCityIata(i, iata)}
+                  />
+                )}
               </li>
             ))}
           </ul>

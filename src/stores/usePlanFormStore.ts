@@ -7,6 +7,7 @@ export interface SelectedCity {
   countryCode: string;
   lat: number;
   lng: number;
+  iataCode?: string;
 }
 
 interface PlanFormState {
@@ -24,6 +25,7 @@ interface PlanFormActions {
   addCity: (city: SelectedCity) => void;
   removeCity: (index: number) => void;
   reorderCities: (cities: SelectedCity[]) => void;
+  updateCityIata: (index: number, iataCode: string) => void;
   setTripDescription: (description: string) => void;
   setPlanningPriorities: (priorities: string[]) => void;
   togglePlanningPriority: (priority: string) => void;
@@ -58,6 +60,12 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
           selectedCities: state.selectedCities.filter((_, i) => i !== index),
         })),
       reorderCities: (cities) => set({ selectedCities: cities }),
+      updateCityIata: (index, iataCode) =>
+        set((state) => ({
+          selectedCities: state.selectedCities.map((c, i) =>
+            i === index ? { ...c, iataCode } : c
+          ),
+        })),
       setTripDescription: (tripDescription) => set({ tripDescription }),
       setPlanningPriorities: (planningPriorities) =>
         set({ planningPriorities: normalizePlanningPriorities(planningPriorities) }),

@@ -1,5 +1,6 @@
 import type { CityStop } from "@/types";
 import type { CityWithDays } from "@/lib/flights/types";
+import { lookupIata } from "@/lib/flights/city-iata-map";
 
 /**
  * Convert CityWithDays[] from route selection into CityStop[],
@@ -14,7 +15,7 @@ export function citiesToRoute(cities: CityWithDays[], totalDays: number): CitySt
     lat: c.lat,
     lng: c.lng,
     days: Math.round((c.minDays + c.maxDays) / 2),
-    iataCode: c.iataCode || undefined,
+    iataCode: c.iataCode || lookupIata(c.city),
   }));
 
   const total = raw.reduce((s, c) => s + c.days, 0);

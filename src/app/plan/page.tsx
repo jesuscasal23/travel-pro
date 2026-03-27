@@ -198,6 +198,7 @@ export default function PlanPage() {
       countryCode: c.countryCode,
       lat: c.lat,
       lng: c.lng,
+      iataCode: c.iataCode,
       days:
         i === selectedCities.length - 1
           ? Math.max(1, dayCount - perCity * (selectedCities.length - 1))
