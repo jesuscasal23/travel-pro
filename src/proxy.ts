@@ -277,13 +277,19 @@ export async function proxy(request: NextRequest) {
         );
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("is_premium")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!profile?.is_premium) {
+      if (profileError) {
+        console.error(
+          `[proxy] API premium check failed: userId=${user.id}, error=${profileError.message}, ` +
+            `path=${pathname}, requestId=${requestId} — failing open`
+        );
+        // Fail open: don't block API calls when the profile query fails
+      } else if (profile && !profile.is_premium) {
         return new NextResponse(
           JSON.stringify({ error: "Forbidden", message: "Premium subscription required." }),
           {
@@ -349,17 +355,28 @@ export async function proxy(request: NextRequest) {
     // Authenticated non-premium users are redirected to /premium
     // unless they are already on /premium.
     if (!pathname.startsWith("/premium")) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("is_premium")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!profile?.is_premium) {
+      if (profileError) {
+        console.error(
+          `[proxy] Premium check failed: userId=${user.id}, error=${profileError.message}, ` +
+            `path=${pathname}, requestId=${requestId} — failing open`
+        );
+        // Fail open: don't block users when the profile query fails
+      } else if (profile && !profile.is_premium) {
         const premiumUrl = new URL("/premium", request.url);
         const redirect = NextResponse.redirect(premiumUrl);
         redirect.headers.set("x-request-id", requestId);
         return redirect;
+      } else if (!profile) {
+        console.warn(
+          `[proxy] No profile found for userId=${user.id}, path=${pathname}, ` +
+            `requestId=${requestId} — allowing through (profile may not be created yet)`
+        );
       }
     }
 
