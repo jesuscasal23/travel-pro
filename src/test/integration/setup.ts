@@ -62,7 +62,8 @@ beforeAll(async () => {
 
 afterEach(async () => {
   // Clean up in cascade-safe order (children before parents)
-  await testPrisma.itineraryEdit.deleteMany();
+  await testPrisma.flightSelection.deleteMany();
+  await testPrisma.hotelSelection.deleteMany();
   await testPrisma.affiliateClick.deleteMany();
   await testPrisma.itinerary.deleteMany();
   await testPrisma.trip.deleteMany();

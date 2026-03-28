@@ -9,10 +9,14 @@ import { useBatchFlightSearch } from "@/hooks/api/flights/useFlightSearch";
 import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { useBookingClicks } from "@/hooks/api/booking-clicks/useBookingClicks";
 import { useConfirmBooking } from "@/hooks/api/booking-clicks/useConfirmBooking";
+import { useFlightSelections } from "@/hooks/api/selections/useFlightSelections";
+import { useUpsertFlightSelection } from "@/hooks/api/selections/useUpsertFlightSelection";
+import { useRemoveSelection } from "@/hooks/api/selections/useRemoveSelection";
 import { useTripContext } from "@/components/trip/TripContext";
 import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
+import { buildTrackedLink } from "@/lib/features/affiliate/link-generator";
 import type { Itinerary, BookingClick, BookingClickMetadata, FlightDirection } from "@/types";
-import type { FlightLegResults } from "@/lib/flights/types";
+import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
 
 interface FlightLegWithDirection extends FlightLegResults {
   direction: FlightDirection;
@@ -55,6 +59,13 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const isAuthenticated = useAuthStatus();
   const { data: bookingClicks } = useBookingClicks(tripId, { enabled: isAuthenticated === true });
   const confirmMutation = useConfirmBooking();
+
+  // Selection hooks
+  const { data: flightSelections } = useFlightSelections(tripId, {
+    enabled: isAuthenticated === true,
+  });
+  const upsertMutation = useUpsertFlightSelection();
+  const removeMutation = useRemoveSelection();
 
   const handleConfirmBooking = useCallback(
     (clickId: string, confirmed: boolean) => {
@@ -223,6 +234,93 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
       {legs.map((leg, i) => {
         const batch = getResultsForLeg(leg.fromIata, leg.toIata, leg.departureDate);
         const click = findClickForLeg(bookingClicks, leg.fromIata, leg.toIata);
+        const selection = flightSelections?.find(
+          (s) =>
+            s.fromIata === leg.fromIata &&
+            s.toIata === leg.toIata &&
+            s.departureDate === leg.departureDate
+        );
+
+        const handleSelect = (result: FlightSearchResult) => {
+          const bookingUrl =
+            result.bookingUrl ||
+            buildTrackedLink({
+              provider: "skyscanner",
+              type: "flight",
+              itineraryId: tripId,
+              dest: `https://www.skyscanner.net/transport/flights/${leg.fromIata}/${leg.toIata}/`,
+              metadata: {
+                type: "flight",
+                fromIata: leg.fromIata,
+                toIata: leg.toIata,
+                departureDate: leg.departureDate,
+                direction: leg.direction,
+              },
+            });
+
+          upsertMutation.mutate({
+            tripId,
+            body: {
+              selectionType: "platform",
+              fromIata: leg.fromIata,
+              toIata: leg.toIata,
+              departureDate: leg.departureDate,
+              direction: leg.direction,
+              airline: result.airline,
+              price: result.price,
+              duration: result.duration,
+              stops: result.stops,
+              departureTime: result.departureTime || null,
+              arrivalTime: result.arrivalTime || null,
+              cabin: result.cabin || "ECONOMY",
+              bookingToken: result.bookingToken || null,
+              bookingUrl,
+            },
+          });
+        };
+
+        const handleSelectManual = () => {
+          const fallbackUrl = buildTrackedLink({
+            provider: "skyscanner",
+            type: "flight",
+            itineraryId: tripId,
+            dest: `https://www.skyscanner.net/transport/flights/${leg.fromIata}/${leg.toIata}/`,
+            metadata: {
+              type: "flight",
+              fromIata: leg.fromIata,
+              toIata: leg.toIata,
+              departureDate: leg.departureDate,
+              direction: leg.direction,
+            },
+          });
+
+          upsertMutation.mutate({
+            tripId,
+            body: {
+              selectionType: "manual",
+              fromIata: leg.fromIata,
+              toIata: leg.toIata,
+              departureDate: leg.departureDate,
+              direction: leg.direction,
+              airline: "Skyscanner",
+              price: 0,
+              duration: "",
+              stops: 0,
+              bookingUrl: fallbackUrl,
+            },
+          });
+        };
+
+        const handleRemove = () => {
+          if (selection) {
+            removeMutation.mutate({
+              tripId,
+              selectionId: selection.id,
+              type: "flights",
+            });
+          }
+        };
+
         return (
           <FlightOptionsPanel
             key={`${leg.fromIata}-${leg.toIata}-${i}`}
@@ -236,6 +334,10 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
             batchFetchedAt={batch.fetchedAt}
             bookingClick={click}
             onConfirmBooking={handleConfirmBooking}
+            selectedFlight={selection}
+            onSelectFlight={handleSelect}
+            onSelectManual={handleSelectManual}
+            onRemoveSelection={selection ? handleRemove : undefined}
           />
         );
       })}

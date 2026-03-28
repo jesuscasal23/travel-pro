@@ -63,4 +63,11 @@ export const queryKeys = {
         params.maxPrice ?? null,
       ] as const,
   },
+  selections: {
+    all: ["selections"] as const,
+    flightsForTrip: (tripId: string) => [...queryKeys.selections.all, "flights", tripId] as const,
+    hotelsForTrip: (tripId: string) => [...queryKeys.selections.all, "hotels", tripId] as const,
+    cart: () => [...queryKeys.selections.all, "cart"] as const,
+    unbookedCount: () => [...queryKeys.selections.all, "unbooked-count"] as const,
+  },
 } as const;

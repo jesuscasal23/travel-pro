@@ -31,8 +31,10 @@ model Profile {
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
-  trips          Trip[]
-  activitySwipes ActivitySwipe[]
+  trips             Trip[]
+  activitySwipes    ActivitySwipe[]
+  flightSelections  FlightSelection[]
+  hotelSelections   HotelSelection[]
 
   @@map("profiles")
 }
@@ -59,9 +61,11 @@ model Trip {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  itineraries     Itinerary[]
-  affiliateClicks AffiliateClick[]
-  activitySwipes  ActivitySwipe[]
+  itineraries      Itinerary[]
+  affiliateClicks  AffiliateClick[]
+  activitySwipes   ActivitySwipe[]
+  flightSelections FlightSelection[]
+  hotelSelections  HotelSelection[]
 
   @@index([profileId])
   @@map("trips")
@@ -174,4 +178,85 @@ model DiscoveredCity {
   @@unique([city, countryCode], name: "city_country_unique")
   @@index([approved])
   @@map("discovered_cities")
+}
+
+// ============================================================
+// FlightSelection — user-selected flights for booking cart
+// ============================================================
+
+model FlightSelection {
+  id        String  @id @default(uuid())
+  tripId    String  @map("trip_id")
+  trip      Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  profileId String  @map("profile_id")
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  selectionType String @map("selection_type") // platform | manual
+  fromIata      String @map("from_iata")
+  toIata        String @map("to_iata")
+  departureDate String @map("departure_date")
+  direction     String // outbound | return | internal
+
+  airline       String
+  price         Float
+  duration      String
+  stops         Int     @default(0)
+  departureTime String? @map("departure_time")
+  arrivalTime   String? @map("arrival_time")
+  cabin         String  @default("ECONOMY")
+
+  bookingToken String? @map("booking_token")
+  bookingUrl   String  @map("booking_url")
+
+  booked   Boolean   @default(false)
+  bookedAt DateTime? @map("booked_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tripId, fromIata, toIata, departureDate], name: "flight_selection_leg_unique")
+  @@index([profileId])
+  @@index([tripId])
+  @@map("flight_selections")
+}
+
+// ============================================================
+// HotelSelection — user-selected hotels for booking cart
+// ============================================================
+
+model HotelSelection {
+  id        String  @id @default(uuid())
+  tripId    String  @map("trip_id")
+  trip      Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  profileId String  @map("profile_id")
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  selectionType String @map("selection_type") // platform | manual
+  city          String
+  countryCode   String @map("country_code")
+  checkIn       String @map("check_in")
+  checkOut      String @map("check_out")
+
+  hotelName     String  @map("hotel_name")
+  hotelId       String  @map("hotel_id")
+  rating        Float?
+  pricePerNight Float?  @map("price_per_night")
+  totalPrice    Float?  @map("total_price")
+  currency      String  @default("EUR")
+
+  address  String?
+  imageUrl String? @map("image_url")
+
+  bookingUrl String @map("booking_url")
+
+  booked   Boolean   @default(false)
+  bookedAt DateTime? @map("booked_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tripId, city, checkIn], name: "hotel_selection_city_unique")
+  @@index([profileId])
+  @@index([tripId])
+  @@map("hotel_selections")
 }

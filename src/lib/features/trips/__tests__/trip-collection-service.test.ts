@@ -53,10 +53,12 @@ const mockPrisma = prisma as unknown as {
 const tx = {
   $executeRaw: vi.fn(),
   itinerary: {
-    findMany: vi.fn(),
     deleteMany: vi.fn(),
   },
-  itineraryEdit: {
+  flightSelection: {
+    deleteMany: vi.fn(),
+  },
+  hotelSelection: {
     deleteMany: vi.fn(),
   },
   affiliateClick: {
@@ -78,8 +80,8 @@ beforeEach(() => {
     id: "trip-1",
   });
   tx.$executeRaw.mockResolvedValue(undefined);
-  tx.itinerary.findMany.mockResolvedValue([{ id: "itin-1" }, { id: "itin-2" }]);
-  tx.itineraryEdit.deleteMany.mockResolvedValue({ count: 2 });
+  tx.flightSelection.deleteMany.mockResolvedValue({ count: 0 });
+  tx.hotelSelection.deleteMany.mockResolvedValue({ count: 0 });
   tx.affiliateClick.deleteMany.mockResolvedValue({ count: 3 });
   tx.discoveredCity.updateMany.mockResolvedValue({ count: 1 });
   tx.itinerary.deleteMany.mockResolvedValue({ count: 2 });
@@ -95,12 +97,11 @@ describe("deleteTripById", () => {
 
     expect(result).toEqual({ success: true });
     expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
-    expect(tx.itinerary.findMany).toHaveBeenCalledWith({
+    expect(tx.flightSelection.deleteMany).toHaveBeenCalledWith({
       where: { tripId: "trip-1" },
-      select: { id: true },
     });
-    expect(tx.itineraryEdit.deleteMany).toHaveBeenCalledWith({
-      where: { itineraryId: { in: ["itin-1", "itin-2"] } },
+    expect(tx.hotelSelection.deleteMany).toHaveBeenCalledWith({
+      where: { tripId: "trip-1" },
     });
     expect(tx.affiliateClick.deleteMany).toHaveBeenCalledWith({
       where: { tripId: "trip-1" },

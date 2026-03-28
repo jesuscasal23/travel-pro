@@ -37,3 +37,13 @@ export { useFlightSearch, useBatchFlightSearch } from "./flights/useFlightSearch
 // Booking Clicks
 export { useBookingClicks } from "./booking-clicks/useBookingClicks";
 export { useManualBooking } from "./booking-clicks/useManualBooking";
+
+// Selections (shopping cart)
+export { useFlightSelections } from "./selections/useFlightSelections";
+export { useHotelSelections } from "./selections/useHotelSelections";
+export { useUpsertFlightSelection } from "./selections/useUpsertFlightSelection";
+export { useUpsertHotelSelection } from "./selections/useUpsertHotelSelection";
+export { useRemoveSelection } from "./selections/useRemoveSelection";
+export { useMarkSelectionBooked } from "./selections/useMarkSelectionBooked";
+export { useCart } from "./selections/useCart";
+export { useUnbookedCount } from "./selections/useUnbookedCount";

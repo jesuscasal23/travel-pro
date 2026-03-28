@@ -3,9 +3,7 @@ import type { Prisma } from "@prisma/client";
 export const PROFILE_EXPORT_INCLUDE = {
   trips: {
     include: {
-      itineraries: {
-        include: { edits: true },
-      },
+      itineraries: true,
     },
     orderBy: { createdAt: "desc" as const },
   },

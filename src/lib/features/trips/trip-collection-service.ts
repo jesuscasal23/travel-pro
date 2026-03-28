@@ -112,17 +112,13 @@ export async function deleteTripById(tripId: string) {
   });
 
   await withTripLock(tripId, async (tx) => {
-    const itineraries = await tx.itinerary.findMany({
+    await tx.flightSelection.deleteMany({
       where: { tripId },
-      select: { id: true },
     });
-    const itineraryIds = itineraries.map((itinerary) => itinerary.id);
 
-    if (itineraryIds.length > 0) {
-      await tx.itineraryEdit.deleteMany({
-        where: { itineraryId: { in: itineraryIds } },
-      });
-    }
+    await tx.hotelSelection.deleteMany({
+      where: { tripId },
+    });
 
     await tx.affiliateClick.deleteMany({
       where: { tripId },

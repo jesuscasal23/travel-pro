@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Check, Clock } from "lucide-react";
 import { getAirlineName } from "@/lib/flights/airlines";
 import type { FlightSearchResult } from "@/lib/flights/types";
 
@@ -15,39 +15,23 @@ function formatTime(iso: string): string {
   }
 }
 
-function buildBookUrl(
-  token: string,
-  fromIata: string,
-  toIata: string,
-  departureDate: string,
-  tripId?: string
-): string {
-  const params = new URLSearchParams({
-    token,
-    dep: fromIata,
-    arr: toIata,
-    date: departureDate,
-  });
-  if (tripId) params.set("tripId", tripId);
-  return `/api/v1/flights/book?${params}`;
-}
-
 export const FlightRow = memo(function FlightRow({
   result,
   fromIata,
   toIata,
-  departureDate,
-  tripId,
+  isSelected,
+  onSelect,
+  onRemove,
 }: {
   result: FlightSearchResult;
   fromIata: string;
   toIata: string;
   departureDate: string;
   tripId?: string;
-  /** @deprecated No longer used — kept for backwards compat */
-  bookingHref?: string;
+  isSelected?: boolean;
+  onSelect?: (result: FlightSearchResult) => void;
+  onRemove?: () => void;
 }) {
-  const canBook = !!result.bookingToken;
   const airlineName = getAirlineName(result.airline);
   const depTime = formatTime(result.departureTime);
   const arrTime = formatTime(result.arrivalTime);
@@ -56,7 +40,13 @@ export const FlightRow = memo(function FlightRow({
     result.stops === 0 ? "Non-stop" : `${result.stops} Stop${result.stops > 1 ? "s" : ""}`;
 
   return (
-    <div className="group hover:ring-primary/10 dark:bg-card rounded-xl bg-white p-4 shadow-sm transition-all hover:ring-1">
+    <div
+      className={`group rounded-xl p-4 shadow-sm transition-all ${
+        isSelected
+          ? "ring-app-green/30 dark:bg-card bg-white ring-2"
+          : "hover:ring-primary/10 dark:bg-card bg-white hover:ring-1"
+      }`}
+    >
       {/* Top section: airline badge + times + price */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex gap-4">
@@ -117,15 +107,27 @@ export const FlightRow = memo(function FlightRow({
             </span>
           )}
         </div>
-        {canBook ? (
-          <a
-            href={buildBookUrl(result.bookingToken!, fromIata, toIata, departureDate, tripId)}
-            target="_blank"
-            rel="noreferrer"
+        {isSelected ? (
+          <div className="flex items-center gap-2">
+            <span className="bg-app-green/10 text-app-green inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold">
+              <Check className="h-3 w-3" /> Selected
+            </span>
+            {onRemove && (
+              <button
+                onClick={onRemove}
+                className="text-muted-foreground hover:text-app-red text-[11px] font-medium transition-colors"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        ) : onSelect ? (
+          <button
+            onClick={() => onSelect(result)}
             className="from-primary to-primary/70 hover:shadow-primary/20 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br px-5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-lg active:scale-95"
           >
-            Book Now
-          </a>
+            Select
+          </button>
         ) : (
           <span className="text-muted-foreground text-[10px] font-medium">No booking link</span>
         )}

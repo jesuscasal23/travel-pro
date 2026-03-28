@@ -247,3 +247,67 @@ export interface BookingClick {
   bookingConfirmed: boolean | null;
   createdAt: string;
 }
+
+// ============================================================
+// Selections — flight & hotel picks for shopping cart
+// ============================================================
+
+export type SelectionType = "platform" | "manual";
+
+export interface FlightSelection {
+  id: string;
+  tripId: string;
+  profileId: string;
+  selectionType: SelectionType;
+  fromIata: string;
+  toIata: string;
+  departureDate: string;
+  direction: FlightDirection;
+  airline: string;
+  price: number;
+  duration: string;
+  stops: number;
+  departureTime: string | null;
+  arrivalTime: string | null;
+  cabin: string;
+  bookingToken: string | null;
+  bookingUrl: string;
+  booked: boolean;
+  bookedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HotelSelection {
+  id: string;
+  tripId: string;
+  profileId: string;
+  selectionType: SelectionType;
+  city: string;
+  countryCode: string;
+  checkIn: string;
+  checkOut: string;
+  hotelName: string;
+  hotelId: string;
+  rating: number | null;
+  pricePerNight: number | null;
+  totalPrice: number | null;
+  currency: string;
+  address: string | null;
+  imageUrl: string | null;
+  bookingUrl: string;
+  booked: boolean;
+  bookedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CartTrip {
+  tripId: string;
+  dateStart: string;
+  dateEnd: string;
+  destination: string | null;
+  region: string;
+  flights: FlightSelection[];
+  hotels: HotelSelection[];
+}
