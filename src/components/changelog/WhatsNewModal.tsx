@@ -48,8 +48,9 @@ export function WhatsNewModal() {
       title="What's New"
       maxWidth="max-w-md"
       mobileSheet
+      requireExplicitDismiss
     >
-      <div className="scrollbar-hide max-h-[60vh] space-y-6 overflow-y-auto">
+      <div className="max-h-[60vh] space-y-6 overflow-y-auto">
         {entries.map((entry) => (
           <div key={entry.version}>
             <div className="mb-3 flex items-baseline gap-2">
