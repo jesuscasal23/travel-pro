@@ -130,9 +130,13 @@ function HotelCard({
               {hotel.name}
             </h3>
             {hotel.rating != null && (
-              <div className="bg-secondary flex shrink-0 items-center gap-1 rounded-lg px-2 py-1">
-                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                <span className="text-foreground text-xs font-bold">{hotel.rating}</span>
+              <div
+                className="bg-secondary flex shrink-0 items-center gap-1 rounded-lg px-2 py-1"
+                title={`${hotel.rating}-star hotel classification`}
+              >
+                {Array.from({ length: hotel.rating }, (_, i) => (
+                  <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                ))}
               </div>
             )}
           </div>

@@ -77,9 +77,13 @@ export function CartHotelItem({
           <div className="flex items-start justify-between gap-2">
             <h4 className="text-foreground truncate text-sm font-bold">{selection.hotelName}</h4>
             {selection.rating != null && (
-              <div className="flex shrink-0 items-center gap-0.5">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                <span className="text-foreground text-[11px] font-bold">{selection.rating}</span>
+              <div
+                className="flex shrink-0 items-center gap-0.5"
+                title={`${selection.rating}-star hotel classification`}
+              >
+                {Array.from({ length: selection.rating }, (_, i) => (
+                  <Star key={i} className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                ))}
               </div>
             )}
           </div>
