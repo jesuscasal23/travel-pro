@@ -18,6 +18,22 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.2.0",
+    date: "2026-03-28",
+    sections: {
+      added: [
+        "Per-trip budget breakdown with real cost data",
+        "Flight and hotel selection with a shopping cart",
+        "What's New modal so you never miss an update",
+      ],
+      improved: [
+        "Hotel star ratings shown as icons instead of numbers",
+        "Faster image loading for activity cards",
+        "Authenticated users now land on the home dashboard",
+      ],
+    },
+  },
+  {
     version: "0.1.0",
     date: "2026-03-28",
     sections: {
