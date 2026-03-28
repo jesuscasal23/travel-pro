@@ -470,6 +470,19 @@ export default function ProfilePage() {
             </button>
           </div>
         )}
+        {/* App Version */}
+        {process.env.NEXT_PUBLIC_BUILD_TIMESTAMP && (
+          <p className="text-dim pb-4 text-center text-[11px]">
+            Last updated{" "}
+            {new Date(process.env.NEXT_PUBLIC_BUILD_TIMESTAMP).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </p>
+        )}
       </main>
 
       <ConfirmDialog

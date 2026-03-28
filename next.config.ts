@@ -54,6 +54,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_TIMESTAMP: new Date().toISOString(),
+  },
+
   async headers() {
     return [
       {
