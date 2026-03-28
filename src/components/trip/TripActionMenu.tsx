@@ -11,13 +11,26 @@ interface TripActionMenuProps {
 }
 
 export function TripActionMenu({ tripId, tripName }: TripActionMenuProps) {
-  const [open, setOpen] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; right: number } | null>(null);
   const [confirming, setConfirming] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const deleteTrip = useDeleteTrip();
 
-  const close = useCallback(() => setOpen(false), []);
+  const open = popoverPos !== null;
+  const close = useCallback(() => setPopoverPos(null), []);
+
+  const toggle = useCallback(() => {
+    if (open) {
+      close();
+    } else if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const container = document.getElementById("app-container");
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      setPopoverPos({ top: rect.bottom + 4, right: containerRect.right - rect.right });
+    }
+  }, [open, close]);
 
   useEffect(() => {
     if (!open) return;
@@ -46,20 +59,18 @@ export function TripActionMenu({ tripId, tripName }: TripActionMenuProps) {
   }, [open, close]);
 
   const renderPopover = () => {
-    if (!open || !triggerRef.current) return null;
+    if (!popoverPos) return null;
 
-    const rect = triggerRef.current.getBoundingClientRect();
     const container = document.getElementById("app-container");
     if (!container) return null;
-    const containerRect = container.getBoundingClientRect();
 
     return createPortal(
       <div
         ref={menuRef}
         className="dark:bg-card fixed z-50 min-w-[180px] rounded-xl bg-white py-1.5 shadow-lg backdrop-blur-md"
         style={{
-          top: rect.bottom + 4,
-          right: containerRect.right - rect.right,
+          top: popoverPos.top,
+          right: popoverPos.right,
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -85,7 +96,7 @@ export function TripActionMenu({ tripId, tripName }: TripActionMenuProps) {
           <span>Delete</span>
         </button>
       </div>,
-      container,
+      container
     );
   };
 
@@ -150,7 +161,7 @@ export function TripActionMenu({ tripId, tripName }: TripActionMenuProps) {
           </div>
         </div>
       </div>,
-      container,
+      container
     );
   };
 
@@ -158,7 +169,7 @@ export function TripActionMenu({ tripId, tripName }: TripActionMenuProps) {
     <div onClick={(e) => e.stopPropagation()}>
       <button
         ref={triggerRef}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={toggle}
         className="rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/50"
         title="Trip actions"
       >
