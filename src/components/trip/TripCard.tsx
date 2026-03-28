@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Calendar, ChevronRight } from "lucide-react";
 import { useCityImage } from "@/hooks/useCityImage";
 import { formatDateRange } from "@/lib/utils/format/date";
@@ -10,9 +11,10 @@ interface TripCardProps {
   label: string;
   days: number | null;
   onClick: () => void;
+  actions?: ReactNode;
 }
 
-export function TripCard({ trip, label, days, onClick }: TripCardProps) {
+export function TripCard({ trip, label, days, onClick, actions }: TripCardProps) {
   const cityName = trip.destination || label;
   const countryCode = trip.destinationCountryCode ?? "";
   const [src, onImgError] = useCityImage(cityName, countryCode || undefined);
@@ -34,12 +36,15 @@ export function TripCard({ trip, label, days, onClick }: TripCardProps) {
 
         {/* Countdown Badge */}
         {days !== null && (
-          <div className="absolute top-4 right-4 rounded-full bg-white/90 px-3 py-1.5 shadow-lg backdrop-blur-md">
+          <div className="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1.5 shadow-lg backdrop-blur-md">
             <span className="text-brand-primary text-[10px] font-bold tracking-tighter uppercase">
               {days === 0 ? "Today!" : `${days} days away`}
             </span>
           </div>
         )}
+
+        {/* Action Menu */}
+        {actions && <div className="absolute top-4 right-4 z-10">{actions}</div>}
 
         {/* Bottom Content */}
         <div className="absolute bottom-0 left-0 w-full p-6">

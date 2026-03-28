@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { createPortal } from "react-dom";
-import { Plus, Loader2, Trash2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { useRouter } from "next/navigation";
 import { CenteredState } from "@/components/ui/CenteredState";
-import { useTrips, useDeleteTrip } from "@/hooks/api";
+import { useTrips } from "@/hooks/api";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { TripCard } from "@/components/trip/TripCard";
+import { TripActionMenu } from "@/components/trip/TripActionMenu";
 import { daysUntil } from "@/lib/utils/format/date";
 import { useCityImage } from "@/hooks/useCityImage";
 import type { TripSummary } from "@/types";
@@ -40,91 +39,8 @@ function PastTripRow({ trip }: { trip: TripSummary }) {
           {dateLabel} &bull; {trip.travelers} Traveler{trip.travelers !== 1 ? "s" : ""}
         </p>
       </div>
-      <div onClick={(e) => e.stopPropagation()}>
-        <DeleteTripButton tripId={trip.id} tripName={cityName} />
-      </div>
+      <TripActionMenu tripId={trip.id} tripName={cityName} />
     </div>
-  );
-}
-
-function DeleteTripButton({ tripId, tripName }: { tripId: string; tripName: string }) {
-  const [confirming, setConfirming] = useState(false);
-  const deleteTrip = useDeleteTrip();
-  const renderModal = () => {
-    if (!confirming) return null;
-    const container = document.getElementById("app-container");
-    if (!container) return null;
-    return createPortal(
-      <div className="absolute inset-0 z-50 flex items-center justify-center">
-        <div
-          className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-          onClick={() => !deleteTrip.isPending && setConfirming(false)}
-        />
-        <div className="relative z-10 mx-6 w-full max-w-xs rounded-2xl border border-white/70 bg-white/95 p-5 shadow-xl backdrop-blur-xl">
-          <h3 className="text-foreground text-base font-bold">Delete trip</h3>
-          <p className="text-dim mt-2 text-sm">
-            Are you sure you want to delete{" "}
-            <strong className="text-foreground">&ldquo;{tripName}&rdquo;</strong>? This action
-            cannot be undone.
-          </p>
-          <div className="mt-5 flex gap-3">
-            <button
-              onClick={() => {
-                deleteTrip.mutate(tripId, {
-                  onSettled: () => setConfirming(false),
-                });
-              }}
-              disabled={deleteTrip.isPending}
-              className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
-            >
-              {deleteTrip.isPending ? (
-                <span className="inline-flex items-center gap-2">
-                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Deleting…
-                </span>
-              ) : (
-                "Delete"
-              )}
-            </button>
-            <button
-              onClick={() => setConfirming(false)}
-              disabled={deleteTrip.isPending}
-              className="bg-surface-soft text-foreground hover:bg-surface-hover flex-1 rounded-xl px-4 py-2.5 text-sm font-bold disabled:opacity-50"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>,
-      container
-    );
-  };
-
-  return (
-    <>
-      <button
-        onClick={() => setConfirming(true)}
-        className="rounded-lg bg-red-500/10 p-2 text-red-500 transition-colors hover:bg-red-500/20"
-        title="Delete trip"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
-      {renderModal()}
-    </>
   );
 }
 
@@ -197,20 +113,14 @@ export function TripsPageClient() {
                 const days = daysUntil(trip.dateStart);
                 const label = trip.destination || trip.region;
                 return (
-                  <div key={trip.id} className="relative">
-                    <TripCard
-                      trip={trip}
-                      label={label}
-                      days={days}
-                      onClick={() => router.push(`/trips/${trip.id}`)}
-                    />
-                    <div
-                      className="absolute right-16 bottom-6 z-10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <DeleteTripButton tripId={trip.id} tripName={label} />
-                    </div>
-                  </div>
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    label={label}
+                    days={days}
+                    onClick={() => router.push(`/trips/${trip.id}`)}
+                    actions={<TripActionMenu tripId={trip.id} tripName={label} />}
+                  />
                 );
               })}
             </div>
