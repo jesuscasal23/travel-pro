@@ -29,7 +29,7 @@ const itineraryFlightLegSchema = z.object({
   stops: z.number().optional(),
 });
 
-export const dayActivitySchema = z.object({
+const dayActivitySchema = z.object({
   name: z.string(),
   category: z.string(),
   icon: z.string().optional(),

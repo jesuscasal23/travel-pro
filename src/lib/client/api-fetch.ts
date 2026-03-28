@@ -34,7 +34,7 @@ function handleSessionExpired(): void {
   window.location.href = loginUrl;
 }
 
-export interface ApiFetchOptions extends Omit<RequestInit, "body"> {
+interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   /** Hook or component name — included in error reports for tracing. */
   source: string;
   /** Auto-serialized to JSON and sets Content-Type header. */
@@ -60,7 +60,7 @@ export async function apiFetch<T>(endpoint: string, options: ApiFetchOptions): P
  * Like `apiFetch` but returns the raw `Response` instead of parsing JSON.
  * Use for streaming (SSE) endpoints or manual response handling.
  */
-export async function apiFetchRaw(endpoint: string, options: ApiFetchOptions): Promise<Response> {
+async function apiFetchRaw(endpoint: string, options: ApiFetchOptions): Promise<Response> {
   const { source, body, fallbackMessage = "Request failed", ...init } = options;
   const method = init.method ?? "GET";
 

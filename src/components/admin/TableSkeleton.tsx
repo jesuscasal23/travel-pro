@@ -1,4 +1,4 @@
-export interface TableSkeletonProps {
+interface TableSkeletonProps {
   rows: number;
   cols: number;
 }

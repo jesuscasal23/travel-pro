@@ -254,39 +254,6 @@ export async function searchFlightsMulti(
   return results.slice(0, 10);
 }
 
-/**
- * Pre-fetch flight options for all legs in parallel.
- * Failed legs get empty results — never throws.
- */
-export async function prefetchFlightOptions(
-  apiKey: string,
-  legs: Array<{ fromIata: string; toIata: string; departureDate: string }>,
-  travelers: number,
-  signal?: AbortSignal
-): Promise<FlightLegResults[]> {
-  const settled = await Promise.allSettled(
-    legs.map((leg) =>
-      searchFlightsMulti(
-        apiKey,
-        leg.fromIata,
-        leg.toIata,
-        leg.departureDate,
-        travelers,
-        undefined,
-        signal
-      )
-    )
-  );
-
-  return legs.map((leg, i) => ({
-    fromIata: leg.fromIata,
-    toIata: leg.toIata,
-    departureDate: leg.departureDate,
-    results: settled[i].status === "fulfilled" ? settled[i].value : [],
-    fetchedAt: Date.now(),
-  }));
-}
-
 // ── Booking URL Resolution ──────────────────────────────────
 
 interface SerpApiBookingOption {
@@ -305,7 +272,7 @@ interface SerpApiBookingResponse {
   error?: string;
 }
 
-export interface BookingRequest {
+interface BookingRequest {
   url: string;
   postData: string;
   bookWith: string;

@@ -20,7 +20,7 @@ type TravelerPreferencesInput = Partial<TravelerPreferences> & {
   languagesSpoken?: string[] | null;
 };
 
-export interface TravelerPreferencesPatch {
+interface TravelerPreferencesPatch {
   nationality?: string;
   homeAirport?: string;
   travelStyle?: TravelStyle;

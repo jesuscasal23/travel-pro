@@ -9,7 +9,7 @@ export interface AdminStats {
   generationsByStatus: Record<string, number>;
 }
 
-export interface AdminUser {
+interface AdminUser {
   id: string;
   userId: string;
   nationality: string;

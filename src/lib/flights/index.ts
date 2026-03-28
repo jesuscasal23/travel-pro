@@ -23,19 +23,6 @@ import { parseIataCode } from "./iata";
 import type { CityStop } from "@/types";
 import type { FlightLegResults, FlightSkeleton } from "./types";
 
-// Re-export types and utilities that external consumers need
-export type {
-  FlightLegResults,
-  FlightSkeleton,
-  FlightSearchResult,
-  FlightOption,
-  CityWithDays,
-  OptimizedLeg,
-} from "./types";
-export type { BookingRequest } from "./serpapi";
-export { parseIataCode } from "./iata";
-export { lookupIata } from "./city-iata-map";
-export { getAirlineName } from "./airlines";
 export { SerpApiRateLimitError } from "./serpapi";
 
 const log = createLogger("flights");

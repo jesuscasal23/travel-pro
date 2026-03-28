@@ -11,15 +11,6 @@
 /** Anthropic SDK timeout — fail cleanly before Vercel's 60s function limit. */
 export const CLAUDE_TIMEOUT_MS = 50_000;
 
-/** Max tokens for full multi-city itinerary generation. */
-export const MAX_TOKENS_MULTI_CITY = 10_000;
-
-/** Max tokens for single-city itinerary generation. */
-export const MAX_TOKENS_SINGLE_CITY = 8_000;
-
-/** Max tokens for route-only generation (no activities). */
-export const MAX_TOKENS_ROUTE_ONLY = 4_000;
-
 /** Max tokens for per-city activity generation. */
 export const MAX_TOKENS_CITY_ACTIVITIES = 8_000;
 

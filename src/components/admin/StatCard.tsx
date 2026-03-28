@@ -1,4 +1,4 @@
-export interface StatCardProps {
+interface StatCardProps {
   label: string;
   value: number;
   sub?: string;

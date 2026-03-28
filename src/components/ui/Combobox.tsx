@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { inputClass } from "./styles";
 
-export interface ComboboxProps<T> {
+interface ComboboxProps<T> {
   /** Display value shown when the input is not focused */
   value: string;
   /** Filtered results to display in the dropdown */

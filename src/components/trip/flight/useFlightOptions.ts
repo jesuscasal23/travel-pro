@@ -6,7 +6,7 @@ import { matchesStopsFilter } from "./FlightFilterPanel";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
 import type { StopsFilter } from "./FlightFilterPanel";
 
-export type SortMode = "price" | "duration";
+type SortMode = "price" | "duration";
 
 /** Parse "12h 30m" -> total minutes for duration sorting */
 function durationToMinutes(d: string): number {

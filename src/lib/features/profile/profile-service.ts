@@ -28,7 +28,7 @@ export async function findProfileByUserId(userId: string) {
   return prisma.profile.findUnique({ where: { userId } });
 }
 
-export async function findProfileById(profileId: string) {
+async function findProfileById(profileId: string) {
   return prisma.profile.findUnique({ where: { id: profileId } });
 }
 

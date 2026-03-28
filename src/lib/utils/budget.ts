@@ -39,7 +39,7 @@ export function parseCost(raw: string | undefined | null): number | null {
 }
 
 /** Activity cost grouped by city */
-export interface CityActivityBudget {
+interface CityActivityBudget {
   city: string;
   items: { name: string; cost: number }[];
   total: number;

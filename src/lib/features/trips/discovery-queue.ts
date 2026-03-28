@@ -2,7 +2,7 @@ import type { DiscoveredActivityRow } from "@/types";
 
 export const DISCOVERY_TOTAL_CARDS = 25;
 
-export interface DiscoveryQueueState {
+interface DiscoveryQueueState {
   cards: DiscoveredActivityRow[];
   cursor: number;
   decidedCount: number;

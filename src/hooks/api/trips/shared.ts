@@ -1,14 +1,14 @@
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
 import type { DiscoveryStatus, Itinerary, TripSummary, TripType } from "@/types";
 
-export interface TripDetailItinerary {
+interface TripDetailItinerary {
   id: string;
   generationStatus: string;
   discoveryStatus: DiscoveryStatus;
   data: Itinerary;
 }
 
-export interface TripDetail {
+interface TripDetail {
   id: string;
   tripType?: TripType;
   region: string;
@@ -22,7 +22,7 @@ export interface TripDetail {
   itineraries: TripDetailItinerary[];
 }
 
-export interface TripsResponse {
+interface TripsResponse {
   trips: TripSummary[];
   isSuperUser: boolean;
 }

@@ -84,6 +84,5 @@ Examples:
 
 - route selection shortcuts: `src/lib/features/generation/select-route-transform.ts`
 - affiliate redirect validation/hash utilities: `src/lib/features/affiliate/redirect-utils.ts`
-- itinerary merge helpers: `src/lib/utils/trip/merge-generated-city-days.ts`
 
 Pure utilities should not perform logging, network calls, or DB writes.

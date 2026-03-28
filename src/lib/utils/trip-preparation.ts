@@ -23,7 +23,7 @@ export interface PrepItem {
   beta?: boolean;
 }
 
-export interface TripPreparationProgress {
+interface TripPreparationProgress {
   percentage: number;
   items: PrepItem[];
   totalItems: number;

@@ -109,34 +109,3 @@ function normalizePlanningPriorities(priorities: string[] | string | undefined):
   }
   return Array.from(new Set(priorities.map((p) => p.trim()).filter(Boolean)));
 }
-
-/**
- * Resolves once the persisted plan form store has finished hydrating from
- * localStorage. Use this in components that depend on persisted form state.
- */
-export const planFormHydrationPromise = new Promise<void>((resolve) => {
-  if (typeof window === "undefined") {
-    resolve();
-    return;
-  }
-  try {
-    if (
-      (
-        usePlanFormStore as unknown as { persist: { hasHydrated: () => boolean } }
-      ).persist.hasHydrated()
-    ) {
-      resolve();
-      return;
-    }
-  } catch {
-    // persist middleware not yet initialized — fall through to listener
-  }
-  const unsub = usePlanFormStore.persist.onFinishHydration(() => {
-    unsub();
-    resolve();
-  });
-  setTimeout(() => {
-    unsub();
-    resolve();
-  }, 500);
-});

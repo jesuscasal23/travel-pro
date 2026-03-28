@@ -15,7 +15,7 @@ const log = createLogger("serpapi:hotels");
 
 const SERPAPI_BASE = "https://serpapi.com/search";
 
-export class SerpApiHotelRateLimitError extends Error {
+class SerpApiHotelRateLimitError extends Error {
   constructor() {
     super("Hotel search is busy — please try again in a moment.");
     this.name = "SerpApiHotelRateLimitError";

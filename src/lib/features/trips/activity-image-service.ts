@@ -11,7 +11,7 @@ const PER_REQUEST_TIMEOUT_MS = 3_000;
  * Returns an array of photo URLs (or null for misses), in the same order as the input.
  * All lookups run in parallel; individual failures never block the batch.
  */
-export async function resolveActivityImages(
+async function resolveActivityImages(
   activities: { name: string }[],
   city: string,
   signal?: AbortSignal

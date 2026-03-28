@@ -5,7 +5,7 @@ import type { CityAccommodation, CityStop, CityWeather, TravelStyle, VisaInfo } 
 
 // ── Route helpers ──────────────────────────────────────────────
 
-export function buildRoutePayload(route: CityStop[]) {
+function buildRoutePayload(route: CityStop[]) {
   return route.map((r) => ({
     id: r.id,
     city: r.city,

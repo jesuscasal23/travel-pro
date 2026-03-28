@@ -141,7 +141,7 @@ export interface TripSummary {
 }
 
 /** Region option for questionnaire */
-export interface Region {
+interface Region {
   id: string;
   name: string;
   countries: string;

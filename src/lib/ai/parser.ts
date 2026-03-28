@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 import { getErrorMessage } from "@/lib/utils/error";
-import { itineraryCoreSchema, dayActivitySchema } from "@/lib/itinerary/schema";
+import { itineraryCoreSchema } from "@/lib/itinerary/schema";
 import { createLogger } from "@/lib/core/logger";
 
 const log = createLogger("ai:parser");
@@ -19,22 +19,6 @@ const log = createLogger("ai:parser");
 const claudeItinerarySchema = itineraryCoreSchema;
 
 type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
-
-/** Schema for per-city activity generation output. */
-export const cityActivitiesOutputSchema = z.object({
-  days: z.array(
-    z.object({
-      day: z.number(),
-      date: z.string(),
-      city: z.string(),
-      isTravel: z.boolean().optional(),
-      travelFrom: z.string().optional(),
-      travelTo: z.string().optional(),
-      travelDuration: z.string().optional(),
-      activities: z.array(dayActivitySchema),
-    })
-  ),
-});
 
 // ── Helpers ───────────────────────────────────────────────────
 
