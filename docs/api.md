@@ -160,13 +160,13 @@ Every endpoint is documented twice:
 
 ## Enrichment
 
-> **Note:** These endpoints currently lack auth and rate limiting. See [TRA-82](https://linear.app/travel-pro/issue/TRA-82) for planned hardening.
+> **Note:** These endpoints require authentication. Rate limiting is handled at the proxy layer (60 req/min).
 
 ### `POST /api/v1/enrich/weather`
 
 |               |                                                                                                                                                                  |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | None (see TRA-82)                                                                                                                                                |
+| **Auth**      | Required                                                                                                                                                         |
 | **Developer** | Enriches a trip route with weather forecasts. Uses Open-Meteo API with Redis 7-day cache. Accepts city stops with dates. Uses `createEnrichmentRoute()` factory. |
 | **PM**        | Adds weather forecasts to each city in the trip so users know what to expect and can pack accordingly.                                                           |
 
@@ -174,7 +174,7 @@ Every endpoint is documented twice:
 
 |               |                                                                                                                                   |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | None (see TRA-82)                                                                                                                 |
+| **Auth**      | Required                                                                                                                          |
 | **Developer** | Enriches a trip with visa requirements based on user nationality and destination countries. Uses Passport Index static data.      |
 | **PM**        | Checks if the user needs a visa for any of their destinations based on their passport, and shows requirements like max stay days. |
 
@@ -182,7 +182,7 @@ Every endpoint is documented twice:
 
 |               |                                                                                                           |
 | ------------- | --------------------------------------------------------------------------------------------------------- |
-| **Auth**      | None (see TRA-82)                                                                                         |
+| **Auth**      | Required                                                                                                  |
 | **Developer** | Generates accommodation recommendations using AI based on route, dates, traveler count, and travel style. |
 | **PM**        | Suggests hotels and places to stay that match the user's budget and travel style for each city.           |
 
@@ -284,7 +284,7 @@ These endpoints are restricted to superuser accounts (currently two people). The
 
 |               |                                                                                                                                                                                |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | None (see [TRA-83](https://linear.app/travel-pro/issue/TRA-83))                                                                                                                |
+| **Auth**      | Required                                                                                                                                                                       |
 | **Developer** | Proxies Google Places photos to keep the API key server-side. Query params: `ref` (photo reference), `w` (width). Returns image bytes with 24h client cache / 7d server cache. |
 | **PM**        | Loads city and place photos throughout the app without exposing our Google API key to the browser.                                                                             |
 
