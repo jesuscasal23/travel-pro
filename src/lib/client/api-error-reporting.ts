@@ -1,13 +1,3 @@
-interface ApiErrorReport {
-  source: string;
-  endpoint: string;
-  method: string;
-  message: string;
-  status?: number;
-  requestId?: string | null;
-  responseBody?: unknown;
-}
-
 interface ParsedApiError {
   message: string;
   status: number;
@@ -78,21 +68,4 @@ export async function parseApiErrorResponse(
     requestId,
     responseBody,
   };
-}
-
-/**
- * Fire-and-forget client API error reporting to backend logs.
- * Never throws to avoid masking original frontend failures.
- */
-export async function reportApiError(report: ApiErrorReport): Promise<void> {
-  try {
-    await fetch("/api/v1/client-errors", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(report),
-      keepalive: true,
-    });
-  } catch {
-    // Swallow logging failures.
-  }
 }

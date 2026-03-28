@@ -59,7 +59,6 @@ vi.mock("@/lib/client/api-error-reporting", () => ({
     requestId: "req-test",
     responseBody: undefined,
   })),
-  reportApiError: vi.fn(async () => undefined),
 }));
 
 // ── Import subject after mocks ────────────────────────────────────────────────

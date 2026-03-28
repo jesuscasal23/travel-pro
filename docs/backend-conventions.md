@@ -25,7 +25,6 @@ Prefer feature-oriented modules over technical buckets.
 - `src/lib/features/generation/*`
 - `src/lib/features/enrichment/*`
 - `src/lib/features/affiliate/*`
-- `src/lib/features/client-errors/*`
 - `src/lib/features/health/*`
 
 Shared cross-cutting code stays in:
@@ -61,7 +60,6 @@ Request/query schemas live with the feature they validate.
 
 - profile schemas: `src/lib/features/profile/schemas.ts`
 - trip and generation schemas: `src/lib/features/generation/schemas.ts`
-- client error report schemas: `src/lib/features/client-errors/schema.ts`
 
 Shared form schemas live in `src/lib/forms/schemas.ts`.
 

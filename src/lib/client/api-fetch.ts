@@ -1,4 +1,4 @@
-import { parseApiErrorResponse, reportApiError } from "./api-error-reporting";
+import { parseApiErrorResponse } from "./api-error-reporting";
 
 /**
  * Typed API error thrown by `apiFetch` / `apiFetchRaw` on non-ok responses.
@@ -47,7 +47,6 @@ interface ApiFetchOptions extends Omit<RequestInit, "body"> {
  * Shared fetch wrapper for all client-side API calls.
  *
  * - Serializes `body` to JSON and sets `Content-Type` automatically.
- * - Reports network + HTTP errors to `/api/v1/client-errors`.
  * - Throws `ApiError` on non-ok responses (inspect `.status` for branching).
  * - Returns parsed JSON on success.
  */
@@ -73,13 +72,7 @@ async function apiFetchRaw(endpoint: string, options: ApiFetchOptions): Promise<
   let res: Response;
   try {
     res = await fetch(endpoint, fetchInit);
-  } catch (error) {
-    await reportApiError({
-      source,
-      endpoint,
-      method,
-      message: error instanceof Error ? error.message : "Network error",
-    });
+  } catch {
     throw new Error(fallbackMessage);
   }
 
@@ -90,15 +83,6 @@ async function apiFetchRaw(endpoint: string, options: ApiFetchOptions): Promise<
     }
 
     const parsed = await parseApiErrorResponse(res, fallbackMessage);
-    await reportApiError({
-      source,
-      endpoint,
-      method,
-      message: parsed.message,
-      status: parsed.status,
-      requestId: parsed.requestId,
-      responseBody: parsed.responseBody,
-    });
     throw new ApiError(parsed.message, parsed.status, parsed.requestId, parsed.responseBody);
   }
 

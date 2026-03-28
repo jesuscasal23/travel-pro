@@ -98,8 +98,7 @@ src/
 │   │   ├── profile/           # profile-service, schemas, query-shapes, profile-serializer, interests, pace, traveler-preferences
 │   │   ├── enrichment/        # schemas, transforms (routes call lib/ai/enrich-* directly)
 │   │   ├── affiliate/         # redirect-service, redirect-utils, link-generator, booking-click-service, schema
-│   │   ├── health/            # health-service
-│   │   └── client-errors/     # service, schema
+│   │   └── health/            # health-service
 │   ├── forms/                 # Form validation schemas (plan, onboarding, profile)
 │   ├── flights/               # serpapi.ts, optimizer.ts, booking-links, iata, city-iata-map, types
 │   ├── hotels/                # SerpApi hotel search + types
@@ -249,7 +248,6 @@ A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itine
 | **Other**                                |                    |             |                                                           |
 | `/api/v1/affiliate/redirect`             | GET                | Optional    | Log click + 302 redirect (domain whitelist)               |
 | `/api/v1/places/photo`                   | GET                | Auth        | Proxy Google Places photos                                |
-| `/api/v1/client-errors`                  | POST               | None        | Client-side error reporting                               |
 | **Admin**                                |                    |             |                                                           |
 | `/api/v1/admin/stats`                    | GET                | SuperUser   | Platform statistics                                       |
 | `/api/v1/admin/users`                    | GET                | SuperUser   | List all users                                            |

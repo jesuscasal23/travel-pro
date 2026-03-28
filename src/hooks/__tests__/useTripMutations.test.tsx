@@ -24,12 +24,7 @@ vi.mock("@/lib/client/api-error-reporting", () => ({
     requestId: "req-test",
     responseBody: undefined,
   })),
-  reportApiError: vi.fn(async () => undefined),
 }));
-
-import { reportApiError } from "@/lib/client/api-error-reporting";
-
-const mockReportApiError = reportApiError as ReturnType<typeof vi.fn>;
 
 function createWrapper(queryClient: QueryClient) {
   function Wrapper({ children }: { children: ReactNode }) {
@@ -96,6 +91,5 @@ describe("useTripMutations", () => {
         travelers: 2,
       })
     ).rejects.toThrow(/Failed to create trip/);
-    expect(mockReportApiError).toHaveBeenCalled();
   });
 });

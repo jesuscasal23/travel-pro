@@ -21,11 +21,11 @@ Every endpoint is documented twice:
 
 ### `POST /api/v1/trips`
 
-|               |                                                                                                                                                                                                                             |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Optional (supports guests)                                                                                                                                                                                                  |
-| **Developer** | Creates a new trip record. Accepts trip intent fields (region, dates, travelers, budget). If unauthenticated, sets a guest owner cookie for later claim. Also builds the initial itinerary skeleton and prefetches flights. |
-| **PM**        | Creates a new trip when a user finishes the planning questionnaire. Works for guests too — they can plan without signing up, and claim the trip later if they create an account.                                            |
+|               |                                                                                                                                                                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                                                                                                                         |
+| **Developer** | Creates a new trip record. Accepts trip intent fields (region, dates, travelers, budget). Builds the initial itinerary skeleton and prefetches flights. Requires authentication — the plan flow gates sign-up before submission. |
+| **PM**        | Creates a new trip when a user finishes the planning questionnaire. Users must sign up or log in before the trip is created.                                                                                                     |
 
 ### `GET /api/v1/trips/[id]`
 
@@ -272,14 +272,6 @@ These endpoints are restricted to superuser accounts (currently two people). The
 | **Developer** | Returns service health with individual component checks (Supabase, database). Returns 200 if all healthy, 207 if partial failure. Force-dynamic. |
 | **PM**        | A simple "is the app working?" check. Monitoring tools ping this to alert us if something is down.                                               |
 
-### `POST /api/v1/client-errors`
-
-|               |                                                                                                                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | None                                                                                                                                                                                                         |
-| **Developer** | Fire-and-forget client error reporter. Validates payload with Zod, records error with user agent info, returns 202. Possible overlap with Sentry — see [TRA-85](https://linear.app/travel-pro/issue/TRA-85). |
-| **PM**        | Catches errors that happen in the user's browser so we can find and fix bugs. May overlap with our existing error tracking (Sentry) — under review.                                                          |
-
 ### `GET /api/v1/places/photo`
 
 |               |                                                                                                                                                                                |
@@ -292,10 +284,9 @@ These endpoints are restricted to superuser accounts (currently two people). The
 
 ## Related Linear Tickets
 
-| Ticket                                               | Summary                                            |
-| ---------------------------------------------------- | -------------------------------------------------- |
-| [TRA-80](https://linear.app/travel-pro/issue/TRA-80) | Revisit `/flights/book` endpoint complexity        |
-| [TRA-82](https://linear.app/travel-pro/issue/TRA-82) | Add auth + rate limiting to enrichment endpoints   |
-| [TRA-83](https://linear.app/travel-pro/issue/TRA-83) | Add auth to `/places/photo` proxy                  |
-| [TRA-84](https://linear.app/travel-pro/issue/TRA-84) | Remove share functionality (`/share/[token]`)      |
-| [TRA-85](https://linear.app/travel-pro/issue/TRA-85) | Revisit `/client-errors` — possible Sentry overlap |
+| Ticket                                               | Summary                                          |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| [TRA-80](https://linear.app/travel-pro/issue/TRA-80) | Revisit `/flights/book` endpoint complexity      |
+| [TRA-82](https://linear.app/travel-pro/issue/TRA-82) | Add auth + rate limiting to enrichment endpoints |
+| [TRA-83](https://linear.app/travel-pro/issue/TRA-83) | Add auth to `/places/photo` proxy                |
+| [TRA-84](https://linear.app/travel-pro/issue/TRA-84) | Remove share functionality (`/share/[token]`)    |
