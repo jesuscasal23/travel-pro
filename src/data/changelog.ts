@@ -18,6 +18,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.2.1",
+    date: "2026-03-28",
+    sections: {
+      fixed: [
+        "Fixed a crash that could trap you on an error page after deleting all trips",
+        "Deleting a trip now properly clears cached cart, booking, and trip data",
+      ],
+      improved: ["Error page now shows the reason and lets you copy details for support"],
+    },
+  },
+  {
     version: "0.2.0",
     date: "2026-03-28",
     sections: {
