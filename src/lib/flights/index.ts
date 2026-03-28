@@ -9,20 +9,15 @@
 import { ApiError, BadRequestError, UpstreamServiceError } from "@/lib/api/errors";
 import { abortableDelay } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
-import { FLIGHT_PREFETCH_TIMEOUT_MS, OPTIMIZE_FLIGHTS_TIMEOUT_MS } from "@/lib/config/constants";
+import { OPTIMIZE_FLIGHTS_TIMEOUT_MS } from "@/lib/config/constants";
 import { getOptionalSerpApiEnv } from "@/lib/config/server-env";
 import {
   SerpApiRateLimitError,
   searchFlights as serpApiSearchFlights,
   searchFlightsMulti,
-  prefetchFlightOptions as serpApiPrefetch,
   getBookingRequest,
 } from "./serpapi";
-import {
-  buildFlightLegsFromRoute,
-  resolveRouteIataCodes,
-  buildOptimizerCities,
-} from "./route-utils";
+import { resolveRouteIataCodes, buildOptimizerCities } from "./route-utils";
 import { optimizeFlights } from "./optimizer";
 import { parseIataCode } from "./iata";
 import type { CityStop } from "@/types";
@@ -45,51 +40,7 @@ export { SerpApiRateLimitError } from "./serpapi";
 
 const log = createLogger("flights");
 
-// ── Entry Point 1: prefetchFlightsForRoute ──────────────────
-
-interface PrefetchFlightsInput {
-  homeAirport: string;
-  route: CityStop[];
-  dateStart: string;
-  dateEnd: string;
-  travelers: number;
-  signal?: AbortSignal;
-  timeoutMs?: number;
-}
-
-/**
- * Build legs from a generated route and prefetch flight options
- * for each leg in parallel. Returns null if SerpApi is not
- * configured, times out, or no results are found.
- *
- * Used during trip generation (SSE pipeline).
- */
-export async function prefetchFlightsForRoute(
-  input: PrefetchFlightsInput
-): Promise<FlightLegResults[] | null> {
-  const homeIata = parseIataCode(input.homeAirport);
-  const legs = buildFlightLegsFromRoute(input.route, input.dateStart, input.dateEnd, homeIata);
-
-  if (legs.length === 0) return null;
-
-  const serpApi = getOptionalSerpApiEnv();
-  if (!serpApi) {
-    log.info("SerpApi not configured — skipping flight prefetch");
-    return null;
-  }
-
-  const timeoutMs = input.timeoutMs ?? FLIGHT_PREFETCH_TIMEOUT_MS;
-
-  const flightOptions = await Promise.race([
-    serpApiPrefetch(serpApi.apiKey, legs, input.travelers, input.signal),
-    abortableDelay(timeoutMs, input.signal).then(() => null),
-  ]);
-
-  const hasResults = flightOptions?.some((leg) => leg.results.length > 0) ?? false;
-  return hasResults ? flightOptions : null;
-}
-
-// ── Entry Point 2: optimizeFlightsForTrip ───────────────────
+// ── Entry Point 1: optimizeFlightsForTrip ───────────────────
 
 interface OptimizeFlightsInput {
   homeAirport: string;
@@ -154,7 +105,7 @@ export async function optimizeFlightsForTrip(input: OptimizeFlightsInput): Promi
   }
 }
 
-// ── Entry Point 3: searchFlightLeg ──────────────────────────
+// ── Entry Point 2: searchFlightLeg ──────────────────────────
 
 interface SearchFlightLegInput {
   fromIata: string;
@@ -224,7 +175,7 @@ export async function searchFlightLeg(input: SearchFlightLegInput): Promise<Flig
   }
 }
 
-// ── Entry Point 4: resolveBooking ───────────────────────────
+// ── Entry Point 3: resolveBooking ───────────────────────────
 
 interface ResolveBookingInput {
   bookingToken: string;

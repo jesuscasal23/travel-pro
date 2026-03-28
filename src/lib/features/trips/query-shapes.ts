@@ -45,13 +45,3 @@ export const TRIP_LIST_INCLUDE = {
 export const ITINERARY_TRIP_ID_SELECT = {
   tripId: true,
 } satisfies Prisma.ItinerarySelect;
-
-export const GENERATING_ITINERARY_SELECT = {
-  id: true,
-  generationJobId: true,
-  createdAt: true,
-} satisfies Prisma.ItinerarySelect;
-
-export const ITINERARY_VERSION_SELECT = {
-  version: true,
-} satisfies Prisma.ItinerarySelect;

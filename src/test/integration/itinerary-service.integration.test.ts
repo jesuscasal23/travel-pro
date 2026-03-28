@@ -18,10 +18,6 @@ vi.mock("@/lib/core/logger", () => ({
 import {
   findActiveItinerary,
   createItineraryVersion,
-  createGeneratingRecord,
-  activateGeneratedItinerary,
-  GenerationAlreadyInProgressError,
-  markGenerationFailed,
 } from "@/lib/features/trips/itinerary-service";
 
 describe("itinerary-service", () => {
@@ -72,92 +68,5 @@ describe("itinerary-service", () => {
       where: { id: v1.id },
     });
     expect(oldVersion?.isActive).toBe(false);
-  });
-
-  it("createGeneratingRecord creates a non-active generating record", async () => {
-    const trip = await createTestTrip(prisma);
-    const { id } = await createGeneratingRecord({
-      tripId: trip.id,
-      promptVersion: "v1",
-    });
-
-    const record = await prisma.itinerary.findUnique({ where: { id } });
-    expect(record?.isActive).toBe(false);
-    expect(record?.generationStatus).toBe("generating");
-    expect(record?.version).toBe(1);
-  });
-
-  it("createGeneratingRecord increments the version after existing itineraries", async () => {
-    const trip = await createTestTrip(prisma);
-    await createTestItinerary(prisma, trip.id, {
-      version: 2,
-      isActive: true,
-      generationStatus: "complete",
-    });
-
-    const { id } = await createGeneratingRecord({
-      tripId: trip.id,
-      promptVersion: "v1",
-    });
-
-    const record = await prisma.itinerary.findUnique({ where: { id } });
-    expect(record?.version).toBe(3);
-  });
-
-  it("createGeneratingRecord rejects when another generation is already active", async () => {
-    const trip = await createTestTrip(prisma);
-    await createTestItinerary(prisma, trip.id, {
-      version: 1,
-      isActive: false,
-      generationStatus: "generating",
-    });
-
-    await expect(
-      createGeneratingRecord({
-        tripId: trip.id,
-        promptVersion: "v1",
-      })
-    ).rejects.toBeInstanceOf(GenerationAlreadyInProgressError);
-  });
-
-  it("activateGeneratedItinerary activates one and deactivates others", async () => {
-    const trip = await createTestTrip(prisma);
-    const old = await createTestItinerary(prisma, trip.id, {
-      isActive: true,
-      version: 1,
-    });
-    const generating = await createTestItinerary(prisma, trip.id, {
-      isActive: false,
-      version: 2,
-      generationStatus: "generating",
-    });
-
-    await activateGeneratedItinerary(generating.id, trip.id, { route: [], days: [] } as never);
-
-    const activated = await prisma.itinerary.findUnique({
-      where: { id: generating.id },
-    });
-    expect(activated?.isActive).toBe(true);
-    expect(activated?.generationStatus).toBe("complete");
-
-    const deactivated = await prisma.itinerary.findUnique({
-      where: { id: old.id },
-    });
-    expect(deactivated?.isActive).toBe(false);
-  });
-
-  it("markGenerationFailed updates status to failed", async () => {
-    const trip = await createTestTrip(prisma);
-    const itin = await createTestItinerary(prisma, trip.id, {
-      generationStatus: "generating",
-      isActive: false,
-    });
-
-    await markGenerationFailed(itin.id);
-
-    const updated = await prisma.itinerary.findUnique({
-      where: { id: itin.id },
-    });
-    expect(updated?.generationStatus).toBe("failed");
   });
 });

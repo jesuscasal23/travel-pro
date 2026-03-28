@@ -8,9 +8,7 @@ vi.mock("@/lib/core/prisma", () => ({
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
-      updateMany: vi.fn(),
     },
-    $executeRaw: vi.fn(),
     $transaction: vi.fn(),
   },
 }));
@@ -26,23 +24,14 @@ vi.mock("@/lib/core/logger", () => ({
 }));
 
 import { prisma } from "@/lib/core/prisma";
-import {
-  findActiveItinerary,
-  createItineraryVersion,
-  createGeneratingRecord,
-  activateGeneratedItinerary,
-  GenerationAlreadyInProgressError,
-  markGenerationFailed,
-} from "../itinerary-service";
+import { findActiveItinerary, createItineraryVersion } from "../itinerary-service";
 
 const mockPrisma = prisma as unknown as {
   itinerary: {
     findFirst: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
-    updateMany: ReturnType<typeof vi.fn>;
   };
-  $executeRaw: ReturnType<typeof vi.fn>;
   $transaction: ReturnType<typeof vi.fn>;
 };
 
@@ -105,7 +94,6 @@ describe("createItineraryVersion", () => {
       previousVersion: 3,
     });
 
-    // Verify both Prisma operations were constructed with correct args
     expect(mockPrisma.itinerary.update).toHaveBeenCalledWith({
       where: { id: "itin-old" },
       data: { isActive: false },
@@ -120,150 +108,6 @@ describe("createItineraryVersion", () => {
         generationStatus: "complete",
         discoveryStatus: "completed",
       },
-    });
-  });
-});
-
-// ── createGeneratingRecord ──────────────────────────────────
-
-describe("createGeneratingRecord", () => {
-  it("creates a record in generating state with isActive false", async () => {
-    const tx = {
-      $executeRaw: vi.fn().mockResolvedValue(undefined),
-      itinerary: {
-        findFirst: vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(null),
-        create: vi.fn().mockResolvedValue({
-          id: "gen-1",
-          version: 1,
-          generationJobId: "job-1",
-        }),
-        update: vi.fn(),
-      },
-    };
-    mockPrisma.$transaction.mockImplementation(async (callback) => callback(tx));
-
-    const result = await createGeneratingRecord({
-      tripId: "trip-1",
-      promptVersion: "v1",
-    });
-
-    expect(result).toEqual({ id: "gen-1" });
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
-    expect(tx.itinerary.create).toHaveBeenCalledWith({
-      data: {
-        tripId: "trip-1",
-        data: {},
-        version: 1,
-        isActive: false,
-        promptVersion: "v1",
-        generationStatus: "generating",
-        generationJobId: expect.any(String),
-      },
-    });
-  });
-
-  it("increments the version from the latest itinerary for the trip", async () => {
-    const tx = {
-      $executeRaw: vi.fn().mockResolvedValue(undefined),
-      itinerary: {
-        findFirst: vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce({ version: 3 }),
-        create: vi.fn().mockResolvedValue({
-          id: "gen-2",
-          version: 4,
-          generationJobId: "job-2",
-        }),
-        update: vi.fn(),
-      },
-    };
-    mockPrisma.$transaction.mockImplementation(async (callback) => callback(tx));
-
-    await createGeneratingRecord({
-      tripId: "trip-1",
-      promptVersion: "v2",
-    });
-
-    expect(tx.itinerary.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        tripId: "trip-1",
-        version: 4,
-        promptVersion: "v2",
-      }),
-    });
-  });
-
-  it("rejects when a generation is already in progress for the trip", async () => {
-    const tx = {
-      $executeRaw: vi.fn().mockResolvedValue(undefined),
-      itinerary: {
-        findFirst: vi.fn().mockResolvedValueOnce({
-          id: "gen-active",
-          generationJobId: "job-active",
-          createdAt: new Date(),
-        }),
-        create: vi.fn(),
-        update: vi.fn(),
-      },
-    };
-    mockPrisma.$transaction.mockImplementation(async (callback) => callback(tx));
-
-    await expect(
-      createGeneratingRecord({
-        tripId: "trip-1",
-        promptVersion: "v1",
-      })
-    ).rejects.toBeInstanceOf(GenerationAlreadyInProgressError);
-
-    expect(tx.itinerary.create).not.toHaveBeenCalled();
-    expect(tx.itinerary.update).not.toHaveBeenCalled();
-  });
-});
-
-// ── activateGeneratedItinerary ──────────────────────────────
-
-describe("activateGeneratedItinerary", () => {
-  it("activates the itinerary and deactivates others in a transaction", async () => {
-    mockPrisma.$transaction.mockResolvedValue([{}, {}]);
-
-    await activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [] } as never);
-
-    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-    // Verify the activate update was constructed
-    expect(mockPrisma.itinerary.update).toHaveBeenCalledWith({
-      where: { id: "itin-1" },
-      data: {
-        data: expect.anything(),
-        isActive: true,
-        generationStatus: "complete",
-        discoveryStatus: "completed",
-      },
-    });
-    // Verify the deactivate-others updateMany was constructed
-    expect(mockPrisma.itinerary.updateMany).toHaveBeenCalledWith({
-      where: { tripId: "trip-1", id: { not: "itin-1" } },
-      data: { isActive: false },
-    });
-  });
-
-  it("does not throw on success", async () => {
-    mockPrisma.$transaction.mockResolvedValue([{}, {}]);
-
-    await expect(
-      activateGeneratedItinerary("itin-1", "trip-1", { route: [], days: [] } as never)
-    ).resolves.toBeUndefined();
-  });
-});
-
-// ── markGenerationFailed ────────────────────────────────────
-
-describe("markGenerationFailed", () => {
-  it("updates the generation status to failed", async () => {
-    mockPrisma.itinerary.update.mockResolvedValue({});
-
-    await markGenerationFailed("itin-1");
-
-    expect(mockPrisma.itinerary.update).toHaveBeenCalledWith({
-      where: { id: "itin-1" },
-      data: { generationStatus: "failed" },
     });
   });
 });

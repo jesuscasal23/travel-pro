@@ -38,7 +38,6 @@ function isProtected(pathname: string): boolean {
 
 // ── Rate limiting (Upstash Redis sliding window) ───────────────────────────
 // All API rate limiting is centralized here. Tiered by cost:
-//   - /api/v1/trips/*/generate            :  5/hour   (LLM cost protection)
 //   - /api/v1/trips/*/discover-activities :  5/hour   (LLM cost protection)
 //   - /api/v1/trips/*/flights             : 20/min    (SerpApi cost)
 //   - /api/v1/trips/*/activity-images     : 60/min    (cheap: DB reads + Google Places)
@@ -67,12 +66,7 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
   let limit: number;
   let windowSeconds: number;
 
-  if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/generate$/)) {
-    // V1 SSE generation: 5 per hour per IP (LLM cost protection)
-    limitKey = `rl:generate:${ip}`;
-    limit = 5;
-    windowSeconds = 3600;
-  } else if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/discover-activities$/)) {
+  if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/discover-activities$/)) {
     // Discovery batches: 5 per hour per IP (LLM cost protection)
     limitKey = `rl:discover:${ip}`;
     limit = 5;
@@ -100,8 +94,7 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     return null;
   }
 
-  const isExpensiveGenerationRoute =
-    limitKey.startsWith("rl:generate:") || limitKey.startsWith("rl:discover:");
+  const isExpensiveGenerationRoute = limitKey.startsWith("rl:discover:");
 
   try {
     // Upstash Redis REST API — works at the edge without ioredis

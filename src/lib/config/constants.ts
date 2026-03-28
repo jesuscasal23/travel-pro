@@ -34,9 +34,6 @@ export const CONTENT_FILTER_BACKOFF_MS = 600;
 /** How long a "generating" record can exist before being considered stale. */
 export const STALE_GENERATION_MAX_AGE_MS = 2 * 60 * 1000;
 
-/** Max time to wait for flight pre-fetch before continuing generation. */
-export const FLIGHT_PREFETCH_TIMEOUT_MS = 8_000;
-
 // ── Enrichment ──────────────────────────────────────────────
 
 /** Redis cache TTL for weather data. */

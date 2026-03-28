@@ -31,12 +31,3 @@ export const TripIntentInputSchema = z
       message: "Single-city trips require a destination",
     }
   );
-
-export const GenerateTripInputSchema = z.object({
-  profile: ProfileInputSchema.optional(),
-});
-
-export const GenerateActivitiesInputSchema = z.object({
-  profile: ProfileInputSchema.optional(),
-  cityId: z.string().min(1).max(100),
-});

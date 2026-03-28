@@ -5,7 +5,6 @@ export { useAuthStatus } from "./auth/useAuthStatus";
 export { useTrips } from "./trips/useTrips";
 export { useTrip } from "./trips/useTrip";
 export { useCreateTrip } from "./trips/useCreateTrip";
-export { useTripGeneration } from "./trips/useTripGeneration";
 export { useDiscoverActivities } from "./trips/useDiscoverActivities";
 export { useRecordActivitySwipe } from "./trips/useRecordActivitySwipe";
 export { useActivityImages } from "./trips/useActivityImages";
