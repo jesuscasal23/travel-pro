@@ -1,10 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import {
-  changelog,
-  currentAppVersion,
-  getMissedEntries,
-} from "@/data/changelog";
+import { changelog, currentAppVersion, getMissedEntries } from "@/data/changelog";
 
 describe("changelog data", () => {
   it("has at least one entry", () => {
@@ -21,8 +17,7 @@ describe("changelog data", () => {
   it("each entry has at least one section with items", () => {
     for (const entry of changelog) {
       const { added, improved, fixed } = entry.sections;
-      const totalItems =
-        (added?.length ?? 0) + (improved?.length ?? 0) + (fixed?.length ?? 0);
+      const totalItems = (added?.length ?? 0) + (improved?.length ?? 0) + (fixed?.length ?? 0);
       expect(totalItems).toBeGreaterThan(0);
     }
   });
@@ -49,13 +44,6 @@ describe("getMissedEntries", () => {
   });
 
   it("returns entries newer than lastSeen version", () => {
-    // Simulate multiple versions
-    const fakeChangelog = [
-      { version: "0.3.0", date: "2026-04-01", sections: { added: ["C"] } },
-      { version: "0.2.0", date: "2026-03-15", sections: { added: ["B"] } },
-      { version: "0.1.0", date: "2026-03-01", sections: { added: ["A"] } },
-    ];
-
     // Test against real data: if there's only one entry, seeing it means nothing missed
     if (changelog.length === 1) {
       expect(getMissedEntries(changelog[0].version)).toHaveLength(0);
