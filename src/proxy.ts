@@ -40,7 +40,6 @@ function isProtected(pathname: string): boolean {
 // All API rate limiting is centralized here. Tiered by cost:
 //   - /api/v1/trips/*/generate            :  5/hour   (LLM cost protection)
 //   - /api/v1/trips/*/discover-activities :  5/hour   (LLM cost protection)
-//   - /api/generate/select-route          : 10/min    (speculative route selection)
 //   - /api/v1/trips/*/flights             : 20/min    (SerpApi cost)
 //   - /api/v1/trips/*/activity-images     : 60/min    (cheap: DB reads + Google Places)
 //   - /api/v1/enrich/*                    : 60/min    (cheap: external APIs + cache)
@@ -78,11 +77,6 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     limitKey = `rl:discover:${ip}`;
     limit = 5;
     windowSeconds = 3600;
-  } else if (pathname === "/api/generate/select-route") {
-    // Speculative route selection: 10 per minute per IP
-    limitKey = `rl:route-select:${ip}`;
-    limit = 10;
-    windowSeconds = 60;
   } else if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/flights$/)) {
     // On-demand flight search: 20 per minute per IP
     limitKey = `rl:flights:${ip}`;
