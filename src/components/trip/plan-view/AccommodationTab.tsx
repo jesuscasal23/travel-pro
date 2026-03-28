@@ -140,6 +140,18 @@ function HotelCard({
               </div>
             )}
           </div>
+          {hotel.overallRating != null && (
+            <p className="text-muted-foreground mt-1 text-xs">
+              {hotel.overallRating.toFixed(1)}/5
+              {hotel.reviewCount != null && (
+                <span>
+                  {" "}
+                  · {hotel.reviewCount.toLocaleString()} review
+                  {hotel.reviewCount !== 1 ? "s" : ""}
+                </span>
+              )}
+            </p>
+          )}
           {hotel.why && (
             <p className="text-muted-foreground mt-1.5 line-clamp-2 text-sm leading-relaxed">
               {hotel.why}

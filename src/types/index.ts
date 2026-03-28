@@ -97,6 +97,8 @@ export interface CityHotel {
   name: string;
   city: string;
   rating?: number; // star rating (1-5)
+  overallRating?: number; // guest review score (e.g. 4.2/5)
+  reviewCount?: number; // number of guest reviews
   pricePerNight?: number;
   totalPrice?: number;
   currency: string;
