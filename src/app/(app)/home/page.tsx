@@ -101,10 +101,14 @@ export default function HomePage() {
         </section>
 
         {/* Active Trip Card */}
-        {nextTrip && <ActiveTripBento trip={nextTrip} />}
-
-        {/* Trip Preparation */}
-        {nextTrip && <TripPreparation tripId={nextTrip.id} />}
+        {nextTrip ? (
+          <>
+            <ActiveTripBento trip={nextTrip} />
+            <TripPreparation tripId={nextTrip.id} />
+          </>
+        ) : (
+          <NoTripsCard />
+        )}
 
         {/* Next Steps */}
         <NextSteps destination={destination} />
@@ -116,6 +120,30 @@ export default function HomePage() {
         <BeforeYouGo />
       </main>
     </AppScreen>
+  );
+}
+
+/* ── No Trips Empty State ───────────────────────────────────── */
+
+function NoTripsCard() {
+  const router = useRouter();
+
+  return (
+    <section className="mt-8">
+      <button
+        onClick={() => router.push("/plan")}
+        className="bg-card border-edge group w-full rounded-3xl border p-8 text-left transition-shadow hover:shadow-lg"
+      >
+        <div className="mb-4 text-4xl">🌍</div>
+        <h2 className="text-ink font-display text-lg font-bold">Your next adventure awaits</h2>
+        <p className="text-label mt-1 text-sm leading-relaxed">
+          Plan your first trip — pick your destinations and we&apos;ll handle the rest.
+        </p>
+        <span className="text-primary mt-4 inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2">
+          Start planning <ChevronRight className="h-4 w-4" />
+        </span>
+      </button>
+    </section>
   );
 }
 
