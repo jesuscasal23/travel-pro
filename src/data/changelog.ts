@@ -21,11 +21,21 @@ export const changelog: ChangelogEntry[] = [
     version: "0.2.1",
     date: "2026-03-28",
     sections: {
+      added: [
+        "Delete your own trips directly from the trips list",
+        "API reference documentation page",
+        "Auth required on enrichment and photo endpoints for better security",
+      ],
+      improved: [
+        "Rebranded from Travel Pro to Fichi across the entire app",
+        "Error page now shows the reason and lets you copy details for support",
+        "Removed dead code and unused exports for a leaner codebase",
+        "Client-side error reporting replaced with Sentry for better tracking",
+      ],
       fixed: [
         "Fixed a crash that could trap you on an error page after deleting all trips",
         "Deleting a trip now properly clears cached cart, booking, and trip data",
       ],
-      improved: ["Error page now shows the reason and lets you copy details for support"],
     },
   },
   {
