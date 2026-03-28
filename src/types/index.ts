@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Core Type Definitions
+// Fichi — Core Type Definitions
 // ============================================================
 
 /** A city stop on the route */

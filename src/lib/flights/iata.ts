@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — IATA Code Utilities
+// Fichi — IATA Code Utilities
 //
 // Consolidated home for all IATA resolution logic:
 // - parseIataCode: extract IATA from airport labels

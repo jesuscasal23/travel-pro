@@ -1,4 +1,4 @@
-# Travel Pro — Claude Code Guide
+# Fichi — Claude Code Guide
 
 ## Stack
 
@@ -240,15 +240,15 @@ A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itine
 | `/api/v1/flights/book`                   | GET                | Optional    | Auto-submit booking form redirect                         |
 | `/api/v1/flights/booking-url`            | POST               | None        | Legacy booking URL generator                              |
 | **Enrichment**                           |                    |             |                                                           |
-| `/api/v1/enrich/weather`                 | POST               | None        | Weather data enrichment (Open-Meteo + Redis cache)        |
-| `/api/v1/enrich/visa`                    | POST               | None        | Visa requirement enrichment                               |
-| `/api/v1/enrich/accommodation`           | POST               | None        | Hotel/accommodation enrichment                            |
+| `/api/v1/enrich/weather`                 | POST               | Auth        | Weather data enrichment (Open-Meteo + Redis cache)        |
+| `/api/v1/enrich/visa`                    | POST               | Auth        | Visa requirement enrichment                               |
+| `/api/v1/enrich/accommodation`           | POST               | Auth        | Hotel/accommodation enrichment                            |
 | **Profile**                              |                    |             |                                                           |
 | `/api/v1/profile`                        | GET, PATCH, DELETE | Auth        | Upsert profile, GDPR account delete                       |
 | `/api/v1/profile/export`                 | GET                | Auth        | GDPR data export (all user data as JSON)                  |
 | **Other**                                |                    |             |                                                           |
 | `/api/v1/affiliate/redirect`             | GET                | Optional    | Log click + 302 redirect (domain whitelist)               |
-| `/api/v1/places/photo`                   | GET                | None        | Proxy Google Places photos                                |
+| `/api/v1/places/photo`                   | GET                | Auth        | Proxy Google Places photos                                |
 | `/api/v1/client-errors`                  | POST               | None        | Client-side error reporting                               |
 | **Admin**                                |                    |             |                                                           |
 | `/api/v1/admin/stats`                    | GET                | SuperUser   | Platform statistics                                       |

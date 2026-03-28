@@ -1,12 +1,12 @@
 // ============================================================
-// Travel Pro — Privacy Policy Page
+// Fichi — Privacy Policy Page
 // ============================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How Travel Pro collects, uses, and protects your data.",
+  description: "How Fichi collects, uses, and protects your data.",
 };
 
 export default function PrivacyPage() {
@@ -20,9 +20,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-foreground mb-3 text-xl font-semibold">1. Who we are</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Travel Pro is an AI-powered trip planning service. We help travellers plan
-              multi-country itineraries using artificial intelligence. This policy explains how we
-              handle your data in plain language.
+              Fichi is an AI-powered trip planning service. We help travellers plan multi-country
+              itineraries using artificial intelligence. This policy explains how we handle your
+              data in plain language.
             </p>
           </section>
 
@@ -177,7 +177,7 @@ export default function PrivacyPage() {
             href="/"
             className="text-muted-foreground hover:text-foreground text-sm transition-colors"
           >
-            ← Back to Travel Pro
+            ← Back to Fichi
           </Link>
         </div>
       </div>

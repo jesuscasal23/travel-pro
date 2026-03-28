@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Structured Logger
+// Fichi — Structured Logger
 //
 // Lightweight logger with levels, structured output, and
 // optional correlation IDs for request tracing.

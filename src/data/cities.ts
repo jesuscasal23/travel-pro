@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Global Travel Destinations (1.808+)
+// Fichi — Global Travel Destinations (1.808+)
 // Used by the CityCombobox for city selection
 // ============================================================
 

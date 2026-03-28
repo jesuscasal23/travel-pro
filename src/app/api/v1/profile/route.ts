@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Profile API
+// Fichi — Profile API
 // GET    /api/v1/profile        → fetch profile
 // PATCH  /api/v1/profile        → update profile preferences
 // DELETE /api/v1/profile        → delete account (GDPR)

@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Supabase Auth Callback Handler
+// Fichi — Supabase Auth Callback Handler
 // Exchanges auth code for a session after OAuth or email confirmation
 // ============================================================
 import { createServerClient } from "@supabase/ssr";

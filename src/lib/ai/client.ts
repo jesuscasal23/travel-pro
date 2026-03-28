@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Anthropic Client + Claude caller
+// Fichi — Anthropic Client + Claude caller
 //
 // Owns:
 //   - Lazy Anthropic client instantiation

@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Next.js Proxy (formerly Middleware)
+// Fichi — Next.js Proxy (formerly Middleware)
 // Handles auth protection and rate limiting before requests
 // ============================================================
 import { createServerClient } from "@supabase/ssr";

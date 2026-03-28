@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — GET/POST /api/v1/trips
+// Fichi — GET/POST /api/v1/trips
 // List user trips / create new trip
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";

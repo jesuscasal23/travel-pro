@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — GET /api/v1/profile/export
+// Fichi — GET /api/v1/profile/export
 // GDPR data export: returns all user data as JSON
 // ============================================================
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Flight Optimization Types
+// Fichi — Flight Optimization Types
 // ============================================================
 
 /** City returned by the Haiku route-selector with flexible day range */

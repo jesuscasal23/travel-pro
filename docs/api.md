@@ -1,4 +1,4 @@
-# Travel Pro API Reference
+# Fichi API Reference
 
 Every endpoint is documented twice:
 

@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Flight Date Optimizer
+// Fichi — Flight Date Optimizer
 //
 // Given a list of cities with flexible day ranges, finds the
 // date assignment that minimises total flight cost.

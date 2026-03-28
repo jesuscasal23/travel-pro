@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Named Constants
+// Fichi — Named Constants
 //
 // Centralized numeric/timing constants used across the backend.
 // Avoids magic numbers scattered in service files and makes

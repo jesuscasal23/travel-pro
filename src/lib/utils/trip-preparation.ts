@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Trip Preparation Progress Calculator
+// Fichi — Trip Preparation Progress Calculator
 // Derives a checklist + percentage from itinerary route + booking clicks
 // ============================================================
 

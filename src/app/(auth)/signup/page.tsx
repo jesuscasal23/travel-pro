@@ -132,7 +132,7 @@ function SignupForm() {
             <>
               <div className="text-center">
                 <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
-                  Travel Pro
+                  Fichi
                 </p>
                 <h1 className="text-ink mt-3 text-[2.15rem] leading-[1.02] font-bold tracking-[-0.05em]">
                   Create your account

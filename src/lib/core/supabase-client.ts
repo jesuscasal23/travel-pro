@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Supabase Browser Client
+// Fichi — Supabase Browser Client
 // Use in client components
 // ============================================================
 import { createBrowserClient } from "@supabase/ssr";

@@ -58,7 +58,7 @@ export function TripMobileShell({
               </div>
               <div className="absolute inset-x-0 bottom-0 p-5 text-white">
                 <p className="text-[11px] font-semibold tracking-[0.18em] text-white/72 uppercase">
-                  Travel Pro
+                  Fichi
                 </p>
                 <h2 className="mt-2 text-[2rem] leading-[0.95] font-bold tracking-[-0.05em]">
                   {tripTitle}

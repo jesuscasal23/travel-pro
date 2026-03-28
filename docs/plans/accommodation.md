@@ -1,4 +1,4 @@
-# Accommodation Feature Analysis — Travel Pro
+# Accommodation Feature Analysis — Fichi
 
 > Written: February 2026
 > Purpose: Evaluate whether adding accommodation recommendations is worth building, how much revenue it could generate, and how complex the implementation would be.
@@ -7,7 +7,7 @@
 
 ## 1. Current State of the App
 
-Travel Pro already handles accommodation in two implicit ways:
+Fichi already handles accommodation in two implicit ways:
 
 1. **Budget allocation** — `budget.accommodation` is a line item in the generated `TripBudget` (e.g. €3,500 of a €10,000 trip). The AI estimates this figure based on travel style and city count, but recommends no specific hotels.
 2. **Affiliate link builder** — `buildHotelLink()` already exists in `src/lib/affiliate/link-generator.ts` and generates a Booking.com deep-link with city, check-in/out dates, and traveler count. It is **not yet surfaced anywhere in the UI**.
@@ -30,7 +30,7 @@ The app already solves three of the five steps of travel planning:
 | **Where to stay**     | ❌ Not covered                         |
 | What to do            | ✅ Day-by-day activities               |
 
-Accommodation is the **single biggest gap** in the user journey. After a user sees their itinerary, their immediate next question is "where do I actually sleep?" Without an answer the user leaves to search on Booking.com themselves — and Travel Pro loses the conversion.
+Accommodation is the **single biggest gap** in the user journey. After a user sees their itinerary, their immediate next question is "where do I actually sleep?" Without an answer the user leaves to search on Booking.com themselves — and Fichi loses the conversion.
 
 ### User experience argument
 

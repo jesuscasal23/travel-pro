@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — GET/POST/PATCH /api/v1/trips/[id]/booking-clicks
+// Fichi — GET/POST/PATCH /api/v1/trips/[id]/booking-clicks
 // Returns booking clicks for a specific trip + confirm/deny booking
 // + manual booking creation from preparation checklist
 // ============================================================

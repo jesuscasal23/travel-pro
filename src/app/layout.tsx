@@ -20,8 +20,8 @@ const grotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "Travel Pro — AI-Powered Trip Planning",
-    template: "%s | Travel Pro",
+    default: "Fichi — AI-Powered Trip Planning",
+    template: "%s | Fichi",
   },
   description:
     "Plan your dream multi-country trip in minutes. AI-powered itineraries, visa checks, weather insights, and more.",
@@ -33,18 +33,18 @@ export const metadata: Metadata = {
     "budget travel",
     "visa requirements",
   ],
-  authors: [{ name: "Travel Pro" }],
-  creator: "Travel Pro",
+  authors: [{ name: "Fichi" }],
+  creator: "Fichi",
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Travel Pro",
-    title: "Travel Pro — AI-Powered Trip Planning",
+    siteName: "Fichi",
+    title: "Fichi — AI-Powered Trip Planning",
     description: "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Travel Pro — AI-Powered Trip Planning",
+    title: "Fichi — AI-Powered Trip Planning",
     description: "Plan your dream multi-country trip in minutes with AI-powered itineraries.",
   },
   robots: {
@@ -65,7 +65,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#1b2b4b" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Travel Pro" />
+        <meta name="apple-mobile-web-app-title" content="Fichi" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         {/* iOS splash screens — common device sizes */}
         <link

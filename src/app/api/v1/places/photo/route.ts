@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createLogger } from "@/lib/core/logger";
+import { requireAuth } from "@/lib/api/helpers";
+import { UnauthorizedError } from "@/lib/api/errors";
 
 const log = createLogger("places-photo-proxy");
 
@@ -8,8 +10,18 @@ const log = createLogger("places-photo-proxy");
  *
  * Proxies a Google Places photo so the API key never reaches the client.
  * Returns the image bytes with appropriate cache headers.
+ * Requires authentication.
  */
 export async function GET(request: NextRequest) {
+  try {
+    await requireAuth();
+  } catch (err) {
+    if (err instanceof UnauthorizedError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    throw err;
+  }
+
   const ref = request.nextUrl.searchParams.get("ref");
   const width = request.nextUrl.searchParams.get("w") || "400";
 

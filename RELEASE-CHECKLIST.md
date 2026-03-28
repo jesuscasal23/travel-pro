@@ -1,4 +1,4 @@
-# Travel Pro — Production Release Checklist
+# Fichi — Production Release Checklist
 
 > Generated from full codebase audit — 2026-02-18.
 > Last verified against codebase: 2026-03-21

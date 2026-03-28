@@ -12,7 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               href="/admin"
               className="font-grotesk text-lg font-bold text-gray-900 dark:text-white"
             >
-              Travel Pro Admin
+              Fichi Admin
             </Link>
           </div>
           <Link

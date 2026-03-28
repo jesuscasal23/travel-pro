@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (id === "guest") {
     return {
       title: "Your Trip Itinerary",
-      description: "AI-crafted travel itinerary — powered by Travel Pro.",
+      description: "AI-crafted travel itinerary — powered by Fichi.",
     };
   }
 
@@ -61,22 +61,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       openGraph: {
-        title: `${title} | Travel Pro`,
+        title: `${title} | Fichi`,
         description,
         url,
-        siteName: "Travel Pro",
+        siteName: "Fichi",
         type: "article",
       },
       twitter: {
         card: "summary",
-        title: `${title} | Travel Pro`,
+        title: `${title} | Fichi`,
         description,
       },
     };
   } catch {
     return {
       title: "Trip Itinerary",
-      description: "AI-crafted travel itinerary — powered by Travel Pro.",
+      description: "AI-crafted travel itinerary — powered by Fichi.",
     };
   }
 }

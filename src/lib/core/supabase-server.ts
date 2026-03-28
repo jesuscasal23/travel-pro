@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Supabase Server Client
+// Fichi — Supabase Server Client
 // Use in server components and API routes
 // ============================================================
 import { createServerClient } from "@supabase/ssr";

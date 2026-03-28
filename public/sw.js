@@ -1,7 +1,7 @@
-// Travel Pro — Service Worker
+// Fichi — Service Worker
 // Provides app shell caching for offline support and enables PWA install prompt.
 
-const CACHE_NAME = "travel-pro-v1";
+const CACHE_NAME = "fichi-v1";
 
 // App shell files to pre-cache on install
 const APP_SHELL = ["/", "/get-started"];

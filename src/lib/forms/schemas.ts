@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // ============================================================
-// Travel Pro — Form Validation Schemas
+// Fichi — Form Validation Schemas
 //
 // Client-side and server-side form validation used by page
 // components (onboarding, plan, profile).

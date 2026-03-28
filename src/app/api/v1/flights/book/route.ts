@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — GET /api/v1/flights/book
+// Fichi — GET /api/v1/flights/book
 // Returns an auto-submitting HTML form that POSTs to Google's
 // click-tracking endpoint in the user's browser, so the airline
 // receives proper session context, cookies, and referrer.

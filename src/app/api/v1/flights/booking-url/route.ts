@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — POST /api/v1/flights/booking-url
+// Fichi — POST /api/v1/flights/booking-url
 // Legacy endpoint — kept for backwards compatibility.
 // The new /api/v1/flights/book GET endpoint handles booking
 // via browser-side form POST for proper airline session context.

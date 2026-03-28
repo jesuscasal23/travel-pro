@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — GET/DELETE /api/v1/trips/[id]
+// Fichi — GET/DELETE /api/v1/trips/[id]
 // Fetch or delete a specific trip
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";

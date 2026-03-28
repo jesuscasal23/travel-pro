@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Flight Booking Link Builder
+// Fichi — Flight Booking Link Builder
 //
 // Builds Skyscanner deep links for flight searches.
 // Moved from affiliate/link-generator.ts to eliminate the

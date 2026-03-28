@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — City → IATA Airport Code Lookup
+// Fichi — City → IATA Airport Code Lookup
 //
 // Used as a fallback when a city's iataCode is not populated
 // by Stage A (Haiku route selector). Keys are lowercase city

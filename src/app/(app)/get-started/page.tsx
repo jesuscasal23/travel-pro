@@ -65,7 +65,7 @@ export default function LandingPage() {
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <header className="px-2 pt-7 text-center">
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
-              Welcome to Travel Pro
+              Welcome to Fichi
             </p>
             <h1 className="font-display text-ink mt-5 text-[2.85rem] leading-[0.95] font-bold tracking-[-0.05em]">
               Your dream trip,

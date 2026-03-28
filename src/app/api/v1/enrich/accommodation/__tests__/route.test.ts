@@ -4,10 +4,15 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   enrichAccommodation: vi.fn(),
+  getAuthenticatedUserId: vi.fn(),
 }));
 
 vi.mock("@/lib/ai/enrichment", () => ({
   enrichAccommodation: mocks.enrichAccommodation,
+}));
+
+vi.mock("@/lib/core/supabase-server", () => ({
+  getAuthenticatedUserId: mocks.getAuthenticatedUserId,
 }));
 
 vi.mock("@/lib/core/logger", () => ({
@@ -30,7 +35,35 @@ import { POST } from "../route";
 describe("POST /api/v1/enrich/accommodation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getAuthenticatedUserId.mockResolvedValue("user-123");
     mocks.enrichAccommodation.mockResolvedValue([{ city: "Lisbon", hotels: [] }]);
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    mocks.getAuthenticatedUserId.mockResolvedValue(null);
+    const req = new NextRequest("http://localhost:3000/api/v1/enrich/accommodation", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        route: [
+          {
+            id: "lisbon",
+            city: "Lisbon",
+            country: "Portugal",
+            countryCode: "PT",
+            lat: 1,
+            lng: 2,
+            days: 2,
+          },
+        ],
+        dateStart: "2026-06-01",
+        travelers: 2,
+        travelStyle: "smart-budget",
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(401);
   });
 
   it("returns 400 on invalid body", async () => {

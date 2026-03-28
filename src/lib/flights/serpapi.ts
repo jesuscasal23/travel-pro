@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — SerpApi Google Flights Client
+// Fichi — SerpApi Google Flights Client
 //
 // Uses Google Flights data via SerpApi for accurate consumer-facing
 // prices. Booking links remain Skyscanner affiliate links.

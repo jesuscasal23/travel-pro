@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Affiliate Link Generator
+// Fichi — Affiliate Link Generator
 // Builds tracked deep links for Booking.com, GetYourGuide
 //
 // Flight links (Skyscanner) have moved to @/lib/flights/booking-links.

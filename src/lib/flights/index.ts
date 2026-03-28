@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Flight Module Facade
+// Fichi — Flight Module Facade
 //
 // Consolidated entry point for all flight operations.
 // Hides SerpApi details, env checking, IATA resolution,

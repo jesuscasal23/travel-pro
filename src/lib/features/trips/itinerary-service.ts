@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Itinerary Service
+// Fichi — Itinerary Service
 // Centralizes itinerary lifecycle: versioning, activation,
 // generation state transitions. No HTTP concerns.
 // ============================================================

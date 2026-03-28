@@ -17,7 +17,7 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
           href={isAuthenticated ? "/trips" : "/get-started"}
           className="flex items-center gap-2"
         >
-          <span className="text-primary text-xl font-bold">Travel Pro</span>
+          <span className="text-primary text-xl font-bold">Fichi</span>
         </Link>
 
         {/* Right side */}

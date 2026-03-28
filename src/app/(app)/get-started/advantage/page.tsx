@@ -61,7 +61,7 @@ export default function AdvantagePage() {
 
           <header className="px-2 pt-4 text-center">
             <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
-              The Travel Pro Advantage
+              The Fichi Advantage
             </p>
             <h1 className="font-display text-ink mt-4 text-[2.45rem] leading-[0.98] font-bold tracking-[-0.05em]">
               Everything in

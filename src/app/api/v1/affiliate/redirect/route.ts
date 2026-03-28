@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — GET /api/v1/affiliate/redirect
+// Fichi — GET /api/v1/affiliate/redirect
 // Logs affiliate click then redirects to partner URL
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";

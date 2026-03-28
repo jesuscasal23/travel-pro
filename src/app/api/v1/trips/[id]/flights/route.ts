@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — POST /api/v1/trips/[id]/flights
+// Fichi — POST /api/v1/trips/[id]/flights
 // On-demand flight search returning up to 5 options per leg
 // ============================================================
 import { NextResponse } from "next/server";

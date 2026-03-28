@@ -1,4 +1,4 @@
-# Travel Pro — Affiliate Program Research
+# Fichi — Affiliate Program Research
 
 > Last updated: February 2026. Commission rates and program terms change
 > periodically; verify current terms directly with each partner before
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Travel Pro monetises through three affiliate partnerships:
+Fichi monetises through three affiliate partnerships:
 
 | Partner      | Category   | Commission model                         |
 | ------------ | ---------- | ---------------------------------------- |
@@ -202,10 +202,10 @@ entire order.
 | Top-performing travel affiliates (monthly)         | $3,000–$5,000+          |
 | Early-stage site / app (monthly)                   | $50–$300                |
 
-### Travel Pro's advantage
+### Fichi's advantage
 
 Standard travel affiliate sites (blogs, comparison pages) earn from cold
-traffic — visitors who might not be planning a trip at all. Travel Pro users
+traffic — visitors who might not be planning a trip at all. Fichi users
 are **highly qualified**: they have just built a 22-day itinerary, seen the
 budget breakdown, and are actively looking at specific routes and dates.
 

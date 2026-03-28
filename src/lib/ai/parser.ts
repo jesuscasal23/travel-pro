@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — AI Output Parser + Validator
+// Fichi — AI Output Parser + Validator
 //
 // Owns:
 //   - extractJSON()  — strip markdown fences, find outermost {}

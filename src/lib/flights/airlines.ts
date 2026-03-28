@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — Airline IATA Code → Name Resolver
+// Fichi — Airline IATA Code → Name Resolver
 //
 // Static map of the ~50 most common carriers. Returns the IATA
 // code unchanged when not found.

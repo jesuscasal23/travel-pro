@@ -1,5 +1,5 @@
 // ============================================================
-// Travel Pro — SerpApi Google Hotels Client
+// Fichi — SerpApi Google Hotels Client
 //
 // Uses Google Hotels data via SerpApi for accurate consumer-facing
 // prices. Booking links fall back to Booking.com affiliate links.

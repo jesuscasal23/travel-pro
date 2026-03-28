@@ -4,10 +4,15 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   enrichVisa: vi.fn(),
+  getAuthenticatedUserId: vi.fn(),
 }));
 
 vi.mock("@/lib/ai/enrichment", () => ({
   enrichVisa: mocks.enrichVisa,
+}));
+
+vi.mock("@/lib/core/supabase-server", () => ({
+  getAuthenticatedUserId: mocks.getAuthenticatedUserId,
 }));
 
 vi.mock("@/lib/core/logger", () => ({
@@ -30,7 +35,23 @@ import { POST } from "../route";
 describe("POST /api/v1/enrich/visa", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getAuthenticatedUserId.mockResolvedValue("user-123");
     mocks.enrichVisa.mockResolvedValue([{ country: "Portugal", requirement: "visa-free" }]);
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    mocks.getAuthenticatedUserId.mockResolvedValue(null);
+    const req = new NextRequest("http://localhost:3000/api/v1/enrich/visa", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        nationality: "German",
+        route: [{ city: "Lisbon", country: "Portugal", countryCode: "PT", lat: 1, lng: 2 }],
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(401);
   });
 
   it("returns 400 on invalid body", async () => {

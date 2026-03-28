@@ -4,10 +4,15 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   enrichWeather: vi.fn(),
+  getAuthenticatedUserId: vi.fn(),
 }));
 
 vi.mock("@/lib/ai/enrichment", () => ({
   enrichWeather: mocks.enrichWeather,
+}));
+
+vi.mock("@/lib/core/supabase-server", () => ({
+  getAuthenticatedUserId: mocks.getAuthenticatedUserId,
 }));
 
 vi.mock("@/lib/core/logger", () => ({
@@ -30,7 +35,23 @@ import { POST } from "../route";
 describe("POST /api/v1/enrich/weather", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getAuthenticatedUserId.mockResolvedValue("user-123");
     mocks.enrichWeather.mockResolvedValue([{ city: "Lisbon", temp: "22C" }]);
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    mocks.getAuthenticatedUserId.mockResolvedValue(null);
+    const req = new NextRequest("http://localhost:3000/api/v1/enrich/weather", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        route: [{ city: "Lisbon", country: "Portugal", countryCode: "PT", lat: 1, lng: 2 }],
+        dateStart: "2026-06-01",
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(401);
   });
 
   it("returns 400 on invalid body", async () => {
