@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Loader2, Star, Trash2 } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { useRouter } from "next/navigation";
 import { CenteredState } from "@/components/ui/CenteredState";
-import { useTrips, useDeleteAdminTrip } from "@/hooks/api";
+import { useTrips, useDeleteTrip } from "@/hooks/api";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { TripCard } from "@/components/trip/TripCard";
 import { daysUntil } from "@/lib/utils/format/date";
 import { useCityImage } from "@/hooks/useCityImage";
 import type { TripSummary } from "@/types";
 
-function PastTripRow({ trip, isSuperAdmin }: { trip: TripSummary; isSuperAdmin: boolean }) {
+function PastTripRow({ trip }: { trip: TripSummary }) {
   const router = useRouter();
   const cityName = trip.destination || trip.region;
   const countryCode = trip.destinationCountryCode ?? "";
@@ -40,20 +40,16 @@ function PastTripRow({ trip, isSuperAdmin }: { trip: TripSummary; isSuperAdmin: 
           {dateLabel} &bull; {trip.travelers} Traveler{trip.travelers !== 1 ? "s" : ""}
         </p>
       </div>
-      {isSuperAdmin ? (
-        <div onClick={(e) => e.stopPropagation()}>
-          <AdminDeleteButton tripId={trip.id} tripName={cityName} />
-        </div>
-      ) : (
-        <Star className="text-faint h-5 w-5 flex-shrink-0" fill="currentColor" />
-      )}
+      <div onClick={(e) => e.stopPropagation()}>
+        <DeleteTripButton tripId={trip.id} tripName={cityName} />
+      </div>
     </div>
   );
 }
 
-function AdminDeleteButton({ tripId, tripName }: { tripId: string; tripName: string }) {
+function DeleteTripButton({ tripId, tripName }: { tripId: string; tripName: string }) {
   const [confirming, setConfirming] = useState(false);
-  const deleteTrip = useDeleteAdminTrip();
+  const deleteTrip = useDeleteTrip();
   const renderModal = () => {
     if (!confirming) return null;
     const container = document.getElementById("app-container");
@@ -100,7 +96,7 @@ function AdminDeleteButton({ tripId, tripName }: { tripId: string; tripName: str
       <button
         onClick={() => setConfirming(true)}
         className="rounded-lg bg-red-500/10 p-2 text-red-500 transition-colors hover:bg-red-500/20"
-        title="Delete trip (admin)"
+        title="Delete trip"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -111,7 +107,7 @@ function AdminDeleteButton({ tripId, tripName }: { tripId: string; tripName: str
 
 export function TripsPageClient() {
   const router = useRouter();
-  const { trips: tripList, isSuperUser: isSuperAdmin, isLoading, error } = useTrips();
+  const { trips: tripList, isLoading, error } = useTrips();
 
   const upcoming = tripList.filter((t) => daysUntil(t.dateStart) !== null);
   const past = tripList.filter((t) => daysUntil(t.dateStart) === null);
@@ -185,14 +181,12 @@ export function TripsPageClient() {
                       days={days}
                       onClick={() => router.push(`/trips/${trip.id}`)}
                     />
-                    {isSuperAdmin && (
-                      <div
-                        className="absolute right-16 bottom-6 z-10"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <AdminDeleteButton tripId={trip.id} tripName={label} />
-                      </div>
-                    )}
+                    <div
+                      className="absolute right-16 bottom-6 z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DeleteTripButton tripId={trip.id} tripName={label} />
+                    </div>
                   </div>
                 );
               })}
@@ -203,7 +197,7 @@ export function TripsPageClient() {
                 <h3 className="font-display mb-6 text-2xl font-bold">Past Adventures</h3>
                 <div className="flex flex-col gap-4">
                   {past.map((trip) => (
-                    <PastTripRow key={trip.id} trip={trip} isSuperAdmin={isSuperAdmin} />
+                    <PastTripRow key={trip.id} trip={trip} />
                   ))}
                 </div>
               </section>

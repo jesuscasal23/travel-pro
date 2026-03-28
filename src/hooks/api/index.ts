@@ -8,6 +8,7 @@ export { useCreateTrip } from "./trips/useCreateTrip";
 export { useDiscoverActivities } from "./trips/useDiscoverActivities";
 export { useRecordActivitySwipe } from "./trips/useRecordActivitySwipe";
 export { useActivityImages } from "./trips/useActivityImages";
+export { useDeleteTrip } from "./trips/useDeleteTrip";
 
 // Enrichment
 export { useVisaEnrichment } from "./enrichment/useVisaEnrichment";

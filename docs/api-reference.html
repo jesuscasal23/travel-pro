@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Pro API Reference</title>
+<style>
+  :root {
+    --primary: #0D7377;
+    --primary-light: #0f8a8f;
+    --accent: #E85D4A;
+    --navy: #1b2b4b;
+    --bg: #ffffff;
+    --bg-surface: #f8f9fb;
+    --bg-code: #f1f3f5;
+    --text: #1a1a2e;
+    --text-secondary: #555770;
+    --text-muted: #8a8da0;
+    --border: #e2e4ea;
+    --border-light: #eef0f4;
+    --shadow: rgba(0,0,0,0.06);
+    --get: #16a34a;
+    --get-bg: #f0fdf4;
+    --post: #2563eb;
+    --post-bg: #eff6ff;
+    --patch: #d97706;
+    --patch-bg: #fffbeb;
+    --delete: #dc2626;
+    --delete-bg: #fef2f2;
+    --put: #7c3aed;
+    --put-bg: #f5f3ff;
+    --auth-none: #6b7280;
+    --auth-optional: #0D7377;
+    --auth-required: #2563eb;
+    --auth-superuser: #E85D4A;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117;
+      --bg-surface: #1a1d28;
+      --bg-code: #252836;
+      --text: #e4e5ed;
+      --text-secondary: #a0a3b5;
+      --text-muted: #6b6f82;
+      --border: #2a2d3a;
+      --border-light: #22252f;
+      --shadow: rgba(0,0,0,0.3);
+      --get-bg: #052e16;
+      --post-bg: #0c1a3d;
+      --patch-bg: #2d1a00;
+      --delete-bg: #2d0808;
+      --put-bg: #1a0a36;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .header .subtitle {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-left: 12px;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 8px; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+
+  .count-badge {
+    background: var(--primary);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .search-box {
+    padding: 7px 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 13px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box::placeholder { color: rgba(255,255,255,0.5); }
+  .search-box:focus { border-color: var(--primary-light); }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+
+  .intro {
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: var(--bg-surface);
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .intro strong { color: var(--text); }
+
+  /* Groups */
+  .group {
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .group-header:hover { background: var(--border-light); }
+
+  .group-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .group-chevron {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s;
+    color: var(--text-muted);
+  }
+
+  .group.collapsed .group-chevron { transform: rotate(-90deg); }
+
+  .group-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .group-name { color: var(--primary-light); }
+  }
+
+  .group-count {
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--primary);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .group-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .group-toggle-btn {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .group-toggle-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .group-note {
+    padding: 10px 20px;
+    background: var(--patch-bg);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .group-note a { color: var(--primary); text-decoration: none; }
+  .group-note a:hover { text-decoration: underline; }
+
+  .group-body { display: block; }
+  .group.collapsed .group-body { display: none; }
+
+  /* Endpoints */
+  .endpoint {
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .endpoint:last-child { border-bottom: none; }
+
+  .endpoint-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+
+  .endpoint-row:hover { background: var(--bg-surface); }
+
+  .endpoint-methods {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .method-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  .method-GET { background: var(--get-bg); color: var(--get); }
+  .method-POST { background: var(--post-bg); color: var(--post); }
+  .method-PATCH { background: var(--patch-bg); color: var(--patch); }
+  .method-DELETE { background: var(--delete-bg); color: var(--delete); }
+  .method-PUT { background: var(--put-bg); color: var(--put); }
+
+  .endpoint-path {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .endpoint-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .auth-pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .auth-none { background: #f3f4f6; color: var(--auth-none); }
+  .auth-optional { background: #f0fdfa; color: var(--auth-optional); }
+  .auth-required { background: #eff6ff; color: var(--auth-required); }
+  .auth-superuser { background: #fef2f2; color: var(--auth-superuser); }
+
+  @media (prefers-color-scheme: dark) {
+    .auth-none { background: #1f2937; }
+    .auth-optional { background: #0a2e2f; }
+    .auth-required { background: #0c1a3d; }
+    .auth-superuser { background: #2d1212; }
+  }
+
+  .expand-chevron {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+
+  .endpoint.expanded .expand-chevron { transform: rotate(90deg); }
+
+  .endpoint-detail {
+    display: none;
+    padding: 0 20px 16px 20px;
+    margin-left: 0;
+  }
+
+  .endpoint.expanded .endpoint-detail { display: block; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 640px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .endpoint-row { flex-wrap: wrap; }
+    .endpoint-desc { width: 100%; order: 5; flex-basis: 100%; white-space: normal; }
+    .search-box { width: 140px; }
+  }
+
+  .detail-card {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-surface);
+  }
+
+  .detail-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .detail-card-label.dev { color: var(--primary); }
+  .detail-card-label.pm { color: var(--accent); }
+
+  .detail-card-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .detail-card-text a { color: var(--primary); text-decoration: none; }
+  .detail-card-text a:hover { text-decoration: underline; }
+
+  .detail-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .meta-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: var(--bg-code);
+    color: var(--text-secondary);
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 32px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-surface);
+  }
+
+  .footer h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .ticket-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .ticket-table th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ticket-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-secondary);
+  }
+
+  .ticket-table a { color: var(--primary); text-decoration: none; }
+  .ticket-table a:hover { text-decoration: underline; }
+
+  .timestamp {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .hidden { display: none !important; }
+
+  .no-results {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Travel Pro API</h1>
+    <span class="subtitle">Reference</span>
+    <span class="count-badge" id="endpoint-count"></span>
+  </div>
+  <div class="header-right">
+    <input type="text" class="search-box" id="search" placeholder="Filter endpoints..." autocomplete="off">
+  </div>
+</div>
+
+<div class="container">
+  <div class="intro">
+    Every endpoint documented twice: <strong>Developer</strong> (technical details) and <strong>PM</strong> (plain-language). Base URL: <code>/api</code> &mdash; all versioned endpoints under <code>/api/v1</code>.
+  </div>
+
+  <div id="groups">
+
+    <!-- Trips -->
+    <div class="group" data-group="trips">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Trips</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/trips" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/trips</span>
+            <span class="endpoint-desc">Fetches the user's list of saved trips so they can see all their planned travels in one place.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns the authenticated user's trips with active itinerary metadata, destination info derived from route data, and a <code>isSuperUser</code> flag. Supports pagination.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Fetches the user's list of saved trips so they can see all their planned travels in one place.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/trips" data-auth="optional">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/trips</span>
+            <span class="endpoint-desc">Creates a new trip when a user finishes the planning questionnaire. Works for guests too.</span>
+            <span class="auth-pill auth-optional">Optional</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Creates a new trip record. Accepts trip intent fields (region, dates, travelers, budget). If unauthenticated, sets a guest owner cookie for later claim. Also builds the initial itinerary skeleton and prefetches flights.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Creates a new trip when a user finishes the planning questionnaire. Works for guests too &mdash; they can plan without signing up, and claim the trip later if they create an account.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Optional (supports guests)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/trips/[id]" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]</span>
+            <span class="endpoint-desc">Loads a specific trip's full details &mdash; the itinerary, cities, activities, budget.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns a single trip with its active itinerary, serialized via <code>tripSerializer</code>. 404 if not found, 403 if not owner.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Loads a specific trip's full details &mdash; the itinerary, cities, activities, budget &mdash; everything needed to display the trip page.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="DELETE" data-path="/api/v1/trips/[id]" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-DELETE">DEL</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]</span>
+            <span class="endpoint-desc">Lets a user permanently delete a trip they no longer want.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Deletes a trip and all associated data (itineraries, swipes, edits, clicks). Cascading delete.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Lets a user permanently delete a trip they no longer want.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Activity Discovery -->
+    <div class="group" data-group="activity-discovery">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Activity Discovery</span>
+          <span class="group-count">3</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/trips/[id]/discover-activities" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/discover-activities</span>
+            <span class="endpoint-desc">Uses AI to suggest fun things to do in each city. Users swipe to personalize.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Calls Claude Haiku to generate swipeable activity candidates for a specific city within the trip. Streams results via SSE. Respects <code>req.signal</code> for client-side cancellation. Resolves user profile from trip or request context.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Uses AI to suggest fun things to do in each city. The user sees activity cards they can swipe through (like/dislike) to personalize their itinerary.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span><span class="meta-tag">Rate limit: 60s timeout</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/trips/[id]/activity-swipes" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/activity-swipes</span>
+            <span class="endpoint-desc">Saves the user's choice when they swipe right or left on a suggested activity.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Records a like/dislike decision on a discovered activity. Accepts a <code>final</code> flag to mark discovery as complete for a city. Returns updated activity and discovery status.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Saves the user's choice when they swipe right (want it) or left (skip it) on a suggested activity. Once they've reviewed all suggestions for a city, that city is marked as complete.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/trips/[id]/activity-images" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/activity-images</span>
+            <span class="endpoint-desc">Loads photos for activity cards so users can see what each place looks like.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Batch-resolves images for 1-30 activities by ID. Returns image URLs for rendering activity cards.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Loads photos for activity cards so users can see what each place looks like before deciding.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Flights -->
+    <div class="group" data-group="flights">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Flights</span>
+          <span class="group-count">3</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/trips/[id]/flights" data-auth="optional">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/flights</span>
+            <span class="endpoint-desc">Searches for real flight options between cities so users can compare prices and times.</span>
+            <span class="auth-pill auth-optional">Optional</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">On-demand flight search for a trip leg. Calls SerpApi with optional filters (non-stop, max price). Returns up to 5 options per leg. Requires trip access (owner or guest).</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Searches for real flight options between cities in the trip so users can compare prices and times.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Optional (supports guests)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/trips/[id]/optimize" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/optimize</span>
+            <span class="endpoint-desc">Finds the best flight prices across the entire trip route.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Runs SerpApi flight price optimization across the full itinerary route. Returns a <code>FlightSkeleton</code> with per-leg pricing and a baseline total. Client is responsible for persisting the result.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Finds the best flight prices across the entire trip route and shows users how much the whole journey would cost.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/flights/book" data-auth="optional">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/flights/book</span>
+            <span class="endpoint-desc">Sends users to the airline's booking page in a way that actually works.</span>
+            <span class="auth-pill auth-optional">Optional</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text"><strong>Returns HTML, not JSON.</strong> Resolves a flight booking token via SerpApi, logs an affiliate click (best-effort, non-blocking), and returns an auto-submitting HTML form that POSTs to the airline. This preserves browser context (cookies, session, referrer) that airlines require. Handles SerpApi rate limits with 429. See <a href="https://linear.app/travel-pro/issue/TRA-80">TRA-80</a> for planned revisit.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">When a user clicks "Book" on a flight, this sends them to the airline's booking page in a way that actually works (airlines are picky about how you arrive). We track the click for analytics.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Optional</span><span class="meta-tag">Returns HTML</span><span class="meta-tag"><a href="https://linear.app/travel-pro/issue/TRA-80">TRA-80</a></span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Selections (Travel Wallet) -->
+    <div class="group" data-group="selections">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Selections (Travel Wallet)</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/selections/cart" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/selections/cart</span>
+            <span class="endpoint-desc">Shows the user's saved picks that they haven't booked yet &mdash; their "shopping cart".</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns all unbooked selections (flights + hotels) across all trips for the authenticated user. Requires a profile.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Shows the user's saved picks that they haven't booked yet &mdash; their "shopping cart" of flights and hotels across all trips.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/selections/count" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/selections/count</span>
+            <span class="endpoint-desc">Powers the notification badge that shows how many unbooked picks the user has.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns a count of unbooked selections. Lightweight endpoint for badge/notification display.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Powers the notification badge that shows how many unbooked picks the user has saved.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET,PUT,DELETE,PATCH" data-path="/api/v1/trips/[id]/selections/flights" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span><span class="method-badge method-PUT">PUT</span><span class="method-badge method-DELETE">DEL</span><span class="method-badge method-PATCH">PATCH</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/selections/flights</span>
+            <span class="endpoint-desc">Save, update, remove, or mark as booked preferred flight options for a trip.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">CRUD for flight selections within a trip. <code>PUT</code> creates or updates a selection. <code>DELETE</code> removes it. <code>PATCH</code> marks it as booked. <code>GET</code> returns all flight selections for the trip.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Lets users save, update, remove, or mark as booked their preferred flight options for a trip. Think of it as a wishlist for flights.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner + profile)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET,PUT,DELETE,PATCH" data-path="/api/v1/trips/[id]/selections/hotels" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span><span class="method-badge method-PUT">PUT</span><span class="method-badge method-DELETE">DEL</span><span class="method-badge method-PATCH">PATCH</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/selections/hotels</span>
+            <span class="endpoint-desc">Same as flight selections but for hotels &mdash; save, compare, and track accommodations.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">CRUD for hotel selections within a trip. Same structure as flight selections &mdash; <code>PUT</code> to save, <code>DELETE</code> to remove, <code>PATCH</code> to mark booked, <code>GET</code> to list.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Same as flight selections but for hotels &mdash; save, compare, and track which accommodations you want to book.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner + profile)</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Booking & Affiliate Tracking -->
+    <div class="group" data-group="booking">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Booking &amp; Affiliate Tracking</span>
+          <span class="group-count">2</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="GET,POST,PATCH" data-path="/api/v1/trips/[id]/booking-clicks" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span><span class="method-badge method-POST">POST</span><span class="method-badge method-PATCH">PATCH</span></div>
+            <span class="endpoint-path">/api/v1/trips/[id]/booking-clicks</span>
+            <span class="endpoint-desc">Part of trip preparation checklist. Track and confirm booking status.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Manages booking confirmations in the trip preparation checklist. <code>GET</code> fetches existing clicks for a trip. <code>POST</code> creates a manual booking record (user booked outside the app). <code>PATCH</code> confirms or denies whether a click resulted in an actual booking.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Part of the trip preparation checklist. Users can confirm "yes, I booked this flight/hotel" or manually add bookings they made elsewhere. Helps track what's done vs. what still needs booking.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required (trip owner)</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/affiliate/redirect" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/affiliate/redirect</span>
+            <span class="endpoint-desc">Logs affiliate click and sends user to partner site (Skyscanner, Booking.com, etc.).</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Logs an affiliate click (provider, city, IP hash, optional metadata) to the <code>affiliateClick</code> table, then 302 redirects to the partner URL. Domain whitelist enforced. Used by <code>buildTrackedLink()</code> in frontend components.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">When a user clicks a link to Skyscanner, Booking.com, or GetYourGuide, this logs the click for analytics and sends them to the partner site. Works for non-logged-in users too.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None (tracks guests too)</span><span class="meta-tag">302 redirect</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Enrichment -->
+    <div class="group" data-group="enrichment">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Enrichment</span>
+          <span class="group-count">3</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-note">These endpoints currently lack auth and rate limiting. See <a href="https://linear.app/travel-pro/issue/TRA-82">TRA-82</a> for planned hardening.</div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/enrich/weather" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/enrich/weather</span>
+            <span class="endpoint-desc">Adds weather forecasts to each city so users know what to expect.</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Enriches a trip route with weather forecasts. Uses Open-Meteo API with Redis 7-day cache. Accepts city stops with dates. Uses <code>createEnrichmentRoute()</code> factory.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Adds weather forecasts to each city in the trip so users know what to expect and can pack accordingly.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None (see TRA-82)</span><span class="meta-tag"><a href="https://linear.app/travel-pro/issue/TRA-82">TRA-82</a></span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/enrich/visa" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/enrich/visa</span>
+            <span class="endpoint-desc">Checks if the user needs a visa based on their passport.</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Enriches a trip with visa requirements based on user nationality and destination countries. Uses Passport Index static data.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Checks if the user needs a visa for any of their destinations based on their passport, and shows requirements like max stay days.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None (see TRA-82)</span><span class="meta-tag"><a href="https://linear.app/travel-pro/issue/TRA-82">TRA-82</a></span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/enrich/accommodation" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/enrich/accommodation</span>
+            <span class="endpoint-desc">Suggests hotels and places to stay that match budget and travel style.</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Generates accommodation recommendations using AI based on route, dates, traveler count, and travel style.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Suggests hotels and places to stay that match the user's budget and travel style for each city.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None (see TRA-82)</span><span class="meta-tag"><a href="https://linear.app/travel-pro/issue/TRA-82">TRA-82</a></span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Profile -->
+    <div class="group" data-group="profile">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Profile</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/profile" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/profile</span>
+            <span class="endpoint-desc">Loads the user's travel preferences and account info.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns the authenticated user's profile (nationality, home airport, travel style, interests, vibes, onboarding status, premium/superuser flags). Serialized via <code>profileSerializer</code>.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Loads the user's travel preferences and account info for the profile/settings page.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="PATCH" data-path="/api/v1/profile" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-PATCH">PATCH</span></div>
+            <span class="endpoint-path">/api/v1/profile</span>
+            <span class="endpoint-desc">Saves changes when a user updates their travel preferences or settings.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Upserts profile fields. Accepts partial updates. Validates with Zod schema.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Saves changes when a user updates their travel preferences, nationality, home airport, or other settings.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="DELETE" data-path="/api/v1/profile" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-DELETE">DEL</span></div>
+            <span class="endpoint-path">/api/v1/profile</span>
+            <span class="endpoint-desc">Permanently delete account and all data. Required for GDPR compliance.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">GDPR account deletion. Deletes the profile, all associated trips, and calls Supabase admin API to remove the auth user. Irreversible.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Lets a user permanently delete their account and all their data. Required for GDPR compliance.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span><span class="meta-tag">Irreversible</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/profile/export" data-auth="required">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/profile/export</span>
+            <span class="endpoint-desc">Download all user data as a file. GDPR data portability.</span>
+            <span class="auth-pill auth-required">Required</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Exports all user data as a JSON download (profile, trips, itineraries, swipes, clicks). Includes timestamp. GDPR data portability requirement.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Lets a user download all their data as a file. Required for GDPR &mdash; users have the right to take their data with them.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Required</span><span class="meta-tag">JSON download</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Admin -->
+    <div class="group" data-group="admin">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Admin (Superuser Only)</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-note">These endpoints are restricted to superuser accounts. They power internal tooling for monitoring and managing the platform.</div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/admin/stats" data-auth="superuser">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/admin/stats</span>
+            <span class="endpoint-desc">Dashboard numbers &mdash; how many users, trips, and itineraries exist.</span>
+            <span class="auth-pill auth-superuser">Superuser</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns aggregate platform statistics: total users, trips, itineraries, and counts by generation/discovery status. Uses <code>Promise.all</code> for parallel queries.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Dashboard numbers &mdash; how many users, trips, and itineraries exist, and how many are in each stage of generation.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Superuser</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/admin/users" data-auth="superuser">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/admin/users</span>
+            <span class="endpoint-desc">Browse and search all users on the platform.</span>
+            <span class="auth-pill auth-superuser">Superuser</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Paginated user list with search (by nationality, home airport, user ID). Includes trip count per user. Query params: <code>page</code>, <code>limit</code>, <code>search</code>.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Browse and search all users on the platform. See who they are and how many trips they've planned.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Superuser</span><span class="meta-tag">Paginated</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/admin/trips" data-auth="superuser">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/admin/trips</span>
+            <span class="endpoint-desc">Browse and search all trips on the platform.</span>
+            <span class="auth-pill auth-superuser">Superuser</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Paginated trip list with search (by destination, region, trip ID). Includes profile association and itinerary count.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Browse and search all trips on the platform. Useful for debugging user issues or understanding usage patterns.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Superuser</span><span class="meta-tag">Paginated</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="DELETE" data-path="/api/v1/admin/trips/[id]" data-auth="superuser">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-DELETE">DEL</span></div>
+            <span class="endpoint-path">/api/v1/admin/trips/[id]</span>
+            <span class="endpoint-desc">Delete any trip on the platform &mdash; for cleaning up test data or support.</span>
+            <span class="auth-pill auth-superuser">Superuser</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Admin-level trip deletion. Bypasses ownership check.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Delete any trip on the platform &mdash; for cleaning up test data or handling support requests.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: Superuser</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Infrastructure -->
+    <div class="group" data-group="infrastructure">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <div class="group-header-left">
+          <svg class="group-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+          <span class="group-name">Infrastructure</span>
+          <span class="group-count">3</span>
+        </div>
+        <div class="group-actions">
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); expandAllInGroup(this)">Expand all</button>
+          <button class="group-toggle-btn" onclick="event.stopPropagation(); collapseAllInGroup(this)">Collapse all</button>
+        </div>
+      </div>
+      <div class="group-body">
+
+        <div class="endpoint" data-methods="GET" data-path="/api/health" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/health</span>
+            <span class="endpoint-desc">A simple "is the app working?" check. Monitoring tools ping this.</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Returns service health with individual component checks (Supabase, database). Returns 200 if all healthy, 207 if partial failure. Force-dynamic.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">A simple "is the app working?" check. Monitoring tools ping this to alert us if something is down.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None</span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="POST" data-path="/api/v1/client-errors" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-POST">POST</span></div>
+            <span class="endpoint-path">/api/v1/client-errors</span>
+            <span class="endpoint-desc">Catches browser errors so we can find and fix bugs.</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Fire-and-forget client error reporter. Validates payload with Zod, records error with user agent info, returns 202. Possible overlap with Sentry &mdash; see <a href="https://linear.app/travel-pro/issue/TRA-85">TRA-85</a>.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Catches errors that happen in the user's browser so we can find and fix bugs. May overlap with our existing error tracking (Sentry) &mdash; under review.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None</span><span class="meta-tag">202 response</span><span class="meta-tag"><a href="https://linear.app/travel-pro/issue/TRA-85">TRA-85</a></span></div>
+          </div>
+        </div>
+
+        <div class="endpoint" data-methods="GET" data-path="/api/v1/places/photo" data-auth="none">
+          <div class="endpoint-row" onclick="toggleEndpoint(this)">
+            <svg class="expand-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
+            <div class="endpoint-methods"><span class="method-badge method-GET">GET</span></div>
+            <span class="endpoint-path">/api/v1/places/photo</span>
+            <span class="endpoint-desc">Loads city and place photos without exposing our Google API key.</span>
+            <span class="auth-pill auth-none">None</span>
+          </div>
+          <div class="endpoint-detail">
+            <div class="detail-grid">
+              <div class="detail-card"><div class="detail-card-label dev">Developer</div><div class="detail-card-text">Proxies Google Places photos to keep the API key server-side. Query params: <code>ref</code> (photo reference), <code>w</code> (width). Returns image bytes with 24h client cache / 7d server cache.</div></div>
+              <div class="detail-card"><div class="detail-card-label pm">PM</div><div class="detail-card-text">Loads city and place photos throughout the app without exposing our Google API key to the browser.</div></div>
+            </div>
+            <div class="detail-meta"><span class="meta-tag">Auth: None (see <a href="https://linear.app/travel-pro/issue/TRA-83">TRA-83</a>)</span><span class="meta-tag">Image proxy</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div id="no-results" class="no-results hidden">No endpoints match your search.</div>
+
+  <!-- Related Linear Tickets -->
+  <div class="footer">
+    <h2>Related Linear Tickets</h2>
+    <table class="ticket-table">
+      <thead><tr><th>Ticket</th><th>Summary</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://linear.app/travel-pro/issue/TRA-80">TRA-80</a></td><td>Revisit <code>/flights/book</code> endpoint complexity</td></tr>
+        <tr><td><a href="https://linear.app/travel-pro/issue/TRA-82">TRA-82</a></td><td>Add auth + rate limiting to enrichment endpoints</td></tr>
+        <tr><td><a href="https://linear.app/travel-pro/issue/TRA-83">TRA-83</a></td><td>Add auth to <code>/places/photo</code> proxy</td></tr>
+        <tr><td><a href="https://linear.app/travel-pro/issue/TRA-84">TRA-84</a></td><td>Remove share functionality (<code>/share/[token]</code>)</td></tr>
+        <tr><td><a href="https://linear.app/travel-pro/issue/TRA-85">TRA-85</a></td><td>Revisit <code>/client-errors</code> &mdash; possible Sentry overlap</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="timestamp">Generated <span id="gen-date"></span> from <code>docs/api.md</code></div>
+</div>
+
+<script>
+  // Set endpoint count and generation date
+  const endpoints = document.querySelectorAll('.endpoint');
+  document.getElementById('endpoint-count').textContent = endpoints.length + ' endpoints';
+  document.getElementById('gen-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Toggle group collapse
+  function toggleGroup(header) {
+    header.closest('.group').classList.toggle('collapsed');
+  }
+
+  // Toggle endpoint expand
+  function toggleEndpoint(row) {
+    row.closest('.endpoint').classList.toggle('expanded');
+  }
+
+  // Expand/collapse all endpoints in a group
+  function expandAllInGroup(btn) {
+    const group = btn.closest('.group');
+    group.classList.remove('collapsed');
+    group.querySelectorAll('.endpoint').forEach(e => e.classList.add('expanded'));
+  }
+
+  function collapseAllInGroup(btn) {
+    const group = btn.closest('.group');
+    group.querySelectorAll('.endpoint').forEach(e => e.classList.remove('expanded'));
+  }
+
+  // Search / filter
+  const searchInput = document.getElementById('search');
+  const noResults = document.getElementById('no-results');
+
+  searchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    let visibleCount = 0;
+
+    document.querySelectorAll('.group').forEach(group => {
+      let groupVisible = 0;
+
+      group.querySelectorAll('.endpoint').forEach(ep => {
+        const path = ep.dataset.path.toLowerCase();
+        const methods = ep.dataset.methods.toLowerCase();
+        const auth = ep.dataset.auth.toLowerCase();
+        const desc = ep.querySelector('.endpoint-desc').textContent.toLowerCase();
+        const devText = ep.querySelector('.detail-card-label.dev') ?
+          ep.querySelector('.detail-card-label.dev').parentElement.querySelector('.detail-card-text').textContent.toLowerCase() : '';
+
+        const match = !q || path.includes(q) || methods.includes(q) || auth.includes(q) || desc.includes(q) || devText.includes(q);
+
+        ep.classList.toggle('hidden', !match);
+        if (match) groupVisible++;
+      });
+
+      group.classList.toggle('hidden', groupVisible === 0);
+      if (groupVisible > 0) group.classList.remove('collapsed');
+      visibleCount += groupVisible;
+    });
+
+    noResults.classList.toggle('hidden', visibleCount > 0);
+  });
+
+  // Keyboard shortcut: focus search with /
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+      searchInput.blur();
+    }
+  });
+</script>
+</body>
+</html>
