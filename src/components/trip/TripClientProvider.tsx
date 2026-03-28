@@ -20,7 +20,7 @@ import { TripProvider, type TripContextValue } from "@/components/trip/TripConte
 import {
   DISCOVERY_TOTAL_CARDS,
   advanceDiscoveryCursor,
-  setDiscoveryCards,
+  initDiscoveryQueue,
   createDiscoveryQueueState,
 } from "@/lib/features/trips/discovery-queue";
 import type { CityAccommodation, DiscoveryStatus, Itinerary } from "@/types";
@@ -136,7 +136,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const shouldRunDiscovery =
     tripId !== "guest" &&
     !!localItinerary &&
-    localItinerary.days.length === 0 &&
     localItinerary.route.length > 0 &&
     (discoveryStatus === "pending" || discoveryStatus === "in_progress");
 
@@ -162,8 +161,14 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       .then((activities) => {
         if (cancelled) return;
         setDiscoveryError(null);
-        setDiscoveryStatusOverride("in_progress");
-        setQueueState((prev) => setDiscoveryCards(prev, activities));
+        const queue = initDiscoveryQueue(activities);
+        if (queue.cards.length === 0) {
+          // All activities already swiped — mark as completed
+          setDiscoveryStatusOverride("completed");
+        } else {
+          setDiscoveryStatusOverride("in_progress");
+        }
+        setQueueState(queue);
         setDiscoveryDone(true);
       })
       .catch((error) => {
@@ -191,8 +196,10 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     const card = discoveryCards[queueState.cursor];
     if (!card || !discoveryCity) return;
 
+    const nextDecidedCount = queueState.decidedCount + 1;
     const nextCursor = queueState.cursor + 1;
-    const isFinalSwipe = nextCursor >= DISCOVERY_TOTAL_CARDS || nextCursor >= discoveryCards.length;
+    const isFinalSwipe =
+      nextDecidedCount >= DISCOVERY_TOTAL_CARDS || nextCursor >= discoveryCards.length;
 
     setQueueState((prev) => advanceDiscoveryCursor(prev));
     if (isFinalSwipe) {
@@ -201,8 +208,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
     recordActivitySwipeMutation.mutate({
       tripId,
-      destination: discoveryCity.city,
-      activity: card,
+      activityId: card.id,
       decision,
       isFinal: isFinalSwipe,
     });

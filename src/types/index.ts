@@ -51,6 +51,15 @@ export interface ActivityDiscoveryCandidate {
   imageUrl: string | null;
 }
 
+/** A persisted discovered activity row (includes DB id and swipe state). */
+export interface DiscoveredActivityRow extends ActivityDiscoveryCandidate {
+  id: string;
+  cityId: string;
+  city: string;
+  decision: "liked" | "disliked" | null;
+  decidedAt: string | null;
+}
+
 /** A single day in the itinerary */
 export interface TripDay {
   day: number;

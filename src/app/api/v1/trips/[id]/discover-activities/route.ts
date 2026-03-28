@@ -21,6 +21,7 @@ export const POST = apiHandler(
     const profile = await resolveTripUserProfile(tripAccess.profileId, requestProfile);
     const activities = await discoverActivities({
       tripId: params.id,
+      profileId: tripAccess.profileId ?? null,
       profile,
       cityId,
       signal: req.signal,

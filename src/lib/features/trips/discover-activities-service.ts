@@ -11,7 +11,7 @@ import {
   assembleDiscoverActivitiesPrompt,
 } from "@/lib/ai/prompts/discover-activities";
 import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
-import type { ActivityDiscoveryCandidate, UserProfile } from "@/types";
+import type { DiscoveredActivityRow, UserProfile } from "@/types";
 import { loadTripContext } from "./trip-query-service";
 import { findActiveItinerary } from "./itinerary-service";
 import { resolveActivityImages } from "./activity-image-service";
@@ -29,6 +29,7 @@ const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchem
 
 interface DiscoverActivitiesInput {
   tripId: string;
+  profileId: string | null;
   profile: UserProfile;
   cityId: string;
   signal?: AbortSignal;
@@ -36,8 +37,8 @@ interface DiscoverActivitiesInput {
 
 export async function discoverActivities(
   input: DiscoverActivitiesInput
-): Promise<ActivityDiscoveryCandidate[]> {
-  const { tripId, profile, cityId, signal } = input;
+): Promise<DiscoveredActivityRow[]> {
+  const { tripId, profileId, profile, cityId, signal } = input;
   const t0 = Date.now();
 
   const { intent } = await loadTripContext(tripId);
@@ -46,19 +47,35 @@ export async function discoverActivities(
     throw new ActiveItineraryNotFoundError({ tripId });
   }
 
-  if (itineraryRecord.discoveryStatus === "pending") {
-    await prisma.itinerary.update({
-      where: { id: itineraryRecord.id },
-      data: { discoveryStatus: "in_progress" },
-    });
-  }
-
   const itinerary = parseItineraryData(itineraryRecord.data);
   const city = itinerary.route.find((stop) => stop.id === cityId);
   if (!city) {
     throw new BadRequestError(`City "${cityId}" not found in itinerary route`, {
       cityId,
       tripId,
+    });
+  }
+
+  // ── Check DB for existing activities ─────────────────────────────────────
+  const existing = await prisma.discoveredActivity.findMany({
+    where: { tripId, cityId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (existing.length > 0) {
+    log.info("Returning cached discovered activities", {
+      tripId,
+      cityId,
+      count: existing.length,
+    });
+    return existing.map(toDiscoveredActivityRow);
+  }
+
+  // ── Generate via Claude ──────────────────────────────────────────────────
+  if (itineraryRecord.discoveryStatus === "pending") {
+    await prisma.itinerary.update({
+      where: { id: itineraryRecord.id },
+      data: { discoveryStatus: "in_progress" },
     });
   }
 
@@ -109,7 +126,12 @@ export async function discoverActivities(
   const imageUrls = await resolveActivityImages(parsed.data, city.city, signal);
   throwIfAborted(signal);
 
-  const activities: ActivityDiscoveryCandidate[] = parsed.data.map((activity, i) => ({
+  // ── Bulk-insert into DiscoveredActivity ──────────────────────────────────
+  const rows = parsed.data.map((activity, i) => ({
+    tripId,
+    profileId,
+    cityId,
+    city: city.city,
     name: activity.name,
     description: activity.description,
     category: activity.category,
@@ -118,12 +140,48 @@ export async function discoverActivities(
     imageUrl: imageUrls[i] ?? null,
   }));
 
-  log.info("Discovery activities generated", {
+  await prisma.discoveredActivity.createMany({ data: rows });
+
+  // Re-read to get generated IDs and timestamps
+  const inserted = await prisma.discoveredActivity.findMany({
+    where: { tripId, cityId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  log.info("Discovery activities generated and persisted", {
     tripId,
     cityId,
-    activityCount: activities.length,
+    activityCount: inserted.length,
     durationMs: Date.now() - t0,
   });
 
-  return activities;
+  return inserted.map(toDiscoveredActivityRow);
+}
+
+function toDiscoveredActivityRow(row: {
+  id: string;
+  cityId: string;
+  city: string;
+  name: string;
+  description: string;
+  category: string;
+  duration: string;
+  googleMapsUrl: string | null;
+  imageUrl: string | null;
+  decision: string | null;
+  decidedAt: Date | null;
+}): DiscoveredActivityRow {
+  return {
+    id: row.id,
+    cityId: row.cityId,
+    city: row.city,
+    name: row.name,
+    description: row.description,
+    category: row.category,
+    duration: row.duration,
+    googleMapsUrl: row.googleMapsUrl ?? "",
+    imageUrl: row.imageUrl,
+    decision: row.decision as DiscoveredActivityRow["decision"],
+    decidedAt: row.decidedAt?.toISOString() ?? null,
+  };
 }

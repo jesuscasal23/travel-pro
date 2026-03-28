@@ -37,15 +37,6 @@ export const FlightSearchInputSchema = z.object({
   maxPrice: z.number().int().min(1).optional(),
 });
 
-export const ActivityDiscoveryCardSchema = z.object({
-  name: z.string().min(1).max(160),
-  description: z.string().min(1).max(600),
-  category: z.string().min(1).max(80),
-  duration: z.string().min(1).max(40),
-  googleMapsUrl: z.string().url(),
-  imageUrl: z.null(),
-});
-
 export const DiscoverActivitiesInputSchema = z.object({
   profile: z
     .object({
@@ -59,8 +50,7 @@ export const DiscoverActivitiesInputSchema = z.object({
 });
 
 export const RecordActivitySwipeInputSchema = z.object({
+  activityId: z.string().min(1),
   decision: z.enum(["liked", "disliked"]),
-  activity: ActivityDiscoveryCardSchema,
-  destination: z.string().min(1).max(160),
   isFinal: z.boolean().optional(),
 });

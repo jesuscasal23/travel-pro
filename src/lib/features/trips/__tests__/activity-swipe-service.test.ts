@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/core/prisma", () => ({
   prisma: {
-    activitySwipe: { create: vi.fn() },
+    discoveredActivity: { update: vi.fn() },
     itinerary: { updateMany: vi.fn() },
   },
 }));
@@ -11,78 +11,49 @@ import { prisma } from "@/lib/core/prisma";
 import { recordActivitySwipe } from "../activity-swipe-service";
 
 const mockPrisma = prisma as unknown as {
-  activitySwipe: { create: ReturnType<typeof vi.fn> };
+  discoveredActivity: { update: ReturnType<typeof vi.fn> };
   itinerary: { updateMany: ReturnType<typeof vi.fn> };
 };
 
 describe("recordActivitySwipe", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPrisma.activitySwipe.create.mockResolvedValue({ id: "swipe-1" });
+    mockPrisma.discoveredActivity.update.mockResolvedValue({ id: "activity-1", decision: "liked" });
     mockPrisma.itinerary.updateMany.mockResolvedValue({ count: 1 });
   });
 
-  it("writes a swipe row with full activity snapshot", async () => {
+  it("updates the discovered activity decision and decidedAt", async () => {
     await recordActivitySwipe({
       tripId: "trip-1",
-      profileId: "profile-1",
-      destination: "Tokyo",
+      activityId: "activity-1",
       decision: "liked",
-      activity: {
-        name: "Senso-ji Temple",
-        description: "Historic district and market walk.",
-        category: "culture",
-        duration: "2h",
-        googleMapsUrl: "https://maps.google.com/?q=Senso-ji+Tokyo",
-        imageUrl: null,
-      },
     });
 
-    expect(mockPrisma.activitySwipe.create).toHaveBeenCalledWith({
+    expect(mockPrisma.discoveredActivity.update).toHaveBeenCalledWith({
+      where: { id: "activity-1" },
       data: {
-        tripId: "trip-1",
-        profileId: "profile-1",
-        destination: "Tokyo",
         decision: "liked",
-        activityName: "Senso-ji Temple",
-        activityData: {
-          name: "Senso-ji Temple",
-          description: "Historic district and market walk.",
-          category: "culture",
-          duration: "2h",
-          googleMapsUrl: "https://maps.google.com/?q=Senso-ji+Tokyo",
-          imageUrl: null,
-        },
+        decidedAt: expect.any(Date),
       },
     });
     expect(mockPrisma.itinerary.updateMany).not.toHaveBeenCalled();
   });
 
-  it("handles missing profileId and marks discovery complete on final swipe", async () => {
+  it("marks discovery complete on final swipe", async () => {
     await recordActivitySwipe({
       tripId: "trip-1",
-      profileId: null,
-      destination: "Tokyo",
+      activityId: "activity-2",
       decision: "disliked",
-      activity: {
-        name: "Robot Restaurant",
-        description: "High-energy show in Shinjuku.",
-        category: "nightlife",
-        duration: "1h 30m",
-        googleMapsUrl: "https://maps.google.com/?q=Robot+Restaurant+Tokyo",
-        imageUrl: null,
-      },
       isFinal: true,
     });
 
-    expect(mockPrisma.activitySwipe.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          profileId: null,
-          decision: "disliked",
-        }),
-      })
-    );
+    expect(mockPrisma.discoveredActivity.update).toHaveBeenCalledWith({
+      where: { id: "activity-2" },
+      data: {
+        decision: "disliked",
+        decidedAt: expect.any(Date),
+      },
+    });
     expect(mockPrisma.itinerary.updateMany).toHaveBeenCalledWith({
       where: { tripId: "trip-1", isActive: true },
       data: { discoveryStatus: "completed" },

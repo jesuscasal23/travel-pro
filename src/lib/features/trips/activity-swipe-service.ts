@@ -1,25 +1,18 @@
 import { prisma } from "@/lib/core/prisma";
-import type { Prisma } from "@prisma/client";
-import type { ActivityDiscoveryCandidate } from "@/types";
 
 interface RecordActivitySwipeInput {
   tripId: string;
-  profileId: string | null;
-  destination: string;
+  activityId: string;
   decision: "liked" | "disliked";
-  activity: ActivityDiscoveryCandidate;
   isFinal?: boolean;
 }
 
 export async function recordActivitySwipe(input: RecordActivitySwipeInput) {
-  const swipe = await prisma.activitySwipe.create({
+  const activity = await prisma.discoveredActivity.update({
+    where: { id: input.activityId },
     data: {
-      tripId: input.tripId,
-      profileId: input.profileId,
-      destination: input.destination,
       decision: input.decision,
-      activityName: input.activity.name,
-      activityData: input.activity as unknown as Prisma.InputJsonValue,
+      decidedAt: new Date(),
     },
   });
 
@@ -30,5 +23,5 @@ export async function recordActivitySwipe(input: RecordActivitySwipeInput) {
     });
   }
 
-  return swipe;
+  return activity;
 }

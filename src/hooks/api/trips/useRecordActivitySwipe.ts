@@ -1,13 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
 import { apiFetch } from "@/lib/client/api-fetch";
-import type { ActivityDiscoveryCandidate } from "@/types";
 
 interface RecordActivitySwipeParams {
   tripId: string;
-  destination: string;
+  activityId: string;
   decision: "liked" | "disliked";
-  activity: ActivityDiscoveryCandidate;
   isFinal?: boolean;
 }
 
@@ -21,18 +19,16 @@ export function useRecordActivitySwipe() {
   return useMutation({
     mutationFn: async ({
       tripId,
-      destination,
+      activityId,
       decision,
-      activity,
       isFinal,
     }: RecordActivitySwipeParams): Promise<RecordActivitySwipeResponse> => {
       return apiFetch<RecordActivitySwipeResponse>(`/api/v1/trips/${tripId}/activity-swipes`, {
         source: "useRecordActivitySwipe",
         method: "POST",
         body: {
-          destination,
+          activityId,
           decision,
-          activity,
           isFinal,
         },
         fallbackMessage: "Failed to save swipe decision",

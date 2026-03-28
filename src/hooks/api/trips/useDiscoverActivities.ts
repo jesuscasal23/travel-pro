@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/client/api-fetch";
-import type { ActivityDiscoveryCandidate, UserProfile } from "@/types";
+import type { DiscoveredActivityRow, UserProfile } from "@/types";
 
 interface DiscoverActivitiesParams {
   tripId: string;
@@ -9,7 +9,7 @@ interface DiscoverActivitiesParams {
 }
 
 interface DiscoverActivitiesResponse {
-  activities: ActivityDiscoveryCandidate[];
+  activities: DiscoveredActivityRow[];
 }
 
 export function useDiscoverActivities() {
@@ -18,7 +18,7 @@ export function useDiscoverActivities() {
       tripId,
       cityId,
       profile,
-    }: DiscoverActivitiesParams): Promise<ActivityDiscoveryCandidate[]> => {
+    }: DiscoverActivitiesParams): Promise<DiscoveredActivityRow[]> => {
       const data = await apiFetch<DiscoverActivitiesResponse>(
         `/api/v1/trips/${tripId}/discover-activities`,
         {

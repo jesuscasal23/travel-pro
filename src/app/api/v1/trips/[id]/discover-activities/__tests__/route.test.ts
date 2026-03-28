@@ -111,6 +111,7 @@ describe("POST /api/v1/trips/:id/discover-activities", () => {
     expect(json.activities).toHaveLength(1);
     expect(mockDiscover).toHaveBeenCalledWith({
       tripId: "trip-1",
+      profileId: "profile-1",
       profile: {
         nationality: "German",
         homeAirport: "FRA",
