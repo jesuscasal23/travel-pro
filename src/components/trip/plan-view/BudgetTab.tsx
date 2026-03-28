@@ -1,140 +1,169 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutList, Plane, Hotel, Zap, DollarSign, Construction } from "lucide-react";
-
-interface BudgetTabProps {
-  tripId: string;
-}
-
-const exampleBreakdown = {
-  flights: 420,
-  hotels: 680,
-  activities: 195,
-};
-
-const exampleCities = [
-  {
-    city: "Barcelona",
-    items: [
-      { name: "Sagrada Familia tickets", cost: 26 },
-      { name: "Gothic Quarter food tour", cost: 65 },
-      { name: "Park Guell entry", cost: 13 },
-    ],
-  },
-  {
-    city: "Lisbon",
-    items: [
-      { name: "Sintra day trip", cost: 45 },
-      { name: "Tram 28 pass", cost: 7 },
-      { name: "Pasteis de Belem tasting", cost: 12 },
-    ],
-  },
-];
+import { LayoutList, Plane, Hotel, Zap, DollarSign, Info } from "lucide-react";
+import { useTripContext } from "@/components/trip/TripContext";
+import { useFlightSelections } from "@/hooks/api/selections/useFlightSelections";
+import { useHotelSelections } from "@/hooks/api/selections/useHotelSelections";
+import {
+  computeBudgetSummary,
+  deriveCityActivityBudgets,
+  type BudgetSummary,
+} from "@/lib/utils/budget";
 
 function formatEur(amount: number) {
   return `€${Math.round(amount).toLocaleString()}`;
 }
 
-export function BudgetTab({ tripId }: BudgetTabProps) {
-  const grandTotal =
-    exampleBreakdown.flights + exampleBreakdown.hotels + exampleBreakdown.activities;
+function SourceHint({ label }: { label: string }) {
+  return <p className="text-muted-foreground mt-0.5 text-xs">{label}</p>;
+}
+
+function NotEstimated() {
+  return (
+    <>
+      <p className="text-muted-foreground text-lg font-semibold">—</p>
+      <SourceHint label="Not estimated" />
+    </>
+  );
+}
+
+function SummaryCard({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number | null;
+  hint: string | null;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`card-travel p-4 ${accent ? "bg-primary/5 border-primary/20 col-span-2 sm:col-span-1" : "bg-background"}`}
+    >
+      <div className="mb-1 flex items-center gap-2">
+        <Icon className={`h-4 w-4 ${accent ? "text-primary" : "text-primary"}`} />
+        <span
+          className={`text-xs font-medium tracking-wide uppercase ${accent ? "text-primary" : "text-muted-foreground"}`}
+        >
+          {label}
+        </span>
+      </div>
+      {value != null ? (
+        <>
+          <p className="text-foreground text-xl font-bold">{formatEur(value)}</p>
+          {hint && <SourceHint label={hint} />}
+        </>
+      ) : (
+        <NotEstimated />
+      )}
+    </div>
+  );
+}
+
+export function BudgetTab({ tripId }: { tripId: string }) {
+  const { itinerary, isAuthenticated } = useTripContext();
+  const isAuthed = isAuthenticated === true;
+
+  const { data: flightSelections } = useFlightSelections(tripId, { enabled: isAuthed });
+  const { data: hotelSelections } = useHotelSelections(tripId, { enabled: isAuthed });
+
+  const summary = computeBudgetSummary(itinerary, flightSelections, hotelSelections);
+
+  const cityBudgets = itinerary?.days ? deriveCityActivityBudgets(itinerary.days) : [];
+
+  const hasAnyData =
+    summary.flights != null || summary.hotels != null || summary.activities != null;
 
   return (
     <div className="space-y-8">
-      {/* In development banner */}
-      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
-        <Construction className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
-        <div>
-          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-            Budget tracking is in development
-          </p>
-          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-            The values below are examples only. Personalized budget estimates based on your trip
-            details are coming soon.
-          </p>
+      {/* Info banner when no data at all */}
+      {!hasAnyData && (
+        <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+          <div>
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+              No budget data yet
+            </p>
+            <p className="mt-1 text-xs text-blue-700 dark:text-blue-400">
+              Budget estimates will appear as your trip takes shape — select flights, hotels, or
+              discover activities to see costs here.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Partial data hint */}
+      {hasAnyData &&
+        summary.grandTotal != null &&
+        (summary.flights == null || summary.hotels == null) && (
+          <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+            <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+            <p className="text-xs text-blue-700 dark:text-blue-400">
+              Some categories are not yet estimated. The total only includes available data.
+            </p>
+          </div>
+        )}
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="card-travel bg-background p-4 opacity-70">
-          <div className="mb-1 flex items-center gap-2">
-            <Plane className="text-primary h-4 w-4" />
-            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-              Flights
-            </span>
-          </div>
-          <p className="text-foreground text-xl font-bold">
-            ~{formatEur(exampleBreakdown.flights)}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">Example estimate</p>
-        </div>
-
-        <div className="card-travel bg-background p-4 opacity-70">
-          <div className="mb-1 flex items-center gap-2">
-            <Hotel className="text-primary h-4 w-4" />
-            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-              Hotels
-            </span>
-          </div>
-          <p className="text-foreground text-xl font-bold">~{formatEur(exampleBreakdown.hotels)}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">Example estimate</p>
-        </div>
-
-        <div className="card-travel bg-background p-4 opacity-70">
-          <div className="mb-1 flex items-center gap-2">
-            <Zap className="text-primary h-4 w-4" />
-            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-              Activities
-            </span>
-          </div>
-          <p className="text-foreground text-xl font-bold">
-            ~{formatEur(exampleBreakdown.activities)}
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-xs">Example estimate</p>
-        </div>
-
-        <div className="card-travel bg-primary/5 border-primary/20 col-span-2 p-4 opacity-70 sm:col-span-1">
-          <div className="mb-1 flex items-center gap-2">
-            <DollarSign className="text-primary h-4 w-4" />
-            <span className="text-primary text-xs font-medium tracking-wide uppercase">
-              Example Total
-            </span>
-          </div>
-          <p className="text-foreground text-xl font-bold">~{formatEur(grandTotal)}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">Not based on your trip</p>
-        </div>
+        <SummaryCard
+          icon={Plane}
+          label="Flights"
+          value={summary.flights?.total ?? null}
+          hint={flightHint(summary.flights)}
+        />
+        <SummaryCard
+          icon={Hotel}
+          label="Hotels"
+          value={summary.hotels?.total ?? null}
+          hint={hotelHint(summary.hotels)}
+        />
+        <SummaryCard
+          icon={Zap}
+          label="Activities"
+          value={summary.activities?.total ?? null}
+          hint={summary.activities ? "From itinerary" : null}
+        />
+        <SummaryCard
+          icon={DollarSign}
+          label="Total"
+          value={summary.grandTotal}
+          hint={summary.grandTotal != null ? "Available categories" : null}
+          accent
+        />
       </div>
 
-      {/* Example per-city breakdown */}
-      <div>
-        <h2 className="text-foreground mb-3 text-base font-semibold">
-          Example activity costs by city
-        </h2>
-        <div className="space-y-3">
-          {exampleCities.map((cb) => (
-            <div key={cb.city} className="card-travel bg-background opacity-70">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-foreground font-semibold">{cb.city}</h3>
-                <span className="text-primary text-sm font-bold">
-                  ~{formatEur(cb.items.reduce((s, i) => s + i.cost, 0))}
-                </span>
+      {/* Per-city activity breakdown */}
+      {cityBudgets.length > 0 && (
+        <div>
+          <h2 className="text-foreground mb-3 text-base font-semibold">Activity costs by city</h2>
+          <div className="space-y-3">
+            {cityBudgets.map((cb) => (
+              <div key={cb.city} className="card-travel bg-background">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-foreground font-semibold">{cb.city}</h3>
+                  <span className="text-primary text-sm font-bold">{formatEur(cb.total)}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {cb.items.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground mr-4 truncate">{item.name}</span>
+                      <span className="text-foreground shrink-0 font-medium">
+                        {formatEur(item.cost)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-1.5">
-                {cb.items.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground mr-4 truncate">{item.name}</span>
-                    <span className="text-foreground shrink-0 font-medium">
-                      ~{formatEur(item.cost)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Book & export section */}
       <div>
@@ -187,4 +216,14 @@ export function BudgetTab({ tripId }: BudgetTabProps) {
       </div>
     </div>
   );
+}
+
+function flightHint(flights: BudgetSummary["flights"]): string | null {
+  if (!flights) return null;
+  return flights.source === "selections" ? "Your selections" : "Best search results";
+}
+
+function hotelHint(hotels: BudgetSummary["hotels"]): string | null {
+  if (!hotels) return null;
+  return hotels.source === "selections" ? "Your selections" : "Cheapest available";
 }
