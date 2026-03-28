@@ -60,6 +60,9 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
       ...(data.onboardingCompleted !== undefined && {
         onboardingCompleted: data.onboardingCompleted,
       }),
+      ...(data.lastSeenAppVersion && {
+        lastSeenAppVersion: data.lastSeenAppVersion,
+      }),
     },
   });
 }

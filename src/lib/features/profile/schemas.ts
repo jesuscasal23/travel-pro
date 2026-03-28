@@ -18,4 +18,5 @@ export const ProfilePatchInputSchema = z.object({
   vibes: VibeScoresSchema.optional(),
   languagesSpoken: z.array(z.string()).optional(),
   onboardingCompleted: z.boolean().optional(),
+  lastSeenAppVersion: z.string().optional(),
 });

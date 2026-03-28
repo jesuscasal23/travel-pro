@@ -31,6 +31,7 @@ import { useCityImage } from "@/hooks/useCityImage";
 import { daysUntil, formatDateRange } from "@/lib/utils/format/date";
 import { computeTripPreparation } from "@/lib/utils/trip-preparation";
 import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
+import { WhatsNewModal } from "@/components/changelog/WhatsNewModal";
 import type { TripSummary, Itinerary } from "@/types";
 import type { PrepItem } from "@/lib/utils/trip-preparation";
 
@@ -56,6 +57,8 @@ export default function HomePage() {
 
   return (
     <AppScreen>
+      <WhatsNewModal />
+
       {/* Super-admin paywall testing pill */}
       {isSuperUser && (
         <button

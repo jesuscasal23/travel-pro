@@ -22,6 +22,7 @@ export { useTravelerPreferences } from "./profile/useTravelerPreferences";
 export { useSaveProfile } from "./profile/useSaveProfile";
 export { useExportData } from "./profile/useExportData";
 export { useDeleteAccount } from "./profile/useDeleteAccount";
+export { useMarkChangelogSeen } from "./profile/useMarkChangelogSeen";
 export type { PersistedProfile, ProfileData } from "./profile/shared";
 
 // Admin

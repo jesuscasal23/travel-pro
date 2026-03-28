@@ -9,6 +9,7 @@ export interface ProfileData {
   pace?: ActivityPace;
   vibes?: VibeScores;
   onboardingCompleted?: boolean;
+  lastSeenAppVersion?: string;
 }
 
 export interface PersistedProfile extends UserProfile {
@@ -17,6 +18,7 @@ export interface PersistedProfile extends UserProfile {
   isSuperUser?: boolean;
   onboardingCompleted?: boolean;
   languagesSpoken?: string[];
+  lastSeenAppVersion?: string | null;
 }
 
 export async function fetchProfile(): Promise<PersistedProfile | null> {
