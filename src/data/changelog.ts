@@ -18,6 +18,25 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.3.0",
+    date: "2026-03-28",
+    sections: {
+      added: [
+        "3-dot action menu on trip cards with delete and share (coming soon)",
+        "Empty state card on home page when no trips exist",
+        "Hotel review scores and review counts alongside star ratings",
+      ],
+      improved: [
+        "Loading spinner in delete confirmation modal until deletion completes",
+        "Consolidated shared schema definitions for cleaner codebase",
+      ],
+      fixed: [
+        "What's New modal centering on desktop with scrollbar support",
+        "Ref access during render in trip action menu",
+      ],
+    },
+  },
+  {
     version: "0.2.1",
     date: "2026-03-28",
     sections: {
