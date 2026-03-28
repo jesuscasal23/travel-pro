@@ -14,7 +14,7 @@ import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import type { DiscoveredActivityRow, UserProfile } from "@/types";
 import { loadTripContext } from "./trip-query-service";
 import { findActiveItinerary } from "./itinerary-service";
-import { resolveActivityImages } from "./activity-image-service";
+import { resolveActivityImagesInBackground } from "./activity-image-service";
 
 const log = createLogger("discover-activities-service");
 
@@ -123,11 +123,8 @@ export async function discoverActivities(
     throw new Error(`Discovery activities schema validation failed: ${details}`);
   }
 
-  const imageUrls = await resolveActivityImages(parsed.data, city.city, signal);
-  throwIfAborted(signal);
-
-  // ── Bulk-insert into DiscoveredActivity ──────────────────────────────────
-  const rows = parsed.data.map((activity, i) => ({
+  // ── Bulk-insert into DiscoveredActivity (without images) ──────────────────
+  const rows = parsed.data.map((activity) => ({
     tripId,
     profileId,
     cityId,
@@ -137,7 +134,7 @@ export async function discoverActivities(
     category: activity.category,
     duration: activity.duration,
     googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.name} ${city.city}`)}`,
-    imageUrl: imageUrls[i] ?? null,
+    imageUrl: null as string | null,
   }));
 
   await prisma.discoveredActivity.createMany({ data: rows });
@@ -154,6 +151,12 @@ export async function discoverActivities(
     activityCount: inserted.length,
     durationMs: Date.now() - t0,
   });
+
+  // Fire-and-forget: resolve images in the background and update DB rows
+  resolveActivityImagesInBackground(
+    inserted.map((r) => ({ id: r.id, name: r.name })),
+    city.city
+  );
 
   return inserted.map(toDiscoveredActivityRow);
 }

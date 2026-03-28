@@ -1,4 +1,5 @@
 import { createLogger } from "@/lib/core/logger";
+import { prisma } from "@/lib/core/prisma";
 import { findPlace, getPlacePhotoUrl } from "@/lib/google-places/client";
 
 const log = createLogger("activity-image-service");
@@ -75,4 +76,107 @@ export async function resolveActivityImages(
   });
 
   return urls;
+}
+
+/**
+ * Fire-and-forget: resolve images for persisted activities and update their DB rows.
+ * Runs entirely in the background — errors are logged but never thrown to the caller.
+ */
+export function resolveActivityImagesInBackground(
+  activities: { id: string; name: string }[],
+  city: string
+): void {
+  resolveActivityImages(activities, city)
+    .then(async (urls) => {
+      const updates = activities
+        .map((a, i) => ({ id: a.id, imageUrl: urls[i] }))
+        .filter((u) => u.imageUrl != null);
+
+      if (updates.length === 0) return;
+
+      await Promise.allSettled(
+        updates.map((u) =>
+          prisma.discoveredActivity.update({
+            where: { id: u.id },
+            data: { imageUrl: u.imageUrl },
+          })
+        )
+      );
+
+      log.info("Background image resolution complete", {
+        city,
+        total: activities.length,
+        updated: updates.length,
+      });
+    })
+    .catch((error) => {
+      log.warn("Background image resolution failed", { city, error });
+    });
+}
+
+/**
+ * Resolve images for a batch of activities on demand.
+ * Checks DB first — returns cached URLs for already-resolved activities.
+ * For the rest, resolves via Google Places in parallel, updates DB rows, and returns all URLs.
+ * Returns a map of activityId → imageUrl (null if resolution failed).
+ */
+export async function resolveActivityImagesBatch(
+  activityIds: string[]
+): Promise<Record<string, string | null>> {
+  const rows = await prisma.discoveredActivity.findMany({
+    where: { id: { in: activityIds } },
+    select: { id: true, name: true, city: true, imageUrl: true },
+  });
+
+  const result: Record<string, string | null> = {};
+  const needsResolution: typeof rows = [];
+
+  for (const row of rows) {
+    if (row.imageUrl) {
+      result[row.id] = row.imageUrl;
+    } else {
+      needsResolution.push(row);
+    }
+  }
+
+  if (needsResolution.length === 0) return result;
+
+  const resolved = await Promise.allSettled(
+    needsResolution.map(async (row) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), PER_REQUEST_TIMEOUT_MS);
+
+      try {
+        const place = await findPlace(`${row.name} ${row.city}`, controller.signal);
+        if (!place?.photoName) return { id: row.id, imageUrl: null };
+
+        const imageUrl = getPlacePhotoUrl(place.photoName, 400);
+        await prisma.discoveredActivity.update({
+          where: { id: row.id },
+          data: { imageUrl },
+        });
+
+        return { id: row.id, imageUrl };
+      } catch {
+        return { id: row.id, imageUrl: null };
+      } finally {
+        clearTimeout(timeout);
+      }
+    })
+  );
+
+  for (const entry of resolved) {
+    if (entry.status === "fulfilled") {
+      result[entry.value.id] = entry.value.imageUrl;
+    }
+  }
+
+  // Fill in any IDs that weren't found in DB at all
+  for (const id of activityIds) {
+    if (!(id in result)) {
+      result[id] = null;
+    }
+  }
+
+  return result;
 }

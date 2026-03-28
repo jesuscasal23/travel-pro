@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import {
   useVisaEnrichment,
@@ -11,6 +11,7 @@ import {
   useTrip,
   useDiscoverActivities,
   useRecordActivitySwipe,
+  useActivityImages,
 } from "@/hooks/api";
 import { useShallow } from "zustand/shallow";
 import { useTripStore } from "@/stores/useTripStore";
@@ -192,6 +193,20 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     requestProfile,
   ]);
 
+  // ── Activity image prefetch (5-card buffer) ─────────────────────────────
+  const activityImageMap = useActivityImages(tripId, discoveryCards, queueState.cursor);
+  const discoveryCardsWithImages = useMemo(
+    () =>
+      discoveryCards.map((card) => {
+        const resolved = activityImageMap.get(card.id);
+        if (resolved && resolved !== card.imageUrl) {
+          return { ...card, imageUrl: resolved };
+        }
+        return card;
+      }),
+    [discoveryCards, activityImageMap]
+  );
+
   const handleDiscoverySwipe = (decision: "liked" | "disliked") => {
     const card = discoveryCards[queueState.cursor];
     if (!card || !discoveryCity) return;
@@ -343,7 +358,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     accommodationError: !!accommodationError,
     onAccommodationLoaded: handleAccommodationLoaded,
     discoveryStatus,
-    discoveryCards,
+    discoveryCards: discoveryCardsWithImages,
     discoveryCursor: queueState.cursor,
     discoveryTotalTarget: DISCOVERY_TOTAL_CARDS,
     discoveryIsLoading:

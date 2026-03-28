@@ -8,6 +8,7 @@ export { useCreateTrip } from "./trips/useCreateTrip";
 export { useTripGeneration } from "./trips/useTripGeneration";
 export { useDiscoverActivities } from "./trips/useDiscoverActivities";
 export { useRecordActivitySwipe } from "./trips/useRecordActivitySwipe";
+export { useActivityImages } from "./trips/useActivityImages";
 export type { TripDetail } from "./trips/shared";
 
 // Enrichment
