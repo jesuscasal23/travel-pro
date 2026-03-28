@@ -61,6 +61,9 @@ const tx = {
   hotelSelection: {
     deleteMany: vi.fn(),
   },
+  discoveredActivity: {
+    deleteMany: vi.fn(),
+  },
   affiliateClick: {
     deleteMany: vi.fn(),
   },
@@ -82,6 +85,7 @@ beforeEach(() => {
   tx.$executeRaw.mockResolvedValue(undefined);
   tx.flightSelection.deleteMany.mockResolvedValue({ count: 0 });
   tx.hotelSelection.deleteMany.mockResolvedValue({ count: 0 });
+  tx.discoveredActivity.deleteMany.mockResolvedValue({ count: 0 });
   tx.affiliateClick.deleteMany.mockResolvedValue({ count: 3 });
   tx.discoveredCity.updateMany.mockResolvedValue({ count: 1 });
   tx.itinerary.deleteMany.mockResolvedValue({ count: 2 });
@@ -101,6 +105,9 @@ describe("deleteTripById", () => {
       where: { tripId: "trip-1" },
     });
     expect(tx.hotelSelection.deleteMany).toHaveBeenCalledWith({
+      where: { tripId: "trip-1" },
+    });
+    expect(tx.discoveredActivity.deleteMany).toHaveBeenCalledWith({
       where: { tripId: "trip-1" },
     });
     expect(tx.affiliateClick.deleteMany).toHaveBeenCalledWith({

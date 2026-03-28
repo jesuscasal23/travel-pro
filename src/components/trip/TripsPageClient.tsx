@@ -58,7 +58,7 @@ function DeleteTripButton({ tripId, tripName }: { tripId: string; tripName: stri
       <div className="absolute inset-0 z-50 flex items-center justify-center">
         <div
           className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-          onClick={() => setConfirming(false)}
+          onClick={() => !deleteTrip.isPending && setConfirming(false)}
         />
         <div className="relative z-10 mx-6 w-full max-w-xs rounded-2xl border border-white/70 bg-white/95 p-5 shadow-xl backdrop-blur-xl">
           <h3 className="text-foreground text-base font-bold">Delete trip</h3>
@@ -70,17 +70,40 @@ function DeleteTripButton({ tripId, tripName }: { tripId: string; tripName: stri
           <div className="mt-5 flex gap-3">
             <button
               onClick={() => {
-                deleteTrip.mutate(tripId);
-                setConfirming(false);
+                deleteTrip.mutate(tripId, {
+                  onSettled: () => setConfirming(false),
+                });
               }}
               disabled={deleteTrip.isPending}
               className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
             >
-              {deleteTrip.isPending ? "Deleting..." : "Delete"}
+              {deleteTrip.isPending ? (
+                <span className="inline-flex items-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  Deleting…
+                </span>
+              ) : (
+                "Delete"
+              )}
             </button>
             <button
               onClick={() => setConfirming(false)}
-              className="bg-surface-soft text-foreground hover:bg-surface-hover flex-1 rounded-xl px-4 py-2.5 text-sm font-bold"
+              disabled={deleteTrip.isPending}
+              className="bg-surface-soft text-foreground hover:bg-surface-hover flex-1 rounded-xl px-4 py-2.5 text-sm font-bold disabled:opacity-50"
             >
               Cancel
             </button>

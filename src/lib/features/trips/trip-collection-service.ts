@@ -120,6 +120,10 @@ export async function deleteTripById(tripId: string) {
       where: { tripId },
     });
 
+    await tx.discoveredActivity.deleteMany({
+      where: { tripId },
+    });
+
     await tx.affiliateClick.deleteMany({
       where: { tripId },
     });
