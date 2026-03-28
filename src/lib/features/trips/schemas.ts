@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { cityGeoSchema, itineraryCoreSchema } from "@/lib/itinerary/schema";
+import { itineraryCoreSchema } from "@/lib/itinerary/schema";
+import { profileForAISchema, cityStopInputSchema } from "@/lib/schemas";
 
 export const CreateTripInputSchema = z.object({
   tripType: z.enum(["single-city", "multi-city"]).default("multi-city"),
@@ -14,15 +15,9 @@ export const CreateTripInputSchema = z.object({
   initialItinerary: itineraryCoreSchema.optional(),
 });
 
-const RouteStopInputSchema = cityGeoSchema.extend({
-  id: z.string(),
-  days: z.number().optional(),
-  iataCode: z.string().optional(),
-});
-
 export const OptimizeTripInputSchema = z.object({
   homeAirport: z.string().min(1),
-  route: z.array(RouteStopInputSchema.extend({ days: z.number() })).min(1),
+  route: z.array(cityStopInputSchema.extend({ days: z.number() })).min(1),
   dateStart: z.string().min(1).max(20),
   dateEnd: z.string().min(1).max(20),
   travelers: z.number().int().min(1).max(20).optional(),
@@ -38,14 +33,7 @@ export const FlightSearchInputSchema = z.object({
 });
 
 export const DiscoverActivitiesInputSchema = z.object({
-  profile: z
-    .object({
-      nationality: z.string().min(1).max(100),
-      homeAirport: z.string().min(2).max(100),
-      travelStyle: z.enum(["backpacker", "smart-budget", "comfort-explorer", "luxury"]),
-      interests: z.array(z.string().max(50)).max(10),
-    })
-    .optional(),
+  profile: profileForAISchema.optional(),
   cityId: z.string().min(1).max(100),
 });
 

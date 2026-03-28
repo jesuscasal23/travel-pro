@@ -1,17 +1,12 @@
 import { z } from "zod";
+import { tripTypeSchema } from "@/lib/schemas";
 
-export const ProfileInputSchema = z.object({
-  nationality: z.string().min(1).max(100),
-  homeAirport: z.string().min(2).max(100),
-  travelStyle: z.enum(["backpacker", "smart-budget", "comfort-explorer", "luxury"]),
-  interests: z.array(z.string().max(50)).max(10),
-  pace: z.enum(["relaxed", "moderate", "active"]).optional(),
-});
+export { profileForAISchema as ProfileInputSchema } from "@/lib/schemas";
 
 export const TripIntentInputSchema = z
   .object({
     id: z.string().max(100),
-    tripType: z.enum(["single-city", "multi-city"]).default("multi-city"),
+    tripType: tripTypeSchema.default("multi-city"),
     region: z.string().max(100).default(""),
     destination: z.string().max(100).optional(),
     destinationCountry: z.string().max(100).optional(),
