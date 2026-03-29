@@ -89,7 +89,7 @@ export default function HomePage() {
         <div className="bg-edge h-px w-full" />
       </header>
 
-      <main className="px-6 pt-8">
+      <main className="flex flex-col gap-8 px-6 pt-8 pb-8">
         {/* Personalized Greeting */}
         <section>
           <p className="text-label mb-1 text-[11px] font-medium tracking-[0.14em] uppercase">
@@ -131,7 +131,7 @@ function NoTripsCard() {
   const router = useRouter();
 
   return (
-    <section className="mt-8">
+    <section>
       <button
         onClick={() => router.push("/plan")}
         className="bg-card border-edge group w-full rounded-3xl border p-8 text-left transition-shadow hover:shadow-lg"
@@ -153,7 +153,7 @@ function NoTripsCard() {
 
 function TripCardSkeleton() {
   return (
-    <section className="mt-8 animate-pulse">
+    <section className="animate-pulse">
       <div className="shadow-glass-sm overflow-hidden rounded-[2rem] bg-white dark:bg-white/5">
         {/* Hero image placeholder */}
         <div className="bg-surface-soft relative h-56 w-full">
