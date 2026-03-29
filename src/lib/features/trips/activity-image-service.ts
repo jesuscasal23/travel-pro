@@ -125,7 +125,7 @@ export async function resolveActivityImagesBatch(
 ): Promise<Record<string, string | null>> {
   const rows = await prisma.discoveredActivity.findMany({
     where: { id: { in: activityIds } },
-    select: { id: true, name: true, city: true, imageUrl: true },
+    select: { id: true, name: true, placeName: true, city: true, imageUrl: true },
   });
 
   const result: Record<string, string | null> = {};
@@ -147,7 +147,8 @@ export async function resolveActivityImagesBatch(
       const timeout = setTimeout(() => controller.abort(), PER_REQUEST_TIMEOUT_MS);
 
       try {
-        const place = await findPlace(`${row.name} ${row.city}`, controller.signal);
+        const searchName = row.placeName ?? row.name;
+        const place = await findPlace(`${searchName} ${row.city}`, controller.signal);
         if (!place?.photoName) return { id: row.id, imageUrl: null };
 
         const imageUrl = getPlacePhotoUrl(place.photoName, 400);
