@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { ProfileInputSchema, TripIntentInputSchema } from "@/lib/features/generation/schemas";
+import { profileForAISchema as ProfileInputSchema } from "@/lib/schemas";
+import { TripIntentInputSchema } from "@/lib/features/trips/schemas";
 import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
 
 // ── ProfileInputSchema ───────────────────────────────────────

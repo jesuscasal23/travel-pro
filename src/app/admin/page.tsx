@@ -193,22 +193,22 @@ export default function AdminDashboard() {
                 />
                 <StatCard label="Itineraries" value={stats.totalItineraries} />
                 <StatCard
-                  label="Completed Generations"
-                  value={stats.generationsByStatus.complete ?? 0}
+                  label="Completed Builds"
+                  value={stats.buildsByStatus.complete ?? 0}
                   sub={
-                    stats.generationsByStatus.failed
-                      ? `${stats.generationsByStatus.failed} failed`
+                    stats.buildsByStatus.failed
+                      ? `${stats.buildsByStatus.failed} failed`
                       : undefined
                   }
                 />
               </div>
-              {Object.keys(stats.generationsByStatus).length > 0 && (
+              {Object.keys(stats.buildsByStatus).length > 0 && (
                 <div className="mt-6">
                   <h3 className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Generation Status Breakdown
+                    Build Status Breakdown
                   </h3>
                   <div className="flex flex-wrap gap-3">
-                    {Object.entries(stats.generationsByStatus).map(([status, count]) => (
+                    {Object.entries(stats.buildsByStatus).map(([status, count]) => (
                       <span
                         key={status}
                         className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm dark:bg-gray-700"

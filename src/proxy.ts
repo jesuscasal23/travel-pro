@@ -94,7 +94,7 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     return null;
   }
 
-  const isExpensiveGenerationRoute = limitKey.startsWith("rl:discover:");
+  const isExpensiveRoute = limitKey.startsWith("rl:discover:");
 
   try {
     // Upstash Redis REST API — works at the edge without ioredis
@@ -130,10 +130,10 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     if (!res.ok) {
       console.error(
         `[rate-limit] Redis error: status=${res.status}, key=${limitKey}, latency=${fetchMs}ms, ` +
-          `path=${pathname}, ip=${ip}, action=${isExpensiveGenerationRoute ? "fail-closed" : "fail-open"}`
+          `path=${pathname}, ip=${ip}, action=${isExpensiveRoute ? "fail-closed" : "fail-open"}`
       );
       // Fail closed for expensive LLM endpoints, open for others
-      if (isExpensiveGenerationRoute) {
+      if (isExpensiveRoute) {
         return new NextResponse(
           JSON.stringify({
             error: "Service unavailable",
@@ -163,8 +163,8 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       return new NextResponse(
         JSON.stringify({
           error: "Too many requests",
-          message: isExpensiveGenerationRoute
-            ? `You've reached the generation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
+          message: isExpensiveRoute
+            ? `You've reached the trip creation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
             : "Too many requests. Please slow down.",
           retryAfter,
         }),
@@ -184,10 +184,10 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
       err instanceof DOMException && err.name === "AbortError" ? "timeout (2s)" : String(err);
     console.error(
       `[rate-limit] Redis failure: reason=${reason}, key=${limitKey}, ` +
-        `path=${pathname}, ip=${ip}, action=${isExpensiveGenerationRoute ? "fail-closed" : "fail-open"}`
+        `path=${pathname}, ip=${ip}, action=${isExpensiveRoute ? "fail-closed" : "fail-open"}`
     );
     // Fail closed for expensive LLM endpoints, open for others
-    if (isExpensiveGenerationRoute) {
+    if (isExpensiveRoute) {
       return new NextResponse(
         JSON.stringify({
           error: "Service unavailable",

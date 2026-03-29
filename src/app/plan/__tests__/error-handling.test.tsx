@@ -4,7 +4,7 @@
 // Covers:
 //   - Guest mode: stays on the plan page with an error message when
 //     trip creation returns a non-200 response (no navigation)
-//   - Retry clears the error and restarts generation
+//   - Retry clears the error and restarts the build
 // ============================================================
 
 import React from "react";
@@ -75,7 +75,7 @@ function setValidFinalStepState() {
       homeAirport: "FRA",
       travelStyle: "smart-budget",
       interests: [],
-      isGenerating: false,
+      isBuilding: false,
     });
     usePlanFormStore.setState({
       planStep: 4,
@@ -197,7 +197,7 @@ describe("PlanPage — authenticated API failure", () => {
 
     await waitFor(() => screen.getByText(/failed to create trip|something went wrong/i));
 
-    // isGenerating must be cleared on failure — no loading state stuck
-    expect(useTripStore.getState().isGenerating).toBe(false);
+    // isBuilding must be cleared on failure — no loading state stuck
+    expect(useTripStore.getState().isBuilding).toBe(false);
   }, 15_000);
 });

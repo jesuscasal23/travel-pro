@@ -139,7 +139,7 @@ export interface TripSummary {
   dateEnd: string;
   travelers: number;
   createdAt: string;
-  itineraries: { id: string; generationStatus: string; discoveryStatus?: DiscoveryStatus }[];
+  itineraries: { id: string; buildStatus: string; discoveryStatus?: DiscoveryStatus }[];
 }
 
 /** Region option for questionnaire */

@@ -14,8 +14,8 @@ interface TripStoreState {
   vibes: VibeScores | null;
 
   // Transient itinerary build UI state
-  isGenerating: boolean; // true while the /generate stream is in flight
-  needsRegeneration: boolean; // true when the user edits the route and activities are stale
+  isBuilding: boolean; // true while the trip creation flow is in flight
+  needsRebuild: boolean; // true when the user edits the route and activities are stale
 }
 
 interface TripStoreActions {
@@ -26,8 +26,8 @@ interface TripStoreActions {
   toggleInterest: (interest: string) => void;
   setPace: (pace: ActivityPace) => void;
   setVibes: (vibes: VibeScores) => void;
-  setIsGenerating: (generating: boolean) => void;
-  setNeedsRegeneration: (needs: boolean) => void;
+  setIsBuilding: (building: boolean) => void;
+  setNeedsRebuild: (needs: boolean) => void;
   // Clears all profile state on sign-out
   resetAll: () => void;
 }
@@ -39,8 +39,8 @@ const initialState: TripStoreState = {
   interests: [],
   pace: null,
   vibes: null,
-  isGenerating: false,
-  needsRegeneration: false,
+  isBuilding: false,
+  needsRebuild: false,
 };
 
 export const useTripStore = create<TripStoreState & TripStoreActions>()((set) => ({
@@ -63,8 +63,8 @@ export const useTripStore = create<TripStoreState & TripStoreActions>()((set) =>
       };
     }),
 
-  setIsGenerating: (generating) => set({ isGenerating: generating }),
-  setNeedsRegeneration: (needs) => set({ needsRegeneration: needs }),
+  setIsBuilding: (building) => set({ isBuilding: building }),
+  setNeedsRebuild: (needs) => set({ needsRebuild: needs }),
 
   resetAll: () => set(initialState),
 }));

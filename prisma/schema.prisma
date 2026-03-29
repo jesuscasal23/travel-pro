@@ -88,17 +88,17 @@ model Itinerary {
   isActive      Boolean @default(true) @map("is_active")
   promptVersion String  @default("v1") @map("prompt_version")
 
-  // Generation job tracking
-  generationStatus String  @default("pending") @map("generation_status") // pending | generating | complete | failed
-  generationJobId  String? @map("generation_job_id")
-  discoveryStatus  String  @default("pending") @map("discovery_status") // pending | in_progress | completed
+  // Build & discovery job tracking
+  buildStatus     String  @default("pending") @map("build_status") // pending | building | complete | failed
+  buildJobId      String? @map("build_job_id")
+  discoveryStatus String  @default("pending") @map("discovery_status") // pending | in_progress | completed
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([tripId])
   @@index([tripId, isActive])
-  @@index([generationStatus])
+  @@index([buildStatus])
   @@map("itineraries")
 }
 

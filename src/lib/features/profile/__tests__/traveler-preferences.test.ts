@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_TRAVELER_PREFERENCES,
   toTravelerPreferences,
   toTravelerPreferencesPatch,
-  toTravelerProfile,
   toggleTravelerPreferenceInterest,
 } from "../traveler-preferences";
 
@@ -50,15 +48,5 @@ describe("traveler-preferences", () => {
 
     expect(next).toEqual([]);
     expect(after).toEqual(["culture"]);
-  });
-
-  it("projects a canonical traveler profile for AI callers", () => {
-    expect(toTravelerProfile(DEFAULT_TRAVELER_PREFERENCES)).toEqual({
-      nationality: "",
-      homeAirport: "",
-      travelStyle: "smart-budget",
-      interests: [],
-      pace: "moderate",
-    });
   });
 });

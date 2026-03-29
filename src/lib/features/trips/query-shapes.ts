@@ -20,7 +20,7 @@ export const TRIP_INTENT_SELECT = {
 const ACTIVE_ITINERARY_SUMMARY_SELECT = {
   id: true,
   version: true,
-  generationStatus: true,
+  buildStatus: true,
   discoveryStatus: true,
   createdAt: true,
   data: true,

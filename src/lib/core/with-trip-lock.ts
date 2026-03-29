@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 
 /**
  * Execute a callback inside a Prisma transaction with an advisory lock on the given tripId.
- * Prevents concurrent mutations (generation, deletion) on the same trip.
+ * Prevents concurrent mutations (build, deletion) on the same trip.
  */
 export async function withTripLock<T>(
   tripId: string,

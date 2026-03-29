@@ -46,7 +46,7 @@ export default function PlanPage() {
     travelers,
   } = usePlanFormStore();
 
-  // Profile fields and generation UI state — transient
+  // Profile fields and build UI state — transient
   const {
     nationality,
     homeAirport,
@@ -54,8 +54,8 @@ export default function PlanPage() {
     interests,
     pace,
     vibes,
-    isGenerating,
-    setIsGenerating,
+    isBuilding,
+    setIsBuilding,
   } = useTripStore();
 
   const createTripMutation = useCreateTrip();
@@ -187,7 +187,7 @@ export default function PlanPage() {
       duration_days: dayCount,
       travelers,
     });
-    setIsGenerating(true);
+    setIsBuilding(true);
 
     // Build initial route — even distribution of days across cities
     const perCity = dayCount > 0 ? Math.floor(dayCount / selectedCities.length) : 1;
@@ -222,7 +222,7 @@ export default function PlanPage() {
           onboardingCompleted: true,
         });
       } catch {
-        setIsGenerating(false);
+        setIsBuilding(false);
         toast({
           title: "Profile save failed",
           description: "We couldn't save your profile, so trip creation was stopped.",
@@ -258,7 +258,7 @@ export default function PlanPage() {
       });
       router.push(`/trips/${trip.id}`);
     } catch (err) {
-      setIsGenerating(false);
+      setIsBuilding(false);
       setGenerateError(
         err instanceof Error ? err.message : "Something went wrong. Please try again."
       );
@@ -277,7 +277,7 @@ export default function PlanPage() {
     effectiveHomeAirport,
     travelStyle,
     interests,
-    setIsGenerating,
+    setIsBuilding,
     pace,
     vibes,
     saveProfileMutation,
@@ -375,10 +375,10 @@ export default function PlanPage() {
               variant="brand"
               fullWidth
               onClick={handleGenerate}
-              disabled={!canAdvance() || isGenerating}
+              disabled={!canAdvance() || isBuilding}
               className="shadow-brand-xl gap-2 rounded-[24px] py-5 text-lg"
             >
-              {isGenerating ? (
+              {isBuilding ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Creating trip...

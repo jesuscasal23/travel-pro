@@ -36,7 +36,7 @@ const profileCore = z.object({
   pace: paceSchema.optional(),
 });
 
-/** Profile shape sent to AI endpoints (generation, discovery). */
+/** Profile shape sent to AI endpoints (activity discovery). */
 export const profileForAISchema = profileCore;
 
 /** All profile fields, all optional — used for PATCH updates. */

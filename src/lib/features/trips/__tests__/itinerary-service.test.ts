@@ -105,7 +105,7 @@ describe("createItineraryVersion", () => {
         version: 4,
         isActive: true,
         promptVersion: "v1",
-        generationStatus: "complete",
+        buildStatus: "complete",
         discoveryStatus: "completed",
       },
     });

@@ -32,10 +32,10 @@ interface TripClientProviderProps {
 }
 
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
-  const { needsRegeneration, setNeedsRegeneration } = useTripStore(
+  const { needsRebuild, setNeedsRebuild } = useTripStore(
     useShallow((s) => ({
-      needsRegeneration: s.needsRegeneration,
-      setNeedsRegeneration: s.setNeedsRegeneration,
+      needsRebuild: s.needsRebuild,
+      setNeedsRebuild: s.setNeedsRebuild,
     }))
   );
 
@@ -344,12 +344,12 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     dateStart,
     travelers,
     isPartialItinerary: false,
-    isGenerating: false,
-    generationError: null,
-    needsRegeneration,
+    isBuilding: false,
+    buildError: null,
+    needsRebuild,
     onRetry: () => undefined,
-    onRegenerate: () => setNeedsRegeneration(false),
-    onDismissRegeneration: () => setNeedsRegeneration(false),
+    onRebuild: () => setNeedsRebuild(false),
+    onDismissRebuild: () => setNeedsRebuild(false),
     visaLoading: visaLoading && shouldEnrich,
     weatherLoading: weatherLoading && shouldEnrich,
     visaError: !!visaError,

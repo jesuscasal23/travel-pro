@@ -11,12 +11,12 @@ interface TripBannersProps {
 export function TripBanners({ variant }: TripBannersProps) {
   const {
     isPartialItinerary,
-    isGenerating,
-    generationError,
-    needsRegeneration,
+    isBuilding,
+    buildError,
+    needsRebuild,
     onRetry,
-    onRegenerate,
-    onDismissRegeneration,
+    onRebuild,
+    onDismissRebuild,
   } = useTripContext();
 
   const isMobile = variant === "mobile";
@@ -25,8 +25,8 @@ export function TripBanners({ variant }: TripBannersProps) {
 
   return (
     <>
-      {/* Generation banner */}
-      {isGenerating && (
+      {/* Build banner */}
+      {isBuilding && (
         <div className="border-brand-primary-border bg-brand-primary-subtle border-b">
           <div className={`flex items-center gap-2 ${wrapperClass} ${paddingClass}`}>
             <Loader2 className="text-brand-primary h-4 w-4 animate-spin" />
@@ -38,7 +38,7 @@ export function TripBanners({ variant }: TripBannersProps) {
       )}
 
       {/* Error banner */}
-      {generationError && (
+      {buildError && (
         <div className="border-surface-error-border bg-surface-error-bg border-b">
           <div
             className={`flex items-center justify-between gap-4 ${wrapperClass} ${paddingClass}`}
@@ -53,26 +53,26 @@ export function TripBanners({ variant }: TripBannersProps) {
         </div>
       )}
 
-      {/* Regeneration banner */}
-      {needsRegeneration && !isPartialItinerary && !generationError && (
+      {/* Rebuild banner */}
+      {needsRebuild && !isPartialItinerary && !buildError && (
         <div className="border-brand-primary-border bg-brand-primary-subtle border-b">
           <div
             className={`flex items-center justify-between gap-3 ${wrapperClass} ${paddingClass}`}
           >
             <p className="text-steel text-sm">
               {isMobile
-                ? "Route changed. Regenerate?"
-                : "Your route has changed. Regenerate to update activities."}
+                ? "Route changed. Rebuild?"
+                : "Your route has changed. Rebuild to update activities."}
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <button
-                onClick={onDismissRegeneration}
+                onClick={onDismissRebuild}
                 className="text-muted-foreground hover:text-foreground text-xs"
               >
                 Dismiss
               </button>
-              <Button size="xs" onClick={onRegenerate} className="gap-1.5">
-                <RefreshCw className="h-3 w-3" /> Regenerate
+              <Button size="xs" onClick={onRebuild} className="gap-1.5">
+                <RefreshCw className="h-3 w-3" /> Rebuild
               </Button>
             </div>
           </div>

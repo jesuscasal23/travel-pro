@@ -6,7 +6,7 @@ export interface AdminStats {
   totalItineraries: number;
   recentUsers: number;
   recentTrips: number;
-  generationsByStatus: Record<string, number>;
+  buildsByStatus: Record<string, number>;
 }
 
 interface AdminUser {

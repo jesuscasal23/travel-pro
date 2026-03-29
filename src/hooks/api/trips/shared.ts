@@ -3,7 +3,7 @@ import type { DiscoveryStatus, Itinerary, TripSummary, TripType } from "@/types"
 
 interface TripDetailItinerary {
   id: string;
-  generationStatus: string;
+  buildStatus: string;
   discoveryStatus: DiscoveryStatus;
   data: Itinerary;
 }

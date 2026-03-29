@@ -5,11 +5,7 @@ import { getSupabaseAdminEnv } from "@/lib/config/server-env";
 import { BadRequestError, ProfileNotFoundError } from "@/lib/api/errors";
 import { normalizeInterests } from "@/lib/features/profile/interests";
 import { resolvePaceInput } from "@/lib/features/profile/pace";
-import {
-  toTravelerPreferences,
-  toTravelerProfile,
-} from "@/lib/features/profile/traveler-preferences";
-import type { UserProfile } from "@/types";
+import type { TravelStyle, UserProfile } from "@/types";
 import { z } from "zod";
 import { PROFILE_EXPORT_INCLUDE } from "./query-shapes";
 import { ProfilePatchInputSchema } from "./schemas";
@@ -124,7 +120,7 @@ export async function resolveTripUserProfile(
 ): Promise<UserProfile> {
   if (!tripProfileId) {
     if (!fallbackProfile) {
-      throw new BadRequestError("Guest trip generation requires profile details");
+      throw new BadRequestError("Guest trip creation requires profile details");
     }
     return fallbackProfile;
   }
@@ -134,16 +130,12 @@ export async function resolveTripUserProfile(
     throw new ProfileNotFoundError({ profileId: tripProfileId });
   }
 
-  return toTravelerProfile(
-    toTravelerPreferences({
-      nationality: profile.nationality,
-      homeAirport: profile.homeAirport,
-      travelStyle: profile.travelStyle as UserProfile["travelStyle"],
-      interests: profile.interests,
-      activityLevel: profile.activityLevel,
-      vibes: (profile.vibes as UserProfile["vibes"]) ?? undefined,
-      onboardingCompleted: profile.onboardingCompleted,
-      languagesSpoken: profile.languagesSpoken,
-    })
-  );
+  return {
+    nationality: profile.nationality,
+    homeAirport: profile.homeAirport,
+    travelStyle: profile.travelStyle as TravelStyle,
+    interests: normalizeInterests(profile.interests),
+    pace: resolvePaceInput(profile) ?? "moderate",
+    vibes: (profile.vibes as UserProfile["vibes"]) ?? undefined,
+  };
 }

@@ -1,7 +1,7 @@
 // ============================================================
 // Fichi — Itinerary Service
 // Centralizes itinerary lifecycle: versioning, activation,
-// generation state transitions. No HTTP concerns.
+// build state transitions. No HTTP concerns.
 // ============================================================
 import { prisma } from "@/lib/core/prisma";
 import { createLogger } from "@/lib/core/logger";
@@ -54,7 +54,7 @@ export async function createItineraryVersion(input: {
         version: previousVersion + 1,
         isActive: true,
         promptVersion,
-        generationStatus: "complete",
+        buildStatus: "complete",
         discoveryStatus: "completed",
       },
     }),

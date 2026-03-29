@@ -82,17 +82,6 @@ export function toggleTravelerPreferenceInterest(
     : [...interests, normalized];
 }
 
-export function toTravelerProfile(preferences: TravelerPreferences): UserProfile {
-  return {
-    nationality: preferences.nationality,
-    homeAirport: preferences.homeAirport,
-    travelStyle: preferences.travelStyle,
-    interests: preferences.interests,
-    pace: preferences.pace,
-    vibes: preferences.vibes,
-  };
-}
-
 export function toTravelerPreferencesPatch(
   input: Partial<TravelerPreferences>
 ): TravelerPreferencesPatch {

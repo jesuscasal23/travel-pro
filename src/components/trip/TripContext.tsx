@@ -22,16 +22,16 @@ export interface TripContextValue {
   travelers: number;
 
   // Itinerary build state
-  // isGenerating / generationError are reserved for future use; currently always false/null.
+  // isBuilding / buildError are reserved for future use; currently always false/null.
   // isPartialItinerary is true while the skeleton has no activities yet.
-  // needsRegeneration is set when the user edits the route and activities are stale.
+  // needsRebuild is set when the user edits the route and activities are stale.
   isPartialItinerary: boolean;
-  isGenerating: boolean;
-  generationError: string | null;
-  needsRegeneration: boolean;
+  isBuilding: boolean;
+  buildError: string | null;
+  needsRebuild: boolean;
   onRetry: () => void;
-  onRegenerate: () => void;
-  onDismissRegeneration: () => void;
+  onRebuild: () => void;
+  onDismissRebuild: () => void;
 
   // Enrichment state
   visaLoading: boolean;

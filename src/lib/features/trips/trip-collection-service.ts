@@ -41,7 +41,7 @@ export async function createTrip(input: CreateTripInput, profileId: string | nul
         version: 1,
         isActive: true,
         promptVersion: "v1",
-        generationStatus: "complete",
+        buildStatus: "complete",
         discoveryStatus: "pending",
       },
     });
@@ -62,8 +62,8 @@ async function deleteTripRedisData(input: { tripId: string }) {
     `trip:${input.tripId}:*`,
     `trips:${input.tripId}`,
     `trips:${input.tripId}:*`,
-    `trip-generation:${input.tripId}`,
-    `trip-generation:${input.tripId}:*`,
+    `trip-build:${input.tripId}`,
+    `trip-build:${input.tripId}:*`,
   ];
 
   for (const pattern of patterns) {

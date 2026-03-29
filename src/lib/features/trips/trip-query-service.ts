@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/core/prisma";
 import type { TripIntent } from "@/types";
 import { TripNotFoundError } from "@/lib/api/errors";
-import { STALE_GENERATION_MAX_AGE_MS } from "@/lib/config/constants";
+import { STALE_BUILD_MAX_AGE_MS } from "@/lib/config/constants";
 import { TRIP_INTENT_SELECT, TRIP_WITH_ACTIVE_ITINERARY_INCLUDE } from "./query-shapes";
 import { tripToIntent } from "./trip-intent";
 
@@ -43,18 +43,18 @@ export async function loadTripWithActiveItineraries(
     throw new TripNotFoundError({ tripId });
   }
 
-  // Lazy cleanup: if the active itinerary is stuck in "generating" past the
+  // Lazy cleanup: if the active itinerary is stuck in "building" past the
   // threshold, mark it as failed so the client can show a retry prompt.
   const active = trip.itineraries[0];
   if (
-    active?.generationStatus === "generating" &&
-    Date.now() - active.createdAt.getTime() > STALE_GENERATION_MAX_AGE_MS
+    active?.buildStatus === "building" &&
+    Date.now() - active.createdAt.getTime() > STALE_BUILD_MAX_AGE_MS
   ) {
     await prisma.itinerary.update({
       where: { id: active.id },
-      data: { generationStatus: "failed" },
+      data: { buildStatus: "failed" },
     });
-    active.generationStatus = "failed";
+    active.buildStatus = "failed";
   }
 
   return trip;

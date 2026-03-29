@@ -10,8 +10,8 @@ function resetTripStore() {
       travelStyle: null,
       interests: [],
       pace: null,
-      isGenerating: false,
-      needsRegeneration: false,
+      isBuilding: false,
+      needsRebuild: false,
     });
   });
 }
@@ -50,16 +50,16 @@ describe("useTripStore", () => {
     expect(useTripStore.getState().interests).toEqual(["culture"]);
   });
 
-  it("sets generation flags", () => {
+  it("sets build flags", () => {
     act(() => {
       const state = useTripStore.getState();
-      state.setIsGenerating(true);
-      state.setNeedsRegeneration(true);
+      state.setIsBuilding(true);
+      state.setNeedsRebuild(true);
     });
 
     const state = useTripStore.getState();
-    expect(state.isGenerating).toBe(true);
-    expect(state.needsRegeneration).toBe(true);
+    expect(state.isBuilding).toBe(true);
+    expect(state.needsRebuild).toBe(true);
   });
 
   it("resetAll clears all fields back to defaults", () => {
@@ -68,8 +68,8 @@ describe("useTripStore", () => {
       state.setNationality("German");
       state.setHomeAirport("FRA");
       state.setTravelStyle("luxury");
-      state.setIsGenerating(true);
-      state.setNeedsRegeneration(true);
+      state.setIsBuilding(true);
+      state.setNeedsRebuild(true);
     });
 
     act(() => {
@@ -80,7 +80,7 @@ describe("useTripStore", () => {
     expect(state.nationality).toBe("");
     expect(state.homeAirport).toBe("");
     expect(state.travelStyle).toBeNull();
-    expect(state.isGenerating).toBe(false);
-    expect(state.needsRegeneration).toBe(false);
+    expect(state.isBuilding).toBe(false);
+    expect(state.needsRebuild).toBe(false);
   });
 });

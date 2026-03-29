@@ -33,7 +33,7 @@ export async function createTestItinerary(
       version: 1,
       isActive: true,
       promptVersion: "v1",
-      generationStatus: "complete",
+      buildStatus: "complete",
       ...overrides,
     },
   });

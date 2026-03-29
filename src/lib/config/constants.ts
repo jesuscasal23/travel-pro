@@ -20,10 +20,10 @@ export const CONTENT_FILTER_MAX_RETRIES = 2;
 /** Content filter retry: base backoff delay in ms (multiplied by attempt number). */
 export const CONTENT_FILTER_BACKOFF_MS = 600;
 
-// ── Generation Lifecycle ────────────────────────────────────
+// ── Build Lifecycle ─────────────────────────────────────────
 
-/** How long a "generating" record can exist before being considered stale. */
-export const STALE_GENERATION_MAX_AGE_MS = 2 * 60 * 1000;
+/** How long a "building" record can exist before being considered stale. */
+export const STALE_BUILD_MAX_AGE_MS = 2 * 60 * 1000;
 
 // ── Enrichment ──────────────────────────────────────────────
 

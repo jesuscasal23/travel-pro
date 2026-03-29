@@ -61,7 +61,7 @@ describe("itinerary-service", () => {
 
     expect(v2.version).toBe(2);
     expect(v2.isActive).toBe(true);
-    expect(v2.generationStatus).toBe("complete");
+    expect(v2.buildStatus).toBe("complete");
 
     // Old version deactivated
     const oldVersion = await prisma.itinerary.findUnique({

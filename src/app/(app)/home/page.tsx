@@ -260,8 +260,9 @@ function TripPreparation({ tripId }: { tripId: string }) {
   });
   const manualBooking = useManualBooking();
 
-  const itinerary = tripDetail?.itineraries?.find((it) => it.generationStatus === "complete")
-    ?.data as Itinerary | undefined;
+  const itinerary = tripDetail?.itineraries?.find((it) => it.buildStatus === "complete")?.data as
+    | Itinerary
+    | undefined;
   const route = itinerary?.route ?? [];
 
   const progress = computeTripPreparation(route, bookingClicks ?? [], homeIata || undefined);

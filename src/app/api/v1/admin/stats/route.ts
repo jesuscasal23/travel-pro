@@ -5,7 +5,7 @@ import { apiHandler, requireSuperUser } from "@/lib/api/helpers";
 export const GET = apiHandler("GET /api/v1/admin/stats", async () => {
   await requireSuperUser();
 
-  const [totalUsers, totalTrips, totalItineraries, recentUsers, recentTrips, generationsByStatus] =
+  const [totalUsers, totalTrips, totalItineraries, recentUsers, recentTrips, buildsByStatus] =
     await Promise.all([
       prisma.profile.count(),
       prisma.trip.count(),
@@ -17,14 +17,12 @@ export const GET = apiHandler("GET /api/v1/admin/stats", async () => {
         where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
       }),
       prisma.itinerary.groupBy({
-        by: ["generationStatus"],
+        by: ["buildStatus"],
         _count: true,
       }),
     ]);
 
-  const statusCounts = Object.fromEntries(
-    generationsByStatus.map((g) => [g.generationStatus, g._count])
-  );
+  const statusCounts = Object.fromEntries(buildsByStatus.map((g) => [g.buildStatus, g._count]));
 
   return NextResponse.json({
     totalUsers,
@@ -32,6 +30,6 @@ export const GET = apiHandler("GET /api/v1/admin/stats", async () => {
     totalItineraries,
     recentUsers,
     recentTrips,
-    generationsByStatus: statusCounts,
+    buildsByStatus: statusCounts,
   });
 });
