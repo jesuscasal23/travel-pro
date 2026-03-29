@@ -51,7 +51,7 @@ function getGreeting(): string {
 
 export default function HomePage() {
   const router = useRouter();
-  const { trips: tripList, isSuperUser } = useTrips();
+  const { trips: tripList, isSuperUser, isLoading } = useTrips();
   const nextTrip = getNextTrip(tripList);
   const destination = nextTrip?.destination ?? "your destination";
 
@@ -101,7 +101,9 @@ export default function HomePage() {
         </section>
 
         {/* Active Trip Card */}
-        {nextTrip ? (
+        {isLoading ? (
+          <TripCardSkeleton />
+        ) : nextTrip ? (
           <>
             <ActiveTripBento trip={nextTrip} />
             <TripPreparation tripId={nextTrip.id} />
@@ -143,6 +145,33 @@ function NoTripsCard() {
           Start planning <ChevronRight className="h-4 w-4" />
         </span>
       </button>
+    </section>
+  );
+}
+
+/* ── Trip Card Loading Skeleton ─────────────────────────────── */
+
+function TripCardSkeleton() {
+  return (
+    <section className="mt-8 animate-pulse">
+      <div className="shadow-glass-sm overflow-hidden rounded-[2rem] bg-white dark:bg-white/5">
+        {/* Hero image placeholder */}
+        <div className="bg-surface-soft relative h-56 w-full">
+          <div className="absolute bottom-5 left-6 space-y-2">
+            <div className="bg-ink/10 h-5 w-32 rounded-full" />
+            <div className="bg-ink/10 h-8 w-48 rounded-lg" />
+            <div className="bg-ink/10 h-4 w-28 rounded-lg" />
+          </div>
+        </div>
+        {/* Action buttons placeholder */}
+        <div className="flex items-center justify-between gap-3 p-5">
+          <div className="flex gap-3">
+            <div className="bg-surface-soft h-10 w-28 rounded-xl" />
+            <div className="bg-surface-soft h-10 w-24 rounded-xl" />
+          </div>
+          <div className="bg-surface-soft h-10 w-32 rounded-full" />
+        </div>
+      </div>
     </section>
   );
 }
