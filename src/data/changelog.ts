@@ -18,6 +18,16 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.3.2",
+    date: "2026-03-29",
+    sections: {
+      improved: [
+        "More accurate images for discovered activities",
+        "Activity suggestions now avoid recommending similar duplicates",
+      ],
+    },
+  },
+  {
     version: "0.3.1",
     date: "2026-03-29",
     sections: {
