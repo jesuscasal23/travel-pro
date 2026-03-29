@@ -44,6 +44,7 @@ export interface DayActivity {
 /** A swipe card candidate generated during activity discovery. */
 export interface ActivityDiscoveryCandidate {
   name: string;
+  placeName: string | null;
   description: string;
   category: string;
   duration: string;

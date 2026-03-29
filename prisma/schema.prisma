@@ -90,7 +90,6 @@ model Itinerary {
 
   // Build & discovery job tracking
   buildStatus     String  @default("pending") @map("build_status") // pending | building | complete | failed
-  buildJobId      String? @map("build_job_id")
   discoveryStatus String  @default("pending") @map("discovery_status") // pending | in_progress | completed
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -116,6 +115,7 @@ model DiscoveredActivity {
   cityId        String  @map("city_id")
   city          String
   name          String
+  placeName     String? @map("place_name")
   description   String
   category      String
   duration      String

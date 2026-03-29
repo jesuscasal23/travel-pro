@@ -20,6 +20,7 @@ const log = createLogger("discover-activities-service");
 
 const ClaudeDiscoverActivitySchema = z.object({
   name: z.string().min(1).max(160),
+  placeName: z.string().min(1).max(200),
   description: z.string().min(1).max(600),
   category: z.string().min(1).max(80),
   duration: z.string().min(1).max(40),
@@ -130,10 +131,11 @@ export async function discoverActivities(
     cityId,
     city: city.city,
     name: activity.name,
+    placeName: activity.placeName,
     description: activity.description,
     category: activity.category,
     duration: activity.duration,
-    googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.name} ${city.city}`)}`,
+    googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.placeName} ${city.city}`)}`,
     imageUrl: null as string | null,
   }));
 
@@ -153,8 +155,9 @@ export async function discoverActivities(
   });
 
   // Fire-and-forget: resolve images in the background and update DB rows
+  // Use placeName (real venue name) for better Google Places matches
   resolveActivityImagesInBackground(
-    inserted.map((r) => ({ id: r.id, name: r.name })),
+    inserted.map((r) => ({ id: r.id, name: r.placeName ?? r.name })),
     city.city
   );
 
@@ -166,6 +169,7 @@ function toDiscoveredActivityRow(row: {
   cityId: string;
   city: string;
   name: string;
+  placeName: string | null;
   description: string;
   category: string;
   duration: string;
@@ -179,6 +183,7 @@ function toDiscoveredActivityRow(row: {
     cityId: row.cityId,
     city: row.city,
     name: row.name,
+    placeName: row.placeName,
     description: row.description,
     category: row.category,
     duration: row.duration,

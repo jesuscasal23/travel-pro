@@ -13,6 +13,7 @@ function makeActivity(overrides: Partial<DiscoveredActivityRow> = {}): Discovere
     cityId: "city-1",
     city: "Tokyo",
     name: "A1",
+    placeName: null,
     description: "A1 desc",
     category: "culture",
     duration: "2h",
