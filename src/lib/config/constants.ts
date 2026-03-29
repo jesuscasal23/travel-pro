@@ -27,9 +27,6 @@ export const STALE_BUILD_MAX_AGE_MS = 2 * 60 * 1000;
 
 // ── Enrichment ──────────────────────────────────────────────
 
-/** Redis cache TTL for weather data. */
-export const WEATHER_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
-
 /** Timeout for Open-Meteo weather API requests. */
 export const WEATHER_API_TIMEOUT_MS = 5_000;
 

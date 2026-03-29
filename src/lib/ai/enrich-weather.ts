@@ -1,11 +1,10 @@
 // ============================================================
-// Weather Enrichment — Open-Meteo archive API + Upstash Redis cache (7-day TTL)
+// Weather Enrichment — Open-Meteo archive API
 // ============================================================
 
 import type { CityStop, CityWeather } from "@/types";
-import { WEATHER_CACHE_TTL_SECONDS, WEATHER_API_TIMEOUT_MS } from "@/lib/config/constants";
+import { WEATHER_API_TIMEOUT_MS } from "@/lib/config/constants";
 import { createLogger } from "@/lib/core/logger";
-import { getRedis } from "@/lib/core/redis";
 
 const log = createLogger("enrichment:weather");
 
@@ -45,35 +44,13 @@ interface WeatherSummary {
 
 /**
  * Fetch historical weather for a city (lat/lng) for a given month.
- * Uses last year's data. Cached in Redis for 7 days.
+ * Uses last year's data from the Open-Meteo archive API.
  */
 async function getHistoricalWeather(
   lat: number,
   lng: number,
   month: number
 ): Promise<WeatherSummary> {
-  const cacheKey = `weather:${lat.toFixed(2)}:${lng.toFixed(2)}:${month}`;
-
-  // Try Redis cache first
-  const redis = getRedis();
-  if (redis) {
-    try {
-      const cached = await redis.get<WeatherSummary>(cacheKey);
-      if (cached) {
-        log.info("Weather cache hit", { cacheKey, lat, lng, month });
-        return cached;
-      }
-      log.info("Weather cache miss", { cacheKey });
-    } catch (e) {
-      log.warn("Weather Redis error", {
-        cacheKey,
-        error: e instanceof Error ? e.message : String(e),
-      });
-    }
-  } else {
-    log.info("Weather Redis not available, fetching from API", { lat, lng, month });
-  }
-
   // Use previous year's data for the requested month
   const year = new Date().getFullYear() - 1;
   const mm = String(month).padStart(2, "0");
@@ -138,18 +115,7 @@ async function getHistoricalWeather(
   const avgPrecip = avg(precip);
 
   const { condition, icon } = deriveCondition(avgTemp, avgPrecip);
-  const result: WeatherSummary = { avgTemp, condition, icon };
-
-  // Store in Redis cache
-  if (redis) {
-    try {
-      await redis.set(cacheKey, result, { ex: WEATHER_CACHE_TTL_SECONDS });
-    } catch {
-      // Cache write failure is non-fatal
-    }
-  }
-
-  return result;
+  return { avgTemp, condition, icon };
 }
 
 /**

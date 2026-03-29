@@ -1,21 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockRedisScan = vi.fn();
-const mockRedisDel = vi.fn();
-const mockRedis = {
-  scan: mockRedisScan,
-  del: mockRedisDel,
-};
-
-vi.mock("@/lib/core/redis", () => ({
-  getRedis: vi.fn(),
-}));
-
-vi.mock("@/lib/config/server-env", () => ({
-  getOptionalRedisEnv: vi.fn(),
-}));
-
 vi.mock("@/lib/core/prisma", () => ({
   prisma: {
     trip: {
@@ -36,11 +21,9 @@ vi.mock("@/lib/core/logger", () => ({
   }),
 }));
 
-import { getRedis } from "@/lib/core/redis";
 import { prisma } from "@/lib/core/prisma";
 import { deleteTripById } from "../trip-collection-service";
 
-const mockGetRedis = getRedis as ReturnType<typeof vi.fn>;
 const mockPrisma = prisma as unknown as {
   trip: {
     create: ReturnType<typeof vi.fn>;
@@ -78,7 +61,6 @@ const tx = {
 beforeEach(() => {
   vi.clearAllMocks();
 
-  mockGetRedis.mockReturnValue(null);
   mockPrisma.trip.findUnique.mockResolvedValue({
     id: "trip-1",
   });
@@ -91,8 +73,6 @@ beforeEach(() => {
   tx.itinerary.deleteMany.mockResolvedValue({ count: 2 });
   tx.trip.delete.mockResolvedValue({ id: "trip-1" });
   mockPrisma.$transaction.mockImplementation(async (callback) => callback(tx));
-  mockRedisScan.mockResolvedValue(["0", []]);
-  mockRedisDel.mockResolvedValue(0);
 });
 
 describe("deleteTripById", () => {
@@ -123,21 +103,5 @@ describe("deleteTripById", () => {
     expect(tx.trip.delete).toHaveBeenCalledWith({
       where: { id: "trip-1" },
     });
-  });
-
-  it("scans and deletes trip-scoped Redis keys when Redis is configured", async () => {
-    mockGetRedis.mockReturnValue(mockRedis);
-    mockRedisScan
-      .mockResolvedValueOnce(["0", ["trip:trip-1", "trip:trip-1:summary"]])
-      .mockResolvedValue(["0", []]);
-
-    await deleteTripById("trip-1");
-
-    expect(mockGetRedis).toHaveBeenCalled();
-    expect(mockRedisScan).toHaveBeenCalledWith("0", {
-      match: "trip:trip-1",
-      count: 100,
-    });
-    expect(mockRedisDel).toHaveBeenCalledWith("trip:trip-1", "trip:trip-1:summary");
   });
 });
