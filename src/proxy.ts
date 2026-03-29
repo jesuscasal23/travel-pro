@@ -29,7 +29,6 @@ const PUBLIC_PREFIXES = [
   "/get-started",
   "/plan",
   "/trip/",
-  "/share",
 ];
 
 function isProtected(pathname: string): boolean {

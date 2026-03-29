@@ -75,7 +75,6 @@ src/
 │   ├── dashboard/             # Redirect → /home (backwards compatibility)
 │   ├── plan/                  # Multi-step questionnaire: city picker → profile → priorities → overview
 │   ├── trip/[id]/             # 40/60 map+timeline, edit (drag-drop), summary (tabs+share+PDF)
-│   ├── share/[token]/         # Public read-only view + growth CTA
 │   ├── auth/callback/         # Supabase OAuth callback
 │   └── api/
 │       ├── health/            # Health check
@@ -269,10 +268,11 @@ Itinerary versioning: 1-to-many (Trip → Itinerary). Never `upsert { where: { t
 ## Proxy (`src/proxy.ts`)
 
 - **Protected routes**: `/profile` → redirect to `/login?next=...` if unauthenticated
-- **Public routes**: `/plan`, `/trip` (guests can generate/view), `/share`, auth pages, `/api/health`, `/get-started`, `/home`, `/trips`, `/bookings`, `/premium`
+- **Public routes**: `/plan`, `/trip` (guests can generate/view), auth pages, `/api/health`, `/get-started`, `/home`, `/trips`, `/bookings`, `/premium`
 - **Rate limiting** (Upstash Redis sliding window):
-  - `/api/v1/trips/*/generate`: 5 req/hour (cost protection)
-  - `/api/v1/trips/shared/*`: 60 req/min
+  - `/api/v1/trips/*/discover-activities`: 5 req/hour (LLM cost protection)
+  - `/api/v1/trips/*/flights`: 20 req/min (SerpApi cost)
+  - `/api/v1/trips/*/activity-images`, `/api/v1/enrich/*`, `/api/v1/places/*`: 60 req/min
   - `/api/v1/*` general: 30 req/min
 - Fail-open: requests pass through if Redis unavailable
 
