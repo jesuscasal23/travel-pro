@@ -230,11 +230,11 @@ These endpoints are restricted to superuser accounts (currently two people). The
 
 ### `GET /api/v1/admin/stats`
 
-|               |                                                                                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Superuser                                                                                                                                                   |
-| **Developer** | Returns aggregate platform statistics: total users, trips, itineraries, and counts by generation/discovery status. Uses `Promise.all` for parallel queries. |
-| **PM**        | Dashboard numbers — how many users, trips, and itineraries exist, and how many are in each stage of generation.                                             |
+|               |                                                                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Auth**      | Superuser                                                                                                                                              |
+| **Developer** | Returns aggregate platform statistics: total users, trips, itineraries, and counts by build/discovery status. Uses `Promise.all` for parallel queries. |
+| **PM**        | Dashboard numbers — how many users, trips, and itineraries exist, and how many are in each stage of the build lifecycle.                               |
 
 ### `GET /api/v1/admin/users`
 
