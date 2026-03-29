@@ -33,6 +33,8 @@
     --auth-optional: #0D7377;
     --auth-required: #2563eb;
     --auth-superuser: #E85D4A;
+    --fk-bg: #f0f7f7;
+    --fk-bg-dark: #0a2e2f;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -51,6 +53,7 @@
       --patch-bg: #2d1a00;
       --delete-bg: #2d0a0a;
       --put-bg: #1a0a3d;
+      --fk-bg: var(--fk-bg-dark);
     }
   }
 
@@ -83,8 +86,19 @@
     letter-spacing: -0.01em;
   }
 
+  .header-badges { display: flex; gap: 0.5rem; }
+
   header .count {
     background: var(--primary);
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  header .count-models {
+    background: var(--accent);
     color: white;
     font-size: 0.8rem;
     padding: 0.2rem 0.65rem;
@@ -311,6 +325,204 @@
     font-weight: 600;
   }
 
+  /* ── Section Divider ── */
+  .section-divider {
+    max-width: 960px;
+    margin: 2.5rem auto 0;
+    padding: 0 1rem;
+  }
+
+  .section-divider h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .section-divider h2 { color: var(--text); }
+  }
+
+  .section-divider p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  /* ── ER Diagram ── */
+  .er-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .er-canvas {
+    position: relative;
+    width: 1160px;
+    height: 920px;
+    margin: 0 auto;
+  }
+
+  .er-canvas svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .er-card {
+    position: absolute;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow);
+    min-width: 220px;
+    z-index: 2;
+    cursor: grab;
+    user-select: none;
+    transition: box-shadow 0.15s;
+  }
+
+  .er-card:hover {
+    box-shadow: 0 4px 16px var(--shadow);
+  }
+
+  .er-card.dragging {
+    cursor: grabbing;
+    box-shadow: 0 8px 24px var(--shadow);
+    z-index: 10;
+  }
+
+  .er-card-header {
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 7px 7px 0 0;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .er-card-header .table-name {
+    font-weight: 400;
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+
+  .er-card-fields {
+    font-size: 0.75rem;
+    font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
+  .er-field {
+    padding: 0.3rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .er-field:last-child { border-bottom: none; }
+
+  .er-field:nth-child(even) {
+    background: var(--bg);
+  }
+
+  .er-field.is-pk {
+    font-weight: 700;
+  }
+
+  .er-field.is-fk {
+    background: var(--fk-bg);
+  }
+
+  .er-field-name {
+    flex: 1;
+    color: var(--text);
+  }
+
+  .er-field-type {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+  }
+
+  .er-field-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .badge-pk {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .badge-fk {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .badge-pk { background: #451a03; color: #fbbf24; }
+    .badge-fk { background: #172554; color: #60a5fa; }
+  }
+
+  .er-field-optional {
+    color: var(--text-muted);
+    font-size: 0.65rem;
+  }
+
+  /* ── Legend ── */
+  .er-legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    padding: 0.6rem 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    max-width: 1160px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .er-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .legend-line {
+    width: 30px;
+    height: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-line-solid {
+    background: var(--text-muted);
+  }
+
+  .legend-line-dashed {
+    background: repeating-linear-gradient(90deg, var(--text-muted) 0, var(--text-muted) 5px, transparent 5px, transparent 8px);
+  }
+
+  /* ── Footer ── */
   .footer {
     max-width: 960px;
     margin: 2rem auto 0;
@@ -359,7 +571,10 @@
 
 <header>
   <h1>Fichi API Reference</h1>
-  <span class="count">27 endpoints</span>
+  <div class="header-badges">
+    <span class="count">27 endpoints</span>
+    <span class="count-models">8 models</span>
+  </div>
 </header>
 
 <div class="container">
@@ -869,8 +1084,8 @@
       </div>
       <div class="endpoint-detail">
         <div class="detail-grid">
-          <div class="detail-box"><h4>Developer</h4><p>Returns aggregate platform statistics: total users, trips, itineraries, and counts by generation/discovery status. Uses <code>Promise.all</code> for parallel queries.</p></div>
-          <div class="detail-box"><h4>PM</h4><p>Dashboard numbers — how many users, trips, and itineraries exist, and how many are in each stage of generation.</p></div>
+          <div class="detail-box"><h4>Developer</h4><p>Returns aggregate platform statistics: total users, trips, itineraries, and counts by build/discovery status. Uses <code>Promise.all</code> for parallel queries.</p></div>
+          <div class="detail-box"><h4>PM</h4><p>Dashboard numbers — how many users, trips, and itineraries exist, and how many are in each stage of the build lifecycle.</p></div>
         </div>
         <div class="detail-meta"><span class="meta-item"><strong>Auth:</strong> Superuser</span></div>
       </div>
@@ -975,6 +1190,29 @@
 
 </div>
 
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- Database Schema (ER Diagram)                                -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<div class="section-divider">
+  <h2>Database Schema <span class="group-badge" style="font-size:0.75rem">8 models</span></h2>
+  <p>Entity-relationship diagram inferred from <code>prisma/schema.prisma</code>. Cards are draggable.</p>
+</div>
+
+<div class="er-container">
+  <div class="er-legend">
+    <div class="er-legend-item"><span class="er-field-badge badge-pk">PK</span> Primary key</div>
+    <div class="er-legend-item"><span class="er-field-badge badge-fk">FK</span> Foreign key</div>
+    <div class="er-legend-item"><span class="legend-line legend-line-solid"></span> Required relation</div>
+    <div class="er-legend-item"><span class="legend-line legend-line-dashed"></span> Optional relation</div>
+    <div class="er-legend-item" style="color:var(--text-muted)">1 &mdash;&mdash; * &nbsp; One-to-many</div>
+  </div>
+  <div class="er-canvas" id="er-canvas">
+    <svg id="er-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <!-- Cards are injected by JS -->
+  </div>
+</div>
+
 <div class="footer">
   <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--navy);">Related Linear Tickets</h3>
   <table class="tickets-table">
@@ -986,29 +1224,448 @@
       <tr><td><a href="https://linear.app/travel-pro/issue/TRA-84">TRA-84</a></td><td>Remove share functionality (<code>/share/[token]</code>)</td></tr>
     </tbody>
   </table>
-  <p class="timestamp">Generated on 2026-03-28</p>
+  <p class="timestamp">Generated on 2026-03-29</p>
 </div>
 
 <script>
+/* ── API Reference interactions ── */
 function toggleGroup(id) {
   document.getElementById(id).classList.toggle('collapsed');
 }
-
 function toggleEndpoint(id) {
   document.getElementById(id).classList.toggle('expanded');
 }
-
 function expandAll(groupId) {
-  document.querySelectorAll('#' + groupId + ' .endpoint').forEach(function(el) {
-    el.classList.add('expanded');
-  });
+  document.querySelectorAll('#' + groupId + ' .endpoint').forEach(function(el) { el.classList.add('expanded'); });
+}
+function collapseAll(groupId) {
+  document.querySelectorAll('#' + groupId + ' .endpoint').forEach(function(el) { el.classList.remove('expanded'); });
 }
 
-function collapseAll(groupId) {
-  document.querySelectorAll('#' + groupId + ' .endpoint').forEach(function(el) {
-    el.classList.remove('expanded');
-  });
+/* ── ER Diagram Data ── */
+var models = [
+  {
+    id: 'Profile', table: 'profiles', x: 60, y: 40,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'userId', type: 'String', col: 'user_id' },
+      { name: 'nationality', type: 'String' },
+      { name: 'homeAirport', type: 'String', col: 'home_airport' },
+      { name: 'travelStyle', type: 'String', col: 'travel_style' },
+      { name: 'interests', type: 'String[]' },
+      { name: 'activityLevel', type: 'String?', col: 'activity_level' },
+      { name: 'vibes', type: 'Json?' },
+      { name: 'languagesSpoken', type: 'String[]', col: 'languages_spoken' },
+      { name: 'onboardingCompleted', type: 'Boolean', col: 'onboarding_completed' },
+      { name: 'isPremium', type: 'Boolean', col: 'is_premium' },
+      { name: 'isSuperUser', type: 'Boolean', col: 'is_super_user' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' },
+      { name: 'updatedAt', type: 'DateTime', col: 'updated_at' }
+    ]
+  },
+  {
+    id: 'Trip', table: 'trips', x: 440, y: 40,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'profileId', type: 'String?', fk: 'Profile', col: 'profile_id' },
+      { name: 'tripType', type: 'String', col: 'trip_type' },
+      { name: 'region', type: 'String' },
+      { name: 'destination', type: 'String?' },
+      { name: 'destinationCountry', type: 'String?', col: 'destination_country' },
+      { name: 'destinationCountryCode', type: 'String?', col: 'destination_country_code' },
+      { name: 'dateStart', type: 'String', col: 'date_start' },
+      { name: 'dateEnd', type: 'String', col: 'date_end' },
+      { name: 'travelers', type: 'Int' },
+      { name: 'description', type: 'String?' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' },
+      { name: 'updatedAt', type: 'DateTime', col: 'updated_at' }
+    ]
+  },
+  {
+    id: 'Itinerary', table: 'itineraries', x: 820, y: 40,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'tripId', type: 'String', fk: 'Trip', col: 'trip_id' },
+      { name: 'data', type: 'Json' },
+      { name: 'version', type: 'Int' },
+      { name: 'isActive', type: 'Boolean', col: 'is_active' },
+      { name: 'promptVersion', type: 'String', col: 'prompt_version' },
+      { name: 'buildStatus', type: 'String', col: 'build_status' },
+      { name: 'buildJobId', type: 'String?', col: 'build_job_id' },
+      { name: 'discoveryStatus', type: 'String', col: 'discovery_status' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' },
+      { name: 'updatedAt', type: 'DateTime', col: 'updated_at' }
+    ]
+  },
+  {
+    id: 'DiscoveredActivity', table: 'discovered_activities', x: 60, y: 460,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'tripId', type: 'String', fk: 'Trip', col: 'trip_id' },
+      { name: 'profileId', type: 'String?', fk: 'Profile', col: 'profile_id' },
+      { name: 'cityId', type: 'String', col: 'city_id' },
+      { name: 'city', type: 'String' },
+      { name: 'name', type: 'String' },
+      { name: 'description', type: 'String' },
+      { name: 'category', type: 'String' },
+      { name: 'duration', type: 'String' },
+      { name: 'googleMapsUrl', type: 'String?', col: 'google_maps_url' },
+      { name: 'imageUrl', type: 'String?', col: 'image_url' },
+      { name: 'decision', type: 'String?' },
+      { name: 'decidedAt', type: 'DateTime?', col: 'decided_at' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' }
+    ]
+  },
+  {
+    id: 'AffiliateClick', table: 'affiliate_clicks', x: 440, y: 460,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'tripId', type: 'String?', fk: 'Trip', col: 'trip_id' },
+      { name: 'provider', type: 'String' },
+      { name: 'clickType', type: 'String', col: 'click_type' },
+      { name: 'city', type: 'String?' },
+      { name: 'destination', type: 'String?' },
+      { name: 'url', type: 'String' },
+      { name: 'userId', type: 'String?', col: 'user_id' },
+      { name: 'sessionId', type: 'String?', col: 'session_id' },
+      { name: 'ipHash', type: 'String?', col: 'ip_hash' },
+      { name: 'metadata', type: 'Json?' },
+      { name: 'bookingConfirmed', type: 'Boolean?', col: 'booking_confirmed' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' }
+    ]
+  },
+  {
+    id: 'FlightSelection', table: 'flight_selections', x: 60, y: 860,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'tripId', type: 'String', fk: 'Trip', col: 'trip_id' },
+      { name: 'profileId', type: 'String', fk: 'Profile', col: 'profile_id' },
+      { name: 'selectionType', type: 'String', col: 'selection_type' },
+      { name: 'fromIata', type: 'String', col: 'from_iata' },
+      { name: 'toIata', type: 'String', col: 'to_iata' },
+      { name: 'departureDate', type: 'String', col: 'departure_date' },
+      { name: 'direction', type: 'String' },
+      { name: 'airline', type: 'String' },
+      { name: 'price', type: 'Float' },
+      { name: 'duration', type: 'String' },
+      { name: 'stops', type: 'Int' },
+      { name: 'bookingUrl', type: 'String', col: 'booking_url' },
+      { name: 'booked', type: 'Boolean' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' }
+    ]
+  },
+  {
+    id: 'HotelSelection', table: 'hotel_selections', x: 440, y: 860,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'tripId', type: 'String', fk: 'Trip', col: 'trip_id' },
+      { name: 'profileId', type: 'String', fk: 'Profile', col: 'profile_id' },
+      { name: 'selectionType', type: 'String', col: 'selection_type' },
+      { name: 'city', type: 'String' },
+      { name: 'countryCode', type: 'String', col: 'country_code' },
+      { name: 'checkIn', type: 'String', col: 'check_in' },
+      { name: 'checkOut', type: 'String', col: 'check_out' },
+      { name: 'hotelName', type: 'String', col: 'hotel_name' },
+      { name: 'hotelId', type: 'String', col: 'hotel_id' },
+      { name: 'totalPrice', type: 'Float?', col: 'total_price' },
+      { name: 'bookingUrl', type: 'String', col: 'booking_url' },
+      { name: 'booked', type: 'Boolean' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' }
+    ]
+  },
+  {
+    id: 'DiscoveredCity', table: 'discovered_cities', x: 820, y: 460,
+    fields: [
+      { name: 'id', type: 'String', pk: true },
+      { name: 'city', type: 'String' },
+      { name: 'country', type: 'String' },
+      { name: 'countryCode', type: 'String', col: 'country_code' },
+      { name: 'lat', type: 'Float' },
+      { name: 'lng', type: 'Float' },
+      { name: 'timesProposed', type: 'Int', col: 'times_proposed' },
+      { name: 'firstTripId', type: 'String?', col: 'first_trip_id' },
+      { name: 'approved', type: 'Boolean' },
+      { name: 'createdAt', type: 'DateTime', col: 'created_at' },
+      { name: 'updatedAt', type: 'DateTime', col: 'updated_at' }
+    ]
+  }
+];
+
+/* Relations: from model.field → to model (target PK) */
+var relations = [
+  { from: 'Trip', field: 'profileId', to: 'Profile', optional: true, onDelete: null },
+  { from: 'Itinerary', field: 'tripId', to: 'Trip', optional: false, onDelete: 'Cascade' },
+  { from: 'DiscoveredActivity', field: 'tripId', to: 'Trip', optional: false, onDelete: 'Cascade' },
+  { from: 'DiscoveredActivity', field: 'profileId', to: 'Profile', optional: true, onDelete: 'SetNull' },
+  { from: 'AffiliateClick', field: 'tripId', to: 'Trip', optional: true, onDelete: 'SetNull' },
+  { from: 'FlightSelection', field: 'tripId', to: 'Trip', optional: false, onDelete: 'Cascade' },
+  { from: 'FlightSelection', field: 'profileId', to: 'Profile', optional: false, onDelete: 'Cascade' },
+  { from: 'HotelSelection', field: 'tripId', to: 'Trip', optional: false, onDelete: 'Cascade' },
+  { from: 'HotelSelection', field: 'profileId', to: 'Profile', optional: false, onDelete: 'Cascade' }
+];
+
+/* ── Build Cards ── */
+var canvas = document.getElementById('er-canvas');
+var svg = document.getElementById('er-svg');
+var cardEls = {};
+var FIELD_H = 24;
+var HEADER_H = 34;
+
+function buildCard(m) {
+  var card = document.createElement('div');
+  card.className = 'er-card';
+  card.id = 'card-' + m.id;
+  card.style.left = m.x + 'px';
+  card.style.top = m.y + 'px';
+
+  var hdr = document.createElement('div');
+  hdr.className = 'er-card-header';
+  hdr.innerHTML = m.id + ' <span class="table-name">' + m.table + '</span>';
+  card.appendChild(hdr);
+
+  var fields = document.createElement('div');
+  fields.className = 'er-card-fields';
+  for (var i = 0; i < m.fields.length; i++) {
+    var f = m.fields[i];
+    var row = document.createElement('div');
+    row.className = 'er-field';
+    if (f.pk) row.className += ' is-pk';
+    if (f.fk) row.className += ' is-fk';
+    row.setAttribute('data-field', f.name);
+
+    var badges = '';
+    if (f.pk) badges += '<span class="er-field-badge badge-pk">PK</span>';
+    if (f.fk) badges += '<span class="er-field-badge badge-fk">FK</span>';
+
+    var opt = f.type.indexOf('?') > -1 ? '<span class="er-field-optional">?</span>' : '';
+    var typeName = f.type.replace('?', '');
+
+    row.innerHTML = badges +
+      '<span class="er-field-name">' + f.name + opt + '</span>' +
+      '<span class="er-field-type">' + typeName + '</span>';
+    fields.appendChild(row);
+  }
+  card.appendChild(fields);
+  canvas.appendChild(card);
+  cardEls[m.id] = card;
 }
+
+for (var i = 0; i < models.length; i++) buildCard(models[i]);
+
+/* ── Resize canvas to fit all cards ── */
+function resizeCanvas() {
+  var maxX = 0, maxY = 0;
+  for (var key in cardEls) {
+    var el = cardEls[key];
+    var r = el.offsetLeft + el.offsetWidth + 40;
+    var b = el.offsetTop + el.offsetHeight + 40;
+    if (r > maxX) maxX = r;
+    if (b > maxY) maxY = b;
+  }
+  canvas.style.width = Math.max(maxX, 1160) + 'px';
+  canvas.style.height = Math.max(maxY, 920) + 'px';
+}
+
+/* ── Draw Relationships ── */
+function getFieldCenter(modelId, fieldName, side) {
+  var card = cardEls[modelId];
+  var row = card.querySelector('[data-field="' + fieldName + '"]');
+  if (!row) return { x: card.offsetLeft, y: card.offsetTop };
+  var cardX = card.offsetLeft;
+  var cardY = card.offsetTop;
+  var rowTop = row.offsetTop;
+  var rowH = row.offsetHeight;
+  var y = cardY + rowTop + rowH / 2;
+  var x = side === 'right' ? cardX + card.offsetWidth : cardX;
+  return { x: x, y: y };
+}
+
+function getPkCenter(modelId, side) {
+  return getFieldCenter(modelId, 'id', side);
+}
+
+function drawRelations() {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  /* Arrowhead marker */
+  var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+  var marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+  marker.setAttribute('id', 'arrow');
+  marker.setAttribute('viewBox', '0 0 10 10');
+  marker.setAttribute('refX', '10');
+  marker.setAttribute('refY', '5');
+  marker.setAttribute('markerWidth', '8');
+  marker.setAttribute('markerHeight', '8');
+  marker.setAttribute('orient', 'auto-start-reverse');
+  var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+  path.setAttribute('fill', 'var(--text-muted)');
+  marker.appendChild(path);
+  defs.appendChild(marker);
+
+  /* Crow's foot marker (many side) */
+  var crowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+  crowMarker.setAttribute('id', 'crow');
+  crowMarker.setAttribute('viewBox', '0 0 12 12');
+  crowMarker.setAttribute('refX', '0');
+  crowMarker.setAttribute('refY', '6');
+  crowMarker.setAttribute('markerWidth', '10');
+  crowMarker.setAttribute('markerHeight', '10');
+  crowMarker.setAttribute('orient', 'auto');
+  var cp1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  cp1.setAttribute('x1', '0'); cp1.setAttribute('y1', '6');
+  cp1.setAttribute('x2', '12'); cp1.setAttribute('y2', '0');
+  cp1.setAttribute('stroke', 'var(--text-muted)'); cp1.setAttribute('stroke-width', '1.5');
+  var cp2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  cp2.setAttribute('x1', '0'); cp2.setAttribute('y1', '6');
+  cp2.setAttribute('x2', '12'); cp2.setAttribute('y2', '12');
+  cp2.setAttribute('stroke', 'var(--text-muted)'); cp2.setAttribute('stroke-width', '1.5');
+  var cp3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  cp3.setAttribute('x1', '0'); cp3.setAttribute('y1', '6');
+  cp3.setAttribute('x2', '12'); cp3.setAttribute('y2', '6');
+  cp3.setAttribute('stroke', 'var(--text-muted)'); cp3.setAttribute('stroke-width', '1.5');
+  crowMarker.appendChild(cp1); crowMarker.appendChild(cp2); crowMarker.appendChild(cp3);
+  defs.appendChild(crowMarker);
+
+  /* One marker (single line with perpendicular bar) */
+  var oneMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+  oneMarker.setAttribute('id', 'one');
+  oneMarker.setAttribute('viewBox', '0 0 12 12');
+  oneMarker.setAttribute('refX', '12');
+  oneMarker.setAttribute('refY', '6');
+  oneMarker.setAttribute('markerWidth', '10');
+  oneMarker.setAttribute('markerHeight', '10');
+  oneMarker.setAttribute('orient', 'auto');
+  var ol = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  ol.setAttribute('x1', '12'); ol.setAttribute('y1', '0');
+  ol.setAttribute('x2', '12'); ol.setAttribute('y2', '12');
+  ol.setAttribute('stroke', 'var(--text-muted)'); ol.setAttribute('stroke-width', '1.5');
+  oneMarker.appendChild(ol);
+  defs.appendChild(oneMarker);
+
+  svg.appendChild(defs);
+
+  for (var i = 0; i < relations.length; i++) {
+    var rel = relations[i];
+    var fromCard = cardEls[rel.from];
+    var toCard = cardEls[rel.to];
+    if (!fromCard || !toCard) continue;
+
+    /* Determine which side to connect from */
+    var fromCX = fromCard.offsetLeft + fromCard.offsetWidth / 2;
+    var toCX = toCard.offsetLeft + toCard.offsetWidth / 2;
+    var fromSide = fromCX < toCX ? 'right' : 'left';
+    var toSide = fromCX < toCX ? 'left' : 'right';
+
+    var p1 = getFieldCenter(rel.from, rel.field, fromSide);
+    var p2 = getPkCenter(rel.to, toSide);
+
+    /* Draw curved path */
+    var dx = Math.abs(p2.x - p1.x) * 0.4;
+    var c1x = fromSide === 'right' ? p1.x + dx : p1.x - dx;
+    var c2x = toSide === 'right' ? p2.x + dx : p2.x - dx;
+
+    var pathD = 'M ' + p1.x + ' ' + p1.y +
+                ' C ' + c1x + ' ' + p1.y + ', ' + c2x + ' ' + p2.y + ', ' + p2.x + ' ' + p2.y;
+
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', pathD);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', 'var(--text-muted)');
+    line.setAttribute('stroke-width', '1.5');
+    if (rel.optional) line.setAttribute('stroke-dasharray', '6,3');
+    line.setAttribute('marker-start', 'url(#crow)');
+    line.setAttribute('marker-end', 'url(#one)');
+    svg.appendChild(line);
+
+    /* onDelete label */
+    if (rel.onDelete) {
+      var midX = (p1.x + p2.x) / 2;
+      var midY = (p1.y + p2.y) / 2 - 8;
+      var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', midX);
+      label.setAttribute('y', midY);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-size', '10');
+      label.setAttribute('fill', 'var(--text-muted)');
+      label.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, sans-serif');
+      label.textContent = rel.onDelete;
+      svg.appendChild(label);
+    }
+  }
+}
+
+/* ── Drag Logic ── */
+var dragState = null;
+
+document.addEventListener('mousedown', function(e) {
+  var card = e.target.closest('.er-card');
+  if (!card) return;
+  e.preventDefault();
+  card.classList.add('dragging');
+  dragState = {
+    card: card,
+    startX: e.clientX,
+    startY: e.clientY,
+    origLeft: card.offsetLeft,
+    origTop: card.offsetTop
+  };
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (!dragState) return;
+  var dx = e.clientX - dragState.startX;
+  var dy = e.clientY - dragState.startY;
+  dragState.card.style.left = Math.max(0, dragState.origLeft + dx) + 'px';
+  dragState.card.style.top = Math.max(0, dragState.origTop + dy) + 'px';
+  drawRelations();
+});
+
+document.addEventListener('mouseup', function() {
+  if (dragState) {
+    dragState.card.classList.remove('dragging');
+    dragState = null;
+    resizeCanvas();
+  }
+});
+
+/* Touch support for mobile */
+document.addEventListener('touchstart', function(e) {
+  var card = e.target.closest('.er-card');
+  if (!card) return;
+  var t = e.touches[0];
+  card.classList.add('dragging');
+  dragState = {
+    card: card,
+    startX: t.clientX,
+    startY: t.clientY,
+    origLeft: card.offsetLeft,
+    origTop: card.offsetTop
+  };
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (!dragState) return;
+  var t = e.touches[0];
+  var dx = t.clientX - dragState.startX;
+  var dy = t.clientY - dragState.startY;
+  dragState.card.style.left = Math.max(0, dragState.origLeft + dx) + 'px';
+  dragState.card.style.top = Math.max(0, dragState.origTop + dy) + 'px';
+  drawRelations();
+}, { passive: true });
+
+document.addEventListener('touchend', function() {
+  if (dragState) {
+    dragState.card.classList.remove('dragging');
+    dragState = null;
+    resizeCanvas();
+  }
+});
+
+/* Initial draw */
+resizeCanvas();
+drawRelations();
 </script>
 
 </body>
