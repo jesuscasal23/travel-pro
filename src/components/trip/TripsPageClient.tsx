@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, ChevronRight } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { useRouter } from "next/navigation";
 import { CenteredState } from "@/components/ui/CenteredState";
@@ -82,8 +82,23 @@ export function TripsPageClient() {
         </section>
 
         {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="text-brand-primary h-8 w-8 animate-spin" />
+          <div className="animate-pulse space-y-6">
+            {/* Upcoming card skeleton */}
+            <div className="bg-card border-edge rounded-3xl border p-8">
+              <div className="bg-surface-soft mb-4 h-10 w-10 rounded-xl" />
+              <div className="bg-surface-soft mb-2 h-5 w-48 rounded-lg" />
+              <div className="bg-surface-soft mb-4 h-4 w-64 rounded-lg" />
+              <div className="bg-surface-soft h-4 w-28 rounded-lg" />
+            </div>
+            {/* Past section skeleton */}
+            <div>
+              <div className="bg-surface-soft mb-6 h-7 w-40 rounded-lg" />
+              <div className="bg-card border-edge rounded-3xl border p-8">
+                <div className="bg-surface-soft mx-auto mb-4 h-10 w-10 rounded-xl" />
+                <div className="bg-surface-soft mx-auto mb-2 h-5 w-40 rounded-lg" />
+                <div className="bg-surface-soft mx-auto h-4 w-56 rounded-lg" />
+              </div>
+            </div>
           </div>
         )}
 
@@ -92,18 +107,34 @@ export function TripsPageClient() {
         )}
 
         {!isLoading && tripList.length === 0 && !error && (
-          <CenteredState
-            title="No trips yet"
-            description="Plan your first adventure!"
-            action={
-              <button
-                onClick={() => router.push("/plan")}
-                className="bg-brand-primary mt-4 rounded-xl px-6 py-3 text-sm font-bold text-white"
-              >
-                Plan a Trip
-              </button>
-            }
-          />
+          <div className="space-y-6">
+            {/* Upcoming empty card */}
+            <button
+              onClick={() => router.push("/plan")}
+              className="bg-card border-edge group w-full rounded-3xl border p-8 text-left transition-shadow hover:shadow-lg"
+            >
+              <div className="mb-4 text-4xl">✈️</div>
+              <h3 className="text-ink font-display text-lg font-bold">No upcoming trips yet</h3>
+              <p className="text-label mt-1 text-sm leading-relaxed">
+                Plan your next adventure — pick your destinations and we&apos;ll handle the rest.
+              </p>
+              <span className="text-primary mt-4 inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2">
+                Start planning <ChevronRight className="h-4 w-4" />
+              </span>
+            </button>
+
+            {/* Past adventures empty card */}
+            <section>
+              <h3 className="font-display mb-6 text-2xl font-bold">Past Adventures</h3>
+              <div className="bg-card border-edge rounded-3xl border p-8 text-center">
+                <div className="mb-4 text-4xl">🗺️</div>
+                <h4 className="text-ink font-display text-lg font-bold">No past adventures</h4>
+                <p className="text-label mt-1 text-sm leading-relaxed">
+                  Your completed trips will appear here.
+                </p>
+              </div>
+            </section>
+          </div>
         )}
 
         {!isLoading && tripList.length > 0 && (
