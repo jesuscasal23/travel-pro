@@ -79,15 +79,6 @@ export interface CityProgress {
   cityComplete: boolean;
 }
 
-/** Response from the activity swipe endpoint. */
-export interface SwipeResponse {
-  ok: true;
-  cityProgress: CityProgress;
-  batchComplete: boolean;
-  nextCityId: string | null;
-  allCitiesComplete: boolean;
-}
-
 /** A single day in the itinerary */
 export interface TripDay {
   day: number;
@@ -135,6 +126,8 @@ export interface CityHotel {
   imageUrl?: string; // thumbnail from SerpApi Google Hotels
   bookingUrl: string;
   why: string; // AI-generated reason
+  lat?: number;
+  lng?: number;
 }
 
 /** Accommodation data for a city stop */

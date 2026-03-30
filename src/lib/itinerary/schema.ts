@@ -89,6 +89,8 @@ const cityHotelSchema = z.object({
   distance: z.string().optional(),
   bookingUrl: z.string(),
   why: z.string(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 });
 
 const cityAccommodationSchema = z.object({

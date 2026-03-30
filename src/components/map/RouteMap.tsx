@@ -6,18 +6,34 @@ import type { MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { CityStop } from "@/types";
 
+export interface HotelPin {
+  lat: number;
+  lng: number;
+  name: string;
+  pricePerNight: number | null;
+  rating: number | null;
+  city: string;
+}
+
 interface RouteMapProps {
   cities: CityStop[];
   activeCityIndex: number | null;
   onCityClick: (index: number) => void;
+  hotelPins?: HotelPin[];
 }
 
 // Carto Voyager — free, production-grade tiles, no API key required
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
-export default function RouteMap({ cities, activeCityIndex, onCityClick }: RouteMapProps) {
+export default function RouteMap({
+  cities,
+  activeCityIndex,
+  onCityClick,
+  hotelPins = [],
+}: RouteMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [popupIndex, setPopupIndex] = useState<number | null>(null);
+  const [hotelPopupIndex, setHotelPopupIndex] = useState<number | null>(null);
 
   // Build GeoJSON line through all cities
   const geojsonLine = {
@@ -29,11 +45,15 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
     properties: {},
   };
 
-  // Auto-fit bounds when map loads
+  // Auto-fit bounds when map loads — include hotel pins in bounds
   const handleLoad = useCallback(() => {
     if (!mapRef.current || cities.length === 0) return;
-    if (cities.length === 1) {
-      // Single city — center on it at neighborhood zoom level
+
+    const allLngs = [...cities.map((c) => c.lng), ...hotelPins.map((h) => h.lng)];
+    const allLats = [...cities.map((c) => c.lat), ...hotelPins.map((h) => h.lat)];
+
+    if (cities.length === 1 && hotelPins.length === 0) {
+      // Single city, no hotels — center on it at neighborhood zoom level
       mapRef.current.flyTo({
         center: [cities[0].lng, cities[0].lat],
         zoom: 11,
@@ -41,16 +61,15 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
       });
       return;
     }
-    const lngs = cities.map((c) => c.lng);
-    const lats = cities.map((c) => c.lat);
+
     mapRef.current.fitBounds(
       [
-        [Math.min(...lngs), Math.min(...lats)],
-        [Math.max(...lngs), Math.max(...lats)],
+        [Math.min(...allLngs), Math.min(...allLats)],
+        [Math.max(...allLngs), Math.max(...allLats)],
       ],
       { padding: 80, duration: 1000 }
     );
-  }, [cities]);
+  }, [cities, hotelPins]);
 
   // Fly to active city when activeCityIndex changes
   useEffect(() => {
@@ -111,6 +130,7 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
                 e.originalEvent.stopPropagation();
                 onCityClick(i);
                 setPopupIndex(i);
+                setHotelPopupIndex(null);
               }}
             >
               <div
@@ -122,6 +142,7 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
                     e.preventDefault();
                     onCityClick(i);
                     setPopupIndex(i);
+                    setHotelPopupIndex(null);
                   }
                 }}
                 style={{
@@ -150,6 +171,65 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
           );
         })}
 
+        {/* Hotel pins */}
+        {hotelPins.map((hotel, i) => (
+          <Marker
+            key={`hotel-${hotel.city}-${hotel.name}`}
+            longitude={hotel.lng}
+            latitude={hotel.lat}
+            anchor="bottom"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation();
+              setHotelPopupIndex(i);
+              setPopupIndex(null);
+            }}
+          >
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={`Hotel: ${hotel.name} in ${hotel.city}`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setHotelPopupIndex(i);
+                  setPopupIndex(null);
+                }
+              }}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                backgroundColor: "var(--color-accent)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
+                cursor: "pointer",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                border: "2px solid #fff",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8" />
+                <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4" />
+                <path d="M2 20h20" />
+                <path d="M6 10v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" />
+              </svg>
+            </div>
+          </Marker>
+        ))}
+
         {/* City popup */}
         {popupIndex !== null && cities[popupIndex] && (
           <Popup
@@ -170,6 +250,39 @@ export default function RouteMap({ cities, activeCityIndex, onCityClick }: Route
               </div>
               <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
                 {cities[popupIndex].days} days
+              </div>
+            </div>
+          </Popup>
+        )}
+
+        {/* Hotel popup */}
+        {hotelPopupIndex !== null && hotelPins[hotelPopupIndex] && (
+          <Popup
+            longitude={hotelPins[hotelPopupIndex].lng}
+            latitude={hotelPins[hotelPopupIndex].lat}
+            anchor="top"
+            onClose={() => setHotelPopupIndex(null)}
+            closeButton
+            closeOnClick={false}
+            offset={24}
+          >
+            <div style={{ padding: "4px 2px", minWidth: 120 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "hsl(var(--foreground))" }}>
+                {hotelPins[hotelPopupIndex].name}
+              </div>
+              {hotelPins[hotelPopupIndex].pricePerNight != null && (
+                <div style={{ fontSize: 12, color: "hsl(var(--foreground))", marginTop: 2 }}>
+                  {hotelPins[hotelPopupIndex].pricePerNight}€/night
+                </div>
+              )}
+              {hotelPins[hotelPopupIndex].rating != null && (
+                <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 1 }}>
+                  {"★".repeat(Math.round(hotelPins[hotelPopupIndex].rating!))}{" "}
+                  {hotelPins[hotelPopupIndex].rating} stars
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 1 }}>
+                {hotelPins[hotelPopupIndex].city}
               </div>
             </div>
           </Popup>

@@ -60,4 +60,6 @@ export interface HotelCandidate {
   amenities?: string[];
   thumbnail?: string;
   link?: string;
+  lat?: number;
+  lng?: number;
 }

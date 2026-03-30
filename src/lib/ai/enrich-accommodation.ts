@@ -239,6 +239,8 @@ export async function enrichAccommodation(
                 c.pricePerNight
               ),
             why: rankedMap.get(c.hotelId) ?? "Well-rated hotel.",
+            lat: c.lat,
+            lng: c.lng,
           });
         }
 
@@ -271,6 +273,8 @@ export async function enrichAccommodation(
                 c.pricePerNight
               ),
             why: "Well-rated hotel in a convenient location.",
+            lat: c.lat,
+            lng: c.lng,
           });
         }
 

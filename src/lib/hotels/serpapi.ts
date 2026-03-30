@@ -218,5 +218,7 @@ function mapPropertyToCandidate(
     amenities: p.amenities,
     thumbnail: p.images?.[0]?.thumbnail,
     link: p.link,
+    lat: p.gps_coordinates?.latitude,
+    lng: p.gps_coordinates?.longitude,
   };
 }
