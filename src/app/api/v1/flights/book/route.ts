@@ -9,7 +9,10 @@ import { resolveBooking, SerpApiRateLimitError } from "@/lib/flights";
 import { buildFlightLink } from "@/lib/flights/booking-links";
 import { createLogger } from "@/lib/core/logger";
 import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
-import { hashIpAddress, isAllowedAffiliateDestination } from "@/lib/features/affiliate/redirect-utils";
+import {
+  hashIpAddress,
+  isAllowedAffiliateDestination,
+} from "@/lib/features/affiliate/redirect-utils";
 import { trackFlightBookingClick } from "@/lib/features/affiliate/booking-click-service";
 import { getClientIp } from "@/lib/api/helpers";
 
@@ -135,7 +138,7 @@ export async function GET(req: NextRequest) {
 
     // Best-effort booking click tracking — never blocks the redirect
     const userId = await getAuthenticatedUserId().catch(() => null);
-    trackFlightBookingClick({
+    void trackFlightBookingClick({
       bookingUrl: booking.url,
       bookWith: booking.bookWith,
       price: booking.price ?? undefined,

@@ -38,7 +38,7 @@ function isProtected(pathname: string): boolean {
 // ── Rate limiting (Upstash Redis sliding window) ───────────────────────────
 // All API rate limiting is centralized here. Tiered by cost:
 //   - /api/v1/trips/*/discover-activities :  5/hour   (LLM cost protection)
-//   - /api/v1/trips/*/flights             : 20/min    (SerpApi cost)
+//   - /api/v1/trips/*/flights, /flights/book: 20/min  (SerpApi cost)
 //   - /api/v1/trips/*/activity-images     : 60/min    (cheap: DB reads + Google Places)
 //   - /api/v1/enrich/*                    : 60/min    (cheap: external APIs + cache)
 //   - /api/v1/places/*                    : 60/min    (cheap: image proxy)
@@ -75,8 +75,11 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     limitKey = `rl:discover:${ip}`;
     limit = 5;
     windowSeconds = 3600;
-  } else if (pathname.match(/^\/api\/v1\/trips\/[^/]+\/flights$/)) {
-    // On-demand flight search: 20 per minute per IP
+  } else if (
+    pathname.match(/^\/api\/v1\/trips\/[^/]+\/flights$/) ||
+    pathname === "/api/v1/flights/book"
+  ) {
+    // Flight search + booking resolution: 20 per minute per IP (both hit SerpApi)
     limitKey = `rl:flights:${ip}`;
     limit = 20;
     windowSeconds = 60;

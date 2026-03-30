@@ -236,7 +236,6 @@ A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itine
 | `/api/v1/trips/[id]/booking-clicks`      | GET, POST, PATCH   | Auth + trip | Track/confirm booking clicks                              |
 | **Flights**                              |                    |             |                                                           |
 | `/api/v1/flights/book`                   | GET                | Optional    | Auto-submit booking form redirect                         |
-| `/api/v1/flights/booking-url`            | POST               | None        | Legacy booking URL generator                              |
 | **Enrichment**                           |                    |             |                                                           |
 | `/api/v1/enrich/weather`                 | POST               | Auth        | Weather data enrichment (Open-Meteo + Redis cache)        |
 | `/api/v1/enrich/visa`                    | POST               | Auth        | Visa requirement enrichment                               |
