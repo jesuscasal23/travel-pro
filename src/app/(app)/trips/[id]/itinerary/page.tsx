@@ -15,6 +15,11 @@ export default function TripItineraryPage() {
     discoveryIsLoading,
     discoveryError,
     onDiscoverySwipe,
+    discoveryCityIndex,
+    discoveryTotalCities,
+    discoveryLikedCount,
+    discoveryRequiredCount,
+    assignedActivities,
   } = useTripContext();
 
   if (!itinerary) {
@@ -30,12 +35,15 @@ export default function TripItineraryPage() {
     );
   }
 
-  const showLegacyItinerary = discoveryStatus === "completed" && itinerary.days.length > 0;
+  const showJourney =
+    discoveryStatus === "completed" && (assignedActivities.length > 0 || itinerary.days.length > 0);
+
+  const currentCityName = itinerary.route[discoveryCityIndex]?.city;
 
   return (
     <TripMobileShell showBanners>
-      {showLegacyItinerary ? (
-        <MobileJourneyTab itinerary={itinerary} />
+      {showJourney ? (
+        <MobileJourneyTab itinerary={itinerary} assignedActivities={assignedActivities} />
       ) : (
         <MobileDiscoveryTab
           status={discoveryStatus}
@@ -46,6 +54,11 @@ export default function TripItineraryPage() {
           error={discoveryError}
           isMultiCity={itinerary.route.length > 1}
           onSwipe={onDiscoverySwipe}
+          cityIndex={discoveryCityIndex}
+          totalCities={discoveryTotalCities}
+          likedCount={discoveryLikedCount}
+          requiredCount={discoveryRequiredCount}
+          currentCityName={currentCityName}
         />
       )}
     </TripMobileShell>

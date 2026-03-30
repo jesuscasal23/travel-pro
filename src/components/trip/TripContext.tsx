@@ -3,6 +3,7 @@
 import { createContext, useContext } from "react";
 import type {
   ActivityDiscoveryCandidate,
+  AssignedActivity,
   CityAccommodation,
   DiscoveryStatus,
   Itinerary,
@@ -51,6 +52,15 @@ export interface TripContextValue {
   discoveryIsLoading: boolean;
   discoveryError: string | null;
   onDiscoverySwipe: (decision: "liked" | "disliked") => void;
+
+  // Multi-city discovery progress
+  discoveryCityIndex: number;
+  discoveryTotalCities: number;
+  discoveryLikedCount: number;
+  discoveryRequiredCount: number;
+
+  // Assigned activities (populated after discovery completes)
+  assignedActivities: AssignedActivity[];
 }
 
 const TripContext = createContext<TripContextValue | null>(null);

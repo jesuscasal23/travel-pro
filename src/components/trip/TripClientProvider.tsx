@@ -19,16 +19,33 @@ import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import {
-  DISCOVERY_TOTAL_CARDS,
   advanceDiscoveryCursor,
   initDiscoveryQueue,
   createDiscoveryQueueState,
 } from "@/lib/features/trips/discovery-queue";
-import type { CityAccommodation, DiscoveryStatus, Itinerary } from "@/types";
+import type {
+  AssignedActivity,
+  CityAccommodation,
+  CityStop,
+  DiscoveryStatus,
+  Itinerary,
+} from "@/types";
 
 interface TripClientProviderProps {
   tripId: string;
   children: React.ReactNode;
+}
+
+/**
+ * Get discoverable cities — cities with at least 1 non-travel day, in route order.
+ * Mirrors the server-side logic in activity-swipe-service.ts.
+ */
+function getDiscoverableCities(route: CityStop[]): CityStop[] {
+  return route.filter((city, idx) => {
+    const isLast = idx === route.length - 1;
+    const nonTravelDays = isLast ? city.days : Math.max(0, city.days - 1);
+    return nonTravelDays > 0;
+  });
 }
 
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
@@ -112,7 +129,6 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   // ── Loading / error states ───────────────────────────────────────────────────
 
-  const tripServerItinerary = tripQuery.data?.itineraries?.[0]?.data as Itinerary | undefined;
   const tripServerDiscoveryStatus = (tripQuery.data?.itineraries?.[0]?.discoveryStatus ??
     "completed") as DiscoveryStatus;
   const tripSyncPending = tripId !== "guest" && tripQueryEnabled && tripQuery.isPending;
@@ -120,7 +136,11 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
   const tripLoadFailedWithoutLocal = tripId !== "guest" && tripQuery.isError && !localItinerary;
 
-  // ── Activity discovery ───────────────────────────────────────────────────────
+  // ── Assigned activities from server ──────────────────────────────────────────
+  const serverAssignedActivities: AssignedActivity[] =
+    (tripData as { assignedActivities?: AssignedActivity[] })?.assignedActivities ?? [];
+
+  // ── Activity discovery (multi-city) ──────────────────────────────────────────
 
   const discoverActivitiesMutation = useDiscoverActivities();
   const recordActivitySwipeMutation = useRecordActivitySwipe();
@@ -131,21 +151,32 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     null
   );
 
+  // Multi-city state
+  const [currentCityIndex, setCurrentCityIndex] = useState(0);
+  const [likedCount, setLikedCount] = useState(0);
+  const [requiredCount, setRequiredCount] = useState(0);
+
   const discoveryCards = queueState.cards;
   const discoveryStatus = discoveryStatusOverride ?? tripServerDiscoveryStatus;
-  const discoveryCity = localItinerary?.route?.[0];
+  const discoverableCities = useMemo(
+    () => getDiscoverableCities(localItinerary?.route ?? []),
+    [localItinerary?.route]
+  );
+  const currentDiscoveryCity = discoverableCities[currentCityIndex] ?? null;
+
   const shouldRunDiscovery =
     tripId !== "guest" &&
     !!localItinerary &&
     localItinerary.route.length > 0 &&
     (discoveryStatus === "pending" || discoveryStatus === "in_progress");
 
+  // Trigger discovery for the current city
   useEffect(() => {
     if (
       !shouldRunDiscovery ||
       discoveryDone ||
       discoverActivitiesMutation.isPending ||
-      !discoveryCity ||
+      !currentDiscoveryCity ||
       !hasDiscoveryProfile
     ) {
       return;
@@ -156,21 +187,26 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     discoverActivitiesMutation
       .mutateAsync({
         tripId,
-        cityId: discoveryCity.id,
+        cityId: currentDiscoveryCity.id,
         profile: requestProfile ?? undefined,
       })
       .then((activities) => {
         if (cancelled) return;
         setDiscoveryError(null);
-        const queue = initDiscoveryQueue(activities);
+        const queue = initDiscoveryQueue(activities, currentDiscoveryCity.id);
         if (queue.cards.length === 0) {
-          // All activities already swiped — mark as completed
-          setDiscoveryStatusOverride("completed");
+          // All activities already swiped — check if we should advance
+          if (currentCityIndex < discoverableCities.length - 1) {
+            setCurrentCityIndex((i) => i + 1);
+          } else {
+            setDiscoveryStatusOverride("completed");
+            setDiscoveryDone(true);
+          }
         } else {
           setDiscoveryStatusOverride("in_progress");
+          setQueueState(queue);
+          setDiscoveryDone(true);
         }
-        setQueueState(queue);
-        setDiscoveryDone(true);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -183,14 +219,15 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutation excluded to prevent re-trigger loop (see commit b63f7fa)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutation excluded to prevent re-trigger loop
   }, [
     shouldRunDiscovery,
     discoveryDone,
-    discoveryCity,
+    currentDiscoveryCity?.id,
     hasDiscoveryProfile,
     tripId,
     requestProfile,
+    currentCityIndex,
   ]);
 
   // ── Activity image prefetch (5-card buffer) ─────────────────────────────
@@ -209,24 +246,63 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   const handleDiscoverySwipe = (decision: "liked" | "disliked") => {
     const card = discoveryCards[queueState.cursor];
-    if (!card || !discoveryCity) return;
-
-    const nextDecidedCount = queueState.decidedCount + 1;
-    const nextCursor = queueState.cursor + 1;
-    const isFinalSwipe =
-      nextDecidedCount >= DISCOVERY_TOTAL_CARDS || nextCursor >= discoveryCards.length;
+    if (!card || !currentDiscoveryCity) return;
 
     setQueueState((prev) => advanceDiscoveryCursor(prev));
-    if (isFinalSwipe) {
-      setDiscoveryStatusOverride("completed");
-    }
 
-    recordActivitySwipeMutation.mutate({
-      tripId,
-      activityId: card.id,
-      decision,
-      isFinal: isFinalSwipe,
-    });
+    recordActivitySwipeMutation.mutate(
+      {
+        tripId,
+        activityId: card.id,
+        decision,
+        cityId: currentDiscoveryCity.id,
+      },
+      {
+        onSuccess: (data) => {
+          // Update progress from server response
+          setLikedCount(data.cityProgress.likedCount);
+          setRequiredCount(data.cityProgress.requiredCount);
+
+          if (data.allCitiesComplete) {
+            setDiscoveryStatusOverride("completed");
+            return;
+          }
+
+          if (data.cityProgress.cityComplete && data.nextCityId) {
+            // Advance to next city
+            const nextIdx = discoverableCities.findIndex((c) => c.id === data.nextCityId);
+            if (nextIdx !== -1) {
+              setCurrentCityIndex(nextIdx);
+              setDiscoveryDone(false);
+              setLikedCount(0);
+              setRequiredCount(0);
+            }
+          } else if (data.batchComplete && !data.cityProgress.cityComplete) {
+            // Need more cards for this city — generate another batch
+            const allNames = discoveryCards.map((c) => c.name);
+            setDiscoveryDone(false);
+            discoverActivitiesMutation
+              .mutateAsync({
+                tripId,
+                cityId: currentDiscoveryCity.id,
+                profile: requestProfile ?? undefined,
+                excludeNames: allNames,
+              })
+              .then((activities) => {
+                const queue = initDiscoveryQueue(activities, currentDiscoveryCity.id);
+                setQueueState(queue);
+                setDiscoveryDone(true);
+              })
+              .catch((error) => {
+                setDiscoveryError(
+                  error instanceof Error ? error.message : "Could not load more activities"
+                );
+                setDiscoveryDone(true);
+              });
+          }
+        },
+      }
+    );
   };
 
   // ── Enrichment ───────────────────────────────────────────────────────────────
@@ -360,13 +436,18 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     discoveryStatus,
     discoveryCards: discoveryCardsWithImages,
     discoveryCursor: queueState.cursor,
-    discoveryTotalTarget: DISCOVERY_TOTAL_CARDS,
+    discoveryTotalTarget: discoveryCards.length,
     discoveryIsLoading:
       shouldRunDiscovery &&
       (discoverActivitiesMutation.isPending ||
         (discoveryCards.length === 0 && !discoveryError && !discoveryDone)),
     discoveryError,
     onDiscoverySwipe: handleDiscoverySwipe,
+    discoveryCityIndex: currentCityIndex,
+    discoveryTotalCities: discoverableCities.length,
+    discoveryLikedCount: likedCount,
+    discoveryRequiredCount: requiredCount,
+    assignedActivities: serverAssignedActivities,
   };
 
   return <TripProvider value={contextValue}>{children}</TripProvider>;

@@ -1,11 +1,12 @@
 import type { DiscoveredActivityRow } from "@/types";
 
-export const DISCOVERY_TOTAL_CARDS = 25;
-
-interface DiscoveryQueueState {
+export interface DiscoveryQueueState {
   cards: DiscoveredActivityRow[];
   cursor: number;
   decidedCount: number;
+  cityId: string | null;
+  likedCount: number;
+  requiredCount: number;
 }
 
 export function createDiscoveryQueueState(): DiscoveryQueueState {
@@ -13,6 +14,9 @@ export function createDiscoveryQueueState(): DiscoveryQueueState {
     cards: [],
     cursor: 0,
     decidedCount: 0,
+    cityId: null,
+    likedCount: 0,
+    requiredCount: 0,
   };
 }
 
@@ -21,7 +25,10 @@ export function createDiscoveryQueueState(): DiscoveryQueueState {
  * Only unseen activities (decision === null) go into the card deck.
  * decidedCount reflects how many were already swiped.
  */
-export function initDiscoveryQueue(allActivities: DiscoveredActivityRow[]): DiscoveryQueueState {
+export function initDiscoveryQueue(
+  allActivities: DiscoveredActivityRow[],
+  cityId: string
+): DiscoveryQueueState {
   const unseen = allActivities.filter((a) => a.decision === null);
   const decidedCount = allActivities.length - unseen.length;
 
@@ -29,6 +36,9 @@ export function initDiscoveryQueue(allActivities: DiscoveredActivityRow[]): Disc
     cards: unseen,
     cursor: 0,
     decidedCount,
+    cityId,
+    likedCount: 0,
+    requiredCount: 0,
   };
 }
 

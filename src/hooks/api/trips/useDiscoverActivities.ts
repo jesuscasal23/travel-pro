@@ -6,6 +6,7 @@ interface DiscoverActivitiesParams {
   tripId: string;
   cityId: string;
   profile?: UserProfile;
+  excludeNames?: string[];
 }
 
 interface DiscoverActivitiesResponse {
@@ -18,6 +19,7 @@ export function useDiscoverActivities() {
       tripId,
       cityId,
       profile,
+      excludeNames,
     }: DiscoverActivitiesParams): Promise<DiscoveredActivityRow[]> => {
       const data = await apiFetch<DiscoverActivitiesResponse>(
         `/api/v1/trips/${tripId}/discover-activities`,
@@ -27,6 +29,7 @@ export function useDiscoverActivities() {
           body: {
             cityId,
             ...(profile ? { profile } : {}),
+            ...(excludeNames?.length ? { excludeNames } : {}),
           },
           fallbackMessage: "Activity discovery failed",
         }

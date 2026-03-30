@@ -1,16 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
 import { apiFetch } from "@/lib/client/api-fetch";
+import type { CityProgress } from "@/types";
 
 interface RecordActivitySwipeParams {
   tripId: string;
   activityId: string;
   decision: "liked" | "disliked";
-  isFinal?: boolean;
+  cityId: string;
 }
 
-interface RecordActivitySwipeResponse {
-  discoveryStatus: "in_progress" | "completed";
+export interface RecordActivitySwipeResponse {
+  ok: true;
+  cityProgress: CityProgress;
+  batchComplete: boolean;
+  nextCityId: string | null;
+  allCitiesComplete: boolean;
 }
 
 export function useRecordActivitySwipe() {
@@ -21,7 +26,7 @@ export function useRecordActivitySwipe() {
       tripId,
       activityId,
       decision,
-      isFinal,
+      cityId,
     }: RecordActivitySwipeParams): Promise<RecordActivitySwipeResponse> => {
       return apiFetch<RecordActivitySwipeResponse>(`/api/v1/trips/${tripId}/activity-swipes`, {
         source: "useRecordActivitySwipe",
@@ -29,13 +34,13 @@ export function useRecordActivitySwipe() {
         body: {
           activityId,
           decision,
-          isFinal,
+          cityId,
         },
         fallbackMessage: "Failed to save swipe decision",
       });
     },
-    onSuccess: (_data, variables) => {
-      if (variables.isFinal) {
+    onSuccess: (data, variables) => {
+      if (data.allCitiesComplete) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(variables.tripId) });
       }
     },

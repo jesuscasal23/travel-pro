@@ -1,5 +1,5 @@
 import { apiFetch, ApiError } from "@/lib/client/api-fetch";
-import type { DiscoveryStatus, Itinerary, TripSummary, TripType } from "@/types";
+import type { AssignedActivity, DiscoveryStatus, Itinerary, TripSummary, TripType } from "@/types";
 
 interface TripDetailItinerary {
   id: string;
@@ -8,7 +8,7 @@ interface TripDetailItinerary {
   data: Itinerary;
 }
 
-interface TripDetail {
+export interface TripDetail {
   id: string;
   tripType?: TripType;
   region: string;
@@ -20,6 +20,7 @@ interface TripDetail {
   travelers: number;
   createdAt: string;
   itineraries: TripDetailItinerary[];
+  assignedActivities: AssignedActivity[];
 }
 
 interface TripsResponse {

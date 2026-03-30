@@ -14,16 +14,18 @@ export const POST = apiHandler(
       throw new Error("Trip access unexpectedly missing for discover activities request");
     }
 
-    const { profile: requestProfile, cityId } = await parseAndValidateRequest(
-      req,
-      DiscoverActivitiesInputSchema
-    );
+    const {
+      profile: requestProfile,
+      cityId,
+      excludeNames,
+    } = await parseAndValidateRequest(req, DiscoverActivitiesInputSchema);
     const profile = await resolveTripUserProfile(tripAccess.profileId, requestProfile);
     const activities = await discoverActivities({
       tripId: params.id,
       profileId: tripAccess.profileId ?? null,
       profile,
       cityId,
+      excludeNames,
       signal: req.signal,
     });
 

@@ -9,14 +9,32 @@ import { ActivityCard } from "../ActivityCard";
 import { distributeActivities } from "@/lib/utils/trip/time-distribution";
 import { groupDaysByCity } from "@/lib/utils/trip/group-days-by-city";
 import { cityHasActivities } from "@/lib/utils/trip/city-activities";
-import type { Itinerary, CityWeather } from "@/types";
+import type { AssignedActivity, DayActivity, Itinerary, CityWeather, TripDay } from "@/types";
 
 interface MobileJourneyTabProps {
   itinerary: Itinerary;
+  assignedActivities?: AssignedActivity[];
 }
 
-export function MobileJourneyTab({ itinerary }: MobileJourneyTabProps) {
+/** Convert assigned discovered activities into DayActivity format for a specific day. */
+function assignedToDayActivities(
+  assignedActivities: AssignedActivity[],
+  dayNum: number
+): DayActivity[] {
+  return assignedActivities
+    .filter((a) => a.assignedDay === dayNum)
+    .sort((a, b) => a.assignedOrder - b.assignedOrder)
+    .map((a) => ({
+      name: a.name,
+      category: a.category,
+      why: a.description,
+      duration: a.duration,
+    }));
+}
+
+export function MobileJourneyTab({ itinerary, assignedActivities = [] }: MobileJourneyTabProps) {
   const { route, days, flightLegs, weatherData } = itinerary;
+  const hasAssignedActivities = assignedActivities.length > 0;
   const [activeCityIdx, setActiveCityIdx] = useState(0);
   const cityScrollRef = useRef<HTMLDivElement>(null);
 
@@ -95,10 +113,23 @@ export function MobileJourneyTab({ itinerary }: MobileJourneyTabProps) {
       {cityGroups.map((group, groupIdx) => {
         const cityStop = route.find((r) => r.city === group.city) ?? route[0];
         const weather = weatherMap.get(group.city);
-        const hasActivities = cityHasActivities(itinerary, cityStop.id);
         const activeDayNum = activeDayMap[groupIdx] ?? group.days[0]?.day;
         const activeDay = group.days.find((d) => d.day === activeDayNum) ?? group.days[0];
-        const timedActivities = activeDay && hasActivities ? distributeActivities(activeDay) : [];
+
+        // If we have assigned activities from discovery, use those; otherwise fall back to pre-generated
+        let effectiveDay: TripDay | undefined = activeDay;
+        if (hasAssignedActivities && activeDay) {
+          const dayActivities = assignedToDayActivities(assignedActivities, activeDay.day);
+          if (dayActivities.length > 0) {
+            effectiveDay = { ...activeDay, activities: dayActivities };
+          }
+        }
+
+        const hasActivities = hasAssignedActivities
+          ? assignedActivities.some((a) => group.days.some((d) => d.day === a.assignedDay))
+          : cityHasActivities(itinerary, cityStop.id);
+        const timedActivities =
+          effectiveDay && hasActivities ? distributeActivities(effectiveDay) : [];
 
         return (
           <div key={group.cityId + groupIdx} className="mb-6 px-4">

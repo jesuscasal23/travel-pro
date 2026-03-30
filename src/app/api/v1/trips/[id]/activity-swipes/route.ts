@@ -11,15 +11,15 @@ export const POST = apiHandler("POST /api/v1/trips/:id/activity-swipes", async (
   }
 
   const input = await parseAndValidateRequest(req, RecordActivitySwipeInputSchema);
-  const activity = await recordActivitySwipe({
+  const result = await recordActivitySwipe({
     tripId: params.id,
     activityId: input.activityId,
     decision: input.decision,
-    isFinal: input.isFinal,
+    cityId: input.cityId,
   });
 
   return Response.json({
-    activity,
-    discoveryStatus: input.isFinal ? "completed" : "in_progress",
+    ok: true,
+    ...result,
   });
 });

@@ -35,12 +35,13 @@ export const FlightSearchInputSchema = z.object({
 export const DiscoverActivitiesInputSchema = z.object({
   profile: profileForAISchema.optional(),
   cityId: z.string().min(1).max(100),
+  excludeNames: z.array(z.string()).optional(),
 });
 
 export const RecordActivitySwipeInputSchema = z.object({
   activityId: z.string().min(1),
   decision: z.enum(["liked", "disliked"]),
-  isFinal: z.boolean().optional(),
+  cityId: z.string().min(1),
 });
 
 export const TripIntentInputSchema = z

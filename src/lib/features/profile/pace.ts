@@ -1,5 +1,12 @@
 import type { ActivityPace } from "@/types";
 
+/** How many activities to assign per non-travel day based on pace preference. */
+export const PACE_ACTIVITIES_PER_DAY: Record<ActivityPace, number> = {
+  relaxed: 2,
+  moderate: 3,
+  active: 4,
+};
+
 type LegacyActivityLevel = "low" | "moderate" | "high";
 
 const LEGACY_TO_PACE: Record<LegacyActivityLevel, ActivityPace> = {

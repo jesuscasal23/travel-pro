@@ -32,6 +32,10 @@ export const TRIP_WITH_ACTIVE_ITINERARY_INCLUDE = {
     orderBy: { version: "desc" as const },
     take: 1,
   },
+  discoveredActivities: {
+    where: { assignedDay: { not: null } },
+    orderBy: [{ assignedDay: "asc" as const }, { assignedOrder: "asc" as const }],
+  },
 } satisfies Prisma.TripInclude;
 
 export const TRIP_LIST_INCLUDE = {

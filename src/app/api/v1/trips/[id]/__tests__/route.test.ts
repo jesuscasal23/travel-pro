@@ -117,6 +117,7 @@ describe("GET /api/v1/trips/:id", () => {
             data: itineraryData,
           },
         ],
+        discoveredActivities: [],
       });
 
     const res = await GET(makeGetRequest(makeSignedGuestCookieHeader()), {
