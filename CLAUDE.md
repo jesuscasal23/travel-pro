@@ -93,7 +93,7 @@ src/
 │   ├── core/                  # prisma, logger, request-context, abort (canonical locations)
 │   ├── features/              # Domain services (canonical location for all business logic)
 │   │   ├── trips/             # itinerary-service, trip-query-service, trip-collection-service, trip-edit-service, discover-activities-service, activity-swipe-service, activity-image-service, discovery-queue, trip-intent, query-shapes, schemas, trip-serializer
-│   │   ├── generation/        # trip-generation-service (skeleton builder + SSE), schemas
+│   │   ├── generation/        # (removed — skeleton built inline during POST /api/v1/trips)
 │   │   ├── profile/           # profile-service, schemas, query-shapes, profile-serializer, interests, pace, traveler-preferences
 │   │   ├── enrichment/        # schemas, transforms (routes call lib/ai/enrich-* directly)
 │   │   ├── affiliate/         # redirect-service, redirect-utils, link-generator, booking-click-service, schema
@@ -127,7 +127,6 @@ import { throwIfAborted } from "@/lib/core/abort";
 
 // Business logic — import from @/lib/features/{domain}/
 import { findActiveItinerary } from "@/lib/features/trips/itinerary-service";
-import { createTripGenerationStreamResponse } from "@/lib/features/generation/trip-generation-service";
 import { getProfileByUserId } from "@/lib/features/profile/profile-service";
 
 // Within the same feature folder, use relative imports:
@@ -137,7 +136,6 @@ import { TRIP_ACCESS_SELECT } from "./query-shapes";
 import { validate, destinationStepSchema } from "@/lib/forms/schemas";
 
 // API schemas — import directly from the feature that owns them:
-import { GenerateTripInputSchema } from "@/lib/features/generation/schemas";
 import { FlightSearchInputSchema } from "@/lib/features/trips/schemas";
 ```
 
@@ -214,43 +212,41 @@ A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itine
 
 **No AI is used to generate the route or itinerary skeleton.** The user picks concrete cities in the plan questionnaire. The skeleton is built deterministically in `buildRouteFromCities()`.
 
-1. **Skeleton** (`src/lib/features/generation/trip-generation-service.ts`): Days are distributed evenly across user-selected cities → `Itinerary` with empty activity lists.
+1. **Skeleton** (inline during `POST /api/v1/trips`): The client builds the route from user-selected cities and sends `{ route, days: [] }` as `initialItinerary`. The trip and itinerary are persisted together in a single transaction.
 2. **Flight prefetch** (non-blocking): SerpApi searched for each leg; results stored in `itinerary.flightOptions`.
-3. **Persist** to Prisma (active itinerary record).
-4. **Activity discovery** (separate, client-triggered): Claude Haiku (`claude-haiku-4-5-20251001`) generates swipeable activity candidates per city via `useDiscoverActivities`. maxTokens 4,000, temp 0.7.
-5. **Enrichment** (parallel, client-triggered): `enrichVisa()` (Passport Index static data) + `enrichWeather()` (Open-Meteo + Redis 7d cache).
+3. **Activity discovery** (separate, client-triggered): Claude Haiku (`claude-haiku-4-5-20251001`) generates swipeable activity candidates per city via `useDiscoverActivities`. maxTokens 4,000, temp 0.7.
+4. **Enrichment** (parallel, client-triggered): `enrichVisa()` (Passport Index static data) + `enrichWeather()` (Open-Meteo + Redis 7d cache).
 
 ## API Routes
 
-| Route                                    | Methods            | Auth        | Notes                                                     |
-| ---------------------------------------- | ------------------ | ----------- | --------------------------------------------------------- |
-| `/api/health`                            | GET                | None        | Env check (supabase, db)                                  |
-| **Trips**                                |                    |             |                                                           |
-| `/api/v1/trips`                          | GET, POST          | Auth        | List/create trips                                         |
-| `/api/v1/trips/[id]`                     | GET, PATCH, DELETE | Trip access | PATCH creates new itinerary version                       |
-| `/api/v1/trips/[id]/generate`            | POST               | Trip access | SSE stream: builds skeleton, prefetches flights (max 60s) |
-| `/api/v1/trips/[id]/optimize`            | POST               | Trip access | SerpApi flight price optimization                         |
-| `/api/v1/trips/[id]/discover-activities` | POST               | Trip access | Claude Haiku activity discovery per city (max 60s)        |
-| `/api/v1/trips/[id]/activity-swipes`     | POST               | Trip access | Record activity like/dislike swipe                        |
-| `/api/v1/trips/[id]/flights`             | POST               | Trip access | Search flights for a trip leg                             |
-| `/api/v1/trips/[id]/booking-clicks`      | GET, POST, PATCH   | Auth + trip | Track/confirm booking clicks                              |
-| **Flights**                              |                    |             |                                                           |
-| `/api/v1/flights/book`                   | GET                | Optional    | Auto-submit booking form redirect                         |
-| **Enrichment**                           |                    |             |                                                           |
-| `/api/v1/enrich/weather`                 | POST               | Auth        | Weather data enrichment (Open-Meteo + Redis cache)        |
-| `/api/v1/enrich/visa`                    | POST               | Auth        | Visa requirement enrichment                               |
-| `/api/v1/enrich/accommodation`           | POST               | Auth        | Hotel/accommodation enrichment                            |
-| **Profile**                              |                    |             |                                                           |
-| `/api/v1/profile`                        | GET, PATCH, DELETE | Auth        | Upsert profile, GDPR account delete                       |
-| `/api/v1/profile/export`                 | GET                | Auth        | GDPR data export (all user data as JSON)                  |
-| **Other**                                |                    |             |                                                           |
-| `/api/v1/affiliate/redirect`             | GET                | Optional    | Log click + 302 redirect (domain whitelist)               |
-| `/api/v1/places/photo`                   | GET                | Auth        | Proxy Google Places photos                                |
-| **Admin**                                |                    |             |                                                           |
-| `/api/v1/admin/stats`                    | GET                | SuperUser   | Platform statistics                                       |
-| `/api/v1/admin/users`                    | GET                | SuperUser   | List all users                                            |
-| `/api/v1/admin/trips`                    | GET                | SuperUser   | List all trips                                            |
-| `/api/v1/admin/trips/[id]`               | DELETE             | SuperUser   | Delete trip (admin)                                       |
+| Route                                    | Methods            | Auth        | Notes                                              |
+| ---------------------------------------- | ------------------ | ----------- | -------------------------------------------------- |
+| `/api/health`                            | GET                | None        | Env check (supabase, db)                           |
+| **Trips**                                |                    |             |                                                    |
+| `/api/v1/trips`                          | GET, POST          | Auth        | List/create trips                                  |
+| `/api/v1/trips/[id]`                     | GET, PATCH, DELETE | Trip access | PATCH creates new itinerary version                |
+| `/api/v1/trips/[id]/optimize`            | POST               | Trip access | SerpApi flight price optimization                  |
+| `/api/v1/trips/[id]/discover-activities` | POST               | Trip access | Claude Haiku activity discovery per city (max 60s) |
+| `/api/v1/trips/[id]/activity-swipes`     | POST               | Trip access | Record activity like/dislike swipe                 |
+| `/api/v1/trips/[id]/flights`             | POST               | Trip access | Search flights for a trip leg                      |
+| `/api/v1/trips/[id]/booking-clicks`      | GET, POST, PATCH   | Auth + trip | Track/confirm booking clicks                       |
+| **Flights**                              |                    |             |                                                    |
+| `/api/v1/flights/book`                   | GET                | Optional    | Auto-submit booking form redirect                  |
+| **Enrichment**                           |                    |             |                                                    |
+| `/api/v1/enrich/weather`                 | POST               | Auth        | Weather data enrichment (Open-Meteo + Redis cache) |
+| `/api/v1/enrich/visa`                    | POST               | Auth        | Visa requirement enrichment                        |
+| `/api/v1/enrich/accommodation`           | POST               | Auth        | Hotel/accommodation enrichment                     |
+| **Profile**                              |                    |             |                                                    |
+| `/api/v1/profile`                        | GET, PATCH, DELETE | Auth        | Upsert profile, GDPR account delete                |
+| `/api/v1/profile/export`                 | GET                | Auth        | GDPR data export (all user data as JSON)           |
+| **Other**                                |                    |             |                                                    |
+| `/api/v1/affiliate/redirect`             | GET                | Optional    | Log click + 302 redirect (domain whitelist)        |
+| `/api/v1/places/photo`                   | GET                | Auth        | Proxy Google Places photos                         |
+| **Admin**                                |                    |             |                                                    |
+| `/api/v1/admin/stats`                    | GET                | SuperUser   | Platform statistics                                |
+| `/api/v1/admin/users`                    | GET                | SuperUser   | List all users                                     |
+| `/api/v1/admin/trips`                    | GET                | SuperUser   | List all trips                                     |
+| `/api/v1/admin/trips/[id]`               | DELETE             | SuperUser   | Delete trip (admin)                                |
 
 ## Database (7 models in `prisma/schema.prisma`)
 

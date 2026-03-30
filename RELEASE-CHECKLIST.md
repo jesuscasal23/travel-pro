@@ -14,8 +14,8 @@
 - [ ] **Implement welcome email trigger after signup** — Email templates planned but not yet built. Hook into the Supabase auth callback or signup handler once email module is created.
   - Caller needed at: `src/app/auth/callback/route.ts` or signup flow
 
-- [ ] **Implement itinerary-ready email after generation** — Should fire at end of SSE stream when `stage === "done"` once email module is created.
-  - Caller needed at: `src/app/api/v1/trips/[id]/generate/route.ts`
+- [ ] **Implement itinerary-ready email after generation** — Should fire after trip creation (inline skeleton build) once email module is created.
+  - Caller needed at: `src/app/api/v1/trips/route.ts` (POST handler, after itinerary persist)
 
 ---
 
@@ -38,8 +38,8 @@
 
 ## 🟡 Infrastructure / Reliability
 
-- [ ] **Clean up `promptVersion` parameter** — the generate endpoint may still accept `promptVersion` but v2 prompt was deleted. Remove the parameter to avoid confusion.
-  - File: `src/app/api/v1/trips/[id]/generate/route.ts` / `src/lib/ai/pipeline.ts`
+- [ ] **Clean up `promptVersion` parameter** — the generate endpoint was removed (skeleton is built inline during trip creation). Verify `promptVersion` on the Itinerary model is still used; if not, remove it.
+  - File: `prisma/schema.prisma` (Itinerary model)
 
 ---
 
