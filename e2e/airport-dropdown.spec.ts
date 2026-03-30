@@ -15,23 +15,7 @@ test.beforeEach(async ({ page }) => {
 test("airport dropdown is visible and selectable in the planner profile step", async ({ page }) => {
   await page.goto("/plan");
 
-  // Step 1: Destination — fill city + dates
-  await expect(page.getByText("Where to")).toBeVisible();
-  await page.getByPlaceholder("Search cities, countries...").fill("Paris");
-  const parisOption = page
-    .locator("button")
-    .filter({ hasText: /Paris.*France/ })
-    .first();
-  await parisOption.click();
-
-  // Fill dates
-  await page.locator('input[type="date"]').first().fill("2026-10-01");
-  await page.locator('input[type="date"]').nth(1).fill("2026-10-08");
-
-  // Advance to Profile step
-  await page.getByRole("button", { name: /Continue/i }).click();
-
-  // Step 2: Profile — nationality + airport
+  // Guest users see the profile step first (step 1 of 4)
   await expect(page.getByText("The essentials")).toBeVisible();
   await page.locator("select").selectOption("Germany");
 

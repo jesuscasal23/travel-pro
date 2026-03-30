@@ -54,7 +54,7 @@ test("E2E-26-01: onboarding — full navigation from get-started to /plan", asyn
   await page.getByRole("button", { name: /Continue/i }).click();
 
   await page.waitForURL("**/plan**");
-  await expect(page.getByText(/Where to next/i)).toBeVisible();
+  await expect(page.getByText(/The essentials/i)).toBeVisible();
 });
 
 // ============================================================
@@ -141,7 +141,13 @@ test("E2E-26-02: authenticated — create trip via API and verify trip view rend
 test("E2E-26-03: affiliate redirect — 400 for invalid request, 302 for valid booking link", async ({
   page,
 }) => {
+  if (!hasAuthCreds) {
+    test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set — skipping");
+    return;
+  }
+
   await blockAnalytics(page);
+  await loginViaUI(page);
 
   // Missing required fields → 400
   const badRes = await page.request.get("/api/v1/affiliate/redirect?provider=booking", {

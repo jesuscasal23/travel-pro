@@ -54,7 +54,21 @@ test.describe("Premium paywall gate", () => {
     await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
     await page.getByRole("button", { name: /sign in|log in/i }).click();
 
-    // No profile / is_premium=false → proxy redirects to /premium
+    // User may already have a profile from a previous run — handle either case
+    await page.waitForURL(/\/(trips|premium)/, { timeout: 15_000 });
+
+    // Ensure profile exists so the proxy's premium check activates (is_premium defaults to false)
+    await page.request.patch("/api/v1/profile", {
+      data: {
+        nationality: "German",
+        homeAirport: "FRA",
+        travelStyle: "smart-budget",
+        interests: ["culture"],
+      },
+    });
+
+    // Navigate to a protected route — should redirect to /premium
+    await page.goto("/home");
     await page.waitForURL("**/premium", { timeout: 15_000 });
     await expect(page).toHaveURL(/\/premium/);
 
@@ -62,7 +76,7 @@ test.describe("Premium paywall gate", () => {
     await expect(page.getByText("Unlock the full experience")).toBeVisible();
 
     // Attempting to navigate to other protected routes should bounce back to /premium
-    for (const route of ["/home", "/trips", "/profile"]) {
+    for (const route of ["/trips", "/profile"]) {
       await page.goto(route);
       await page.waitForURL("**/premium", { timeout: 10_000 });
       await expect(page).toHaveURL(/\/premium/);
@@ -80,7 +94,19 @@ test.describe("Premium paywall gate", () => {
     await page.getByLabel(/Email address/i).fill(PAYWALL_TEST_EMAIL);
     await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
     await page.getByRole("button", { name: /sign in|log in/i }).click();
-    await page.waitForURL("**/premium", { timeout: 15_000 });
+
+    // User may already have a profile from the previous test — handle either case
+    await page.waitForURL(/\/(trips|premium)/, { timeout: 15_000 });
+
+    // Ensure profile exists so the premium check activates (is_premium defaults to false)
+    await page.request.patch("/api/v1/profile", {
+      data: {
+        nationality: "German",
+        homeAirport: "FRA",
+        travelStyle: "smart-budget",
+        interests: ["culture"],
+      },
+    });
 
     // API calls with the authenticated (but non-premium) session should return 403
     const tripsRes = await page.request.get("/api/v1/trips");
