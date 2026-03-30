@@ -1,7 +1,7 @@
 import { serializeProfileWithPace } from "@/lib/features/profile/pace";
 import { normalizeInterests } from "@/lib/features/profile/interests";
 
-export function serializeProfile<T extends { activityLevel?: string | null; interests?: string[] }>(
+export function serializeProfile<T extends { activityLevel?: string; interests?: string[] }>(
   profile: T
 ) {
   const serialized = serializeProfileWithPace(profile);

@@ -22,7 +22,7 @@ model Profile {
   homeAirport         String   @map("home_airport")
   travelStyle         String   @map("travel_style")
   interests           String[]
-  activityLevel       String?  @map("activity_level") // legacy column name; stores pace values ("relaxed" | "moderate" | "active")
+  activityLevel       String   @default("moderate") @map("activity_level") // stores pace values ("relaxed" | "moderate" | "active")
   vibes               Json?    // VibeScores: { adventureComfort, socialQuiet, luxuryBudget, structuredSpontaneous, warmMixed } (0–100)
   languagesSpoken     String[] @map("languages_spoken")
   lastSeenAppVersion  String?  @map("last_seen_app_version")

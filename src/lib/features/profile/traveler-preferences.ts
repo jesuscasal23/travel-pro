@@ -10,7 +10,7 @@ export interface TravelerPreferences extends Omit<UserProfile, "pace"> {
 }
 
 type TravelerPreferencesInput = Partial<TravelerPreferences> & {
-  activityLevel?: string | null;
+  activityLevel?: string;
   nationality?: string | null;
   homeAirport?: string | null;
   travelStyle?: TravelStyle | null;

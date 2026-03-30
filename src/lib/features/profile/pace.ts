@@ -28,7 +28,7 @@ function normalizeStoredPace(value: string | null | undefined): ActivityPace | u
 
 export function resolvePaceInput(input: {
   pace?: ActivityPace;
-  activityLevel?: string | null;
+  activityLevel?: string;
 }): ActivityPace | undefined {
   if (input.pace) return input.pace;
   return normalizeStoredPace(input.activityLevel);
@@ -36,7 +36,7 @@ export function resolvePaceInput(input: {
 
 export function serializeProfileWithPace<
   T extends {
-    activityLevel?: string | null;
+    activityLevel?: string;
   },
 >(profile: T): Omit<T, "activityLevel"> & { pace?: ActivityPace } {
   const { activityLevel, ...rest } = profile;
