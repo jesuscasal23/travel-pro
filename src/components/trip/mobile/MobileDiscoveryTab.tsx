@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
-import { Check, ExternalLink, ImageOff, MapPin, X } from "lucide-react";
+import { Check, ExternalLink, ImageOff, MapPin, Sparkles, X } from "lucide-react";
 import type { ActivityDiscoveryCandidate, DiscoveryStatus } from "@/types";
 
 interface MobileDiscoveryTabProps {
@@ -14,6 +14,11 @@ interface MobileDiscoveryTabProps {
   error: string | null;
   isMultiCity: boolean;
   onSwipe: (decision: "liked" | "disliked") => void;
+  cityIndex: number;
+  totalCities: number;
+  likedCount: number;
+  requiredCount: number;
+  currentCityName?: string;
 }
 
 const SWIPE_THRESHOLD = 110;
@@ -54,8 +59,12 @@ export function MobileDiscoveryTab({
   error,
   isMultiCity,
   onSwipe,
+  cityIndex,
+  totalCities,
+  likedCount,
+  requiredCount,
+  currentCityName,
 }: MobileDiscoveryTabProps) {
-  const [showMultiCityBanner, setShowMultiCityBanner] = useState(true);
   const currentCard = cards[cursor];
   const nextCard = cards[cursor + 1];
   const swipedCount = Math.min(cursor, totalTarget);
@@ -75,22 +84,6 @@ export function MobileDiscoveryTab({
   if (isCompleted) {
     return (
       <div className="space-y-3 py-2">
-        {isMultiCity && showMultiCityBanner ? (
-          <div className="border-brand-primary-border bg-brand-primary-subtle relative rounded-2xl border px-4 py-3">
-            <p className="text-steel pr-8 text-sm">
-              Multi-city itinerary assembly is still in development.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowMultiCityBanner(false)}
-              className="text-muted-foreground hover:text-foreground absolute top-2 right-2"
-              aria-label="Dismiss multi-city notice"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ) : null}
-
         <div className="shadow-glass-lg rounded-[28px] border border-white/80 bg-white/90 px-5 py-8 text-center">
           <p className="text-brand-primary text-[11px] font-bold tracking-[0.2em] uppercase">
             Discovery Complete
@@ -128,12 +121,23 @@ export function MobileDiscoveryTab({
     <div className="space-y-3 py-2">
       <div className="flex items-center justify-between px-1">
         <p className="text-brand-primary text-[11px] font-bold tracking-[0.18em] uppercase">
-          Activity Discovery
+          {currentCityName ?? "Activity Discovery"}
+          {isMultiCity && totalCities > 1 ? (
+            <span className="text-dim ml-1.5 text-[10px] font-medium tracking-normal normal-case">
+              ({cityIndex + 1}/{totalCities})
+            </span>
+          ) : null}
         </p>
-        <p className="text-dim text-xs">{progressLabel}</p>
+        {requiredCount > 0 ? (
+          <p className="text-dim text-xs">
+            {likedCount} / {requiredCount} liked
+          </p>
+        ) : (
+          <p className="text-dim text-xs">{progressLabel}</p>
+        )}
       </div>
 
-      <div className="relative min-h-[480px]">
+      <div className="relative min-h-[560px]">
         {nextCard ? (
           <motion.div
             style={{ scale: nextCardScale, opacity: nextCardOpacity }}
@@ -143,16 +147,31 @@ export function MobileDiscoveryTab({
               <ActivityImage card={nextCard} />
             </div>
 
-            <div className="mb-2 flex items-start justify-between gap-3">
+            <div className="mb-1 flex items-start justify-between gap-3">
               <h3 className="text-ink text-lg font-semibold tracking-[-0.02em]">{nextCard.name}</h3>
-              <span className="bg-brand-primary-soft text-brand-primary rounded-full px-2.5 py-1 text-xs font-semibold">
+              <span className="bg-brand-primary-soft text-brand-primary shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
                 {nextCard.category}
               </span>
             </div>
 
+            {nextCard.venueType ? (
+              <p className="text-steel mb-2 text-xs font-medium">{nextCard.venueType}</p>
+            ) : null}
+
             <p className="text-dim text-sm">{nextCard.description}</p>
 
-            <div className="mt-4 flex items-center justify-between">
+            {nextCard.highlights.length > 0 ? (
+              <ul className="mt-2.5 space-y-1">
+                {nextCard.highlights.map((h) => (
+                  <li key={h} className="text-ink flex items-start gap-1.5 text-xs">
+                    <Sparkles className="text-brand-primary mt-0.5 h-3 w-3 shrink-0" />
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <div className="mt-3 flex items-center justify-between">
               <span className="text-label rounded-full border border-white/80 bg-white px-2.5 py-1 text-xs font-medium">
                 {nextCard.duration}
               </span>
@@ -162,7 +181,7 @@ export function MobileDiscoveryTab({
               </span>
             </div>
 
-            <div className="mt-5 flex gap-3">
+            <div className="mt-4 flex gap-3">
               <div className="bg-surface-error-bg border-surface-error-border text-surface-error-text flex h-12 flex-1 items-center justify-center rounded-2xl border font-semibold">
                 <X className="mr-1 h-4 w-4" />
                 Skip
@@ -215,18 +234,33 @@ export function MobileDiscoveryTab({
               <ActivityImage card={currentCard} />
             </div>
 
-            <div className="mb-2 flex items-start justify-between gap-3">
+            <div className="mb-1 flex items-start justify-between gap-3">
               <h3 className="text-ink text-lg font-semibold tracking-[-0.02em]">
                 {currentCard.name}
               </h3>
-              <span className="bg-brand-primary-soft text-brand-primary rounded-full px-2.5 py-1 text-xs font-semibold">
+              <span className="bg-brand-primary-soft text-brand-primary shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
                 {currentCard.category}
               </span>
             </div>
 
+            {currentCard.venueType ? (
+              <p className="text-steel mb-2 text-xs font-medium">{currentCard.venueType}</p>
+            ) : null}
+
             <p className="text-dim text-sm">{currentCard.description}</p>
 
-            <div className="mt-4 flex items-center justify-between">
+            {currentCard.highlights.length > 0 ? (
+              <ul className="mt-2.5 space-y-1">
+                {currentCard.highlights.map((h) => (
+                  <li key={h} className="text-ink flex items-start gap-1.5 text-xs">
+                    <Sparkles className="text-brand-primary mt-0.5 h-3 w-3 shrink-0" />
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <div className="mt-3 flex items-center justify-between">
               <span className="text-label rounded-full border border-white/80 bg-white px-2.5 py-1 text-xs font-medium">
                 {currentCard.duration}
               </span>

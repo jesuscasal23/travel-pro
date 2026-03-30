@@ -45,7 +45,9 @@ export interface DayActivity {
 export interface ActivityDiscoveryCandidate {
   name: string;
   placeName: string | null;
+  venueType: string | null;
   description: string;
+  highlights: string[];
   category: string;
   duration: string;
   googleMapsUrl: string;
@@ -59,6 +61,31 @@ export interface DiscoveredActivityRow extends ActivityDiscoveryCandidate {
   city: string;
   decision: "liked" | "disliked" | null;
   decidedAt: string | null;
+  assignedDay: number | null;
+  assignedOrder: number | null;
+}
+
+/** A discovered activity that has been assigned to a specific itinerary day. */
+export interface AssignedActivity extends DiscoveredActivityRow {
+  assignedDay: number;
+  assignedOrder: number;
+}
+
+/** Progress for a single city during activity discovery. */
+export interface CityProgress {
+  cityId: string;
+  likedCount: number;
+  requiredCount: number;
+  cityComplete: boolean;
+}
+
+/** Response from the activity swipe endpoint. */
+export interface SwipeResponse {
+  ok: true;
+  cityProgress: CityProgress;
+  batchComplete: boolean;
+  nextCityId: string | null;
+  allCitiesComplete: boolean;
 }
 
 /** A single day in the itinerary */

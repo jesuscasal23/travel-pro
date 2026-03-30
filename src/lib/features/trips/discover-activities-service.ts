@@ -21,7 +21,9 @@ const log = createLogger("discover-activities-service");
 const ClaudeDiscoverActivitySchema = z.object({
   name: z.string().min(1).max(160),
   placeName: z.string().min(1).max(200),
+  venueType: z.string().min(1).max(120),
   description: z.string().min(1).max(600),
+  highlights: z.array(z.string().min(1).max(200)).min(1).max(5),
   category: z.string().min(1).max(80),
   duration: z.string().min(1).max(40),
 });
@@ -33,13 +35,14 @@ interface DiscoverActivitiesInput {
   profileId: string | null;
   profile: UserProfile;
   cityId: string;
+  excludeNames?: string[];
   signal?: AbortSignal;
 }
 
 export async function discoverActivities(
   input: DiscoverActivitiesInput
 ): Promise<DiscoveredActivityRow[]> {
-  const { tripId, profileId, profile, cityId, signal } = input;
+  const { tripId, profileId, profile, cityId, excludeNames, signal } = input;
   const t0 = Date.now();
 
   const { intent } = await loadTripContext(tripId);
@@ -57,19 +60,23 @@ export async function discoverActivities(
     });
   }
 
-  // ── Check DB for existing activities ─────────────────────────────────────
-  const existing = await prisma.discoveredActivity.findMany({
-    where: { tripId, cityId },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (existing.length > 0) {
-    log.info("Returning cached discovered activities", {
-      tripId,
-      cityId,
-      count: existing.length,
+  // ── Check DB for existing unswiped activities (first batch only) ─────────
+  // When excludeNames is provided we're requesting an additional batch,
+  // so skip the cache and always generate fresh activities.
+  if (!excludeNames || excludeNames.length === 0) {
+    const existing = await prisma.discoveredActivity.findMany({
+      where: { tripId, cityId },
+      orderBy: { createdAt: "asc" },
     });
-    return existing.map(toDiscoveredActivityRow);
+
+    if (existing.length > 0) {
+      log.info("Returning cached discovered activities", {
+        tripId,
+        cityId,
+        count: existing.length,
+      });
+      return existing.map(toDiscoveredActivityRow);
+    }
   }
 
   // ── Generate via Claude ──────────────────────────────────────────────────
@@ -84,9 +91,10 @@ export async function discoverActivities(
     tripId,
     cityId,
     city: city.city,
+    batchNumber: excludeNames ? Math.ceil(excludeNames.length / 25) + 1 : 1,
   });
 
-  const userPrompt = assembleDiscoverActivitiesPrompt(profile, intent, city);
+  const userPrompt = assembleDiscoverActivitiesPrompt(profile, intent, city, excludeNames);
   const claudeStart = Date.now();
   const modelResult = await callClaude(
     userPrompt,
@@ -132,7 +140,9 @@ export async function discoverActivities(
     city: city.city,
     name: activity.name,
     placeName: activity.placeName,
+    venueType: activity.venueType,
     description: activity.description,
+    highlights: activity.highlights,
     category: activity.category,
     duration: activity.duration,
     googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.placeName} ${city.city}`)}`,
@@ -170,13 +180,17 @@ function toDiscoveredActivityRow(row: {
   city: string;
   name: string;
   placeName: string | null;
+  venueType: string | null;
   description: string;
+  highlights: string[];
   category: string;
   duration: string;
   googleMapsUrl: string | null;
   imageUrl: string | null;
   decision: string | null;
   decidedAt: Date | null;
+  assignedDay: number | null;
+  assignedOrder: number | null;
 }): DiscoveredActivityRow {
   return {
     id: row.id,
@@ -184,12 +198,16 @@ function toDiscoveredActivityRow(row: {
     city: row.city,
     name: row.name,
     placeName: row.placeName,
+    venueType: row.venueType,
     description: row.description,
+    highlights: row.highlights,
     category: row.category,
     duration: row.duration,
     googleMapsUrl: row.googleMapsUrl ?? "",
     imageUrl: row.imageUrl,
     decision: row.decision as DiscoveredActivityRow["decision"],
     decidedAt: row.decidedAt?.toISOString() ?? null,
+    assignedDay: row.assignedDay,
+    assignedOrder: row.assignedOrder,
   };
 }

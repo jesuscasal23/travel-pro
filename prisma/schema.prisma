@@ -116,7 +116,9 @@ model DiscoveredActivity {
   city          String
   name          String
   placeName     String? @map("place_name")
+  venueType     String? @map("venue_type")
   description   String
+  highlights    String[] @default([])
   category      String
   duration      String
   googleMapsUrl String? @map("google_maps_url")
@@ -125,10 +127,14 @@ model DiscoveredActivity {
   decision  String?   // null | "liked" | "disliked"
   decidedAt DateTime? @map("decided_at")
 
+  assignedDay   Int? @map("assigned_day")   // Global day number (matches TripDay.day)
+  assignedOrder Int? @map("assigned_order") // Position within that day (1-indexed)
+
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([tripId])
   @@index([tripId, cityId])
+  @@index([tripId, assignedDay])
   @@index([profileId])
   @@map("discovered_activities")
 }

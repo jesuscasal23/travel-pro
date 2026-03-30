@@ -14,13 +14,17 @@ function makeActivity(overrides: Partial<DiscoveredActivityRow> = {}): Discovere
     city: "Tokyo",
     name: "A1",
     placeName: null,
+    venueType: null,
     description: "A1 desc",
+    highlights: [],
     category: "culture",
     duration: "2h",
     googleMapsUrl: "https://maps.google.com/?q=A1",
     imageUrl: null,
     decision: null,
     decidedAt: null,
+    assignedDay: null,
+    assignedOrder: null,
     ...overrides,
   };
 }
@@ -69,7 +73,7 @@ describe("discovery-queue", () => {
       makeActivity({ id: "act-4", name: "Unseen2", decision: null }),
     ];
 
-    const state = initDiscoveryQueue(activities);
+    const state = initDiscoveryQueue(activities, "city-1");
 
     expect(state.cards).toHaveLength(2);
     expect(state.cards.map((c) => c.name)).toEqual(["Unseen1", "Unseen2"]);
@@ -83,7 +87,7 @@ describe("discovery-queue", () => {
       makeActivity({ id: "act-2", decision: "disliked", decidedAt: "2026-03-28T10:01:00Z" }),
     ];
 
-    const state = initDiscoveryQueue(activities);
+    const state = initDiscoveryQueue(activities, "city-1");
 
     expect(state.cards).toHaveLength(0);
     expect(state.decidedCount).toBe(2);
