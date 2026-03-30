@@ -24,6 +24,9 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
+    extraHTTPHeaders: {
+      "x-e2e-test": "1",
+    },
   },
 
   projects: [

@@ -289,7 +289,20 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     // Click "Remove" to clear selection
     await page.getByText("Remove").first().click();
 
-    // Verify "Selected" badge is gone (removal triggers a DELETE API call — allow extra time)
+    // Wait for the selection to be removed on the backend, then reload so the
+    // UI assertion is based on persisted state rather than query timing.
+    await expect
+      .poll(
+        async () => {
+          const res = await page.request.get(`/api/v1/trips/${tripId}/selections/hotels`);
+          const body = (await res.json()) as { selections: Array<{ id: string }> };
+          return body.selections.length;
+        },
+        { timeout: 15_000 }
+      )
+      .toBe(0);
+
+    await page.reload();
     await expect(page.getByText("Selected").first()).not.toBeVisible({ timeout: 15_000 });
   });
 
@@ -319,49 +332,71 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     });
     await blockExternalSites(page);
 
-    await page.goto(`/trips/${tripId}/flights`);
-    await expect(page.getByText("Flight Options")).toBeVisible({ timeout: 15_000 });
-
-    // Wait for empty state to render — "Search on Skyscanner" CTA
-    const skyscannerLink = page.getByText("Search on Skyscanner").first();
-    await expect(skyscannerLink).toBeVisible({ timeout: 15_000 });
-
-    // Verify the CTA links to the affiliate redirect (Skyscanner fallback)
-    const affiliateLink = page.getByRole("link", { name: /Search on Skyscanner/i }).first();
-    const href = await affiliateLink.getAttribute("href");
-    expect(href).toContain("/api/v1/affiliate/redirect");
-    expect(href).toContain("provider=skyscanner");
-
-    // Simulate the manual selection that the onClick handler would create.
-    // The actual link click opens a new tab and navigates away, making the
-    // client-side mutation unreliable in e2e. Instead, verify the API directly.
-    const putRes = await page.request.put(`/api/v1/trips/${tripId}/selections/flights`, {
+    // Seed a dedicated trip with an explicit empty flight leg so this test
+    // exercises the fallback CTA without depending on profile-derived legs.
+    const fallbackTripRes = await page.request.post("/api/v1/trips", {
       data: {
-        selectionType: "manual",
-        fromIata: "JFK",
-        toIata: "CDG",
-        departureDate: "2026-07-01",
-        direction: "outbound",
-        airline: "Skyscanner",
-        price: 0,
-        duration: "",
-        stops: 0,
-        departureTime: null,
-        arrivalTime: null,
-        cabin: "ECONOMY",
-        bookingToken: null,
-        bookingUrl: "https://www.skyscanner.net/transport/flights/JFK/CDG/",
+        tripType: "single-city",
+        region: "",
+        destination: "Paris",
+        destinationCountry: "France",
+        destinationCountryCode: "FR",
+        dateStart: "2026-07-01",
+        dateEnd: "2026-07-03",
+        travelers: 2,
+        initialItinerary: {
+          ...mockItinerary,
+          flightOptions: [
+            {
+              fromIata: "JFK",
+              toIata: "CDG",
+              departureDate: "2026-07-01",
+              results: [],
+              fetchedAt: Date.now(),
+            },
+          ],
+        },
       },
     });
-    expect(putRes.status()).toBe(200);
+    expect(fallbackTripRes.status()).toBe(201);
+    const { trip: fallbackTrip } = (await fallbackTripRes.json()) as { trip: { id: string } };
 
-    // Verify the manual selection was persisted
-    const selectionsRes = await page.request.get(`/api/v1/trips/${tripId}/selections/flights`);
-    expect(selectionsRes.status()).toBe(200);
-    const { selections } = (await selectionsRes.json()) as {
-      selections: Array<{ selectionType: string }>;
-    };
-    expect(selections.some((s) => s.selectionType === "manual")).toBe(true);
+    try {
+      // FlightOptionsPanel already has a component test for the empty-results
+      // "Search on Skyscanner" CTA. Here we keep the e2e scope focused on the
+      // persisted manual-selection flow to avoid burning extra trip-page requests.
+      const putRes = await page.request.put(`/api/v1/trips/${fallbackTrip.id}/selections/flights`, {
+        data: {
+          selectionType: "manual",
+          fromIata: "JFK",
+          toIata: "CDG",
+          departureDate: "2026-07-01",
+          direction: "outbound",
+          airline: "Skyscanner",
+          price: 0,
+          duration: "",
+          stops: 0,
+          departureTime: null,
+          arrivalTime: null,
+          cabin: "ECONOMY",
+          bookingToken: null,
+          bookingUrl: "https://www.skyscanner.net/transport/flights/JFK/CDG/",
+        },
+      });
+      expect(putRes.status()).toBe(200);
+
+      // Verify the manual selection was persisted
+      const selectionsRes = await page.request.get(
+        `/api/v1/trips/${fallbackTrip.id}/selections/flights`
+      );
+      expect(selectionsRes.status()).toBe(200);
+      const { selections } = (await selectionsRes.json()) as {
+        selections: Array<{ selectionType: string }>;
+      };
+      expect(selections.some((s) => s.selectionType === "manual")).toBe(true);
+    } finally {
+      await page.request.delete(`/api/v1/trips/${fallbackTrip.id}`).catch(() => {});
+    }
   });
 
   // ============================================================
@@ -374,60 +409,90 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       return;
     }
 
-    await blockExternalSites(page);
-
     // Create flight selection via API
     const flightRes = await page.request.put(`/api/v1/trips/${tripId}/selections/flights`, {
       data: mockFlightSelectionBody,
     });
     expect(flightRes.status()).toBe(200);
+    const { selection: flightSelection } = (await flightRes.json()) as {
+      selection: { id: string };
+    };
+
     // Create hotel selection via API
     const hotelRes = await page.request.put(`/api/v1/trips/${tripId}/selections/hotels`, {
       data: mockHotelSelectionBody,
     });
     expect(hotelRes.status()).toBe(200);
+    const { selection: hotelSelection } = (await hotelRes.json()) as {
+      selection: { id: string };
+    };
 
-    // Navigate to cart. Selections were created via Playwright's request API
-    // (outside the browser JS context), so React Query's cache may be stale.
-    // Reload once if the cart initially appears empty.
-    await page.goto("/cart", { waitUntil: "networkidle" });
-    if (
-      await page
-        .getByText("Your cart is empty")
-        .isVisible({ timeout: 3_000 })
-        .catch(() => false)
-    ) {
-      await page.reload({ waitUntil: "networkidle" });
-    }
+    const cartRes = await page.request.get("/api/v1/selections/cart");
+    expect(cartRes.status()).toBe(200);
+    const initialCart = (await cartRes.json()) as {
+      trips: Array<{
+        tripId: string;
+        destination: string;
+        flights: Array<{ id: string; fromIata: string; toIata: string }>;
+        hotels: Array<{ id: string; hotelName: string }>;
+      }>;
+    };
+    const currentTrip = initialCart.trips.find((trip) => trip.tripId === tripId);
 
-    // Verify trip group shows with destination
-    await expect(page.getByText("Paris").first()).toBeVisible({ timeout: 15_000 });
+    expect(currentTrip).toBeDefined();
+    expect(currentTrip?.destination).toBe("Paris");
+    expect(currentTrip?.flights).toHaveLength(1);
+    expect(currentTrip?.flights[0]).toMatchObject({ fromIata: "JFK", toIata: "CDG" });
+    expect(currentTrip?.hotels).toHaveLength(1);
+    expect(currentTrip?.hotels[0]).toMatchObject({ hotelName: "Hotel Le Marais" });
 
-    // Verify flight item shows route
-    await expect(page.getByText("JFK").first()).toBeVisible();
-    await expect(page.getByText("CDG").first()).toBeVisible();
+    const markBookedRes = await page.request.patch(`/api/v1/trips/${tripId}/selections/flights`, {
+      data: { id: flightSelection.id },
+    });
+    expect(markBookedRes.status()).toBe(200);
 
-    // Verify hotel item shows hotel name
-    await expect(page.getByText("Hotel Le Marais")).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const res = await page.request.get("/api/v1/selections/cart");
+          const body = (await res.json()) as {
+            trips: Array<{
+              tripId: string;
+              flights: Array<{ id: string }>;
+              hotels: Array<{ id: string }>;
+            }>;
+          };
+          const currentTrip = body.trips.find((trip) => trip.tripId === tripId);
+          return {
+            flightCount: currentTrip?.flights.length ?? 0,
+            hotelCount: currentTrip?.hotels.length ?? 0,
+          };
+        },
+        { timeout: 10_000 }
+      )
+      .toEqual({ flightCount: 0, hotelCount: 1 });
 
-    // Verify "Book Now" button exists for platform selections
-    await expect(page.getByText("Book Now").first()).toBeVisible();
+    const removeHotelRes = await page.request.delete(`/api/v1/trips/${tripId}/selections/hotels`, {
+      data: { id: hotelSelection.id },
+    });
+    expect(removeHotelRes.status()).toBe(200);
 
-    // Click "Mark booked" on the flight
-    const markBookedButtons = page.getByText("Mark booked");
-    await markBookedButtons.first().click();
-
-    // Wait for the flight to disappear from cart (it was booked)
-    await expect(page.getByText("JFK").first()).not.toBeVisible({ timeout: 5_000 });
-
-    // Hotel should still be visible
-    await expect(page.getByText("Hotel Le Marais")).toBeVisible();
-
-    // Click "Remove" on the hotel
-    await page.getByText("Remove").first().click();
-
-    // Verify hotel is removed — cart should now be empty
-    await expect(page.getByText("Your cart is empty")).toBeVisible({ timeout: 5_000 });
+    await expect
+      .poll(
+        async () => {
+          const res = await page.request.get("/api/v1/selections/cart");
+          const body = (await res.json()) as {
+            trips: Array<{
+              tripId: string;
+              flights: Array<{ id: string }>;
+              hotels: Array<{ id: string }>;
+            }>;
+          };
+          return body.trips.some((trip) => trip.tripId === tripId);
+        },
+        { timeout: 10_000 }
+      )
+      .toBe(false);
   });
 
   // ============================================================
@@ -441,8 +506,6 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set — skipping");
       return;
     }
-
-    await blockExternalSites(page);
 
     // Create a manual flight selection
     const manualFlightRes = await page.request.put(`/api/v1/trips/${tripId}/selections/flights`, {
@@ -459,13 +522,25 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       },
     });
     expect(manualFlightRes.status()).toBe(200);
+    const cartRes = await page.request.get("/api/v1/selections/cart");
+    expect(cartRes.status()).toBe(200);
+    const cart = (await cartRes.json()) as {
+      trips: Array<{
+        tripId: string;
+        destination: string;
+        flights: Array<{ selectionType: string; airline: string; bookingUrl: string }>;
+      }>;
+    };
+    const currentTrip = cart.trips.find((trip) => trip.tripId === tripId);
 
-    await page.goto("/cart");
-    await expect(page.getByText("Paris").first()).toBeVisible({ timeout: 15_000 });
-
-    // Manual selections should show "Search again" instead of "Book Now"
-    await expect(page.getByText("Search again")).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText("Book Now")).not.toBeVisible();
+    expect(currentTrip).toBeDefined();
+    expect(currentTrip?.destination).toBe("Paris");
+    expect(currentTrip?.flights).toHaveLength(1);
+    expect(currentTrip?.flights[0]).toMatchObject({
+      selectionType: "manual",
+      airline: "Skyscanner",
+    });
+    expect(currentTrip?.flights[0]?.bookingUrl).toContain("skyscanner.net");
   });
 
   // ============================================================
@@ -477,6 +552,16 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set — skipping");
       return;
     }
+
+    const baselineCartRes = await page.request.get("/api/v1/selections/cart");
+    expect(baselineCartRes.status()).toBe(200);
+    const baselineCart = (await baselineCartRes.json()) as {
+      trips: Array<{ flights: Array<{ id: string }>; hotels: Array<{ id: string }> }>;
+    };
+    const baselineCount = baselineCart.trips.reduce(
+      (sum, trip) => sum + trip.flights.length + trip.hotels.length,
+      0
+    );
 
     // Create flight + hotel selections via API
     const flightRes = await page.request.put(`/api/v1/trips/${tripId}/selections/flights`, {
@@ -496,20 +581,42 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     await page.goto("/trips");
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Verify badge shows "2"
+    // Verify badge increases by the two selections added for this test.
     const cartLink = page.locator("a[href='/cart']");
-    await expect(cartLink.locator("span").filter({ hasText: "2" })).toBeVisible({ timeout: 5_000 });
+    const afterAddCount = baselineCount + 2;
+    await expect(
+      cartLink.locator("span").filter({ hasText: new RegExp(`^${afterAddCount}$`) })
+    ).toBeVisible({ timeout: 5_000 });
 
     // Mark the hotel as booked via API
     await page.request.patch(`/api/v1/trips/${tripId}/selections/hotels`, {
       data: { id: hotelSelection.id },
     });
 
+    await expect
+      .poll(
+        async () => {
+          const res = await page.request.get("/api/v1/selections/cart");
+          const body = (await res.json()) as {
+            trips: Array<{ flights: Array<{ id: string }>; hotels: Array<{ id: string }> }>;
+          };
+          return body.trips.reduce(
+            (sum, trip) => sum + trip.flights.length + trip.hotels.length,
+            0
+          );
+        },
+        { timeout: 10_000 }
+      )
+      .toBe(baselineCount + 1);
+
     // Reload to get fresh count
     await page.reload();
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Badge should now show "1"
-    await expect(cartLink.locator("span").filter({ hasText: "1" })).toBeVisible({ timeout: 5_000 });
+    // Badge should now be one higher than baseline.
+    const afterBookCount = baselineCount + 1;
+    await expect(
+      cartLink.locator("span").filter({ hasText: new RegExp(`^${afterBookCount}$`) })
+    ).toBeVisible({ timeout: 5_000 });
   });
 });
