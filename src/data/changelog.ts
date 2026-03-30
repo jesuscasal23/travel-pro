@@ -18,6 +18,33 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.4.0",
+    date: "2026-03-30",
+    sections: {
+      added: [
+        "Liked activities are automatically assigned to itinerary days after discovery",
+        "Venue details and highlights shown on activity discovery cards",
+        "Selected hotel pins displayed on the trip map",
+        "E2E test coverage for flight & hotel selection and shopping cart flow",
+      ],
+      improved: [
+        "Activity discovery auto-starts after trip creation",
+        "Activities without images are filtered out of the discovery queue",
+        "Dropped unused database columns from AffiliateClick and HotelSelection",
+        "Made activityLevel non-nullable with a sensible default",
+        "Removed unused exports and dead code flagged by knip",
+        "Removed leftover Sentry wizard example page",
+      ],
+      fixed: [
+        "Modal centering on desktop by removing duplicate translate from keyframes",
+        "Home page no longer flashes empty state while trips are loading",
+        "Uneven vertical spacing on the home page",
+        "Broken references to non-existent share route",
+        "E2e onboarding test reliability with shared helpers",
+      ],
+    },
+  },
+  {
     version: "0.3.2",
     date: "2026-03-29",
     sections: {
