@@ -3,7 +3,7 @@ import { prisma } from "@/lib/core/prisma";
 import { withTripLock } from "@/lib/core/with-trip-lock";
 import { z } from "zod";
 import { CreateTripInputSchema } from "./schemas";
-import { TRIP_LIST_INCLUDE } from "./query-shapes";
+import { TRIP_LIST_INCLUDE, TRIP_WITH_ACTIVE_ITINERARY_INCLUDE } from "./query-shapes";
 
 type CreateTripInput = z.infer<typeof CreateTripInputSchema>;
 
@@ -21,6 +21,7 @@ export async function createTrip(input: CreateTripInput, profileId: string | nul
   if (!initialItinerary) {
     return prisma.trip.create({
       data: { ...tripData, profileId },
+      include: TRIP_WITH_ACTIVE_ITINERARY_INCLUDE,
     });
   }
 
@@ -41,7 +42,12 @@ export async function createTrip(input: CreateTripInput, profileId: string | nul
       },
     });
 
-    return trip;
+    // Re-fetch with itineraries included so the response matches the
+    // shape expected by serializeTrip / TripClientProvider cache prime.
+    return tx.trip.findUniqueOrThrow({
+      where: { id: trip.id },
+      include: TRIP_WITH_ACTIVE_ITINERARY_INCLUDE,
+    });
   });
 }
 

@@ -8,6 +8,7 @@ import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
 import { findProfileByUserId } from "@/lib/features/profile/profile-service";
 import { CreateTripInputSchema } from "@/lib/features/trips/schemas";
 import { createTrip, listTripsForProfile } from "@/lib/features/trips/trip-collection-service";
+import { serializeTrip } from "@/lib/features/trips/trip-serializer";
 import { createGuestTripOwnerCookie } from "@/lib/api/guest-trip-ownership";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +53,7 @@ export const POST = apiHandler("POST /api/v1/trips", async (req: NextRequest) =>
 
   const trip = await createTrip(data, profileId);
 
-  const response = NextResponse.json({ trip }, { status: 201 });
+  const response = NextResponse.json({ trip: serializeTrip(trip) }, { status: 201 });
 
   // Set guest owner cookie when no profile is linked — covers both true guests
   // and authenticated users who haven't completed onboarding yet.
