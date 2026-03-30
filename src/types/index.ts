@@ -332,8 +332,6 @@ export interface HotelSelection {
   pricePerNight: number | null;
   totalPrice: number | null;
   currency: string;
-  address: string | null;
-  imageUrl: string | null;
   bookingUrl: string;
   booked: boolean;
   bookedAt: string | null;

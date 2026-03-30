@@ -37,8 +37,6 @@ export const UpsertHotelSelectionSchema = z.object({
   pricePerNight: z.number().nullable().optional(),
   totalPrice: z.number().nullable().optional(),
   currency: z.string().default("EUR"),
-  address: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
   bookingUrl: z.string().url(),
 });
 

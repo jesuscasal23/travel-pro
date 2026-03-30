@@ -61,17 +61,9 @@ export function CartHotelItem({
       <div className="flex gap-3">
         {/* Thumbnail */}
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg">
-          {selection.imageUrl ? (
-            <img
-              src={selection.imageUrl}
-              alt={selection.hotelName}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="from-primary/10 to-primary/5 flex h-full w-full items-center justify-center bg-gradient-to-br">
-              <Hotel className="text-primary/30 h-6 w-6" />
-            </div>
-          )}
+          <div className="from-primary/10 to-primary/5 flex h-full w-full items-center justify-center bg-gradient-to-br">
+            <Hotel className="text-primary/30 h-6 w-6" />
+          </div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
