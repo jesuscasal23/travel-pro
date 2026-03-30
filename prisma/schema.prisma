@@ -123,6 +123,8 @@ model DiscoveredActivity {
   duration      String
   googleMapsUrl String? @map("google_maps_url")
   imageUrl      String? @map("image_url")
+  lat           Float?
+  lng           Float?
 
   decision  String?   // null | "liked" | "disliked"
   decidedAt DateTime? @map("decided_at")

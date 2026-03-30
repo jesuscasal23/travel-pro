@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { TripMobileShell } from "@/components/trip/mobile/TripMobileShell";
 import { useTripContext } from "@/components/trip/TripContext";
 import { useHotelSelections } from "@/hooks/api/selections/useHotelSelections";
-import type { HotelPin } from "@/components/map/RouteMap";
+import type { HotelPin, ActivityPin } from "@/components/map/RouteMap";
 
 const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
   ssr: false,
@@ -13,7 +13,7 @@ const RouteMap = dynamic(() => import("@/components/map/RouteMap"), {
 });
 
 export default function TripMapPage() {
-  const { itinerary, tripId } = useTripContext();
+  const { itinerary, tripId, assignedActivities } = useTripContext();
   const route = itinerary?.route ?? [];
   const { data: hotelSelections } = useHotelSelections(tripId);
   const [activeCityIndex, setActiveCityIndex] = useState<number | null>(null);
@@ -44,6 +44,23 @@ export default function TripMapPage() {
     return pins;
   }, [hotelSelections, itinerary]);
 
+  // Derive activity pins from assigned activities with coordinates
+  const activityPins = useMemo<ActivityPin[]>(() => {
+    if (!assignedActivities?.length) return [];
+
+    return assignedActivities
+      .filter((a) => a.lat != null && a.lng != null && a.assignedDay != null)
+      .map((a) => ({
+        lat: a.lat!,
+        lng: a.lng!,
+        name: a.name,
+        category: a.category,
+        duration: a.duration,
+        dayNumber: a.assignedDay!,
+        city: a.city,
+      }));
+  }, [assignedActivities]);
+
   // Filter cities by day selection
   const filteredRoute = activeCityIndex !== null ? [route[activeCityIndex]].filter(Boolean) : route;
 
@@ -65,6 +82,12 @@ export default function TripMapPage() {
     activeCityIndex !== null
       ? hotelPins.filter((h) => h.city === route[activeCityIndex]?.city)
       : hotelPins;
+
+  // Filter activity pins by active city
+  const filteredActivityPins =
+    activeCityIndex !== null
+      ? activityPins.filter((a) => a.city === route[activeCityIndex]?.city)
+      : activityPins;
 
   return (
     <TripMobileShell>
@@ -106,6 +129,7 @@ export default function TripMapPage() {
               if (activeCityIndex === null) setActiveCityIndex(i);
             }}
             hotelPins={filteredHotelPins}
+            activityPins={filteredActivityPins}
           />
         </div>
       </div>

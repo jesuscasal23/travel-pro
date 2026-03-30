@@ -21,6 +21,8 @@ function makeActivity(overrides: Partial<DiscoveredActivityRow> = {}): Discovere
     duration: "2h",
     googleMapsUrl: "https://maps.google.com/?q=A1",
     imageUrl: null,
+    lat: null,
+    lng: null,
     decision: null,
     decidedAt: null,
     assignedDay: null,

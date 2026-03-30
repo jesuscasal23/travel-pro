@@ -13,6 +13,8 @@ Return a JSON array with up to 25 activity objects. Each object must include:
 - highlights (array of 3 strings, each a brief factual detail that helps the traveler understand what to expect — e.g. "Beginner-friendly sessions available", "Open since 1956", "Best visited at sunset for panoramic views")
 - category (string)
 - duration (string, e.g. "2h")
+- lat (number, venue latitude in decimal degrees, e.g. 13.7563)
+- lng (number, venue longitude in decimal degrees, e.g. 100.5018)
 
 Rules:
 - Every activity must be something a tourist can realistically walk in and DO within the suggested duration. Be specific about the actual visitor experience — e.g. "Watch a live Muay Thai fight" (spectator event) is valid, "Train Muay Thai at a tourist-friendly gym" is valid, but "Muay Thai Training at Lumpinee Boxing Stadium" is misleading if tourists cannot actually train there.

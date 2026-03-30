@@ -26,6 +26,8 @@ const ClaudeDiscoverActivitySchema = z.object({
   highlights: z.array(z.string().min(1).max(200)).min(1).max(5),
   category: z.string().min(1).max(80),
   duration: z.string().min(1).max(40),
+  lat: z.number(),
+  lng: z.number(),
 });
 
 const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(25);
@@ -147,6 +149,8 @@ export async function discoverActivities(
     duration: activity.duration,
     googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.placeName} ${city.city}`)}`,
     imageUrl: null as string | null,
+    lat: activity.lat,
+    lng: activity.lng,
   }));
 
   await prisma.discoveredActivity.createMany({ data: rows });
@@ -226,6 +230,8 @@ function toDiscoveredActivityRow(row: {
   duration: string;
   googleMapsUrl: string | null;
   imageUrl: string | null;
+  lat: number | null;
+  lng: number | null;
   decision: string | null;
   decidedAt: Date | null;
   assignedDay: number | null;
@@ -244,6 +250,8 @@ function toDiscoveredActivityRow(row: {
     duration: row.duration,
     googleMapsUrl: row.googleMapsUrl ?? "",
     imageUrl: row.imageUrl,
+    lat: row.lat,
+    lng: row.lng,
     decision: row.decision as DiscoveredActivityRow["decision"],
     decidedAt: row.decidedAt?.toISOString() ?? null,
     assignedDay: row.assignedDay,

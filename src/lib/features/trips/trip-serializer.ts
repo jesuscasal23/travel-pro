@@ -22,6 +22,8 @@ function serializeAssignedActivity(row: {
   duration: string;
   googleMapsUrl: string | null;
   imageUrl: string | null;
+  lat: number | null;
+  lng: number | null;
   decision: string | null;
   decidedAt: Date | null;
   assignedDay: number | null;
@@ -40,6 +42,8 @@ function serializeAssignedActivity(row: {
     duration: row.duration,
     googleMapsUrl: row.googleMapsUrl ?? "",
     imageUrl: row.imageUrl,
+    lat: row.lat,
+    lng: row.lng,
     decision: row.decision as AssignedActivity["decision"],
     decidedAt: row.decidedAt?.toISOString() ?? null,
     assignedDay: row.assignedDay!,

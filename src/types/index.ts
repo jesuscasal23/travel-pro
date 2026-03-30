@@ -52,6 +52,8 @@ export interface ActivityDiscoveryCandidate {
   duration: string;
   googleMapsUrl: string;
   imageUrl: string | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 /** A persisted discovered activity row (includes DB id and swipe state). */

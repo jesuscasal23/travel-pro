@@ -5,6 +5,7 @@ import Map, { Marker, Popup, Source, Layer } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { CityStop } from "@/types";
+import { getCategoryStyle, getCategoryEmoji } from "@/lib/utils/format/category-colors";
 
 export interface HotelPin {
   lat: number;
@@ -15,11 +16,22 @@ export interface HotelPin {
   city: string;
 }
 
+export interface ActivityPin {
+  lat: number;
+  lng: number;
+  name: string;
+  category: string;
+  duration: string;
+  dayNumber: number;
+  city: string;
+}
+
 interface RouteMapProps {
   cities: CityStop[];
   activeCityIndex: number | null;
   onCityClick: (index: number) => void;
   hotelPins?: HotelPin[];
+  activityPins?: ActivityPin[];
 }
 
 // Carto Voyager — free, production-grade tiles, no API key required
@@ -30,10 +42,12 @@ export default function RouteMap({
   activeCityIndex,
   onCityClick,
   hotelPins = [],
+  activityPins = [],
 }: RouteMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [popupIndex, setPopupIndex] = useState<number | null>(null);
   const [hotelPopupIndex, setHotelPopupIndex] = useState<number | null>(null);
+  const [activityPopupIndex, setActivityPopupIndex] = useState<number | null>(null);
 
   // Build GeoJSON line through all cities
   const geojsonLine = {
@@ -49,10 +63,18 @@ export default function RouteMap({
   const handleLoad = useCallback(() => {
     if (!mapRef.current || cities.length === 0) return;
 
-    const allLngs = [...cities.map((c) => c.lng), ...hotelPins.map((h) => h.lng)];
-    const allLats = [...cities.map((c) => c.lat), ...hotelPins.map((h) => h.lat)];
+    const allLngs = [
+      ...cities.map((c) => c.lng),
+      ...hotelPins.map((h) => h.lng),
+      ...activityPins.map((a) => a.lng),
+    ];
+    const allLats = [
+      ...cities.map((c) => c.lat),
+      ...hotelPins.map((h) => h.lat),
+      ...activityPins.map((a) => a.lat),
+    ];
 
-    if (cities.length === 1 && hotelPins.length === 0) {
+    if (cities.length === 1 && hotelPins.length === 0 && activityPins.length === 0) {
       // Single city, no hotels — center on it at neighborhood zoom level
       mapRef.current.flyTo({
         center: [cities[0].lng, cities[0].lat],
@@ -69,7 +91,7 @@ export default function RouteMap({
       ],
       { padding: 80, duration: 1000 }
     );
-  }, [cities, hotelPins]);
+  }, [cities, hotelPins, activityPins]);
 
   // Fly to active city when activeCityIndex changes
   useEffect(() => {
@@ -131,6 +153,7 @@ export default function RouteMap({
                 onCityClick(i);
                 setPopupIndex(i);
                 setHotelPopupIndex(null);
+                setActivityPopupIndex(null);
               }}
             >
               <div
@@ -143,6 +166,7 @@ export default function RouteMap({
                     onCityClick(i);
                     setPopupIndex(i);
                     setHotelPopupIndex(null);
+                    setActivityPopupIndex(null);
                   }
                 }}
                 style={{
@@ -182,6 +206,7 @@ export default function RouteMap({
               e.originalEvent.stopPropagation();
               setHotelPopupIndex(i);
               setPopupIndex(null);
+              setActivityPopupIndex(null);
             }}
           >
             <div
@@ -193,6 +218,7 @@ export default function RouteMap({
                   e.preventDefault();
                   setHotelPopupIndex(i);
                   setPopupIndex(null);
+                  setActivityPopupIndex(null);
                 }
               }}
               style={{
@@ -250,6 +276,83 @@ export default function RouteMap({
               </div>
               <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
                 {cities[popupIndex].days} days
+              </div>
+            </div>
+          </Popup>
+        )}
+
+        {/* Activity pins */}
+        {activityPins.map((activity, i) => {
+          const style = getCategoryStyle(activity.category);
+          const emoji = getCategoryEmoji(activity.category);
+          return (
+            <Marker
+              key={`activity-${activity.dayNumber}-${activity.name}`}
+              longitude={activity.lng}
+              latitude={activity.lat}
+              anchor="center"
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setActivityPopupIndex(i);
+                setPopupIndex(null);
+                setHotelPopupIndex(null);
+              }}
+            >
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={`Activity: ${activity.name} — Day ${activity.dayNumber}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActivityPopupIndex(i);
+                    setPopupIndex(null);
+                    setHotelPopupIndex(null);
+                  }
+                }}
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  backgroundColor: style.strokeHsl,
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                  border: "2px solid #fff",
+                }}
+              >
+                {emoji}
+              </div>
+            </Marker>
+          );
+        })}
+
+        {/* Activity popup */}
+        {activityPopupIndex !== null && activityPins[activityPopupIndex] && (
+          <Popup
+            longitude={activityPins[activityPopupIndex].lng}
+            latitude={activityPins[activityPopupIndex].lat}
+            anchor="top"
+            onClose={() => setActivityPopupIndex(null)}
+            closeButton
+            closeOnClick={false}
+            offset={16}
+          >
+            <div style={{ padding: "4px 2px", minWidth: 120 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "hsl(var(--foreground))" }}>
+                {getCategoryEmoji(activityPins[activityPopupIndex].category)}{" "}
+                {activityPins[activityPopupIndex].name}
+              </div>
+              <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 2 }}>
+                Day {activityPins[activityPopupIndex].dayNumber} ·{" "}
+                {activityPins[activityPopupIndex].duration}
+              </div>
+              <div style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 1 }}>
+                {activityPins[activityPopupIndex].city}
               </div>
             </div>
           </Popup>
