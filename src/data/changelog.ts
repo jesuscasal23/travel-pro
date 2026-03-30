@@ -18,6 +18,29 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.5.0",
+    date: "2026-03-30",
+    sections: {
+      added: [
+        "Founding-user feedback system for early adopters",
+        "Activity location pins shown on the trip map",
+        "Per-city discovery round cap to keep suggestions fresh",
+        "Retry logic on profile save for better reliability",
+        "Card-based empty and loading states on the trips page",
+      ],
+      improved: [
+        "Hardened flight booking endpoint and removed legacy booking URL",
+        "Cleaned up stale endpoint references from documentation",
+      ],
+      fixed: [
+        'Trip hero card showing "0 days" when no itinerary exists',
+        "Popular destination badges not clickable after city search",
+        "Rate-limit errors not handled gracefully on trip pages",
+        "Activity discovery not completing in certain edge cases",
+      ],
+    },
+  },
+  {
     version: "0.4.0",
     date: "2026-03-30",
     sections: {
