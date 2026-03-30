@@ -225,7 +225,7 @@ export default function PlanPage() {
         setIsBuilding(false);
         toast({
           title: "Profile save failed",
-          description: "We couldn't save your profile, so trip creation was stopped.",
+          description: "A temporary error prevented saving your profile. Please try again.",
           variant: "error",
         });
         return;

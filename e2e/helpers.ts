@@ -64,7 +64,7 @@ async function ensurePremiumProfile(page: Page) {
   // 3. Create profile via app API if it doesn't exist yet.
   //    The proxy fails open when no profile row exists, so this always succeeds
   //    for first-time users. For existing users, the proxy allows (is_premium = true).
-  await patchProfileWithRetry(page);
+  await page.request.patch("/api/v1/profile", { data: DEFAULT_PROFILE_PATCH });
 
   // 4. If step 3 created a new profile, it defaults to is_premium = false.
   //    Set it back to true.
@@ -78,28 +78,6 @@ async function ensurePremiumProfile(page: Page) {
     },
     body: JSON.stringify({ is_premium: true }),
   });
-}
-
-async function patchProfileWithRetry(page: Page, attempts = 3) {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      const res = await page.request.patch("/api/v1/profile", {
-        data: DEFAULT_PROFILE_PATCH,
-      });
-      if (res.ok()) return res;
-      lastError = new Error(`PATCH /api/v1/profile returned ${res.status()}`);
-    } catch (error) {
-      lastError = error;
-    }
-
-    if (attempt < attempts) {
-      await page.waitForTimeout(300 * attempt);
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error("PATCH /api/v1/profile failed");
 }
 
 export function blockAnalytics(page: Page) {
