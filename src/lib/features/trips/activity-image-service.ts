@@ -11,7 +11,7 @@ const PER_REQUEST_TIMEOUT_MS = 3_000;
  * Returns an array of photo URLs (or null for misses), in the same order as the input.
  * All lookups run in parallel; individual failures never block the batch.
  */
-async function resolveActivityImages(
+export async function resolveActivityImages(
   activities: { name: string }[],
   city: string,
   signal?: AbortSignal
@@ -76,42 +76,6 @@ async function resolveActivityImages(
   });
 
   return urls;
-}
-
-/**
- * Fire-and-forget: resolve images for persisted activities and update their DB rows.
- * Runs entirely in the background — errors are logged but never thrown to the caller.
- */
-export function resolveActivityImagesInBackground(
-  activities: { id: string; name: string }[],
-  city: string
-): void {
-  resolveActivityImages(activities, city)
-    .then(async (urls) => {
-      const updates = activities
-        .map((a, i) => ({ id: a.id, imageUrl: urls[i] }))
-        .filter((u) => u.imageUrl != null);
-
-      if (updates.length === 0) return;
-
-      await Promise.allSettled(
-        updates.map((u) =>
-          prisma.discoveredActivity.update({
-            where: { id: u.id },
-            data: { imageUrl: u.imageUrl },
-          })
-        )
-      );
-
-      log.info("Background image resolution complete", {
-        city,
-        total: activities.length,
-        updated: updates.length,
-      });
-    })
-    .catch((error) => {
-      log.warn("Background image resolution failed", { city, error });
-    });
 }
 
 /**

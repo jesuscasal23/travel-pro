@@ -14,7 +14,7 @@ import { parseItineraryData } from "@/lib/utils/trip/trip-metadata";
 import type { DiscoveredActivityRow, UserProfile } from "@/types";
 import { loadTripContext } from "./trip-query-service";
 import { findActiveItinerary } from "./itinerary-service";
-import { resolveActivityImagesInBackground } from "./activity-image-service";
+import { resolveActivityImages } from "./activity-image-service";
 
 const log = createLogger("discover-activities-service");
 
@@ -164,14 +164,53 @@ export async function discoverActivities(
     durationMs: Date.now() - t0,
   });
 
-  // Fire-and-forget: resolve images in the background and update DB rows
-  // Use placeName (real venue name) for better Google Places matches
-  resolveActivityImagesInBackground(
-    inserted.map((r) => ({ id: r.id, name: r.placeName ?? r.name })),
-    city.city
+  // Resolve images synchronously — activities without photos are removed
+  // so the swipe queue never contains placeholder cards.
+  const imageUrls = await resolveActivityImages(
+    inserted.map((r) => ({ name: r.placeName ?? r.name })),
+    city.city,
+    signal
   );
 
-  return inserted.map(toDiscoveredActivityRow);
+  const hits: { id: string; imageUrl: string }[] = [];
+  const missIds: string[] = [];
+
+  for (let i = 0; i < inserted.length; i++) {
+    if (imageUrls[i]) {
+      hits.push({ id: inserted[i].id, imageUrl: imageUrls[i]! });
+    } else {
+      missIds.push(inserted[i].id);
+    }
+  }
+
+  // Update resolved image URLs and remove no-image activities in parallel
+  await Promise.all([
+    ...hits.map((h) =>
+      prisma.discoveredActivity.update({
+        where: { id: h.id },
+        data: { imageUrl: h.imageUrl },
+      })
+    ),
+    missIds.length > 0
+      ? prisma.discoveredActivity.deleteMany({ where: { id: { in: missIds } } })
+      : Promise.resolve(),
+  ]);
+
+  log.info("Activity image resolution complete", {
+    tripId,
+    cityId,
+    withImages: hits.length,
+    removed: missIds.length,
+    durationMs: Date.now() - t0,
+  });
+
+  // Re-read final set (only activities with images)
+  const final = await prisma.discoveredActivity.findMany({
+    where: { tripId, cityId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return final.map(toDiscoveredActivityRow);
 }
 
 function toDiscoveredActivityRow(row: {
