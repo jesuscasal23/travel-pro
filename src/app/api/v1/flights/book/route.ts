@@ -6,15 +6,25 @@
 // ============================================================
 import { NextRequest, NextResponse } from "next/server";
 import { resolveBooking, SerpApiRateLimitError } from "@/lib/flights";
+import { buildFlightLink } from "@/lib/flights/booking-links";
 import { createLogger } from "@/lib/core/logger";
-import { prisma } from "@/lib/core/prisma";
 import { getAuthenticatedUserId } from "@/lib/core/supabase-server";
-import { hashIpAddress } from "@/lib/features/affiliate/redirect-utils";
+import { hashIpAddress, isAllowedAffiliateDestination } from "@/lib/features/affiliate/redirect-utils";
+import { trackFlightBookingClick } from "@/lib/features/affiliate/booking-click-service";
 import { getClientIp } from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
 const log = createLogger("flights-book");
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function htmlResponse(html: string, status = 200) {
   return new NextResponse(html, {
@@ -23,7 +33,11 @@ function htmlResponse(html: string, status = 200) {
   });
 }
 
-function errorPage(message: string) {
+function errorPage(message: string, fallbackUrl?: string) {
+  const fallbackHtml = fallbackUrl
+    ? `<a href="${escapeHtml(fallbackUrl)}" target="_blank" rel="noopener">Search on Skyscanner instead</a>`
+    : `<a href="javascript:window.close()">Close this tab</a>`;
+
   return htmlResponse(
     `<!DOCTYPE html>
 <html><head><title>Booking</title>
@@ -32,13 +46,12 @@ function errorPage(message: string) {
 h1{font-size:1.1rem;margin:0 0 .5rem}p{font-size:.9rem;color:#64748b;margin:0 0 1rem}
 a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}</style></head>
 <body><div class="card"><h1>Booking unavailable</h1><p>${message}</p>
-<a href="javascript:window.close()">Close this tab</a></div></body></html>`,
+${fallbackHtml}</div></body></html>`,
     200
   );
 }
 
 function redirectForm(actionUrl: string, postData: string, bookWith: string) {
-  // Parse post_data (URL-encoded) into hidden form fields
   const fields = postData
     .split("&")
     .filter(Boolean)
@@ -46,20 +59,21 @@ function redirectForm(actionUrl: string, postData: string, bookWith: string) {
       const eqIdx = pair.indexOf("=");
       const key = eqIdx >= 0 ? decodeURIComponent(pair.slice(0, eqIdx)) : decodeURIComponent(pair);
       const value = eqIdx >= 0 ? decodeURIComponent(pair.slice(eqIdx + 1)) : "";
-      const safeKey = key.replace(/"/g, "&quot;");
-      const safeValue = value.replace(/"/g, "&quot;");
-      return `<input type="hidden" name="${safeKey}" value="${safeValue}">`;
+      return `<input type="hidden" name="${escapeHtml(key)}" value="${escapeHtml(value)}">`;
     })
     .join("\n");
 
+  const safeBookWith = escapeHtml(bookWith);
+  const safeActionUrl = escapeHtml(actionUrl);
+
   return htmlResponse(
     `<!DOCTYPE html>
-<html><head><title>Redirecting to ${bookWith}…</title>
+<html><head><title>Redirecting to ${safeBookWith}…</title>
 <style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8fafc;color:#1e293b}
 .card{text-align:center}.spinner{width:24px;height:24px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .6s linear infinite;margin:0 auto 1rem}
 @keyframes spin{to{transform:rotate(360deg)}}p{font-size:.9rem;color:#64748b}</style></head>
-<body><div class="card"><div class="spinner"></div><p>Redirecting to ${bookWith}…</p></div>
-<form id="f" method="POST" action="${actionUrl.replace(/"/g, "&quot;")}">
+<body><div class="card"><div class="spinner"></div><p>Redirecting to ${safeBookWith}…</p></div>
+<form id="f" method="POST" action="${safeActionUrl}">
 ${fields}
 </form>
 <script>document.getElementById('f').submit();</script>
@@ -79,6 +93,11 @@ export async function GET(req: NextRequest) {
     return errorPage("Missing required parameters.");
   }
 
+  const skyscannerFallback = buildFlightLink(
+    { fromIata: dep, toIata: arr, departureDate: date },
+    1
+  );
+
   try {
     const booking = await resolveBooking({
       bookingToken: token,
@@ -90,7 +109,19 @@ export async function GET(req: NextRequest) {
     if (!booking) {
       log.warn("Could not get booking request", { dep, arr, date });
       return errorPage(
-        "Could not resolve this flight's booking link. The flight may no longer be available."
+        "Could not resolve this flight's booking link. The flight may no longer be available.",
+        skyscannerFallback
+      );
+    }
+
+    if (!isAllowedAffiliateDestination(booking.url)) {
+      log.warn("Booking URL failed destination allowlist check", {
+        url: booking.url,
+        bookWith: booking.bookWith,
+      });
+      return errorPage(
+        "This booking destination is not recognized. Please search directly.",
+        skyscannerFallback
       );
     }
 
@@ -102,38 +133,27 @@ export async function GET(req: NextRequest) {
       date,
     });
 
-    // Best-effort booking click tracking — never block the redirect
-    try {
-      const userId = await getAuthenticatedUserId();
-      await prisma.affiliateClick.create({
-        data: {
-          provider: booking.bookWith.toLowerCase(),
-          clickType: "flight",
-          destination: new URL(booking.url).hostname,
-          url: booking.url,
-          tripId: tripId ?? null,
-          userId: userId ?? null,
-          ipHash: hashIpAddress(getClientIp(req)),
-          metadata: {
-            type: "flight",
-            fromIata: dep,
-            toIata: arr,
-            departureDate: date,
-            airline: booking.bookWith,
-            price: booking.price,
-          },
-        },
-      });
-    } catch (trackError) {
-      log.error("Failed to track flight booking click", {
-        error: trackError instanceof Error ? trackError.message : String(trackError),
-      });
-    }
+    // Best-effort booking click tracking — never blocks the redirect
+    const userId = await getAuthenticatedUserId().catch(() => null);
+    trackFlightBookingClick({
+      bookingUrl: booking.url,
+      bookWith: booking.bookWith,
+      price: booking.price ?? undefined,
+      tripId: tripId ?? null,
+      userId: userId ?? null,
+      ipHash: hashIpAddress(getClientIp(req)),
+      fromIata: dep,
+      toIata: arr,
+      departureDate: date,
+    });
 
     return redirectForm(booking.url, booking.postData, booking.bookWith);
   } catch (error) {
     if (error instanceof SerpApiRateLimitError) {
-      return errorPage("Flight booking is busy — please try again in a moment.");
+      return errorPage(
+        "Flight booking is busy — please try again in a moment.",
+        skyscannerFallback
+      );
     }
     throw error;
   }

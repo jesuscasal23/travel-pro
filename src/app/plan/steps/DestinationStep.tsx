@@ -137,6 +137,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const popularRef = useRef<HTMLElement>(null);
 
   const selectedKeys = useMemo(() => new Set(selectedCities.map(cityKey)), [selectedCities]);
 
@@ -179,7 +180,12 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        !popularRef.current?.contains(target)
+      ) {
         setOpen(false);
         setQuery("");
       }
@@ -344,7 +350,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
       </div>
 
       {/* Popular destinations */}
-      <section>
+      <section ref={popularRef}>
         <p className="text-faint mb-3 text-[11px] font-bold tracking-[0.2em] uppercase">
           Popular Destinations
         </p>
