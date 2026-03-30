@@ -163,7 +163,7 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
         JSON.stringify({
           error: "Too many requests",
           message: isExpensiveRoute
-            ? `You've reached the trip creation limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
+            ? `You've reached the activity discovery limit. Try again in ${Math.ceil(windowSeconds / 60)} minutes.`
             : "Too many requests. Please slow down.",
           retryAfter,
         }),

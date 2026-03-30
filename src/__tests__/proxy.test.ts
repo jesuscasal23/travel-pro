@@ -20,8 +20,11 @@ import { proxy } from "@/proxy";
 describe("proxy auth protection for /trips", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
   });
 
   it("redirects unauthenticated users to /login with next path", async () => {
@@ -66,5 +69,25 @@ describe("proxy auth protection for /trips", () => {
 
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toContain("/premium");
+  });
+
+  it("returns a discovery-specific rate limit message for discover-activities", async () => {
+    process.env.UPSTASH_REDIS_REST_URL = "https://redis.example.com";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "token";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [{ result: 1 }, { result: 0 }, { result: 6 }, { result: 1 }],
+      })
+    );
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-123/discover-activities");
+    const res = await proxy(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(body.message).toContain("activity discovery limit");
   });
 });

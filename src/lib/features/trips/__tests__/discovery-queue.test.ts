@@ -4,6 +4,7 @@ import {
   setDiscoveryCards,
   initDiscoveryQueue,
   createDiscoveryQueueState,
+  isPreviouslyCompletedDiscoveryBatch,
 } from "../discovery-queue";
 import type { DiscoveredActivityRow } from "@/types";
 
@@ -93,5 +94,18 @@ describe("discovery-queue", () => {
 
     expect(state.cards).toHaveLength(0);
     expect(state.decidedCount).toBe(2);
+  });
+
+  it("treats an empty queue as completed only when the batch had decided activities", () => {
+    const decidedActivities: DiscoveredActivityRow[] = [
+      makeActivity({ id: "act-1", decision: "liked", decidedAt: "2026-03-28T10:00:00Z" }),
+    ];
+    const decidedState = initDiscoveryQueue(decidedActivities, "city-1");
+
+    expect(isPreviouslyCompletedDiscoveryBatch(decidedActivities, decidedState)).toBe(true);
+
+    const emptyState = initDiscoveryQueue([], "city-1");
+
+    expect(isPreviouslyCompletedDiscoveryBatch([], emptyState)).toBe(false);
   });
 });

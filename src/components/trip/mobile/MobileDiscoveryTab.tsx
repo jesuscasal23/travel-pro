@@ -70,7 +70,7 @@ export function MobileDiscoveryTab({
   const currentCard = cards[cursor];
   const nextCard = cards[cursor + 1];
   const swipedCount = Math.min(cursor, totalTarget);
-  const isCompleted = status === "completed" || swipedCount >= totalTarget;
+  const isCompleted = status === "completed" || (totalTarget > 0 && swipedCount >= totalTarget);
 
   const dragX = useMotionValue(0);
   const cardRotate = useTransform(dragX, [-200, 0, 200], [-12, 0, 12]);

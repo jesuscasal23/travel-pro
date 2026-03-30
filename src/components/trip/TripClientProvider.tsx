@@ -22,6 +22,7 @@ import {
   advanceDiscoveryCursor,
   initDiscoveryQueue,
   createDiscoveryQueueState,
+  isPreviouslyCompletedDiscoveryBatch,
 } from "@/lib/features/trips/discovery-queue";
 import type {
   AssignedActivity,
@@ -196,18 +197,32 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         setDiscoveryError(null);
         if (result.roundLimitReached) setRoundLimitReached(true);
         const queue = initDiscoveryQueue(result.activities, currentDiscoveryCity.id);
-        if (queue.cards.length === 0) {
-          // All activities already swiped — check if we should advance
-          if (currentCityIndex < discoverableCities.length - 1) {
-            setCurrentCityIndex((i) => i + 1);
-          } else {
-            setDiscoveryStatusOverride("completed");
-            setDiscoveryDone(true);
-          }
-        } else {
+
+        if (queue.cards.length > 0) {
           setDiscoveryStatusOverride("in_progress");
           setQueueState(queue);
           setDiscoveryDone(true);
+          return;
+        }
+
+        setQueueState(queue);
+        setDiscoveryDone(true);
+
+        if (result.roundLimitReached) {
+          setDiscoveryStatusOverride("in_progress");
+          return;
+        }
+
+        if (!isPreviouslyCompletedDiscoveryBatch(result.activities, queue)) {
+          setDiscoveryError("We couldn't load activity cards for this city. Please try again.");
+          return;
+        }
+
+        // The batch only contained already-decided activities, so continue.
+        if (currentCityIndex < discoverableCities.length - 1) {
+          setCurrentCityIndex((i) => i + 1);
+        } else {
+          setDiscoveryStatusOverride("completed");
         }
       })
       .catch((error) => {

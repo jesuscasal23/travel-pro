@@ -42,6 +42,17 @@ export function initDiscoveryQueue(
   };
 }
 
+/**
+ * An empty queue only means "already completed" when the batch contained
+ * activities and every one of them had already been decided.
+ */
+export function isPreviouslyCompletedDiscoveryBatch(
+  allActivities: DiscoveredActivityRow[],
+  state: Pick<DiscoveryQueueState, "cards">
+): boolean {
+  return allActivities.length > 0 && state.cards.length === 0;
+}
+
 export function setDiscoveryCards(
   state: DiscoveryQueueState,
   cards: DiscoveredActivityRow[]
