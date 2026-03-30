@@ -18,14 +18,14 @@ export function TripMobileShell({
   showHero = false,
   showBanners = false,
 }: TripMobileShellProps) {
-  const { itinerary, tripId, tripTitle, totalDays } = useTripContext();
+  const { itinerary, tripId, tripTitle, totalDays, dateStart, dateEnd } = useTripContext();
   const route = itinerary?.route ?? [];
   const days = itinerary?.days ?? [];
   const heroStop = route[0];
   const [src, onImgError] = useCityImage(heroStop?.city ?? tripTitle, heroStop?.countryCode);
 
-  const firstDate = days[0]?.date;
-  const lastDate = days[days.length - 1]?.date;
+  const firstDate = days[0]?.date ?? dateStart;
+  const lastDate = days[days.length - 1]?.date ?? dateEnd;
 
   return (
     <div className="flex h-full flex-col bg-[image:var(--gradient-page-trip)]">

@@ -16,6 +16,7 @@ import {
 import { useShallow } from "zustand/shallow";
 import { useTripStore } from "@/stores/useTripStore";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
+import { daysBetween } from "@/lib/utils/format/date";
 import { ApiError } from "@/lib/client/api-fetch";
 import { TripErrorState } from "@/components/trip/TripErrorState";
 import { TripNotFound } from "@/components/trip/TripNotFound";
@@ -79,8 +80,10 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   // For guests, fall back to the plan form store for dates/travelers
   const planFormDateStart = usePlanFormStore((s) => s.dateStart);
+  const planFormDateEnd = usePlanFormStore((s) => s.dateEnd);
   const planFormTravelers = usePlanFormStore((s) => s.travelers);
   const dateStart = tripData?.dateStart ?? planFormDateStart;
+  const dateEnd = tripData?.dateEnd ?? planFormDateEnd;
   const travelers = tripData?.travelers ?? planFormTravelers;
 
   // ── Local itinerary state ────────────────────────────────────────────────────
@@ -469,7 +472,10 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     : countries.length > 0
       ? countries.join(", ")
       : (tripData?.destination ?? "Untitled Trip");
-  const totalDays = localItinerary?.days.length || route.reduce((sum, r) => sum + r.days, 0);
+  const totalDays =
+    localItinerary?.days.length ||
+    route.reduce((sum, r) => sum + r.days, 0) ||
+    daysBetween(dateStart, dateEnd);
 
   const contextValue: TripContextValue = {
     itinerary: localItinerary ?? null,
@@ -479,6 +485,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     countries,
     isAuthenticated,
     dateStart,
+    dateEnd,
     travelers,
     isPartialItinerary: false,
     isBuilding: false,

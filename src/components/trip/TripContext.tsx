@@ -20,6 +20,7 @@ export interface TripContextValue {
 
   // Trip dates and party size (from DB, not from form store)
   dateStart: string;
+  dateEnd: string;
   travelers: number;
 
   // Itinerary build state
