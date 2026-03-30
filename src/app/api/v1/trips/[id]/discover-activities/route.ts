@@ -20,7 +20,7 @@ export const POST = apiHandler(
       excludeNames,
     } = await parseAndValidateRequest(req, DiscoverActivitiesInputSchema);
     const profile = await resolveTripUserProfile(tripAccess.profileId, requestProfile);
-    const activities = await discoverActivities({
+    const { activities, roundLimitReached } = await discoverActivities({
       tripId: params.id,
       profileId: tripAccess.profileId ?? null,
       profile,
@@ -29,6 +29,6 @@ export const POST = apiHandler(
       signal: req.signal,
     });
 
-    return Response.json({ activities });
+    return Response.json({ activities, roundLimitReached });
   }
 );

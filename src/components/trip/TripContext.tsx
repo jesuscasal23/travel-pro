@@ -58,6 +58,7 @@ export interface TripContextValue {
   discoveryTotalCities: number;
   discoveryLikedCount: number;
   discoveryRequiredCount: number;
+  discoveryRoundLimitReached: boolean;
 
   // Assigned activities (populated after discovery completes)
   assignedActivities: AssignedActivity[];

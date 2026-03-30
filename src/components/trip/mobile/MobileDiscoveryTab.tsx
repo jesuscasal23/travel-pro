@@ -19,6 +19,7 @@ interface MobileDiscoveryTabProps {
   likedCount: number;
   requiredCount: number;
   currentCityName?: string;
+  roundLimitReached?: boolean;
 }
 
 const SWIPE_THRESHOLD = 110;
@@ -64,6 +65,7 @@ export function MobileDiscoveryTab({
   likedCount,
   requiredCount,
   currentCityName,
+  roundLimitReached,
 }: MobileDiscoveryTabProps) {
   const currentCard = cards[cursor];
   const nextCard = cards[cursor + 1];
@@ -105,6 +107,19 @@ export function MobileDiscoveryTab({
             <>
               <div className="border-brand-primary mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
               <p className="text-ink text-sm font-medium">Generating activity cards...</p>
+            </>
+          ) : roundLimitReached ? (
+            <>
+              <p className="text-brand-primary text-[11px] font-bold tracking-[0.2em] uppercase">
+                All Suggestions Explored
+              </p>
+              <h2 className="text-navy mt-2 text-[1.55rem] font-bold tracking-[-0.03em]">
+                That&apos;s everything!
+              </h2>
+              <p className="text-dim mx-auto mt-2 max-w-[28ch] text-sm">
+                You&apos;ve seen all activity suggestions for this city. Like more from your
+                existing cards or continue to the next city.
+              </p>
             </>
           ) : (
             <>

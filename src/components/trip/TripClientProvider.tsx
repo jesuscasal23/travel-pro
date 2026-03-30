@@ -155,6 +155,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const [currentCityIndex, setCurrentCityIndex] = useState(0);
   const [likedCount, setLikedCount] = useState(0);
   const [requiredCount, setRequiredCount] = useState(0);
+  const [roundLimitReached, setRoundLimitReached] = useState(false);
 
   const discoveryCards = queueState.cards;
   const discoveryStatus = discoveryStatusOverride ?? tripServerDiscoveryStatus;
@@ -190,10 +191,11 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         cityId: currentDiscoveryCity.id,
         profile: requestProfile ?? undefined,
       })
-      .then((activities) => {
+      .then((result) => {
         if (cancelled) return;
         setDiscoveryError(null);
-        const queue = initDiscoveryQueue(activities, currentDiscoveryCity.id);
+        if (result.roundLimitReached) setRoundLimitReached(true);
+        const queue = initDiscoveryQueue(result.activities, currentDiscoveryCity.id);
         if (queue.cards.length === 0) {
           // All activities already swiped — check if we should advance
           if (currentCityIndex < discoverableCities.length - 1) {
@@ -276,8 +278,13 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
               setDiscoveryDone(false);
               setLikedCount(0);
               setRequiredCount(0);
+              setRoundLimitReached(false);
             }
           } else if (data.batchComplete && !data.cityProgress.cityComplete) {
+            if (roundLimitReached) {
+              // Cap reached — no more batches for this city
+              return;
+            }
             // Need more cards for this city — generate another batch
             const allNames = discoveryCards.map((c) => c.name);
             setDiscoveryDone(false);
@@ -288,8 +295,9 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
                 profile: requestProfile ?? undefined,
                 excludeNames: allNames,
               })
-              .then((activities) => {
-                const queue = initDiscoveryQueue(activities, currentDiscoveryCity.id);
+              .then((result) => {
+                if (result.roundLimitReached) setRoundLimitReached(true);
+                const queue = initDiscoveryQueue(result.activities, currentDiscoveryCity.id);
                 setQueueState(queue);
                 setDiscoveryDone(true);
               })
@@ -447,6 +455,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     discoveryTotalCities: discoverableCities.length,
     discoveryLikedCount: likedCount,
     discoveryRequiredCount: requiredCount,
+    discoveryRoundLimitReached: roundLimitReached,
     assignedActivities: serverAssignedActivities,
   };
 

@@ -11,6 +11,7 @@ interface DiscoverActivitiesParams {
 
 interface DiscoverActivitiesResponse {
   activities: DiscoveredActivityRow[];
+  roundLimitReached: boolean;
 }
 
 export function useDiscoverActivities() {
@@ -20,7 +21,7 @@ export function useDiscoverActivities() {
       cityId,
       profile,
       excludeNames,
-    }: DiscoverActivitiesParams): Promise<DiscoveredActivityRow[]> => {
+    }: DiscoverActivitiesParams): Promise<DiscoverActivitiesResponse> => {
       const data = await apiFetch<DiscoverActivitiesResponse>(
         `/api/v1/trips/${tripId}/discover-activities`,
         {
@@ -35,7 +36,10 @@ export function useDiscoverActivities() {
         }
       );
 
-      return data.activities ?? [];
+      return {
+        activities: data.activities ?? [],
+        roundLimitReached: data.roundLimitReached ?? false,
+      };
     },
   });
 }

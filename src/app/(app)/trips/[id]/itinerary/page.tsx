@@ -19,6 +19,7 @@ export default function TripItineraryPage() {
     discoveryTotalCities,
     discoveryLikedCount,
     discoveryRequiredCount,
+    discoveryRoundLimitReached,
     assignedActivities,
   } = useTripContext();
 
@@ -59,6 +60,7 @@ export default function TripItineraryPage() {
           likedCount={discoveryLikedCount}
           requiredCount={discoveryRequiredCount}
           currentCityName={currentCityName}
+          roundLimitReached={discoveryRoundLimitReached}
         />
       )}
     </TripMobileShell>

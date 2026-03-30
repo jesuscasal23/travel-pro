@@ -20,6 +20,11 @@ export const CONTENT_FILTER_MAX_RETRIES = 2;
 /** Content filter retry: base backoff delay in ms (multiplied by attempt number). */
 export const CONTENT_FILTER_BACKOFF_MS = 600;
 
+// ── Activity Discovery ─────────────────────────────────────
+
+/** Maximum discovery rounds (AI calls) per city. Each round generates ~25 activities. */
+export const MAX_DISCOVERY_ROUNDS_PER_CITY = 5;
+
 // ── Build Lifecycle ─────────────────────────────────────────
 
 /** How long a "building" record can exist before being considered stale. */

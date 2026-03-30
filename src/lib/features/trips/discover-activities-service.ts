@@ -3,7 +3,7 @@ import { BadRequestError, ActiveItineraryNotFoundError } from "@/lib/api/errors"
 import { throwIfAborted } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
 import { prisma } from "@/lib/core/prisma";
-import { MAX_TOKENS_CITY_ACTIVITIES } from "@/lib/config/constants";
+import { MAX_TOKENS_CITY_ACTIVITIES, MAX_DISCOVERY_ROUNDS_PER_CITY } from "@/lib/config/constants";
 import { callClaude } from "@/lib/ai/client";
 import { extractJSON } from "@/lib/ai/parser";
 import {
@@ -41,9 +41,14 @@ interface DiscoverActivitiesInput {
   signal?: AbortSignal;
 }
 
+export interface DiscoverActivitiesResult {
+  activities: DiscoveredActivityRow[];
+  roundLimitReached: boolean;
+}
+
 export async function discoverActivities(
   input: DiscoverActivitiesInput
-): Promise<DiscoveredActivityRow[]> {
+): Promise<DiscoverActivitiesResult> {
   const { tripId, profileId, profile, cityId, excludeNames, signal } = input;
   const t0 = Date.now();
 
@@ -77,8 +82,15 @@ export async function discoverActivities(
         cityId,
         count: existing.length,
       });
-      return existing.map(toDiscoveredActivityRow);
+      return { activities: existing.map(toDiscoveredActivityRow), roundLimitReached: false };
     }
+  }
+
+  // ── Check per-city round cap ────────────────────────────────────────────
+  const batchNumber = excludeNames ? Math.ceil(excludeNames.length / 25) + 1 : 1;
+  if (batchNumber > MAX_DISCOVERY_ROUNDS_PER_CITY) {
+    log.info("Discovery round limit reached", { tripId, cityId, batchNumber });
+    return { activities: [], roundLimitReached: true };
   }
 
   // ── Generate via Claude ──────────────────────────────────────────────────
@@ -214,7 +226,7 @@ export async function discoverActivities(
     orderBy: { createdAt: "asc" },
   });
 
-  return final.map(toDiscoveredActivityRow);
+  return { activities: final.map(toDiscoveredActivityRow), roundLimitReached: false };
 }
 
 function toDiscoveredActivityRow(row: {
