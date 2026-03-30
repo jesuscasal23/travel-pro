@@ -29,11 +29,11 @@ Every endpoint is documented twice:
 
 ### `GET /api/v1/trips/[id]`
 
-|               |                                                                                                                                |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | Required (trip owner)                                                                                                          |
-| **Developer** | Returns a single trip with its active itinerary, serialized via `tripSerializer`. 404 if not found, 403 if not owner.          |
-| **PM**        | Loads a specific trip's full details — the itinerary, cities, activities, budget — everything needed to display the trip page. |
+|               |                                                                                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required (trip owner)                                                                                                                                                                 |
+| **Developer** | Returns a single trip with its active itinerary and assigned discovered activities (where `assignedDay` is set), serialized via `tripSerializer`. 404 if not found, 403 if not owner. |
+| **PM**        | Loads a specific trip's full details — the itinerary, cities, assigned activities from discovery, budget — everything needed to display the trip page.                                |
 
 ### `DELETE /api/v1/trips/[id]`
 
@@ -49,20 +49,20 @@ Every endpoint is documented twice:
 
 ### `POST /api/v1/trips/[id]/discover-activities`
 
-|                |                                                                                                                                                                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**       | Required (trip owner)                                                                                                                                                                                                              |
-| **Rate limit** | 60s timeout                                                                                                                                                                                                                        |
-| **Developer**  | Calls Claude Haiku to generate swipeable activity candidates for a specific city within the trip. Streams results via SSE. Respects `req.signal` for client-side cancellation. Resolves user profile from trip or request context. |
-| **PM**         | Uses AI to suggest fun things to do in each city. The user sees activity cards they can swipe through (like/dislike) to personalize their itinerary.                                                                               |
+|                |                                                                                                                                                                                                                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Auth**       | Required (trip owner)                                                                                                                                                                                                                                                                                                    |
+| **Rate limit** | 60s timeout                                                                                                                                                                                                                                                                                                              |
+| **Developer**  | Calls Claude Haiku to generate swipeable activity candidates for a specific city. Accepts optional `excludeNames` to generate additional batches without duplicates. Respects `req.signal` for client-side cancellation. Resolves user profile from trip or request context. Returns cached results on first batch call. |
+| **PM**         | Uses AI to suggest fun things to do in each city. If the user swipes through all cards without enough likes, a new batch is generated. The user sees activity cards they can swipe through (like/dislike) to personalize their itinerary.                                                                                |
 
 ### `POST /api/v1/trips/[id]/activity-swipes`
 
-|               |                                                                                                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                                                                                                                 |
-| **Developer** | Records a like/dislike decision on a discovered activity. Accepts a `final` flag to mark discovery as complete for a city. Returns updated activity and discovery status.             |
-| **PM**        | Saves the user's choice when they swipe right (want it) or left (skip it) on a suggested activity. Once they've reviewed all suggestions for a city, that city is marked as complete. |
+|               |                                                                                                                                                                                                                                                                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required (trip owner)                                                                                                                                                                                                                                                                                                                              |
+| **Developer** | Records a like/dislike decision on a discovered activity. Requires `cityId`. Returns `cityProgress` (likedCount, requiredCount, cityComplete), `batchComplete`, `nextCityId`, and `allCitiesComplete`. When all cities are complete, automatically triggers server-side activity assignment to itinerary days based on the user's pace preference. |
+| **PM**        | Saves the user's choice when they swipe right (want it) or left (skip it) on a suggested activity. Tracks progress per city — once enough activities are liked for all cities, the system automatically builds the personalized itinerary.                                                                                                         |
 
 ### `POST /api/v1/trips/[id]/activity-images`
 
