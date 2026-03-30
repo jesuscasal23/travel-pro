@@ -1,4 +1,4 @@
-import type { DayActivity, Itinerary, FlightSelection, HotelSelection } from "@/types";
+import type { Itinerary, FlightSelection, HotelSelection } from "@/types";
 
 // ============================================================
 // Budget calculation utilities

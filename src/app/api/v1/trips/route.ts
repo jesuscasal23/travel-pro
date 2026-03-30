@@ -34,7 +34,7 @@ export const GET = apiHandler("GET /api/v1/trips", async () => {
       destination: trip.destination ?? firstCity?.city ?? null,
       destinationCountry: trip.destinationCountry ?? firstCity?.country ?? null,
       destinationCountryCode: trip.destinationCountryCode ?? firstCity?.countryCode ?? null,
-      itineraries: trip.itineraries.map(({ data: _data, ...rest }) => rest),
+      itineraries: trip.itineraries.map(({ data: _omit, ...rest }) => rest),
     };
   });
 

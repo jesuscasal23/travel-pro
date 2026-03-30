@@ -60,8 +60,7 @@ export async function apiFetch<T>(endpoint: string, options: ApiFetchOptions): P
  * Use for streaming (SSE) endpoints or manual response handling.
  */
 async function apiFetchRaw(endpoint: string, options: ApiFetchOptions): Promise<Response> {
-  const { source, body, fallbackMessage = "Request failed", ...init } = options;
-  const method = init.method ?? "GET";
+  const { source: _source, body, fallbackMessage = "Request failed", ...init } = options;
 
   const fetchInit: RequestInit = { ...init };
   if (body !== undefined) {

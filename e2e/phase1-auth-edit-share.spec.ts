@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import {
-  TEST_EMAIL,
   TEST_PASSWORD,
   hasAuthCreds,
   hasAdminCreds,
@@ -39,10 +38,24 @@ test("E2E-02: signup (admin-created) -> login -> planner", async ({ page, reques
   await page.waitForURL("**/trips", { timeout: 15_000 });
   await expect(page).toHaveURL(/trips/);
 
-  // Navigate to planner and verify first step renders
+  // Navigate to planner — new user without profile sees profile step first
   await page.goto("/plan");
-  await expect(page.getByText("Where to")).toBeVisible();
-  await page.getByPlaceholder("Search cities, countries...").fill("Paris");
+  await expect(page.getByText("The essentials")).toBeVisible();
+
+  // Fill profile step: nationality + airport
+  await page.locator("select").selectOption("Germany");
+  const airportInput = page.getByPlaceholder("Search airport or city...");
+  await airportInput.click();
+  await airportInput.fill("Frank");
+  const airportDropdown = page.locator("ul.absolute.z-50");
+  await expect(airportDropdown).toBeVisible();
+  await airportDropdown.locator("li").first().click();
+
+  // After filling profile data, the page auto-transitions to the destination step
+  // (canSkipProfileStep becomes true once nationality + airport are set)
+  await expect(page.getByText("Where to")).toBeVisible({ timeout: 10_000 });
+
+  await page.getByPlaceholder("Search cities...").fill("Paris");
   const parisOption = page
     .locator("button")
     .filter({ hasText: /Paris.*France/ })

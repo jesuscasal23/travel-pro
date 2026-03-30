@@ -182,7 +182,6 @@ export function MobileJourneyTab({ itinerary, assignedActivities = [] }: MobileJ
                       <ActivityCard
                         key={i}
                         timedActivity={ta}
-                        isFirst={i === 0}
                         isLast={i === timedActivities.length - 1}
                       />
                     ))}

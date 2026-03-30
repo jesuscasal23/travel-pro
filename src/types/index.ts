@@ -165,14 +165,6 @@ export interface TripSummary {
   itineraries: { id: string; buildStatus: string; discoveryStatus?: DiscoveryStatus }[];
 }
 
-/** Region option for questionnaire */
-interface Region {
-  id: string;
-  name: string;
-  countries: string;
-  popular?: boolean;
-}
-
 /** Interest chip option */
 export interface InterestOption {
   id: string;

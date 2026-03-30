@@ -6,7 +6,7 @@
 // Docs: https://serpapi.com/google-flights-api
 // ============================================================
 
-import type { FlightOption, FlightSearchResult, FlightLegResults } from "./types";
+import type { FlightOption, FlightSearchResult } from "./types";
 import { buildFlightLink } from "./booking-links";
 import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";

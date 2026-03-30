@@ -7,13 +7,11 @@ import type { TimedActivity } from "@/lib/utils/trip/time-distribution";
 
 interface ActivityCardProps {
   timedActivity: TimedActivity;
-  isFirst: boolean;
   isLast: boolean;
 }
 
 export const ActivityCard = memo(function ActivityCard({
   timedActivity,
-  isFirst,
   isLast,
 }: ActivityCardProps) {
   const { activity, startTime, endTime, durationMinutes } = timedActivity;
