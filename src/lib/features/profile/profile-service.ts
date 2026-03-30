@@ -83,7 +83,10 @@ export async function deleteUserProfileAndAccount(userId: string) {
         });
       }
 
+      await tx.feedbackSubmission.deleteMany({ where: { userId } });
       await tx.trip.deleteMany({ where: { profileId: profile.id } });
+    } else {
+      await tx.feedbackSubmission.deleteMany({ where: { userId } });
     }
 
     await tx.profile.deleteMany({ where: { userId } });

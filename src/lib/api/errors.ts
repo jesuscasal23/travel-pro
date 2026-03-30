@@ -70,6 +70,12 @@ export class TripNotFoundError extends NotFoundError {
   }
 }
 
+export class FeedbackNotFoundError extends NotFoundError {
+  constructor(details?: unknown) {
+    super("Feedback not found", details, "feedback_not_found");
+  }
+}
+
 export class ActiveItineraryNotFoundError extends NotFoundError {
   constructor(details?: unknown) {
     super("No active itinerary found", details, "active_itinerary_not_found");

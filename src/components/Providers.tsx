@@ -80,6 +80,7 @@ export function Providers({ children }: { children: ReactNode }) {
       }
       void queryClient.invalidateQueries({ queryKey: queryKeys.auth.status });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.feedback.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
     });
 

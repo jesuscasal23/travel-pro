@@ -22,6 +22,8 @@ export { useTravelerPreferences } from "./profile/useTravelerPreferences";
 export { useSaveProfile } from "./profile/useSaveProfile";
 export { useExportData } from "./profile/useExportData";
 export { useDeleteAccount } from "./profile/useDeleteAccount";
+export { useFeedback } from "./feedback/useFeedback";
+export { useCreateFeedback } from "./feedback/useCreateFeedback";
 
 // Admin
 export { useAdminStats } from "./admin/useAdminStats";

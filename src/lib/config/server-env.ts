@@ -146,6 +146,57 @@ export function getOptionalSerpApiEnv(): { apiKey: string } | null {
   );
 }
 
+export function getOptionalFeedbackEmailEnv():
+  | { apiKey: string; fromEmail: string; replyToEmail: string | null }
+  | null {
+  if (!hasEnvValue("RESEND_API_KEY") || !hasEnvValue("FEEDBACK_FROM_EMAIL")) {
+    return null;
+  }
+
+  return parseRequiredEnv(
+    "feedback-email",
+    z.object({
+      apiKey: nonEmptyString,
+      fromEmail: z.string().trim().email(),
+      replyToEmail: z.string().trim().email().nullable(),
+    }),
+    {
+      apiKey: process.env.RESEND_API_KEY,
+      fromEmail: process.env.FEEDBACK_FROM_EMAIL,
+      replyToEmail: process.env.FEEDBACK_REPLY_TO_EMAIL?.trim() || null,
+    },
+    ["RESEND_API_KEY", "FEEDBACK_FROM_EMAIL", "FEEDBACK_REPLY_TO_EMAIL"]
+  );
+}
+
+export function getOptionalLinearEnv():
+  | { apiKey: string; teamId: string; projectId: string | null; labelIds: string[] }
+  | null {
+  if (!hasEnvValue("LINEAR_API_KEY") || !hasEnvValue("LINEAR_FEEDBACK_TEAM_ID")) {
+    return null;
+  }
+
+  return parseRequiredEnv(
+    "linear",
+    z.object({
+      apiKey: nonEmptyString,
+      teamId: nonEmptyString,
+      projectId: nonEmptyString.nullable(),
+      labelIds: z.array(nonEmptyString),
+    }),
+    {
+      apiKey: process.env.LINEAR_API_KEY,
+      teamId: process.env.LINEAR_FEEDBACK_TEAM_ID,
+      projectId: process.env.LINEAR_FEEDBACK_PROJECT_ID?.trim() || null,
+      labelIds: (process.env.LINEAR_FEEDBACK_LABEL_IDS ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    },
+    ["LINEAR_API_KEY", "LINEAR_FEEDBACK_TEAM_ID", "LINEAR_FEEDBACK_PROJECT_ID"]
+  );
+}
+
 export function getServerEnvChecks(): Record<string, EnvCheckStatus> {
   return {
     anthropic: hasEnvValue("ANTHROPIC_API_KEY") ? "ok" : "missing",

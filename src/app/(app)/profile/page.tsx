@@ -16,6 +16,7 @@ import {
   Settings,
   Shield,
   SlidersHorizontal,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { AppLogo } from "@/components/ui/AppLogo";
@@ -25,6 +26,7 @@ import { ProfileBasicsFields } from "@/components/profile/ProfileBasicsFields";
 import { TravelStyleSelector } from "@/components/profile/TravelStyleSelector";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { FeedbackComposerModal } from "@/components/feedback/FeedbackComposerModal";
 import {
   useAuthStatus,
   useDeleteAccount,
@@ -66,6 +68,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("");
   const [profileEditorOverride, setProfileEditorOverride] = useState<boolean | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<TravelerPreferences | null>(null);
 
@@ -183,6 +186,8 @@ export default function ProfilePage() {
 
   return (
     <AppScreen>
+      <FeedbackComposerModal open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
+
       {/* Sticky Header */}
       <header className="dark:bg-card/85 shadow-glass-xs sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
         <div className="flex w-full items-center justify-between px-6 py-4">
@@ -391,6 +396,44 @@ export default function ProfilePage() {
             </div>
           )}
         </section>
+
+        {isAuth && (
+          <section className="space-y-3">
+            <h3 className="text-dim px-1 text-[10px] font-bold tracking-widest uppercase">
+              Founding User Feedback
+            </h3>
+            <div className="overflow-hidden rounded-[28px] border border-[#d8e6fb] bg-[#f6f9ff] p-5 shadow-[0_8px_18px_rgba(49,94,155,0.08)]">
+              <div className="flex items-start gap-4">
+                <div className="bg-white/80 flex h-12 w-12 items-center justify-center rounded-2xl">
+                  <Sparkles className="text-brand-primary h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-ink text-base font-semibold">Shape what we build next</h3>
+                  <p className="text-label mt-2 text-sm leading-relaxed">
+                    You’re one of the early users helping define the roadmap. Share an idea, report
+                    a bug, or track the updates we send back.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackOpen(true)}
+                  className="bg-brand-primary rounded-2xl px-4 py-3 text-sm font-semibold text-white"
+                >
+                  Share feedback
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/feedback")}
+                  className="text-ink rounded-2xl border border-[#c6d8f2] bg-white px-4 py-3 text-sm font-semibold"
+                >
+                  View your feedback
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Account & Preferences Menu */}
         <section className="space-y-3">

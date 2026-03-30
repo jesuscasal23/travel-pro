@@ -20,6 +20,11 @@ export const queryKeys = {
     detail: () => [...queryKeys.profile.all, "detail"] as const,
     export: () => [...queryKeys.profile.all, "export"] as const,
   },
+  feedback: {
+    all: ["feedback"] as const,
+    list: () => [...queryKeys.feedback.all, "list"] as const,
+    detail: (id: string) => [...queryKeys.feedback.all, "detail", id] as const,
+  },
   admin: {
     all: ["admin"] as const,
     stats: () => [...queryKeys.admin.all, "stats"] as const,
@@ -32,6 +37,11 @@ export const queryKeys = {
       all: () => [...queryKeys.admin.all, "trips"] as const,
       list: (page: number, limit: number, search: string) =>
         [...queryKeys.admin.trips.all(), page, limit, search] as const,
+    },
+    feedback: {
+      all: () => [...queryKeys.admin.all, "feedback"] as const,
+      list: (page: number, limit: number, search: string) =>
+        [...queryKeys.admin.feedback.all(), page, limit, search] as const,
     },
   },
   bookingClicks: {

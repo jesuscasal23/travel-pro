@@ -3,6 +3,7 @@
 // Use in server components and API routes
 // ============================================================
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { getOptionalSupabaseSessionEnv } from "@/lib/config/server-env";
 
@@ -35,10 +36,15 @@ async function createClient() {
  * Use this in every API route that requires authentication.
  */
 export async function getAuthenticatedUserId(): Promise<string | null> {
+  const user = await getAuthenticatedUser();
+  return user?.id ?? null;
+}
+
+export async function getAuthenticatedUser(): Promise<User | null> {
   const supabase = await createClient();
   if (!supabase) {
     return null;
   }
   const { data } = await supabase.auth.getUser();
-  return data.user?.id ?? null;
+  return data.user ?? null;
 }

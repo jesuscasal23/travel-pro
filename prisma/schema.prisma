@@ -36,6 +36,8 @@ model Profile {
   discoveredActivities DiscoveredActivity[]
   flightSelections     FlightSelection[]
   hotelSelections      HotelSelection[]
+  feedbackSubmissions  FeedbackSubmission[]
+  feedbackStatusUpdatesAuthored FeedbackStatusUpdate[] @relation("FeedbackStatusUpdateAuthor")
 
   @@map("profiles")
 }
@@ -67,6 +69,7 @@ model Trip {
   discoveredActivities DiscoveredActivity[]
   flightSelections     FlightSelection[]
   hotelSelections      HotelSelection[]
+  feedbackSubmissions  FeedbackSubmission[]
 
   @@index([profileId])
   @@map("trips")
@@ -271,4 +274,79 @@ model HotelSelection {
   @@index([profileId])
   @@index([tripId])
   @@map("hotel_selections")
+}
+
+// ============================================================
+// FeedbackSubmission — authenticated product feedback from users
+// ============================================================
+
+model FeedbackSubmission {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  profileId String?  @map("profile_id")
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  tripId    String?  @map("trip_id")
+  trip      Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
+
+  userEmail       String? @map("user_email")
+  userDisplayName String? @map("user_display_name")
+
+  category    String
+  title       String
+  description String
+  status      String   @default("received")
+
+  sourceRoute String  @map("source_route")
+  appVersion  String  @map("app_version")
+  browserInfo Json?   @map("browser_info")
+
+  screenshotBucket      String? @map("screenshot_bucket")
+  screenshotPath        String? @map("screenshot_path")
+  screenshotFilename    String? @map("screenshot_filename")
+  screenshotContentType String? @map("screenshot_content_type")
+  screenshotSizeBytes   Int?    @map("screenshot_size_bytes")
+
+  latestStaffNote     String?   @map("latest_staff_note")
+  latestStaffUpdateAt DateTime? @map("latest_staff_update_at")
+
+  linearIssueId         String? @map("linear_issue_id")
+  linearIssueIdentifier String? @map("linear_issue_identifier")
+  linearIssueUrl        String? @map("linear_issue_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  statusUpdates FeedbackStatusUpdate[]
+
+  @@index([userId, createdAt])
+  @@index([profileId])
+  @@index([tripId])
+  @@index([status])
+  @@map("feedback_submissions")
+}
+
+// ============================================================
+// FeedbackStatusUpdate — user-visible follow-up published by staff
+// ============================================================
+
+model FeedbackStatusUpdate {
+  id         String             @id @default(uuid())
+  feedbackId String             @map("feedback_id")
+  feedback   FeedbackSubmission @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  status    String
+  staffNote String? @map("staff_note")
+
+  emailDeliveryStatus String?   @map("email_delivery_status")
+  emailedAt           DateTime? @map("emailed_at")
+  emailError          String?   @map("email_error")
+
+  createdByProfileId String?  @map("created_by_profile_id")
+  createdByProfile   Profile? @relation("FeedbackStatusUpdateAuthor", fields: [createdByProfileId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([feedbackId, createdAt])
+  @@index([createdByProfileId])
+  @@map("feedback_status_updates")
 }

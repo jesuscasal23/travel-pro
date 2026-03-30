@@ -9,6 +9,9 @@ vi.mock("@/lib/core/prisma", () => ({
       upsert: vi.fn(),
       deleteMany: vi.fn(),
     },
+    feedbackSubmission: {
+      deleteMany: vi.fn(),
+    },
     trip: {
       findMany: vi.fn(),
       deleteMany: vi.fn(),
@@ -66,6 +69,9 @@ const mockPrisma = prisma as unknown as {
     upsert: ReturnType<typeof vi.fn>;
     deleteMany: ReturnType<typeof vi.fn>;
   };
+  feedbackSubmission: {
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
   trip: {
     findMany: ReturnType<typeof vi.fn>;
     deleteMany: ReturnType<typeof vi.fn>;
@@ -103,6 +109,7 @@ beforeEach(() => {
     onboardingCompleted: true,
   });
   mockPrisma.profile.deleteMany.mockResolvedValue({ count: 1 });
+  mockPrisma.feedbackSubmission.deleteMany.mockResolvedValue({ count: 1 });
   mockPrisma.trip.findMany.mockResolvedValue([{ id: "trip-1" }, { id: "trip-2" }]);
   mockPrisma.trip.deleteMany.mockResolvedValue({ count: 2 });
   mockPrisma.affiliateClick.deleteMany.mockResolvedValue({ count: 3 });
@@ -111,6 +118,9 @@ beforeEach(() => {
       profile: {
         findUnique: mockPrisma.profile.findUnique,
         deleteMany: mockPrisma.profile.deleteMany,
+      },
+      feedbackSubmission: {
+        deleteMany: mockPrisma.feedbackSubmission.deleteMany,
       },
       trip: {
         findMany: mockPrisma.trip.findMany,
@@ -239,6 +249,9 @@ describe("DELETE /api/v1/profile", () => {
     expect(mockPrisma.trip.findMany).toHaveBeenCalledWith({
       where: { profileId: "profile-1" },
       select: { id: true },
+    });
+    expect(mockPrisma.feedbackSubmission.deleteMany).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
     });
     expect(mockPrisma.affiliateClick.deleteMany).toHaveBeenCalledWith({
       where: { tripId: { in: ["trip-1", "trip-2"] } },

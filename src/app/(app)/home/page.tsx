@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppLogo } from "@/components/ui/AppLogo";
 import {
@@ -16,6 +16,7 @@ import {
   CalendarDays,
   Map,
   Bell,
+  MessageSquarePlus,
   Shield,
 } from "lucide-react";
 import {
@@ -24,14 +25,15 @@ import {
   useBookingClicks,
   useManualBooking,
   useTravelerPreferences,
+  useAuthStatus,
 } from "@/hooks/api";
-import { useAuthStatus } from "@/hooks/api/auth/useAuthStatus";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { useCityImage } from "@/hooks/useCityImage";
 import { daysUntil, formatDateRange } from "@/lib/utils/format/date";
 import { computeTripPreparation } from "@/lib/utils/trip-preparation";
 import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
 import { WhatsNewModal } from "@/components/changelog/WhatsNewModal";
+import { FeedbackComposerModal } from "@/components/feedback/FeedbackComposerModal";
 import type { TripSummary, Itinerary } from "@/types";
 import type { PrepItem } from "@/lib/utils/trip-preparation";
 
@@ -51,6 +53,7 @@ function getGreeting(): string {
 
 export default function HomePage() {
   const router = useRouter();
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const { trips: tripList, isSuperUser, isLoading } = useTrips();
   const nextTrip = getNextTrip(tripList);
   const destination = nextTrip?.destination ?? "your destination";
@@ -58,6 +61,7 @@ export default function HomePage() {
   return (
     <AppScreen>
       <WhatsNewModal />
+      <FeedbackComposerModal open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
 
       {/* Super-admin paywall testing pill */}
       {isSuperUser && (
@@ -82,9 +86,27 @@ export default function HomePage() {
             </button>
             <span className="text-ink font-display text-2xl font-bold tracking-tight">Voya</span>
           </div>
-          <button className="text-ink transition-opacity hover:opacity-80">
-            <Bell className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsFeedbackOpen(true)}
+              className="bg-brand-primary/10 text-brand-primary hidden items-center gap-2 rounded-full px-3 py-2 text-[11px] font-bold tracking-[0.14em] uppercase sm:flex"
+            >
+              <MessageSquarePlus className="h-4 w-4" />
+              Shape Voya
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFeedbackOpen(true)}
+              className="bg-brand-primary/10 text-brand-primary flex h-10 w-10 items-center justify-center rounded-full sm:hidden"
+              aria-label="Share feedback"
+            >
+              <MessageSquarePlus className="h-5 w-5" />
+            </button>
+            <button className="text-ink transition-opacity hover:opacity-80">
+              <Bell className="h-6 w-6" />
+            </button>
+          </div>
         </div>
         <div className="bg-edge h-px w-full" />
       </header>
