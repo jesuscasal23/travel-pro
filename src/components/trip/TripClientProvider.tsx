@@ -16,6 +16,8 @@ import {
 import { useShallow } from "zustand/shallow";
 import { useTripStore } from "@/stores/useTripStore";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
+import { ApiError } from "@/lib/client/api-fetch";
+import { TripErrorState } from "@/components/trip/TripErrorState";
 import { TripNotFound } from "@/components/trip/TripNotFound";
 import { TripProvider, type TripContextValue } from "@/components/trip/TripContext";
 import {
@@ -136,6 +138,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const tripUnavailable =
     tripId !== "guest" && tripQueryEnabled && tripQuery.isSuccess && tripQuery.data === null;
   const tripLoadFailedWithoutLocal = tripId !== "guest" && tripQuery.isError && !localItinerary;
+  const tripQueryStatus = tripQuery.error instanceof ApiError ? tripQuery.error.status : null;
 
   // ── Assigned activities from server ──────────────────────────────────────────
   const serverAssignedActivities: AssignedActivity[] =
@@ -413,15 +416,50 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   }
 
   if (tripUnavailable || tripLoadFailedWithoutLocal) {
-    console.warn("[TripClientProvider] Trip not found", {
+    console.warn("[TripClientProvider] Trip load blocked", {
       tripId,
       reason: tripUnavailable ? "api_returned_null" : "query_error_no_local",
+      status: tripQueryStatus,
       queryStatus: tripQuery.status,
       queryError: tripQuery.error?.message,
       hasLocalItinerary: !!localItinerary,
       isAuthenticated,
     });
-    return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
+    if (tripUnavailable) {
+      return <TripNotFound isAuthenticated={isAuthenticated ?? false} />;
+    }
+
+    if (tripQueryStatus === 429) {
+      return (
+        <TripErrorState
+          isAuthenticated={isAuthenticated ?? false}
+          title="Too many requests"
+          description="You have been temporarily rate limited while loading this trip. Wait a moment, then try again."
+          onRetry={() => void tripQuery.refetch()}
+        />
+      );
+    }
+
+    if (tripQueryStatus === 403) {
+      return (
+        <TripErrorState
+          isAuthenticated={isAuthenticated ?? false}
+          title="You do not have access to this trip"
+          description="This trip is not available for your account right now."
+          ctaLabel="Reload trip"
+          onRetry={() => void tripQuery.refetch()}
+        />
+      );
+    }
+
+    return (
+      <TripErrorState
+        isAuthenticated={isAuthenticated ?? false}
+        title="We could not load this trip"
+        description="This looks temporary. Try again in a moment."
+        onRetry={() => void tripQuery.refetch()}
+      />
+    );
   }
 
   const countries = [...new Set(route.map((r) => r.country))];

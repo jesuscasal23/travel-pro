@@ -90,4 +90,50 @@ describe("proxy auth protection for /trips", () => {
     expect(res.status).toBe(429);
     expect(body.message).toContain("activity discovery limit");
   });
+
+  it("uses a higher general rate limit bucket for read requests", async () => {
+    process.env.UPSTASH_REDIS_REST_URL = "https://redis.example.com";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "token";
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ result: 1 }, { result: 0 }, { result: 121 }, { result: 1 }],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips/trip-123");
+    const res = await proxy(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(body.message).toBe("Too many requests. Please slow down.");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://redis.example.com/pipeline",
+      expect.objectContaining({
+        body: expect.stringContaining("rl:api:read:"),
+      })
+    );
+  });
+
+  it("keeps the stricter general rate limit bucket for write requests", async () => {
+    process.env.UPSTASH_REDIS_REST_URL = "https://redis.example.com";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "token";
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ result: 1 }, { result: 0 }, { result: 31 }, { result: 1 }],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/trips", { method: "POST" });
+    const res = await proxy(req);
+
+    expect(res.status).toBe(429);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://redis.example.com/pipeline",
+      expect.objectContaining({
+        body: expect.stringContaining("rl:api:write:"),
+      })
+    );
+  });
 });

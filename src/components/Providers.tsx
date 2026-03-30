@@ -10,6 +10,7 @@ import { ToastContainer } from "@/components/ui/Toast";
 import type { PostHog } from "posthog-js";
 import { createClient } from "@/lib/core/supabase-client";
 import { queryKeys } from "@/hooks/api/keys";
+import { shouldRetryQuery } from "@/lib/client/query-retry";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => {
@@ -31,7 +32,7 @@ export function Providers({ children }: { children: ReactNode }) {
       defaultOptions: {
         queries: {
           staleTime: 60 * 1000, // 1 minute
-          retry: 1,
+          retry: (failureCount, error) => shouldRetryQuery(failureCount, error),
         },
       },
     });

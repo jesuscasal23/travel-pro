@@ -42,9 +42,14 @@ function isProtected(pathname: string): boolean {
 //   - /api/v1/trips/*/activity-images     : 60/min    (cheap: DB reads + Google Places)
 //   - /api/v1/enrich/*                    : 60/min    (cheap: external APIs + cache)
 //   - /api/v1/places/*                    : 60/min    (cheap: image proxy)
-//   - /api/v1/* (general)                 : 30/min    (everything else)
+//   - /api/v1/* (general GET/HEAD)        : 120/min   (normal browsing reads)
+//   - /api/v1/* (general mutations)       : 30/min    (everything else)
 
 async function checkRateLimit(request: NextRequest): Promise<NextResponse | null> {
+  // Playwright e2e runs send an explicit header so test traffic does not burn
+  // the same rate-limit budget as real user flows.
+  if (request.headers.get("x-e2e-test") === "1") return null;
+
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -85,9 +90,11 @@ async function checkRateLimit(request: NextRequest): Promise<NextResponse | null
     limit = 60;
     windowSeconds = 60;
   } else if (pathname.startsWith("/api/v1/")) {
-    // General API: 30/min
-    limitKey = `rl:api:${ip}`;
-    limit = 30;
+    // General API: allow more headroom for normal read-heavy browsing while
+    // keeping a tighter bucket for writes.
+    const isReadRequest = request.method === "GET" || request.method === "HEAD";
+    limitKey = isReadRequest ? `rl:api:read:${ip}` : `rl:api:write:${ip}`;
+    limit = isReadRequest ? 120 : 30;
     windowSeconds = 60;
   } else {
     return null;
