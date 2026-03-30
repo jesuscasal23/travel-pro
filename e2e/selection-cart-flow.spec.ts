@@ -161,6 +161,7 @@ test("E2E-78-07: /cart redirects unauthenticated users to /login", async ({ page
 // ============================================================
 
 test.describe("Selection & Cart flow (authenticated)", () => {
+  test.describe.configure({ mode: "serial" });
   let tripId: string;
 
   test.beforeEach(async ({ page }) => {
