@@ -6,76 +6,15 @@
 // E2E-26-03: Affiliate redirect — 400 for invalid, 302 for valid
 // ============================================================
 
-import { test, expect, type Page } from "@playwright/test";
-
-const TEST_EMAIL = process.env.E2E_TEST_EMAIL;
-const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD;
-
-if (!TEST_EMAIL || !TEST_PASSWORD) {
-  throw new Error("E2E_TEST_EMAIL and E2E_TEST_PASSWORD must be set to run these tests");
-}
-
-async function loginViaUI(page: Page) {
-  await page.goto("/login");
-  await page.getByLabel(/Email address/i).fill(TEST_EMAIL!);
-  await page.getByLabel(/Password/i).fill(TEST_PASSWORD!);
-  await page.getByRole("button", { name: /sign in|log in/i }).click();
-  await page.waitForURL("**/trips**", { timeout: 15_000 });
-}
-
-const mockItinerary = {
-  route: [
-    {
-      id: "paris",
-      city: "Paris",
-      country: "France",
-      countryCode: "FR",
-      lat: 48.85,
-      lng: 2.35,
-      days: 3,
-      iataCode: "CDG",
-    },
-  ],
-  days: [
-    {
-      day: 1,
-      date: "2026-07-01",
-      city: "Paris",
-      activities: [
-        { name: "Eiffel Tower", category: "culture", duration: "2 hours", why: "Iconic landmark" },
-      ],
-    },
-    {
-      day: 2,
-      date: "2026-07-02",
-      city: "Paris",
-      activities: [
-        { name: "Louvre Museum", category: "culture", duration: "3 hours", why: "World-class art" },
-      ],
-    },
-    {
-      day: 3,
-      date: "2026-07-03",
-      city: "Paris",
-      activities: [
-        {
-          name: "Montmartre Walk",
-          category: "explore",
-          duration: "2 hours",
-          why: "Charming neighborhood",
-        },
-      ],
-    },
-  ],
-};
+import { test, expect } from "@playwright/test";
+import { hasAuthCreds, loginViaUI, blockAnalytics, mockItinerary } from "./helpers";
 
 // ============================================================
 // E2E-26-01: Onboarding navigation
 // ============================================================
 
 test("E2E-26-01: onboarding — full navigation from get-started to /plan", async ({ page }) => {
-  await page.route("**/*.posthog.com/**", (route) => route.abort());
-  await page.route("**/sentry.io/**", (route) => route.abort());
+  await blockAnalytics(page);
 
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
@@ -85,7 +24,7 @@ test("E2E-26-01: onboarding — full navigation from get-started to /plan", asyn
   await page.getByRole("button", { name: /Start Planning/i }).click();
 
   await page.waitForURL("**/get-started/advantage**");
-  await expect(page.getByText(/The Travel Pro Advantage/i)).toBeVisible();
+  await expect(page.getByText(/The Fichi Advantage/i)).toBeVisible();
   await page.getByRole("button", { name: /Sounds Perfect/i }).click();
 
   await page.waitForURL("**/get-started/personalization**");
@@ -125,9 +64,12 @@ test("E2E-26-01: onboarding — full navigation from get-started to /plan", asyn
 test("E2E-26-02: authenticated — create trip via API and verify trip view renders", async ({
   page,
 }) => {
-  await page.route("**/*.posthog.com/**", (route) => route.abort());
-  await page.route("**/sentry.io/**", (route) => route.abort());
+  if (!hasAuthCreds) {
+    test.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set — skipping");
+    return;
+  }
 
+  await blockAnalytics(page);
   await loginViaUI(page);
 
   // Ensure the test user has a profile — the trip view enrichment hooks
@@ -199,8 +141,7 @@ test("E2E-26-02: authenticated — create trip via API and verify trip view rend
 test("E2E-26-03: affiliate redirect — 400 for invalid request, 302 for valid booking link", async ({
   page,
 }) => {
-  await page.route("**/*.posthog.com/**", (route) => route.abort());
-  await page.route("**/sentry.io/**", (route) => route.abort());
+  await blockAnalytics(page);
 
   // Missing required fields → 400
   const badRes = await page.request.get("/api/v1/affiliate/redirect?provider=booking", {
