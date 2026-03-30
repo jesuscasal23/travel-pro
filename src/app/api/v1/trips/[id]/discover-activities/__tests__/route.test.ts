@@ -75,16 +75,19 @@ beforeEach(() => {
     }
     return null;
   });
-  mockDiscover.mockResolvedValue([
-    {
-      name: "Senso-ji Temple",
-      description: "A historic temple district with street food and local culture.",
-      category: "culture",
-      duration: "2h",
-      googleMapsUrl: "https://maps.google.com/?q=Senso-ji+Tokyo",
-      imageUrl: null,
-    },
-  ]);
+  mockDiscover.mockResolvedValue({
+    activities: [
+      {
+        name: "Senso-ji Temple",
+        description: "A historic temple district with street food and local culture.",
+        category: "culture",
+        duration: "2h",
+        googleMapsUrl: "https://maps.google.com/?q=Senso-ji+Tokyo",
+        imageUrl: null,
+      },
+    ],
+    roundLimitReached: false,
+  });
 });
 
 describe("POST /api/v1/trips/:id/discover-activities", () => {
