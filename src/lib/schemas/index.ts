@@ -10,15 +10,15 @@ export const travelStyleSchema = z.enum([
   "luxury",
 ]);
 
-export const paceSchema = z.enum(["relaxed", "moderate", "active"]);
+const paceSchema = z.enum(["relaxed", "moderate", "active"]);
 
-export const activityLevelSchema = z.enum(["low", "moderate", "high"]);
+const activityLevelSchema = z.enum(["low", "moderate", "high"]);
 
 export const tripTypeSchema = z.enum(["single-city", "multi-city"]);
 
 // ── Vibe scores ────────────────────────────────────────────────
 
-export const vibeScoresSchema = z.object({
+const vibeScoresSchema = z.object({
   adventureComfort: z.number().min(0).max(100),
   socialQuiet: z.number().min(0).max(100),
   luxuryBudget: z.number().min(0).max(100),

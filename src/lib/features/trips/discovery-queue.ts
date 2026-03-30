@@ -1,6 +1,6 @@
 import type { DiscoveredActivityRow } from "@/types";
 
-export interface DiscoveryQueueState {
+interface DiscoveryQueueState {
   cards: DiscoveredActivityRow[];
   cursor: number;
   decidedCount: number;

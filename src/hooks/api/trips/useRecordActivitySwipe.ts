@@ -10,7 +10,7 @@ interface RecordActivitySwipeParams {
   cityId: string;
 }
 
-export interface RecordActivitySwipeResponse {
+interface RecordActivitySwipeResponse {
   ok: true;
   cityProgress: CityProgress;
   batchComplete: boolean;

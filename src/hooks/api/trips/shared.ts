@@ -8,7 +8,7 @@ interface TripDetailItinerary {
   data: Itinerary;
 }
 
-export interface TripDetail {
+interface TripDetail {
   id: string;
   tripType?: TripType;
   region: string;
