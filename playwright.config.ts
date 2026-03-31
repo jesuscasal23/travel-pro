@@ -7,6 +7,7 @@ loadEnv({ path: ".env.local" });
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/global-setup.ts",
 
   // Each test file gets its own timeout budget.
   // The generation animation alone takes ~18 s, so 60 s per test is safe.

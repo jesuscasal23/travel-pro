@@ -522,16 +522,6 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       return;
     }
 
-    const baselineCartRes = await page.request.get("/api/v1/selections/cart");
-    expect(baselineCartRes.status()).toBe(200);
-    const baselineCart = (await baselineCartRes.json()) as {
-      trips: Array<{ flights: Array<{ id: string }>; hotels: Array<{ id: string }> }>;
-    };
-    const baselineCount = baselineCart.trips.reduce(
-      (sum, trip) => sum + trip.flights.length + trip.hotels.length,
-      0
-    );
-
     // Create flight + hotel selections via API
     const flightRes = await page.request.put(`/api/v1/trips/${tripId}/selections/flights`, {
       data: mockFlightSelectionBody,
@@ -550,12 +540,11 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     await page.goto("/trips");
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Verify badge increases by the two selections added for this test.
+    // Badge should show exactly 2 (clean state — no leftover selections)
     const cartLink = page.locator("a[href='/cart']");
-    const afterAddCount = baselineCount + 2;
-    await expect(
-      cartLink.locator("span").filter({ hasText: new RegExp(`^${afterAddCount}$`) })
-    ).toBeVisible({ timeout: 5_000 });
+    await expect(cartLink.locator("span").filter({ hasText: /^2$/ })).toBeVisible({
+      timeout: 5_000,
+    });
 
     // Mark the hotel as booked via API, then reload to pick up the new count
     const markRes = await page.request.patch(`/api/v1/trips/${tripId}/selections/hotels`, {
@@ -566,10 +555,9 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     await page.reload();
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Badge should now be one higher than baseline (flight still unbooked, hotel is booked)
-    const afterBookCount = baselineCount + 1;
-    await expect(
-      cartLink.locator("span").filter({ hasText: new RegExp(`^${afterBookCount}$`) })
-    ).toBeVisible({ timeout: 5_000 });
+    // Badge should show exactly 1 (flight still unbooked, hotel is booked)
+    await expect(cartLink.locator("span").filter({ hasText: /^1$/ })).toBeVisible({
+      timeout: 5_000,
+    });
   });
 });

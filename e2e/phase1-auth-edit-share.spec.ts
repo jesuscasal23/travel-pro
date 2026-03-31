@@ -65,9 +65,12 @@ test("E2E-02: signup (admin-created) -> login -> planner", async ({ page, reques
       .first();
     await parisOption.click();
 
-    // Fill dates
-    await page.locator('input[type="date"]').first().fill("2026-10-01");
-    await page.locator('input[type="date"]').nth(1).fill("2026-10-08");
+    // Select dates via the range calendar (shows current month by default)
+    const calendar = page.locator(".rdp-travel");
+    await expect(calendar).toBeVisible({ timeout: 10_000 });
+    // Pick two days in the visible month — day 20 as start, day 25 as end
+    await calendar.getByRole("gridcell", { name: "20" }).first().click();
+    await calendar.getByRole("gridcell", { name: "25" }).first().click();
   } finally {
     // Fire-and-forget — cleanup shouldn't eat into the test timeout
     void cleanupUserByAdmin(uniqueEmail);

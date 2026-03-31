@@ -20,35 +20,35 @@ test("E2E-26-01: onboarding — full navigation from get-started to /plan", asyn
   await page.evaluate(() => localStorage.clear());
 
   await page.goto("/get-started");
-  await expect(page.getByText(/Your dream trip/i)).toBeVisible();
+  await expect(page.getByText(/Your dream trip/i).first()).toBeVisible();
   await page.getByRole("button", { name: /Start Planning/i }).click();
 
   await page.waitForURL("**/get-started/advantage**");
-  await expect(page.getByText(/The Fichi Advantage/i)).toBeVisible();
+  await expect(page.getByText(/The Fichi Advantage/i).first()).toBeVisible();
   await page.getByRole("button", { name: /Sounds Perfect/i }).click();
 
   await page.waitForURL("**/get-started/personalization**");
-  await expect(page.getByText(/Your travel style/i)).toBeVisible();
+  await expect(page.getByText(/Your travel style/i).first()).toBeVisible();
   await page.getByRole("button", { name: /Build My Travel DNA/i }).click();
 
   await page.waitForURL("**/get-started/vibe**");
-  await expect(page.getByText(/Tell us about you/i)).toBeVisible();
+  await expect(page.getByText(/Tell us about you/i).first()).toBeVisible();
   await page.getByRole("button", { name: /Continue/i }).click();
 
   await page.waitForURL("**/get-started/interests**");
-  await expect(page.getByText(/What excites you/i)).toBeVisible();
+  await expect(page.getByText(/What excites you/i).first()).toBeVisible();
   // Must select at least one interest before Continue is enabled
   await page.getByRole("button", { name: /Food/i }).click();
   await page.getByRole("button", { name: /Continue/i }).click();
 
   await page.waitForURL("**/get-started/budget**");
-  await expect(page.getByText(/Plan your spend/i)).toBeVisible();
+  await expect(page.getByText(/Plan your spend/i).first()).toBeVisible();
   // Must select a budget option before Continue is enabled
   await page.getByRole("button", { name: /Smart Budget/i }).click();
   await page.getByRole("button", { name: /Continue/i }).click();
 
   await page.waitForURL("**/get-started/rhythm**");
-  await expect(page.getByText(/What's your rhythm/i)).toBeVisible();
+  await expect(page.getByText(/What's your rhythm/i).first()).toBeVisible();
   // Must select a rhythm option before Continue is enabled
   await page.getByRole("button", { name: /The Wanderer/i }).click();
   await page.getByRole("button", { name: /Continue/i }).click();
