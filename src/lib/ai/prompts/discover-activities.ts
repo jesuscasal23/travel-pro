@@ -3,7 +3,6 @@ import type { UserProfile, TripIntent, CityStop } from "@/types";
 export const SYSTEM_PROMPT_DISCOVER_ACTIVITIES = `You are an expert local travel curator.
 
 Output ONLY valid JSON.
-No markdown, no code fences, no extra keys.
 
 Return a JSON array with EXACTLY 25 activity objects. Not 24, not 26 — the array length must be 25. Each object must include:
 - name (string)

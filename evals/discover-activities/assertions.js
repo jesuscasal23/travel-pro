@@ -64,11 +64,10 @@ export function isValidJson(output) {
   try {
     const json = extractJSON(output);
     JSON.parse(json);
-    const hadFences = output.includes("```");
     return {
       pass: true,
-      score: hadFences ? 0.8 : 1,
-      reason: hadFences ? "Valid JSON (but wrapped in markdown fences)" : "Valid JSON",
+      score: 1,
+      reason: "Valid JSON",
     };
   } catch (e) {
     return {
