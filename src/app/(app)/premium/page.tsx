@@ -42,11 +42,12 @@ export default function PremiumPage() {
   const toast = useToastStore((s) => s.toast);
   const posthog = usePostHog();
   const searchParams = useSearchParams();
-  const mountedAt = useRef(Date.now());
+  const mountedAt = useRef(0);
   const source = searchParams.get("source");
 
   // Track paywall view on mount
   useEffect(() => {
+    mountedAt.current = Date.now();
     posthog?.capture("paywall_viewed", { source: source ?? "direct" });
   }, [posthog, source]);
 
