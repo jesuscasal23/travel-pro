@@ -90,6 +90,30 @@ describe("extractJSON", () => {
     const fenced = "```json   \n  " + inner + "  \n```";
     expect(extractJSON(fenced).trim()).toBe(inner);
   });
+
+  it("extracts a bare JSON array", () => {
+    const input = JSON.stringify([{ name: "Activity 1" }, { name: "Activity 2" }]);
+    expect(extractJSON(input)).toBe(input);
+  });
+
+  it("extracts a JSON array surrounded by prose", () => {
+    const arr = JSON.stringify([{ name: "Temple Visit" }]);
+    const input = `Here are the activities:\n${arr}\nEnjoy your trip!`;
+    expect(extractJSON(input)).toBe(arr);
+  });
+
+  it("strips markdown fences from a JSON array", () => {
+    const arr = JSON.stringify([{ a: 1 }, { a: 2 }]);
+    const fenced = "```json\n" + arr + "\n```";
+    expect(extractJSON(fenced).trim()).toBe(arr);
+  });
+
+  it("prefers object braces over array brackets when both exist", () => {
+    const input = '{"activities": [{"name": "test"}]}';
+    const result = extractJSON(input);
+    expect(result).toBe(input);
+    expect(result.startsWith("{")).toBe(true);
+  });
 });
 
 // ── parseAndValidate ──────────────────────────────────────────────────────────

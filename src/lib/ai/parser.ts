@@ -25,6 +25,7 @@ type ClaudeItinerary = z.infer<typeof claudeItinerarySchema>;
 /**
  * Extract raw JSON from Claude's response.
  * Claude might occasionally wrap output in markdown fences despite instructions.
+ * Handles both JSON objects ({}) and JSON arrays ([]).
  * Exported for unit testing.
  */
 export function extractJSON(text: string): string {
@@ -41,22 +42,45 @@ export function extractJSON(text: string): string {
     return extracted;
   }
 
-  // Find the outermost JSON object
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start !== -1 && end !== -1 && end > start) {
-    const extracted = text.slice(start, end + 1);
-    log.info("extractJSON: found JSON object braces", {
+  // Find the outermost JSON structure (object or array).
+  // When both are present, the one that starts first is the outermost container
+  // (e.g. an array of objects: [{...}] — the [ comes before the first {).
+  const objStart = text.indexOf("{");
+  const objEnd = text.lastIndexOf("}");
+  const arrStart = text.indexOf("[");
+  const arrEnd = text.lastIndexOf("]");
+
+  const hasObj = objStart !== -1 && objEnd !== -1 && objEnd > objStart;
+  const hasArr = arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart;
+
+  // Prefer whichever structure starts first; if tied, prefer object
+  const preferArray = hasArr && (!hasObj || arrStart < objStart);
+
+  if (preferArray) {
+    const extracted = text.slice(arrStart, arrEnd + 1);
+    log.info("extractJSON: found JSON array brackets", {
       inputLength,
       extractedLength: extracted.length,
-      startIndex: start,
-      endIndex: end,
-      prefixSkipped: start > 0 ? text.slice(0, Math.min(start, 80)) : null,
+      startIndex: arrStart,
+      endIndex: arrEnd,
+      prefixSkipped: arrStart > 0 ? text.slice(0, Math.min(arrStart, 80)) : null,
     });
     return extracted;
   }
 
-  log.warn("extractJSON: no JSON object found, returning trimmed text", {
+  if (hasObj) {
+    const extracted = text.slice(objStart, objEnd + 1);
+    log.info("extractJSON: found JSON object braces", {
+      inputLength,
+      extractedLength: extracted.length,
+      startIndex: objStart,
+      endIndex: objEnd,
+      prefixSkipped: objStart > 0 ? text.slice(0, Math.min(objStart, 80)) : null,
+    });
+    return extracted;
+  }
+
+  log.warn("extractJSON: no JSON found, returning trimmed text", {
     inputLength,
     textPreview: text.slice(0, 200),
   });

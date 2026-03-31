@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { BadRequestError, ActiveItineraryNotFoundError } from "@/lib/api/errors";
 import { throwIfAborted } from "@/lib/core/abort";
 import { createLogger } from "@/lib/core/logger";
@@ -6,6 +5,7 @@ import { prisma } from "@/lib/core/prisma";
 import { MAX_TOKENS_CITY_ACTIVITIES, MAX_DISCOVERY_ROUNDS_PER_CITY } from "@/lib/config/constants";
 import { callClaude } from "@/lib/ai/client";
 import { extractJSON } from "@/lib/ai/parser";
+import { ClaudeDiscoverActivitiesOutputSchema } from "@/lib/ai/schemas/discover-activities";
 import {
   SYSTEM_PROMPT_DISCOVER_ACTIVITIES,
   assembleDiscoverActivitiesPrompt,
@@ -17,20 +17,6 @@ import { findActiveItinerary } from "./itinerary-service";
 import { resolveActivityImages } from "./activity-image-service";
 
 const log = createLogger("discover-activities-service");
-
-const ClaudeDiscoverActivitySchema = z.object({
-  name: z.string().min(1).max(160),
-  placeName: z.string().min(1).max(200),
-  venueType: z.string().min(1).max(120),
-  description: z.string().min(1).max(600),
-  highlights: z.array(z.string().min(1).max(200)).min(1).max(5),
-  category: z.string().min(1).max(80),
-  duration: z.string().min(1).max(40),
-  lat: z.number(),
-  lng: z.number(),
-});
-
-const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(25);
 
 interface DiscoverActivitiesInput {
   tripId: string;

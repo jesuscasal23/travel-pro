@@ -1,0 +1,55 @@
+description: "Discover Activities — prompt quality evaluation"
+
+commandLineOptions:
+  envPath:
+    - .env
+    - .env.local
+
+prompts:
+  - file://prompt-function.ts
+
+providers:
+  - id: anthropic:messages:claude-haiku-4-5-20251001
+    config:
+      temperature: 0.7
+      max_tokens: 8000
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://assertions.ts:isValidJson
+    - type: javascript
+      value: file://assertions.ts:matchesZodSchema
+    - type: javascript
+      value: file://assertions.ts:hasNoDuplicateSubTypes
+    - type: javascript
+      value: file://assertions.ts:hasCategoryCoverage
+    - type: javascript
+      value: file://assertions.ts:hasSpecificVenueNames
+    - type: javascript
+      value: file://assertions.ts:hasMinActivityCount
+
+tests:
+  - description: "Bangkok backpacker — temples, markets, nightlife dedup"
+    vars:
+      fixtureId: bangkok-backpacker
+
+  - description: "Paris luxury couple — fine dining venue quality"
+    vars:
+      fixtureId: paris-luxury
+
+  - description: "Tokyo family — category diversity, family-friendly"
+    vars:
+      fixtureId: tokyo-family
+
+  - description: "Ljubljana small city — can it find 20+ real places?"
+    vars:
+      fixtureId: ljubljana-small
+
+  - description: "Berlin nightlife — niche interests but category spread"
+    vars:
+      fixtureId: berlin-nightlife
+
+  - description: "Queenstown adventure — outdoor venue realism"
+    vars:
+      fixtureId: queenstown-adventure
