@@ -136,28 +136,29 @@ test("E2E-02b: destination step — popular cities, flexible dates, one-way togg
 }) => {
   test.setTimeout(60_000);
 
-  // Guest user — navigate directly to /plan (skips profile step if returning)
-  // Seed localStorage with profile data so the plan flow jumps to destination step
+  // Clear localStorage so the plan flow starts fresh (profile step first)
   await page.goto("/plan");
-  await page.evaluate(() => {
-    const store = JSON.parse(localStorage.getItem("plan-form-store") ?? "{}");
-    store.state = {
-      ...store.state,
-      planStep: 1,
-      nationality: "American",
-      homeAirport: "JFK",
-    };
-    localStorage.setItem("plan-form-store", JSON.stringify(store));
-  });
+  await page.evaluate(() => localStorage.clear());
   await page.goto("/plan");
+
+  // Fill the profile step, then click Continue to advance to destination step
+  await expect(page.getByText("The essentials")).toBeVisible({ timeout: 10_000 });
+  await page.locator("select").selectOption("Germany");
+  const airportInput = page.getByPlaceholder("Search airport or city...");
+  await airportInput.click();
+  await airportInput.fill("Frank");
+  const airportDropdown = page.locator("ul.absolute.z-50");
+  await expect(airportDropdown).toBeVisible();
+  await airportDropdown.locator("li").first().click();
+  await page.getByRole("button", { name: /Continue/i }).click();
 
   // Wait for destination step to render
   await expect(page.getByText("Where to")).toBeVisible({ timeout: 10_000 });
 
   // ── Popular destinations ──
   // The popular city buttons should be visible inside the cities card
-  const bangkokBtn = page.getByRole("button", { name: "Bangkok" });
-  const tokyoBtn = page.getByRole("button", { name: "Tokyo" });
+  const bangkokBtn = page.getByRole("button", { name: "Bangkok", exact: true });
+  const tokyoBtn = page.getByRole("button", { name: "Tokyo", exact: true });
   await expect(bangkokBtn).toBeVisible();
   await expect(tokyoBtn).toBeVisible();
 
@@ -226,11 +227,15 @@ test("E2E-02b: destination step — popular cities, flexible dates, one-way togg
 
   // Switch back to exact and pick dates
   await exactBtn.click();
-  await calendar.getByRole("gridcell", { name: "20" }).first().click();
-  await calendar.getByRole("gridcell", { name: "25" }).first().click();
 
-  // Date summary should appear with the selected range
-  await expect(page.getByText(/→/)).toBeVisible();
+  // Navigate to next month so we have future dates to pick
+  const nextMonthBtn = calendar.getByRole("button", { name: /next month|chevron/i });
+  await nextMonthBtn.click();
+  await calendar.getByRole("gridcell", { name: "10" }).first().click();
+  await calendar.getByRole("gridcell", { name: "15" }).first().click();
+
+  // Date summary should appear with the selected range (→ is &rarr;)
+  await expect(page.getByText(/\u2192/)).toBeVisible();
 });
 
 test("E2E-06: auth pages render key form elements", async ({ page }) => {
