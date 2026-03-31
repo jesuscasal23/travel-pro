@@ -165,6 +165,52 @@ const GENERIC_PATTERNS = [
   /^generic\s+/i,
 ];
 
+const GENERIC_SINGLE_WORDS = new Set([
+  "park",
+  "market",
+  "temple",
+  "museum",
+  "beach",
+  "garden",
+  "castle",
+  "bridge",
+  "tower",
+  "church",
+  "bar",
+  "cafe",
+  "restaurant",
+  "hotel",
+  "mall",
+  "plaza",
+  "square",
+  "station",
+]);
+
+function normalizeName(value) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function hasProperNounSignal(name) {
+  return /^[A-Z]/.test(name) || /[^A-Za-z0-9]/.test(name);
+}
+
+function isGenericVenueName(rawName) {
+  const name = rawName.trim();
+  if (name.length < 3) return true;
+  if (GENERIC_PATTERNS.some((p) => p.test(name))) return true;
+
+  const words = name.split(/\s+/);
+  if (words.length >= 2) return false;
+
+  if (GENERIC_SINGLE_WORDS.has(normalizeName(name))) return true;
+
+  return !hasProperNounSignal(name);
+}
+
 export function hasSpecificVenueNames(output) {
   const activities = parseActivities(output);
   if (!activities) {
@@ -176,8 +222,7 @@ export function hasSpecificVenueNames(output) {
 
   for (const a of activities) {
     const name = (a.placeName ?? "").trim();
-    const isGeneric =
-      name.length < 3 || name.split(/\s+/).length < 2 || GENERIC_PATTERNS.some((p) => p.test(name));
+    const isGeneric = isGenericVenueName(name);
 
     if (isGeneric) {
       genericNames.push(name);
