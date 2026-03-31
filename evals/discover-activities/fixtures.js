@@ -1,12 +1,5 @@
-import type { UserProfile, TripIntent, CityStop } from "../../src/types";
-
-export interface Fixture {
-  profile: UserProfile;
-  intent: TripIntent;
-  city: CityStop;
-}
-
-export const fixtures: Record<string, Fixture> = {
+/** @type {Record<string, {profile: object, intent: object, city: object}>} */
+export const fixtures = {
   "bangkok-backpacker": {
     profile: {
       nationality: "Spanish",

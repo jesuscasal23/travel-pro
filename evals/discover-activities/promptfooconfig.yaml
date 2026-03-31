@@ -2,11 +2,10 @@ description: "Discover Activities — prompt quality evaluation"
 
 commandLineOptions:
   envPath:
-    - .env
-    - .env.local
+    - ../../.env.local
 
 prompts:
-  - file://prompt-function.ts
+  - file://prompt-function.js
 
 providers:
   - id: anthropic:messages:claude-haiku-4-5-20251001
@@ -17,17 +16,17 @@ providers:
 defaultTest:
   assert:
     - type: javascript
-      value: file://assertions.ts:isValidJson
+      value: file://assertions.js:isValidJson
     - type: javascript
-      value: file://assertions.ts:matchesZodSchema
+      value: file://assertions.js:matchesZodSchema
     - type: javascript
-      value: file://assertions.ts:hasNoDuplicateSubTypes
+      value: file://assertions.js:hasNoDuplicateSubTypes
     - type: javascript
-      value: file://assertions.ts:hasCategoryCoverage
+      value: file://assertions.js:hasCategoryCoverage
     - type: javascript
-      value: file://assertions.ts:hasSpecificVenueNames
+      value: file://assertions.js:hasSpecificVenueNames
     - type: javascript
-      value: file://assertions.ts:hasMinActivityCount
+      value: file://assertions.js:hasMinActivityCount
 
 tests:
   - description: "Bangkok backpacker — temples, markets, nightlife dedup"

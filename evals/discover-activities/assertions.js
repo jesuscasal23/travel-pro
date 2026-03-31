@@ -1,14 +1,55 @@
-import { ClaudeDiscoverActivitiesOutputSchema } from "../../src/lib/ai/schemas/discover-activities";
+/**
+ * Custom assertions for discover-activities eval.
+ *
+ * Zod schema is inlined to match src/lib/ai/schemas/discover-activities.ts.
+ */
 
-interface GradingResult {
-  pass: boolean;
-  score: number;
-  reason: string;
+import { z } from "zod";
+
+// ── Zod schema (mirrors src/lib/ai/schemas/discover-activities.ts) ───────────
+
+const ClaudeDiscoverActivitySchema = z.object({
+  name: z.string().min(1).max(160),
+  placeName: z.string().min(1).max(200),
+  venueType: z.string().min(1).max(120),
+  description: z.string().min(1).max(600),
+  highlights: z.array(z.string().min(1).max(200)).min(1).max(5),
+  category: z.string().min(1).max(80),
+  duration: z.string().min(1).max(40),
+  lat: z.number(),
+  lng: z.number(),
+});
+
+const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(25);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Strip markdown fences and extract JSON from raw Claude output.
+ * Mirrors the logic in src/lib/ai/parser.ts extractJSON().
+ */
+function extractJSON(text) {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) return fenced[1].trim();
+
+  const arrStart = text.indexOf("[");
+  const arrEnd = text.lastIndexOf("]");
+  const objStart = text.indexOf("{");
+  const objEnd = text.lastIndexOf("}");
+
+  const hasArr = arrStart !== -1 && arrEnd > arrStart;
+  const hasObj = objStart !== -1 && objEnd > objStart;
+
+  if (hasArr && (!hasObj || arrStart < objStart)) return text.slice(arrStart, arrEnd + 1);
+  if (hasObj) return text.slice(objStart, objEnd + 1);
+
+  return text.trim();
 }
 
-function parseActivities(output: string): unknown[] | null {
+function parseActivities(output) {
   try {
-    const parsed = JSON.parse(output);
+    const json = extractJSON(output);
+    const parsed = JSON.parse(json);
     return Array.isArray(parsed) ? parsed : null;
   } catch {
     return null;
@@ -17,10 +58,16 @@ function parseActivities(output: string): unknown[] | null {
 
 // ── 1. Valid JSON ────────────────────────────────────────────────
 
-export function isValidJson(output: string): GradingResult {
+export function isValidJson(output) {
   try {
-    JSON.parse(output);
-    return { pass: true, score: 1, reason: "Valid JSON" };
+    const json = extractJSON(output);
+    JSON.parse(json);
+    const hadFences = output.includes("```");
+    return {
+      pass: true,
+      score: hadFences ? 0.8 : 1,
+      reason: hadFences ? "Valid JSON (but wrapped in markdown fences)" : "Valid JSON",
+    };
   } catch (e) {
     return {
       pass: false,
@@ -32,7 +79,7 @@ export function isValidJson(output: string): GradingResult {
 
 // ── 2. Matches Zod schema ────────────────────────────────────────
 
-export function matchesZodSchema(output: string): GradingResult {
+export function matchesZodSchema(output) {
   const activities = parseActivities(output);
   if (!activities) {
     return { pass: false, score: 0, reason: "Output is not a JSON array" };
@@ -52,8 +99,8 @@ export function matchesZodSchema(output: string): GradingResult {
 
 // ── 3. No duplicate sub-types ────────────────────────────────────
 
-export function hasNoDuplicateSubTypes(output: string): GradingResult {
-  const activities = parseActivities(output) as { venueType?: string }[] | null;
+export function hasNoDuplicateSubTypes(output) {
+  const activities = parseActivities(output);
   if (!activities) {
     return { pass: false, score: 0, reason: "Not a JSON array" };
   }
@@ -62,7 +109,7 @@ export function hasNoDuplicateSubTypes(output: string): GradingResult {
     .map((a) => (a.venueType ?? "").toLowerCase().trim())
     .filter(Boolean);
 
-  const seen = new Map<string, number>();
+  const seen = new Map();
   for (const vt of normalized) {
     seen.set(vt, (seen.get(vt) ?? 0) + 1);
   }
@@ -81,15 +128,13 @@ export function hasNoDuplicateSubTypes(output: string): GradingResult {
 
 const EXPECTED_CATEGORIES = ["culture", "food", "nature", "nightlife", "adventure", "relaxation"];
 
-export function hasCategoryCoverage(output: string): GradingResult {
-  const activities = parseActivities(output) as { category?: string }[] | null;
+export function hasCategoryCoverage(output) {
+  const activities = parseActivities(output);
   if (!activities) {
     return { pass: false, score: 0, reason: "Not a JSON array" };
   }
 
-  const presentCategories = new Set(
-    activities.map((a) => (a.category ?? "").toLowerCase().trim())
-  );
+  const presentCategories = new Set(activities.map((a) => (a.category ?? "").toLowerCase().trim()));
 
   const covered = EXPECTED_CATEGORIES.filter((cat) =>
     [...presentCategories].some((pc) => pc.includes(cat) || cat.includes(pc))
@@ -119,21 +164,19 @@ const GENERIC_PATTERNS = [
   /^generic\s+/i,
 ];
 
-export function hasSpecificVenueNames(output: string): GradingResult {
-  const activities = parseActivities(output) as { placeName?: string }[] | null;
+export function hasSpecificVenueNames(output) {
+  const activities = parseActivities(output);
   if (!activities) {
     return { pass: false, score: 0, reason: "Not a JSON array" };
   }
 
   let specific = 0;
-  const genericNames: string[] = [];
+  const genericNames = [];
 
   for (const a of activities) {
     const name = (a.placeName ?? "").trim();
     const isGeneric =
-      name.length < 3 ||
-      name.split(/\s+/).length < 2 ||
-      GENERIC_PATTERNS.some((p) => p.test(name));
+      name.length < 3 || name.split(/\s+/).length < 2 || GENERIC_PATTERNS.some((p) => p.test(name));
 
     if (isGeneric) {
       genericNames.push(name);
@@ -156,7 +199,7 @@ export function hasSpecificVenueNames(output: string): GradingResult {
 
 // ── 6. Minimum activity count ────────────────────────────────────
 
-export function hasMinActivityCount(output: string): GradingResult {
+export function hasMinActivityCount(output) {
   const activities = parseActivities(output);
   if (!activities) {
     return { pass: false, score: 0, reason: "Not a JSON array" };

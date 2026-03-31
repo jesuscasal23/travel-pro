@@ -32,7 +32,7 @@
     "arch:graph:pages-endpoints:baseline": "node --no-warnings scripts/generate-pages-endpoints-graph.ts --output arch/graph.pages-endpoints.baseline.json",
     "arch:graph:pages-endpoints:current": "node --no-warnings scripts/generate-pages-endpoints-graph.ts --output arch/graph.pages-endpoints.current.json",
     "arch:diff:pages-endpoints": "node --no-warnings scripts/diff-pages-endpoints-graph.ts",
-    "eval:discover": "npx promptfoo eval -c evals/discover-activities/promptfooconfig.yaml",
+    "eval:discover": "npx dotenv-cli -e .env.local -- npx promptfoo eval -c evals/discover-activities/promptfooconfig.yaml",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "knip": "knip",
