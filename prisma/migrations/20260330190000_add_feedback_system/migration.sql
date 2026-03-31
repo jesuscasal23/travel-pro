@@ -1,8 +1,8 @@
 CREATE TABLE "feedback_submissions" (
-    "id" UUID NOT NULL,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "profile_id" UUID,
-    "trip_id" UUID,
+    "profile_id" TEXT,
+    "trip_id" TEXT,
     "user_email" TEXT,
     "user_display_name" TEXT,
     "category" TEXT NOT NULL,
@@ -29,14 +29,14 @@ CREATE TABLE "feedback_submissions" (
 );
 
 CREATE TABLE "feedback_status_updates" (
-    "id" UUID NOT NULL,
-    "feedback_id" UUID NOT NULL,
+    "id" TEXT NOT NULL,
+    "feedback_id" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "staff_note" TEXT,
     "email_delivery_status" TEXT,
     "emailed_at" TIMESTAMP(3),
     "email_error" TEXT,
-    "created_by_profile_id" UUID,
+    "created_by_profile_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "feedback_status_updates_pkey" PRIMARY KEY ("id")
