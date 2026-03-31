@@ -12,4 +12,6 @@ export const ClaudeDiscoverActivitySchema = z.object({
   lng: z.number(),
 });
 
-export const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(25);
+// Prompt asks for exactly 25, but Haiku consistently overshoots by 1-2.
+// Allow up to 30 to avoid rejecting otherwise valid responses.
+export const ClaudeDiscoverActivitiesOutputSchema = z.array(ClaudeDiscoverActivitySchema).max(30);
