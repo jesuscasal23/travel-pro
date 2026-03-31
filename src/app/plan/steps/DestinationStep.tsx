@@ -40,6 +40,63 @@ function cityKey(city: SelectedCity) {
   return `${city.countryCode}-${city.city}`;
 }
 
+/* ── Toggle pill (shared by date mode + trip direction) ── */
+
+function TogglePill({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
+        active
+          ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
+          : "border-edge/80 text-dim bg-white/88 dark:border-white/10 dark:bg-white/5 dark:text-white/50"
+      }`}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </button>
+  );
+}
+
+/* ── Section card wrapper ── */
+
+function SectionCard({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`border-edge/60 rounded-[20px] border bg-white/80 p-5 shadow-[var(--shadow-glass-sm)] dark:border-white/8 dark:bg-white/[0.03] ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ── Section label ── */
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-faint mb-3 text-[11px] font-bold tracking-[0.2em] uppercase dark:text-white/40">
+      {children}
+    </p>
+  );
+}
+
 export function DestinationStep({ errors, clearError, step, totalSteps }: DestinationStepProps) {
   const selectedCities = usePlanFormStore((s) => s.selectedCities);
   const addCity = usePlanFormStore((s) => s.addCity);
@@ -58,7 +115,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const popularRef = useRef<HTMLElement>(null);
+  const popularRef = useRef<HTMLDivElement>(null);
 
   const dateRange: DateRange | undefined = useMemo(() => {
     const from = dateStart ? parse(dateStart, "yyyy-MM-dd", new Date()) : undefined;
@@ -129,25 +186,29 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   }, []);
 
   return (
-    <div className="space-y-7 pb-2">
+    <div className="space-y-5 pb-2">
+      {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-brand-primary font-display text-[11px] font-bold tracking-[0.34em] uppercase">
             Destination
           </p>
-          <h2 className="text-navy text-[28px] leading-tight font-bold">
+          <h2 className="text-navy text-[28px] leading-tight font-bold dark:text-white">
             Where to <span className="text-brand-primary italic">next?</span>
           </h2>
-          <p className="text-dim mt-2 text-sm">Add one or more cities you want to visit.</p>
+          <p className="text-dim mt-1.5 text-sm dark:text-white/50">
+            Add one or more cities you want to visit.
+          </p>
         </div>
         <StepBadge step={step} totalSteps={totalSteps} />
       </div>
 
-      {/* City search */}
-      <div>
-        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Cities</p>
+      {/* ── Card 1: Cities ── */}
+      <SectionCard>
+        <SectionLabel>Cities</SectionLabel>
 
-        <div ref={containerRef} className="relative mt-3">
+        {/* Search */}
+        <div ref={containerRef} className="relative">
           <div className="text-subtext pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2">
             <Search className="h-4 w-4" />
           </div>
@@ -160,11 +221,11 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
               setOpen(true);
             }}
             placeholder="Search cities..."
-            className={`${travelInputClass} min-h-[58px] rounded-[18px] pl-11 text-[16px]`}
+            className={`${travelInputClass} min-h-[52px] rounded-[14px] pl-11 text-[15px]`}
           />
 
           {open && results.length > 0 && (
-            <div className="border-edge shadow-glass-lg absolute top-[calc(100%+0.5rem)] z-40 w-full overflow-hidden rounded-[24px] border bg-white">
+            <div className="border-edge absolute top-[calc(100%+0.375rem)] z-40 w-full overflow-hidden rounded-[16px] border bg-white shadow-[var(--shadow-glass-md)] dark:border-white/10 dark:bg-slate-900">
               {results.map((entry) => {
                 const key = `${entry.countryCode}-${entry.city}`;
                 const already = selectedKeys.has(key);
@@ -177,13 +238,17 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
                       if (!already) handleSelect(entry);
                     }}
                     disabled={already}
-                    className={`border-edge/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 ${
-                      already ? "cursor-default opacity-40" : "hover:bg-surface-hover"
+                    className={`border-edge/70 flex w-full items-center justify-between border-b px-4 py-3 text-left last:border-b-0 dark:border-white/8 ${
+                      already
+                        ? "cursor-default opacity-40"
+                        : "hover:bg-surface-hover dark:hover:bg-white/5"
                     }`}
                   >
                     <div>
-                      <p className="text-navy text-sm font-semibold">{entry.city}</p>
-                      <p className="text-dim mt-0.5 text-xs">{entry.country}</p>
+                      <p className="text-navy text-sm font-semibold dark:text-white">
+                        {entry.city}
+                      </p>
+                      <p className="text-dim mt-0.5 text-xs dark:text-white/40">{entry.country}</p>
                     </div>
                     <MapPin className="text-subtext h-4 w-4 shrink-0" />
                   </button>
@@ -193,100 +258,129 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           )}
         </div>
 
-        {/* Selected cities list */}
+        {/* Selected cities */}
         {selectedCities.length > 0 && (
-          <ul className="mt-3 space-y-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {selectedCities.map((city, i) => (
-              <li key={`${cityKey(city)}-${i}`}>
-                <div className="border-edge/80 flex items-center gap-3 rounded-[16px] border bg-white px-4 py-3">
-                  <span className="text-brand-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold">
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-navy text-sm font-semibold">
-                      {city.city}
-                      {city.iataCode && (
-                        <span className="text-dim ml-1.5 text-xs font-normal">
-                          ({city.iataCode})
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-dim text-xs">{city.country}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeCity(i)}
-                    className="text-subtext hover:text-navy shrink-0 transition-colors"
-                    aria-label={`Remove ${city.city}`}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </li>
+              <div
+                key={`${cityKey(city)}-${i}`}
+                className="border-brand-primary-border bg-brand-primary-soft dark:border-brand-primary/30 dark:bg-brand-primary/10 flex items-center gap-2 rounded-full border py-1.5 pr-2 pl-3"
+              >
+                <span className="text-brand-primary text-[11px] font-bold">{i + 1}</span>
+                <span className="text-navy text-[13px] font-semibold dark:text-white">
+                  {city.city}
+                </span>
+                {city.iataCode && (
+                  <span className="text-dim text-[11px] dark:text-white/40">{city.iataCode}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeCity(i)}
+                  className="text-dim hover:text-navy ml-0.5 transition-colors dark:text-white/40 dark:hover:text-white"
+                  aria-label={`Remove ${city.city}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
 
         {errors.selectedCities && (
           <p className={`${travelFieldErrorClass} mt-2`}>{errors.selectedCities}</p>
         )}
-      </div>
 
-      {/* Dates — exact or flexible mode */}
-      <div>
-        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Travel dates</p>
+        {/* Popular destinations */}
+        <div ref={popularRef} className="border-edge/50 mt-4 border-t pt-4 dark:border-white/8">
+          <p className="text-faint mb-2.5 text-[10px] font-bold tracking-[0.2em] uppercase dark:text-white/30">
+            Popular
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_CITIES.map((city) => {
+              const isSelected = selectedKeys.has(cityKey(city));
+              return (
+                <button
+                  key={cityKey(city)}
+                  type="button"
+                  onClick={() => handleAddPopular(city)}
+                  disabled={isSelected}
+                  className={`rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
+                    isSelected
+                      ? "border-brand-primary bg-brand-primary-soft text-brand-primary cursor-default opacity-50"
+                      : "border-edge/80 text-prose hover:border-brand-primary-border hover:bg-brand-primary-subtle dark:hover:border-brand-primary/40 dark:hover:bg-brand-primary/10 dark:border-white/10 dark:text-white/60"
+                  }`}
+                >
+                  {city.city}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </SectionCard>
 
-        {/* Mode toggle */}
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setDateMode("exact")}
-            className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
-              dateMode === "exact"
-                ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
-                : "border-edge/80 text-dim bg-white/88"
-            }`}
-          >
-            <CalendarDays className="h-3.5 w-3.5" />
-            Exact dates
-          </button>
-          <button
-            type="button"
-            onClick={() => setDateMode("flexible")}
-            className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
-              dateMode === "flexible"
-                ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
-                : "border-edge/80 text-dim bg-white/88"
-            }`}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            I&apos;m flexible
-          </button>
+      {/* ── Card 2: Trip details ── */}
+      <SectionCard>
+        {/* Trip direction */}
+        <SectionLabel>Trip type</SectionLabel>
+        <div className="flex gap-2">
+          <TogglePill
+            active={tripDirection === "return"}
+            onClick={() => setTripDirection("return")}
+            icon={Repeat}
+            label="Return"
+          />
+          <TogglePill
+            active={tripDirection === "one-way"}
+            onClick={() => setTripDirection("one-way")}
+            icon={ArrowRight}
+            label="One-way"
+          />
         </div>
 
-        {/* Day count stepper — only in flexible mode */}
+        {/* Divider */}
+        <div className="border-edge/50 my-4 border-t dark:border-white/8" />
+
+        {/* Date mode */}
+        <SectionLabel>Travel dates</SectionLabel>
+        <div className="flex gap-2">
+          <TogglePill
+            active={dateMode === "exact"}
+            onClick={() => setDateMode("exact")}
+            icon={CalendarDays}
+            label="Exact dates"
+          />
+          <TogglePill
+            active={dateMode === "flexible"}
+            onClick={() => setDateMode("flexible")}
+            icon={Clock}
+            label="I'm flexible"
+          />
+        </div>
+
+        {/* Day count stepper — flexible mode only */}
         {dateMode === "flexible" && (
-          <div className="mt-4">
-            <p className="text-faint mb-2 text-[11px] font-bold tracking-[0.18em] uppercase">
+          <div className="border-edge/60 bg-surface-soft/50 mt-4 rounded-[14px] border px-5 py-3 dark:border-white/8 dark:bg-white/[0.03]">
+            <p className="text-faint mb-2 text-center text-[10px] font-bold tracking-[0.18em] uppercase dark:text-white/30">
               How many days?
             </p>
-            <div className="border-edge/80 flex items-center justify-center gap-5 rounded-[16px] border bg-white px-5 py-3">
+            <div className="flex items-center justify-center gap-5">
               <button
                 type="button"
                 onClick={() => setDayCount(Math.max(1, dayCount - 1))}
                 disabled={dayCount <= 1}
-                className="text-brand-primary flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-colors disabled:opacity-30"
+                className="text-brand-primary bg-brand-primary-soft dark:bg-brand-primary/15 flex h-9 w-9 items-center justify-center rounded-xl transition-colors disabled:opacity-30"
               >
                 <Minus className="h-4 w-4" strokeWidth={2.5} />
               </button>
-              <span className="text-navy min-w-[80px] text-center text-2xl font-bold">
-                {dayCount} <span className="text-dim text-sm font-medium">days</span>
+              <span className="text-navy min-w-[80px] text-center text-2xl font-bold dark:text-white">
+                {dayCount}{" "}
+                <span className="text-dim text-sm font-medium dark:text-white/40">days</span>
               </span>
               <button
                 type="button"
                 onClick={() => setDayCount(Math.min(90, dayCount + 1))}
                 disabled={dayCount >= 90}
-                className="text-brand-primary flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-colors disabled:opacity-30"
+                className="text-brand-primary bg-brand-primary-soft dark:bg-brand-primary/15 flex h-9 w-9 items-center justify-center rounded-xl transition-colors disabled:opacity-30"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
               </button>
@@ -294,22 +388,17 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           </div>
         )}
 
-        {/* Calendar label */}
-        <p className="text-faint mt-4 mb-1 text-[11px] font-bold tracking-[0.18em] uppercase">
-          {dateMode === "exact" ? "Select your dates" : "When are you available?"}
-        </p>
-
         {/* Date summary */}
         {(dateStart || dateEnd) && (
-          <p className="text-navy mt-1 text-sm font-medium">
+          <p className="text-navy mt-4 text-center text-sm font-medium dark:text-white">
             {dateStart ? format(parse(dateStart, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
-            {" → "}
+            <span className="text-dim mx-2 dark:text-white/30">&rarr;</span>
             {dateEnd ? format(parse(dateEnd, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
           </p>
         )}
 
-        {/* Range calendar — shared between both modes */}
-        <div className="mt-2 flex justify-center">
+        {/* Calendar */}
+        <div className="mt-3 flex justify-center">
           <DayPicker
             mode="range"
             selected={dateRange}
@@ -323,65 +412,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
 
         {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
         {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
-      </div>
-
-      {/* Trip direction */}
-      <div>
-        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Trip type</p>
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setTripDirection("return")}
-            className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
-              tripDirection === "return"
-                ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
-                : "border-edge/80 text-dim bg-white/88"
-            }`}
-          >
-            <Repeat className="h-3.5 w-3.5" />
-            Return
-          </button>
-          <button
-            type="button"
-            onClick={() => setTripDirection("one-way")}
-            className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
-              tripDirection === "one-way"
-                ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
-                : "border-edge/80 text-dim bg-white/88"
-            }`}
-          >
-            <ArrowRight className="h-3.5 w-3.5" />
-            One-way
-          </button>
-        </div>
-      </div>
-
-      {/* Popular destinations */}
-      <section ref={popularRef}>
-        <p className="text-faint mb-3 text-[11px] font-bold tracking-[0.2em] uppercase">
-          Popular Destinations
-        </p>
-        <div className="flex flex-wrap gap-2.5">
-          {POPULAR_CITIES.map((city) => {
-            const isSelected = selectedKeys.has(cityKey(city));
-            return (
-              <button
-                key={cityKey(city)}
-                type="button"
-                onClick={() => handleAddPopular(city)}
-                disabled={isSelected}
-                className={`rounded-2xl border px-4 py-2.5 text-[12px] font-bold tracking-[0.08em] uppercase transition-all ${
-                  isSelected
-                    ? "border-brand-primary bg-brand-primary-soft text-brand-primary cursor-default opacity-60"
-                    : "border-edge/80 text-prose bg-white/88"
-                }`}
-              >
-                {city.city}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      </SectionCard>
     </div>
   );
 }
