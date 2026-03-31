@@ -22,10 +22,20 @@ export function useUpsertHotelSelection() {
         fallbackMessage: "Failed to save hotel selection",
       });
     },
-    onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.selections.hotelsForTrip(variables.tripId),
-      });
+    onSuccess: (data, variables) => {
+      // Immediately update trip-scoped hotel selections with the server-returned selection
+      queryClient.setQueryData<HotelSelection[]>(
+        queryKeys.selections.hotelsForTrip(variables.tripId),
+        (old) => {
+          if (!old) return [data.selection];
+          const idx = old.findIndex((s) => s.id === data.selection.id);
+          if (idx >= 0) {
+            return old.map((s, i) => (i === idx ? data.selection : s));
+          }
+          return [...old, data.selection];
+        }
+      );
+      // Background-refresh cart and unbooked count
       void queryClient.invalidateQueries({ queryKey: queryKeys.selections.unbookedCount() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.selections.cart() });
     },

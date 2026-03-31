@@ -15,7 +15,7 @@ export function useUnbookedCount(options?: { enabled?: boolean }) {
       return res.count;
     },
     enabled: options?.enabled ?? true,
-    staleTime: 30_000,
+    staleTime: 0,
     refetchOnWindowFocus: true,
   });
 }

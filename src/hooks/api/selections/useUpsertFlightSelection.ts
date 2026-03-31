@@ -25,10 +25,20 @@ export function useUpsertFlightSelection() {
         }
       );
     },
-    onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.selections.flightsForTrip(variables.tripId),
-      });
+    onSuccess: (data, variables) => {
+      // Immediately update trip-scoped flight selections with the server-returned selection
+      queryClient.setQueryData<FlightSelection[]>(
+        queryKeys.selections.flightsForTrip(variables.tripId),
+        (old) => {
+          if (!old) return [data.selection];
+          const idx = old.findIndex((s) => s.id === data.selection.id);
+          if (idx >= 0) {
+            return old.map((s, i) => (i === idx ? data.selection : s));
+          }
+          return [...old, data.selection];
+        }
+      );
+      // Background-refresh cart and unbooked count
       void queryClient.invalidateQueries({ queryKey: queryKeys.selections.unbookedCount() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.selections.cart() });
     },
