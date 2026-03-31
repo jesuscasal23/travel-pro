@@ -45,6 +45,7 @@ export default function PlanPage() {
     dateEnd,
     dateMode,
     dayCount: flexDayCount,
+    tripDirection,
     travelers,
   } = usePlanFormStore();
 
@@ -271,6 +272,7 @@ export default function PlanPage() {
         dateStart: effectiveDateStart,
         dateEnd: effectiveDateEnd,
         travelers,
+        tripDirection,
         ...(combinedDescription ? { description: combinedDescription } : {}),
         initialItinerary: { route, days: [] },
       });
@@ -301,6 +303,7 @@ export default function PlanPage() {
     effectiveDateStart,
     effectiveDateEnd,
     travelers,
+    tripDirection,
     dayCount,
     effectiveNationality,
     effectiveHomeAirport,

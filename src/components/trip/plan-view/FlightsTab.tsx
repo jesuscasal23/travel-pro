@@ -53,8 +53,10 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const homeAirport = travelerPreferences.data?.homeAirport ?? "";
   const { dateStart } = useTripContext();
 
+  const { tripDirection } = useTripContext();
   const { route, flightOptions, flightLegs } = itinerary;
   const homeIata = extractHomeAirportIata(homeAirport);
+  const isOneWay = tripDirection === "one-way";
 
   const isAuthenticated = useAuthStatus();
   const { data: bookingClicks } = useBookingClicks(tripId, { enabled: isAuthenticated === true });
@@ -78,7 +80,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
   const legs: FlightLegWithDirection[] = useMemo(() => {
     // If we already have multi-result flight options, tag them with direction
     if (flightOptions && flightOptions.length > 0) {
-      return flightOptions.map((leg, i) => ({
+      const tagged = flightOptions.map((leg, i) => ({
         ...leg,
         direction: (i === 0
           ? "outbound"
@@ -86,6 +88,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
             ? "return"
             : "internal") as FlightDirection,
       }));
+      return isOneWay ? tagged.filter((l) => l.direction !== "return") : tagged;
     }
 
     // Otherwise derive legs from route + flightLegs or just the route
@@ -155,8 +158,8 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
       });
     }
 
-    // Return: last city -> home
-    if (homeIata && route.length > 0 && route[route.length - 1].iataCode) {
+    // Return: last city -> home (skip for one-way trips)
+    if (!isOneWay && homeIata && route.length > 0 && route[route.length - 1].iataCode) {
       const lastCity = route[route.length - 1];
       if (runningDate) runningDate = addDays(runningDate, lastCity.days);
 
@@ -187,7 +190,7 @@ export function FlightsTab({ itinerary, tripId }: FlightsTabProps) {
     }
 
     return derived;
-  }, [route, flightOptions, flightLegs, homeIata, dateStart]);
+  }, [route, flightOptions, flightLegs, homeIata, dateStart, isOneWay]);
 
   // Auto-fetch legs that have no results OR only have placeholder results without booking tokens
   const hasLegsToFetch = legs.some(

@@ -35,6 +35,7 @@ interface OptimizeFlightsInput {
   dateStart: string;
   dateEnd: string;
   travelers?: number;
+  tripDirection?: string;
 }
 
 /**
@@ -77,7 +78,9 @@ export async function optimizeFlightsForTrip(input: OptimizeFlightsInput): Promi
         input.dateStart,
         totalDays,
         input.travelers ?? 1,
-        searcher
+        searcher,
+        undefined, // signal
+        input.tripDirection ?? "return"
       ),
       abortableDelay(OPTIMIZE_FLIGHTS_TIMEOUT_MS).then(() => {
         throw new UpstreamServiceError("Flight optimization timed out");

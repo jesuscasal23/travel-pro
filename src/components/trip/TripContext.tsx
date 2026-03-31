@@ -22,6 +22,7 @@ export interface TripContextValue {
   dateStart: string;
   dateEnd: string;
   travelers: number;
+  tripDirection: string; // "return" | "one-way"
 
   // Itinerary build state
   // isBuilding / buildError are reserved for future use; currently always false/null.

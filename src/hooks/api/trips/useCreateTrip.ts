@@ -12,6 +12,7 @@ interface CreateTripParams {
   dateStart: string;
   dateEnd: string;
   travelers: number;
+  tripDirection?: string;
   description?: string;
   initialItinerary?: Pick<Itinerary, "route" | "days">;
 }

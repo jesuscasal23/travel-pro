@@ -11,6 +11,7 @@ export const CreateTripInputSchema = z.object({
   dateStart: z.string().max(20),
   dateEnd: z.string().max(20),
   travelers: z.number().int().min(1).max(20).default(2),
+  tripDirection: z.enum(["return", "one-way"]).optional(),
   description: z.string().max(2000).optional(),
   initialItinerary: itineraryCoreSchema.optional(),
 });

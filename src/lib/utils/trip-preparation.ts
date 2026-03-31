@@ -100,7 +100,8 @@ function findHotelClick(clicks: BookingClick[], city: string): BookingClick | un
 export function computeTripPreparation(
   route: CityStop[],
   clicks: BookingClick[],
-  homeIata?: string
+  homeIata?: string,
+  tripDirection: string = "return"
 ): TripPreparationProgress {
   const items: PrepItem[] = [];
 
@@ -141,8 +142,8 @@ export function computeTripPreparation(
     });
   }
 
-  // Return: last city → home
-  if (homeIata && lastCity.iataCode) {
+  // Return: last city → home (skip for one-way trips)
+  if (tripDirection !== "one-way" && homeIata && lastCity.iataCode) {
     const click = findFlightClick(clicks, "return", lastCity.iataCode, homeIata);
     items.push({
       type: "flight",

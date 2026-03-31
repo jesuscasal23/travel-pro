@@ -11,6 +11,7 @@ export interface SelectedCity {
 }
 
 export type DateMode = "exact" | "flexible";
+export type TripDirection = "return" | "one-way";
 
 interface PlanFormState {
   planStep: number;
@@ -21,6 +22,7 @@ interface PlanFormState {
   dateEnd: string;
   dateMode: DateMode;
   dayCount: number;
+  tripDirection: TripDirection;
   travelers: number;
 }
 
@@ -37,6 +39,7 @@ interface PlanFormActions {
   setDateEnd: (date: string) => void;
   setDateMode: (mode: DateMode) => void;
   setDayCount: (count: number) => void;
+  setTripDirection: (direction: TripDirection) => void;
   setTravelers: (count: number) => void;
   resetPlanForm: () => void;
 }
@@ -50,6 +53,7 @@ const initialPlanFormState: PlanFormState = {
   dateEnd: "",
   dateMode: "exact",
   dayCount: 7,
+  tripDirection: "return",
   travelers: 2,
 };
 
@@ -87,6 +91,7 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
       setDateEnd: (date) => set({ dateEnd: date }),
       setDateMode: (dateMode) => set({ dateMode }),
       setDayCount: (dayCount) => set({ dayCount }),
+      setTripDirection: (tripDirection) => set({ tripDirection }),
       setTravelers: (count) => set({ travelers: count }),
       resetPlanForm: () => set(initialPlanFormState),
     }),

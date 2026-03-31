@@ -54,7 +54,8 @@ export async function optimizeFlights(
   totalDays: number,
   travelers: number,
   searcher: FlightSearcher,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  tripDirection: string = "return"
 ): Promise<FlightSkeleton> {
   const N = cities.length;
 
@@ -97,9 +98,13 @@ export async function optimizeFlights(
 
   const returnDate = addDays(startDateStr, totalDays - 1);
 
+  const isReturn = tripDirection !== "one-way";
+
   // Fixed legs (same for every assignment)
   queueFetch(homeIata, cities[0].iataCode, startDateStr);
-  queueFetch(cities[N - 1].iataCode, homeIata, returnDate);
+  if (isReturn) {
+    queueFetch(cities[N - 1].iataCode, homeIata, returnDate);
+  }
 
   // Variable inter-city legs — pre-fetch all possible departure dates
   for (let k = 0; k < N - 1; k++) {
@@ -142,11 +147,13 @@ export async function optimizeFlights(
       } else cost += f.price;
     }
 
-    // Return (fixed date, variable leg)
-    const ret = priceMap.get(`${cities[N - 1].iataCode}:${homeIata}:${returnDate}`);
-    if (!ret) {
-      ok = false;
-    } else cost += ret.price;
+    // Return (fixed date, variable leg) — skip for one-way trips
+    if (isReturn) {
+      const ret = priceMap.get(`${cities[N - 1].iataCode}:${homeIata}:${returnDate}`);
+      if (!ret) {
+        ok = false;
+      } else cost += ret.price;
+    }
 
     if (ok) {
       validCostSum += cost;
@@ -200,8 +207,10 @@ export async function optimizeFlights(
     );
   }
 
-  // Return
-  legs.push(makeLeg(cities[N - 1].city, "Home", cities[N - 1].iataCode, homeIata, returnDate));
+  // Return — skip for one-way trips
+  if (isReturn) {
+    legs.push(makeLeg(cities[N - 1].city, "Home", cities[N - 1].iataCode, homeIata, returnDate));
+  }
 
   return {
     homeIata,

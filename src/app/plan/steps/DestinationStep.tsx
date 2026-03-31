@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, Clock, MapPin, Minus, Plane, Plus, Search, X } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Clock,
+  MapPin,
+  Minus,
+  Plane,
+  Plus,
+  Repeat,
+  Search,
+  X,
+} from "lucide-react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import { format, parse } from "date-fns";
 import { CITIES, type CityEntry } from "@/data/cities";
@@ -139,6 +150,8 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const setDateMode = usePlanFormStore((s) => s.setDateMode);
   const dayCount = usePlanFormStore((s) => s.dayCount);
   const setDayCount = usePlanFormStore((s) => s.setDayCount);
+  const tripDirection = usePlanFormStore((s) => s.tripDirection);
+  const setTripDirection = usePlanFormStore((s) => s.setTripDirection);
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -415,6 +428,37 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
 
         {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
         {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
+      </div>
+
+      {/* Trip direction */}
+      <div>
+        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Trip type</p>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setTripDirection("return")}
+            className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
+              tripDirection === "return"
+                ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
+                : "border-edge/80 text-dim bg-white/88"
+            }`}
+          >
+            <Repeat className="h-3.5 w-3.5" />
+            Return
+          </button>
+          <button
+            type="button"
+            onClick={() => setTripDirection("one-way")}
+            className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
+              tripDirection === "one-way"
+                ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
+                : "border-edge/80 text-dim bg-white/88"
+            }`}
+          >
+            <ArrowRight className="h-3.5 w-3.5" />
+            One-way
+          </button>
+        </div>
       </div>
 
       {/* Popular destinations */}

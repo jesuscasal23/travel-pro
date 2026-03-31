@@ -19,7 +19,8 @@ export function buildFlightLegsFromRoute(
   route: CityStop[],
   dateStart: string,
   dateEnd: string,
-  homeIata: string
+  homeIata: string,
+  tripDirection: string = "return"
 ): FlightRouteLeg[] {
   const legs: FlightRouteLeg[] = [];
 
@@ -44,9 +45,11 @@ export function buildFlightLegsFromRoute(
     }
   }
 
-  const lastIata = resolveStopIata(route[route.length - 1]);
-  if (homeIata && lastIata) {
-    legs.push({ fromIata: lastIata, toIata: homeIata, departureDate: dateEnd });
+  if (tripDirection !== "one-way") {
+    const lastIata = resolveStopIata(route[route.length - 1]);
+    if (homeIata && lastIata) {
+      legs.push({ fromIata: lastIata, toIata: homeIata, departureDate: dateEnd });
+    }
   }
 
   return legs;

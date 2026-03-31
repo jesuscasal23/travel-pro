@@ -57,9 +57,10 @@ model Trip {
   destinationCountry     String? @map("destination_country")
   destinationCountryCode String? @map("destination_country_code")
   dateStart              String  @map("date_start")
-  dateEnd       String   @map("date_end")
-  travelers     Int      @default(2)
-  description   String?
+  dateEnd        String   @map("date_end")
+  travelers      Int      @default(2)
+  tripDirection  String?  @map("trip_direction") // "return" | "one-way"
+  description    String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

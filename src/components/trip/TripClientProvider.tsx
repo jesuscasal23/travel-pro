@@ -82,9 +82,13 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const planFormDateStart = usePlanFormStore((s) => s.dateStart);
   const planFormDateEnd = usePlanFormStore((s) => s.dateEnd);
   const planFormTravelers = usePlanFormStore((s) => s.travelers);
+  const planFormTripDirection = usePlanFormStore((s) => s.tripDirection);
   const dateStart = tripData?.dateStart ?? planFormDateStart;
   const dateEnd = tripData?.dateEnd ?? planFormDateEnd;
   const travelers = tripData?.travelers ?? planFormTravelers;
+  const tripDirection =
+    ((tripData as unknown as Record<string, unknown>)?.tripDirection as string) ??
+    planFormTripDirection;
 
   // ── Local itinerary state ────────────────────────────────────────────────────
   // The itinerary lives here, not in Zustand. It starts as the DB value and is
@@ -487,6 +491,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     dateStart,
     dateEnd,
     travelers,
+    tripDirection: tripDirection ?? "return",
     isPartialItinerary: false,
     isBuilding: false,
     buildError: null,
