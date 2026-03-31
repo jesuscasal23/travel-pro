@@ -40,6 +40,6 @@ describe("HomePage", () => {
     render(<HomePage />);
 
     expect(screen.getAllByRole("button", { name: /Share feedback/i })[0]).toBeInTheDocument();
-    expect(screen.getByText(/Shape Voya/i)).toBeInTheDocument();
+    expect(screen.getByText(/Shape Fichi/i)).toBeInTheDocument();
   });
 });

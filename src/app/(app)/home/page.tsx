@@ -84,7 +84,7 @@ export default function HomePage() {
             >
               <AppLogo size={40} />
             </button>
-            <span className="text-ink font-display text-2xl font-bold tracking-tight">Voya</span>
+            <span className="text-ink font-display text-2xl font-bold tracking-tight">Fichi</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -93,7 +93,7 @@ export default function HomePage() {
               className="bg-brand-primary/10 text-brand-primary hidden items-center gap-2 rounded-full px-3 py-2 text-[11px] font-bold tracking-[0.14em] uppercase sm:flex"
             >
               <MessageSquarePlus className="h-4 w-4" />
-              Shape Voya
+              Shape Fichi
             </button>
             <button
               type="button"

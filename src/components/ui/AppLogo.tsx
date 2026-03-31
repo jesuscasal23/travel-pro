@@ -10,7 +10,7 @@ export function AppLogo({ size = 40 }: AppLogoProps) {
       className="flex items-center justify-center overflow-hidden rounded-full"
       style={{ width: size, height: size }}
     >
-      <Image src="/logo.png" alt="Voya" width={size} height={size} className="scale-150" />
+      <Image src="/logo.png" alt="Fichi" width={size} height={size} className="scale-150" />
     </div>
   );
 }
