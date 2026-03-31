@@ -17,21 +17,17 @@ export const destinationStepSchema = z
     dateStart: z.string().default(""),
     dateEnd: z.string().default(""),
     dayCount: z.number().default(7),
-    flexMonth: z.string().default(""),
+  })
+  .refine((d) => d.dateStart.length > 0, {
+    message: "Please select a start date",
+    path: ["dateStart"],
   })
   .refine(
     (d) => {
-      if (d.dateMode === "flexible") return d.dayCount >= 1;
-      return d.dateStart.length > 0;
-    },
-    { message: "Please select a start date", path: ["dateStart"] }
-  )
-  .refine(
-    (d) => {
-      if (d.dateMode === "flexible") return d.flexMonth.length > 0;
+      if (d.dateMode === "flexible") return true; // end date optional in flexible mode
       return d.dateEnd.length > 0;
     },
-    { message: "Please select an end date or month", path: ["dateEnd"] }
+    { message: "Please select an end date", path: ["dateEnd"] }
   )
   .refine(
     (d) => {

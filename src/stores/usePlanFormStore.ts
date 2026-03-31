@@ -21,7 +21,6 @@ interface PlanFormState {
   dateEnd: string;
   dateMode: DateMode;
   dayCount: number;
-  flexMonth: string; // "YYYY-MM" format
   travelers: number;
 }
 
@@ -38,7 +37,6 @@ interface PlanFormActions {
   setDateEnd: (date: string) => void;
   setDateMode: (mode: DateMode) => void;
   setDayCount: (count: number) => void;
-  setFlexMonth: (month: string) => void;
   setTravelers: (count: number) => void;
   resetPlanForm: () => void;
 }
@@ -52,7 +50,6 @@ const initialPlanFormState: PlanFormState = {
   dateEnd: "",
   dateMode: "exact",
   dayCount: 7,
-  flexMonth: "",
   travelers: 2,
 };
 
@@ -90,7 +87,6 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
       setDateEnd: (date) => set({ dateEnd: date }),
       setDateMode: (dateMode) => set({ dateMode }),
       setDayCount: (dayCount) => set({ dayCount }),
-      setFlexMonth: (flexMonth) => set({ flexMonth }),
       setTravelers: (count) => set({ travelers: count }),
       resetPlanForm: () => set(initialPlanFormState),
     }),

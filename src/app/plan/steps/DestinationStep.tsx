@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Clock, MapPin, Minus, Plane, Plus, Search, X } from "lucide-react";
 import { DayPicker, type DateRange } from "react-day-picker";
-import { format, parse, addMonths } from "date-fns";
+import { format, parse } from "date-fns";
 import { CITIES, type CityEntry } from "@/data/cities";
 import { AIRPORTS } from "@/data/airports-full";
 import { lookupIata } from "@/lib/flights/city-iata-map";
@@ -139,8 +139,6 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const setDateMode = usePlanFormStore((s) => s.setDateMode);
   const dayCount = usePlanFormStore((s) => s.dayCount);
   const setDayCount = usePlanFormStore((s) => s.setDayCount);
-  const flexMonth = usePlanFormStore((s) => s.flexMonth);
-  const setFlexMonth = usePlanFormStore((s) => s.setFlexMonth);
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -152,14 +150,6 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
     const to = dateEnd ? parse(dateEnd, "yyyy-MM-dd", new Date()) : undefined;
     return from ? { from, to } : undefined;
   }, [dateStart, dateEnd]);
-
-  const monthOptions = useMemo(() => {
-    const now = new Date();
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = addMonths(now, i);
-      return { value: format(d, "yyyy-MM"), label: format(d, "MMM yyyy") };
-    });
-  }, []);
 
   const handleDateRangeSelect = (range: DateRange | undefined) => {
     setDateStart(range?.from ? format(range.from, "yyyy-MM-dd") : "");
@@ -366,87 +356,62 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           </button>
         </div>
 
-        {dateMode === "exact" ? (
-          <>
-            {(dateStart || dateEnd) && (
-              <p className="text-navy mt-3 text-sm font-medium">
-                {dateStart
-                  ? format(parse(dateStart, "yyyy-MM-dd", new Date()), "MMM d, yyyy")
-                  : "—"}
-                {" → "}
-                {dateEnd ? format(parse(dateEnd, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
-              </p>
-            )}
-
-            <div className="mt-3 flex justify-center">
-              <DayPicker
-                mode="range"
-                selected={dateRange}
-                onSelect={handleDateRangeSelect}
-                disabled={{ before: new Date() }}
-                numberOfMonths={1}
-                showOutsideDays
-                className="rdp-travel"
-              />
-            </div>
-          </>
-        ) : (
-          <div className="mt-4 space-y-5">
-            {/* Day count stepper */}
-            <div>
-              <p className="text-faint mb-2 text-[11px] font-bold tracking-[0.18em] uppercase">
-                How many days?
-              </p>
-              <div className="border-edge/80 flex items-center justify-center gap-5 rounded-[16px] border bg-white px-5 py-3">
-                <button
-                  type="button"
-                  onClick={() => setDayCount(Math.max(1, dayCount - 1))}
-                  disabled={dayCount <= 1}
-                  className="text-brand-primary flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-colors disabled:opacity-30"
-                >
-                  <Minus className="h-4 w-4" strokeWidth={2.5} />
-                </button>
-                <span className="text-navy min-w-[80px] text-center text-2xl font-bold">
-                  {dayCount} <span className="text-dim text-sm font-medium">days</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setDayCount(Math.min(90, dayCount + 1))}
-                  disabled={dayCount >= 90}
-                  className="text-brand-primary flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-colors disabled:opacity-30"
-                >
-                  <Plus className="h-4 w-4" strokeWidth={2.5} />
-                </button>
-              </div>
-            </div>
-
-            {/* Month picker */}
-            <div>
-              <p className="text-faint mb-2 text-[11px] font-bold tracking-[0.18em] uppercase">
-                Roughly when?
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {monthOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      setFlexMonth(opt.value);
-                      clearError("dateEnd");
-                    }}
-                    className={`rounded-2xl border px-3.5 py-2 text-[12px] font-bold tracking-[0.06em] uppercase transition-all ${
-                      flexMonth === opt.value
-                        ? "border-brand-primary bg-brand-primary-soft text-brand-primary"
-                        : "border-edge/80 text-prose bg-white/88"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+        {/* Day count stepper — only in flexible mode */}
+        {dateMode === "flexible" && (
+          <div className="mt-4">
+            <p className="text-faint mb-2 text-[11px] font-bold tracking-[0.18em] uppercase">
+              How many days?
+            </p>
+            <div className="border-edge/80 flex items-center justify-center gap-5 rounded-[16px] border bg-white px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setDayCount(Math.max(1, dayCount - 1))}
+                disabled={dayCount <= 1}
+                className="text-brand-primary flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-colors disabled:opacity-30"
+              >
+                <Minus className="h-4 w-4" strokeWidth={2.5} />
+              </button>
+              <span className="text-navy min-w-[80px] text-center text-2xl font-bold">
+                {dayCount} <span className="text-dim text-sm font-medium">days</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setDayCount(Math.min(90, dayCount + 1))}
+                disabled={dayCount >= 90}
+                className="text-brand-primary flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-colors disabled:opacity-30"
+              >
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+              </button>
             </div>
           </div>
         )}
+
+        {/* Calendar label */}
+        <p className="text-faint mt-4 mb-1 text-[11px] font-bold tracking-[0.18em] uppercase">
+          {dateMode === "exact" ? "Select your dates" : "When are you available?"}
+        </p>
+
+        {/* Date summary */}
+        {(dateStart || dateEnd) && (
+          <p className="text-navy mt-1 text-sm font-medium">
+            {dateStart ? format(parse(dateStart, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
+            {" → "}
+            {dateEnd ? format(parse(dateEnd, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
+          </p>
+        )}
+
+        {/* Range calendar — shared between both modes */}
+        <div className="mt-2 flex justify-center">
+          <DayPicker
+            mode="range"
+            selected={dateRange}
+            onSelect={handleDateRangeSelect}
+            disabled={{ before: new Date() }}
+            numberOfMonths={1}
+            showOutsideDays
+            className="rdp-travel"
+          />
+        </div>
 
         {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
         {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}

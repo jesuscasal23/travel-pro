@@ -45,7 +45,6 @@ export default function PlanPage() {
     dateEnd,
     dateMode,
     dayCount: flexDayCount,
-    flexMonth,
     travelers,
   } = usePlanFormStore();
 
@@ -109,10 +108,10 @@ export default function PlanPage() {
   const showSignupGate = isFinalStep && isAuthenticated === false;
   const progress = Math.round((step / totalSteps) * 100);
 
-  // Compute effective dates: for flexible mode, synthesize from month + day count
-  const effectiveDateStart = dateMode === "flexible" && flexMonth ? `${flexMonth}-01` : dateStart;
+  // Compute effective dates: for flexible mode, use availability window start + day count
+  const effectiveDateStart = dateStart;
   const effectiveDateEnd =
-    dateMode === "flexible" && flexMonth ? addDays(`${flexMonth}-01`, flexDayCount) : dateEnd;
+    dateMode === "flexible" && dateStart ? addDays(dateStart, flexDayCount) : dateEnd;
 
   const dayCount =
     effectiveDateStart && effectiveDateEnd
@@ -122,7 +121,7 @@ export default function PlanPage() {
   const canAdvance = () => {
     if (showDestination) {
       if (dateMode === "flexible") {
-        return selectedCities.length > 0 && flexDayCount >= 1 && !!flexMonth;
+        return selectedCities.length > 0 && flexDayCount >= 1 && !!dateStart;
       }
       return selectedCities.length > 0 && !!dateStart && !!dateEnd && dayCount > 0;
     }
@@ -153,7 +152,6 @@ export default function PlanPage() {
         dateStart,
         dateEnd,
         dayCount: flexDayCount,
-        flexMonth,
       });
       if (fieldErrors) {
         setErrors(fieldErrors);
@@ -196,7 +194,6 @@ export default function PlanPage() {
       dateStart,
       dateEnd,
       dayCount: flexDayCount,
-      flexMonth,
     });
     if (fieldErrors) {
       setErrors(fieldErrors);
@@ -301,7 +298,6 @@ export default function PlanPage() {
     dateEnd,
     dateMode,
     flexDayCount,
-    flexMonth,
     effectiveDateStart,
     effectiveDateEnd,
     travelers,
