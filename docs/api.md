@@ -224,6 +224,34 @@ Every endpoint is documented twice:
 
 ---
 
+## Stripe (Payments)
+
+### `POST /api/v1/stripe/checkout`
+
+|               |                                                                                                                                                                                                                                                           |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                                                                                                                                                  |
+| **Developer** | Creates a Stripe Checkout Session for the selected plan (`lifetime`, `yearly`, or `monthly`). Lifetime uses `payment` mode; yearly/monthly use `subscription` mode. Yearly includes a 7-day free trial. Returns `{ url }` to redirect the user to Stripe. |
+| **PM**        | Starts the payment flow when a user clicks "Subscribe" on the premium page. They're redirected to Stripe's hosted checkout to enter payment details.                                                                                                      |
+
+### `POST /api/v1/stripe/webhook`
+
+|               |                                                                                                                                                                                                                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | None (verified via Stripe signature)                                                                                                                                                                                                                                             |
+| **Developer** | Receives Stripe webhook events. Reads raw body for signature verification. Handles `checkout.session.completed` (lifetime), `customer.subscription.created/updated/deleted`, and `invoice.payment_failed`. Updates `isPremium` and Stripe fields on Profile. Always returns 200. |
+| **PM**        | Stripe calls this endpoint when a payment succeeds, a subscription changes, or a payment fails. It keeps the user's premium status in sync with their billing.                                                                                                                   |
+
+### `POST /api/v1/stripe/portal`
+
+|               |                                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                           |
+| **Developer** | Creates a Stripe Billing Portal session for the authenticated user's Stripe customer. Returns `{ url }` to redirect to the portal. |
+| **PM**        | Opens Stripe's self-service portal where users can cancel their subscription, update payment methods, or view invoices.            |
+
+---
+
 ## Admin (Superuser Only)
 
 These endpoints are restricted to superuser accounts (currently two people). They power internal tooling for monitoring and managing the platform.
