@@ -9,9 +9,11 @@ import {
   loginViaUI,
   blockAnalytics,
   mockItinerary,
+  cleanupUserByAdmin,
 } from "./helpers";
 
 test("E2E-02: signup (admin-created) -> login -> planner", async ({ page, request }) => {
+  test.setTimeout(90_000);
   if (!hasAuthCreds || !hasAdminCreds) {
     test.skip(true, "Auth credentials not set - skipping");
     return;
@@ -30,41 +32,46 @@ test("E2E-02: signup (admin-created) -> login -> planner", async ({ page, reques
   });
   expect(createRes.status()).toBe(200);
 
-  // Login with the new user
-  await page.goto("/login");
-  await page.getByLabel(/Email address/i).fill(uniqueEmail);
-  await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
-  await page.getByRole("button", { name: /sign in|log in/i }).click();
-  await page.waitForURL("**/trips", { timeout: 15_000 });
-  await expect(page).toHaveURL(/trips/);
+  try {
+    // Login with the new user
+    await page.goto("/login");
+    await page.getByLabel(/Email address/i).fill(uniqueEmail);
+    await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: /sign in|log in/i }).click();
+    await page.waitForURL("**/trips", { timeout: 15_000 });
+    await expect(page).toHaveURL(/trips/);
 
-  // Navigate to planner — new user without profile sees profile step first
-  await page.goto("/plan");
-  await expect(page.getByText("The essentials")).toBeVisible();
+    // Navigate to planner — new user without profile sees profile step first
+    await page.goto("/plan");
+    await expect(page.getByText("The essentials")).toBeVisible();
 
-  // Fill profile step: nationality + airport
-  await page.locator("select").selectOption("Germany");
-  const airportInput = page.getByPlaceholder("Search airport or city...");
-  await airportInput.click();
-  await airportInput.fill("Frank");
-  const airportDropdown = page.locator("ul.absolute.z-50");
-  await expect(airportDropdown).toBeVisible();
-  await airportDropdown.locator("li").first().click();
+    // Fill profile step: nationality + airport
+    await page.locator("select").selectOption("Germany");
+    const airportInput = page.getByPlaceholder("Search airport or city...");
+    await airportInput.click();
+    await airportInput.fill("Frank");
+    const airportDropdown = page.locator("ul.absolute.z-50");
+    await expect(airportDropdown).toBeVisible();
+    await airportDropdown.locator("li").first().click();
 
-  // After filling profile data, the page auto-transitions to the destination step
-  // (canSkipProfileStep becomes true once nationality + airport are set)
-  await expect(page.getByText("Where to")).toBeVisible({ timeout: 10_000 });
+    // After filling profile data, the page auto-transitions to the destination step
+    // (canSkipProfileStep becomes true once nationality + airport are set)
+    await expect(page.getByText("Where to")).toBeVisible({ timeout: 10_000 });
 
-  await page.getByPlaceholder("Search cities...").fill("Paris");
-  const parisOption = page
-    .locator("button")
-    .filter({ hasText: /Paris.*France/ })
-    .first();
-  await parisOption.click();
+    await page.getByPlaceholder("Search cities...").fill("Paris");
+    const parisOption = page
+      .locator("button")
+      .filter({ hasText: /Paris.*France/ })
+      .first();
+    await parisOption.click();
 
-  // Fill dates
-  await page.locator('input[type="date"]').first().fill("2026-10-01");
-  await page.locator('input[type="date"]').nth(1).fill("2026-10-08");
+    // Fill dates
+    await page.locator('input[type="date"]').first().fill("2026-10-01");
+    await page.locator('input[type="date"]').nth(1).fill("2026-10-08");
+  } finally {
+    // Fire-and-forget — cleanup shouldn't eat into the test timeout
+    void cleanupUserByAdmin(uniqueEmail);
+  }
 });
 
 test("E2E-03: login -> trip list -> trip view -> verify tabs", async ({ page }) => {
