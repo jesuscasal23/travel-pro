@@ -242,6 +242,10 @@ A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itine
 | **Other**                                |                    |             |                                                    |
 | `/api/v1/affiliate/redirect`             | GET                | Optional    | Log click + 302 redirect (domain whitelist)        |
 | `/api/v1/places/photo`                   | GET                | Auth        | Proxy Google Places photos                         |
+| **Stripe**                               |                    |             |                                                    |
+| `/api/v1/stripe/checkout`                | POST               | Auth        | Create Stripe Checkout session                     |
+| `/api/v1/stripe/webhook`                 | POST               | None        | Stripe webhook (signature verified)                |
+| `/api/v1/stripe/portal`                  | POST               | Auth        | Create Stripe Customer Portal URL                  |
 | **Admin**                                |                    |             |                                                    |
 | `/api/v1/admin/stats`                    | GET                | SuperUser   | Platform statistics                                |
 | `/api/v1/admin/users`                    | GET                | SuperUser   | List all users                                     |
@@ -250,7 +254,7 @@ A trip can exist without an itinerary — `TripContextValue.itinerary` is `Itine
 
 ## Database (7 models in `prisma/schema.prisma`)
 
-- **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], vibes? (Json), activityLevel?, languagesSpoken[], onboardingCompleted, isPremium, isSuperUser
+- **Profile**: userId (unique), nationality, homeAirport, travelStyle, interests[], vibes? (Json), activityLevel?, languagesSpoken[], onboardingCompleted, isPremium, stripeCustomerId? (unique), stripeSubscriptionId?, stripePriceId?, stripeCurrentPeriodEnd?, isSuperUser
 - **Trip**: profileId?, tripType, region, destination?, destinationCountry?, destinationCountryCode?, dateStart, dateEnd, travelers, description?
 - **Itinerary**: tripId, data (Json), version, isActive, promptVersion, generationStatus (pending|generating|complete|failed), discoveryStatus (pending|in_progress|completed), generationJobId?
 - **ActivitySwipe**: tripId, profileId?, activityName, destination, decision (liked|disliked), activityData (Json)
@@ -307,6 +311,11 @@ NEXT_PUBLIC_POSTHOG_KEY        # Analytics (EU region)
 NEXT_PUBLIC_POSTHOG_HOST       # PostHog host
 NEXT_PUBLIC_SENTRY_DSN         # Error tracking
 SERPAPI_API_KEY                 # Flight optimization (optional)
+STRIPE_SECRET_KEY              # Stripe payment processing
+STRIPE_WEBHOOK_SECRET          # Stripe webhook signature verification
+STRIPE_PRICE_LIFETIME          # Stripe Price ID for lifetime plan
+STRIPE_PRICE_YEARLY            # Stripe Price ID for yearly plan
+STRIPE_PRICE_MONTHLY           # Stripe Price ID for monthly plan
 ```
 
 See `.env.local.example` for full list.

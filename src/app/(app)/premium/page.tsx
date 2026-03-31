@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Crown,
+  Loader2,
   Search,
   Bell,
   Sparkles,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { useToastStore } from "@/stores/useToastStore";
+import { apiFetch } from "@/lib/client/api-fetch";
 
 type Plan = "lifetime" | "yearly" | "per-trip";
 
@@ -27,10 +29,35 @@ const features = [
 export default function PremiumPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan>("yearly");
   const [showMonthly, setShowMonthly] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToastStore((s) => s.toast);
 
-  const handleSubscribe = () => {
-    toast({ title: "Coming soon", description: "Premium subscriptions are not yet available." });
+  const handleSubscribe = async () => {
+    if (selectedPlan === "per-trip") {
+      toast({ title: "Coming soon", description: "Per-trip plans are not yet available." });
+      return;
+    }
+
+    // When the monthly sub-option is shown and selected, checkout monthly
+    const checkoutPlan = showMonthly && selectedPlan === "yearly" ? "monthly" : selectedPlan;
+
+    setIsLoading(true);
+    try {
+      const data = await apiFetch<{ url: string }>("/api/v1/stripe/checkout", {
+        method: "POST",
+        source: "PremiumPage",
+        body: { plan: checkoutPlan },
+        fallbackMessage: "Failed to start checkout",
+      });
+      window.location.href = data.url;
+    } catch (error) {
+      toast({
+        title: "Checkout failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "error",
+      });
+      setIsLoading(false);
+    }
   };
 
   const handleRestore = () => {
@@ -142,9 +169,11 @@ export default function PremiumPage() {
           {/* CTA */}
           <button
             onClick={handleSubscribe}
-            className="shadow-brand-sm bg-brand-primary mt-5 w-full rounded-2xl px-6 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
+            disabled={isLoading}
+            className="shadow-brand-sm bg-brand-primary mt-5 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80 disabled:opacity-60"
           >
-            {ctaLabel[selectedPlan]}
+            {isLoading && <Loader2 size={18} className="animate-spin" />}
+            {isLoading ? "Redirecting to checkout..." : ctaLabel[selectedPlan]}
           </button>
           {selectedPlan === "yearly" && (
             <p className="text-dim mt-1.5 text-center text-[11px] dark:text-white/40">

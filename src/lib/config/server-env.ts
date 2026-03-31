@@ -146,9 +146,11 @@ export function getOptionalSerpApiEnv(): { apiKey: string } | null {
   );
 }
 
-export function getOptionalFeedbackEmailEnv():
-  | { apiKey: string; fromEmail: string; replyToEmail: string | null }
-  | null {
+export function getOptionalFeedbackEmailEnv(): {
+  apiKey: string;
+  fromEmail: string;
+  replyToEmail: string | null;
+} | null {
   if (!hasEnvValue("RESEND_API_KEY") || !hasEnvValue("FEEDBACK_FROM_EMAIL")) {
     return null;
   }
@@ -169,9 +171,12 @@ export function getOptionalFeedbackEmailEnv():
   );
 }
 
-export function getOptionalLinearEnv():
-  | { apiKey: string; teamId: string; projectId: string | null; labelIds: string[] }
-  | null {
+export function getOptionalLinearEnv(): {
+  apiKey: string;
+  teamId: string;
+  projectId: string | null;
+  labelIds: string[];
+} | null {
   if (!hasEnvValue("LINEAR_API_KEY") || !hasEnvValue("LINEAR_FEEDBACK_TEAM_ID")) {
     return null;
   }
@@ -197,6 +202,43 @@ export function getOptionalLinearEnv():
   );
 }
 
+export function getOptionalStripeEnv(): {
+  secretKey: string;
+  webhookSecret: string;
+  priceLifetime: string;
+  priceYearly: string;
+  priceMonthly: string;
+} | null {
+  if (!hasEnvValue("STRIPE_SECRET_KEY") || !hasEnvValue("STRIPE_WEBHOOK_SECRET")) {
+    return null;
+  }
+
+  return parseRequiredEnv(
+    "stripe",
+    z.object({
+      secretKey: nonEmptyString,
+      webhookSecret: nonEmptyString,
+      priceLifetime: nonEmptyString,
+      priceYearly: nonEmptyString,
+      priceMonthly: nonEmptyString,
+    }),
+    {
+      secretKey: process.env.STRIPE_SECRET_KEY,
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+      priceLifetime: process.env.STRIPE_PRICE_LIFETIME,
+      priceYearly: process.env.STRIPE_PRICE_YEARLY,
+      priceMonthly: process.env.STRIPE_PRICE_MONTHLY,
+    },
+    [
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "STRIPE_PRICE_LIFETIME",
+      "STRIPE_PRICE_YEARLY",
+      "STRIPE_PRICE_MONTHLY",
+    ]
+  );
+}
+
 export function getServerEnvChecks(): Record<string, EnvCheckStatus> {
   return {
     anthropic: hasEnvValue("ANTHROPIC_API_KEY") ? "ok" : "missing",
@@ -211,5 +253,7 @@ export function getServerEnvChecks(): Record<string, EnvCheckStatus> {
       hasEnvValue("UPSTASH_REDIS_REST_URL") && hasEnvValue("UPSTASH_REDIS_REST_TOKEN")
         ? "ok"
         : "missing",
+    stripe:
+      hasEnvValue("STRIPE_SECRET_KEY") && hasEnvValue("STRIPE_WEBHOOK_SECRET") ? "ok" : "missing",
   };
 }

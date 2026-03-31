@@ -36,6 +36,7 @@ import {
 } from "@/hooks/api";
 import { useTripStore } from "@/stores/useTripStore";
 import { createClient } from "@/lib/core/supabase-client";
+import { apiFetch } from "@/lib/client/api-fetch";
 import { travelStyles } from "@/data/travelStyles";
 import { hasInterest } from "@/lib/features/profile/interests";
 import {
@@ -48,7 +49,6 @@ import {
 const menuItems = [
   { icon: FileText, label: "Travel Documents" },
   { icon: Shield, label: "Login & Security" },
-  { icon: CreditCard, label: "Payments" },
   { icon: SlidersHorizontal, label: "App Settings" },
 ];
 
@@ -63,6 +63,7 @@ export default function ProfilePage() {
   const saveProfileMutation = useSaveProfile();
   const exportDataMutation = useExportData();
   const deleteAccountMutation = useDeleteAccount();
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
 
   const [displayName, setDisplayName] = useState("Traveler");
   const [email, setEmail] = useState("");
@@ -172,6 +173,20 @@ export default function ProfilePage() {
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Failed to delete account.");
       setIsDeleteOpen(false);
+    }
+  }
+
+  async function handleManageSubscription() {
+    setIsPortalLoading(true);
+    try {
+      const data = await apiFetch<{ url: string }>("/api/v1/stripe/portal", {
+        method: "POST",
+        source: "ProfilePage",
+        fallbackMessage: "Failed to open billing portal",
+      });
+      window.location.href = data.url;
+    } catch {
+      setIsPortalLoading(false);
     }
   }
 
@@ -404,7 +419,7 @@ export default function ProfilePage() {
             </h3>
             <div className="overflow-hidden rounded-[28px] border border-[#d8e6fb] bg-[#f6f9ff] p-5 shadow-[0_8px_18px_rgba(49,94,155,0.08)]">
               <div className="flex items-start gap-4">
-                <div className="bg-white/80 flex h-12 w-12 items-center justify-center rounded-2xl">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80">
                   <Sparkles className="text-brand-primary h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -455,6 +470,22 @@ export default function ProfilePage() {
                 <ChevronRight size={16} className="text-dim" />
               </button>
             ))}
+            {isAuth && persistedProfile && (
+              <button
+                type="button"
+                onClick={handleManageSubscription}
+                disabled={isPortalLoading}
+                className="border-edge/10 hover:bg-surface-soft flex w-full items-center justify-between border-t p-4 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <CreditCard size={20} className="text-dim" />
+                  <span className="text-foreground text-sm font-medium">
+                    {isPortalLoading ? "Opening portal..." : "Manage Subscription"}
+                  </span>
+                </div>
+                <ChevronRight size={16} className="text-dim" />
+              </button>
+            )}
           </div>
         </section>
 

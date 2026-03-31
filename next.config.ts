@@ -42,13 +42,15 @@ const securityHeaders = [
         "https://basemaps.cartocdn.com",
         // Google Identity Services (One Tap auth in standalone PWA)
         "https://accounts.google.com",
+        // Stripe payment processing
+        "https://api.stripe.com",
       ].join(" "),
       // MapLibre GL JS uses Web Workers via blob: URLs
       // 'self' for sw.js registration, blob: for MapLibre GL Web Workers
       "worker-src 'self' blob:",
       "font-src 'self' https://fonts.gstatic.com",
       // Google Identity Services uses iframe for FedCM fallback
-      "frame-src https://accounts.google.com",
+      "frame-src https://accounts.google.com https://checkout.stripe.com https://js.stripe.com",
     ].join("; "),
   },
 ];

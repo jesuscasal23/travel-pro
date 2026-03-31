@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { prisma } from "@/lib/core/prisma";
 import { getSupabaseAdminEnv } from "@/lib/config/server-env";
 import { BadRequestError, ProfileNotFoundError } from "@/lib/api/errors";
+import { cancelStripeSubscription } from "@/lib/features/stripe/stripe-service";
 import { normalizeInterests } from "@/lib/features/profile/interests";
 import { resolvePaceInput } from "@/lib/features/profile/pace";
 import type { TravelStyle, UserProfile } from "@/types";
@@ -64,6 +65,10 @@ export async function saveProfile(userId: string, data: ProfilePatchInput) {
 }
 
 export async function deleteUserProfileAndAccount(userId: string) {
+  // Cancel Stripe subscription and delete customer before removing profile data.
+  // Wrapped in try/catch so Stripe failures don't block account deletion.
+  await cancelStripeSubscription(userId);
+
   await prisma.$transaction(async (tx) => {
     const profile = await tx.profile.findUnique({
       where: { userId },
