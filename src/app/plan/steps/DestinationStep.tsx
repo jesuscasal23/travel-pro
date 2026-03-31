@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, MapPin, Plane, Search, X } from "lucide-react";
+import { MapPin, Plane, Search, X } from "lucide-react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import { format, parse } from "date-fns";
 import { CITIES, type CityEntry } from "@/data/cities";
 import { AIRPORTS } from "@/data/airports-full";
 import { lookupIata } from "@/lib/flights/city-iata-map";
@@ -138,6 +140,19 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const popularRef = useRef<HTMLElement>(null);
+
+  const dateRange: DateRange | undefined = useMemo(() => {
+    const from = dateStart ? parse(dateStart, "yyyy-MM-dd", new Date()) : undefined;
+    const to = dateEnd ? parse(dateEnd, "yyyy-MM-dd", new Date()) : undefined;
+    return from ? { from, to } : undefined;
+  }, [dateStart, dateEnd]);
+
+  const handleDateRangeSelect = (range: DateRange | undefined) => {
+    setDateStart(range?.from ? format(range.from, "yyyy-MM-dd") : "");
+    setDateEnd(range?.to ? format(range.to, "yyyy-MM-dd") : "");
+    clearError("dateStart");
+    clearError("dateEnd");
+  };
 
   const selectedKeys = useMemo(() => new Set(selectedCities.map(cityKey)), [selectedCities]);
 
@@ -305,47 +320,31 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
         )}
       </div>
 
-      {/* Dates */}
+      {/* Dates — range calendar */}
       <div>
-        <label className="text-faint mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
-          Start
-        </label>
-        <div className="relative">
-          <CalendarDays className="text-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
-          <input
-            type="date"
-            value={dateStart}
-            onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-            onChange={(e) => {
-              setDateStart(e.target.value);
-              clearError("dateStart");
-            }}
-            className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
-            style={{ color: dateStart ? "var(--color-navy)" : "var(--color-faint)" }}
-          />
-        </div>
-        {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
-      </div>
+        <p className="text-faint text-[11px] font-bold tracking-[0.2em] uppercase">Travel dates</p>
 
-      <div>
-        <label className="text-faint mb-2 block text-[11px] font-bold tracking-[0.18em] uppercase">
-          End
-        </label>
-        <div className="relative">
-          <CalendarDays className="text-subtext pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
-          <input
-            type="date"
-            value={dateEnd}
-            min={dateStart}
-            onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-            onChange={(e) => {
-              setDateEnd(e.target.value);
-              clearError("dateEnd");
-            }}
-            className={`${travelInputClass} min-h-[56px] rounded-[18px] pl-11 text-[16px]`}
-            style={{ color: dateEnd ? "var(--color-navy)" : "var(--color-faint)" }}
+        {(dateStart || dateEnd) && (
+          <p className="text-navy mt-2 text-sm font-medium">
+            {dateStart ? format(parse(dateStart, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
+            {" → "}
+            {dateEnd ? format(parse(dateEnd, "yyyy-MM-dd", new Date()), "MMM d, yyyy") : "—"}
+          </p>
+        )}
+
+        <div className="mt-3 flex justify-center">
+          <DayPicker
+            mode="range"
+            selected={dateRange}
+            onSelect={handleDateRangeSelect}
+            disabled={{ before: new Date() }}
+            numberOfMonths={1}
+            showOutsideDays
+            className="rdp-travel"
           />
         </div>
+
+        {errors.dateStart && <p className={travelFieldErrorClass}>{errors.dateStart}</p>}
         {errors.dateEnd && <p className={travelFieldErrorClass}>{errors.dateEnd}</p>}
       </div>
 
