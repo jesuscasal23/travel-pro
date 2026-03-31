@@ -287,24 +287,10 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     // The other hotel should now be visible
     await expect(page.getByText("Grand Paris Hotel")).toBeVisible({ timeout: 5_000 });
 
-    // Click "Remove" to clear selection
+    // Click "Remove" to clear selection — optimistic update removes it immediately
     await page.getByText("Remove").first().click();
 
-    // Wait for the selection to be removed on the backend, then reload so the
-    // UI assertion is based on persisted state rather than query timing.
-    await expect
-      .poll(
-        async () => {
-          const res = await page.request.get(`/api/v1/trips/${tripId}/selections/hotels`);
-          const body = (await res.json()) as { selections: Array<{ id: string }> };
-          return body.selections.length;
-        },
-        { timeout: 15_000 }
-      )
-      .toBe(0);
-
-    await page.reload();
-    await expect(page.getByText("Selected").first()).not.toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Selected").first()).not.toBeVisible({ timeout: 10_000 });
   });
 
   // ============================================================
@@ -447,53 +433,35 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     expect(currentTrip?.hotels).toHaveLength(1);
     expect(currentTrip?.hotels[0]).toMatchObject({ hotelName: "Hotel Le Marais" });
 
+    // Mark flight as booked — should leave the cart immediately
     const markBookedRes = await page.request.patch(`/api/v1/trips/${tripId}/selections/flights`, {
       data: { id: flightSelection.id },
     });
     expect(markBookedRes.status()).toBe(200);
 
-    await expect
-      .poll(
-        async () => {
-          const res = await page.request.get("/api/v1/selections/cart");
-          const body = (await res.json()) as {
-            trips: Array<{
-              tripId: string;
-              flights: Array<{ id: string }>;
-              hotels: Array<{ id: string }>;
-            }>;
-          };
-          const currentTrip = body.trips.find((trip) => trip.tripId === tripId);
-          return {
-            flightCount: currentTrip?.flights.length ?? 0,
-            hotelCount: currentTrip?.hotels.length ?? 0,
-          };
-        },
-        { timeout: 10_000 }
-      )
-      .toEqual({ flightCount: 0, hotelCount: 1 });
+    const afterBookedRes = await page.request.get("/api/v1/selections/cart");
+    const afterBooked = (await afterBookedRes.json()) as {
+      trips: Array<{
+        tripId: string;
+        flights: Array<{ id: string }>;
+        hotels: Array<{ id: string }>;
+      }>;
+    };
+    const tripAfterBooked = afterBooked.trips.find((trip) => trip.tripId === tripId);
+    expect(tripAfterBooked?.flights).toHaveLength(0);
+    expect(tripAfterBooked?.hotels).toHaveLength(1);
 
+    // Remove hotel — trip should leave the cart entirely
     const removeHotelRes = await page.request.delete(`/api/v1/trips/${tripId}/selections/hotels`, {
       data: { id: hotelSelection.id },
     });
     expect(removeHotelRes.status()).toBe(200);
 
-    await expect
-      .poll(
-        async () => {
-          const res = await page.request.get("/api/v1/selections/cart");
-          const body = (await res.json()) as {
-            trips: Array<{
-              tripId: string;
-              flights: Array<{ id: string }>;
-              hotels: Array<{ id: string }>;
-            }>;
-          };
-          return body.trips.some((trip) => trip.tripId === tripId);
-        },
-        { timeout: 10_000 }
-      )
-      .toBe(false);
+    const afterRemoveRes = await page.request.get("/api/v1/selections/cart");
+    const afterRemove = (await afterRemoveRes.json()) as {
+      trips: Array<{ tripId: string }>;
+    };
+    expect(afterRemove.trips.some((trip) => trip.tripId === tripId)).toBe(false);
   });
 
   // ============================================================
@@ -589,32 +557,16 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       cartLink.locator("span").filter({ hasText: new RegExp(`^${afterAddCount}$`) })
     ).toBeVisible({ timeout: 5_000 });
 
-    // Mark the hotel as booked via API
-    await page.request.patch(`/api/v1/trips/${tripId}/selections/hotels`, {
+    // Mark the hotel as booked via API, then reload to pick up the new count
+    const markRes = await page.request.patch(`/api/v1/trips/${tripId}/selections/hotels`, {
       data: { id: hotelSelection.id },
     });
+    expect(markRes.status()).toBe(200);
 
-    await expect
-      .poll(
-        async () => {
-          const res = await page.request.get("/api/v1/selections/cart");
-          const body = (await res.json()) as {
-            trips: Array<{ flights: Array<{ id: string }>; hotels: Array<{ id: string }> }>;
-          };
-          return body.trips.reduce(
-            (sum, trip) => sum + trip.flights.length + trip.hotels.length,
-            0
-          );
-        },
-        { timeout: 10_000 }
-      )
-      .toBe(baselineCount + 1);
-
-    // Reload to get fresh count
     await page.reload();
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Badge should now be one higher than baseline.
+    // Badge should now be one higher than baseline (flight still unbooked, hotel is booked)
     const afterBookCount = baselineCount + 1;
     await expect(
       cartLink.locator("span").filter({ hasText: new RegExp(`^${afterBookCount}$`) })
