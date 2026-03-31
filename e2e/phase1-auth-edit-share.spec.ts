@@ -131,6 +131,108 @@ test("E2E-03: login -> trip list -> trip view -> verify tabs", async ({ page }) 
   }
 });
 
+test("E2E-02b: destination step — popular cities, flexible dates, one-way toggle", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+
+  // Guest user — navigate directly to /plan (skips profile step if returning)
+  // Seed localStorage with profile data so the plan flow jumps to destination step
+  await page.goto("/plan");
+  await page.evaluate(() => {
+    const store = JSON.parse(localStorage.getItem("plan-form-store") ?? "{}");
+    store.state = {
+      ...store.state,
+      planStep: 1,
+      nationality: "American",
+      homeAirport: "JFK",
+    };
+    localStorage.setItem("plan-form-store", JSON.stringify(store));
+  });
+  await page.goto("/plan");
+
+  // Wait for destination step to render
+  await expect(page.getByText("Where to")).toBeVisible({ timeout: 10_000 });
+
+  // ── Popular destinations ──
+  // The popular city buttons should be visible inside the cities card
+  const bangkokBtn = page.getByRole("button", { name: "Bangkok" });
+  const tokyoBtn = page.getByRole("button", { name: "Tokyo" });
+  await expect(bangkokBtn).toBeVisible();
+  await expect(tokyoBtn).toBeVisible();
+
+  // Click two popular cities
+  await bangkokBtn.click();
+  await tokyoBtn.click();
+
+  // Verify both appear as selected pills (chip text visible)
+  await expect(page.getByText("Bangkok").first()).toBeVisible();
+  await expect(page.getByText("Tokyo").first()).toBeVisible();
+
+  // Popular buttons should now be disabled (opacity marks selection)
+  await expect(bangkokBtn).toBeDisabled();
+  await expect(tokyoBtn).toBeDisabled();
+
+  // Remove one city via its X button
+  const bangkokPill = page.locator('[aria-label="Remove Bangkok"]');
+  await bangkokPill.click();
+  // Bangkok button should be enabled again
+  await expect(bangkokBtn).toBeEnabled();
+
+  // ── Trip direction toggle ──
+  // Default is "Return"
+  const returnBtn = page.getByRole("button", { name: /^Return$/i });
+  const oneWayBtn = page.getByRole("button", { name: /One-way/i });
+  await expect(returnBtn).toBeVisible();
+  await expect(oneWayBtn).toBeVisible();
+
+  // Switch to one-way
+  await oneWayBtn.click();
+  // One-way should now have active styling (brand-primary classes)
+  await expect(oneWayBtn).toHaveClass(/brand-primary/);
+
+  // Switch back to return
+  await returnBtn.click();
+  await expect(returnBtn).toHaveClass(/brand-primary/);
+
+  // ── Date mode toggle ──
+  const exactBtn = page.getByRole("button", { name: /Exact dates/i });
+  const flexibleBtn = page.getByRole("button", { name: /flexible/i });
+  await expect(exactBtn).toBeVisible();
+  await expect(flexibleBtn).toBeVisible();
+
+  // Calendar should be visible in exact mode
+  const calendar = page.locator(".rdp-travel");
+  await expect(calendar).toBeVisible();
+
+  // Switch to flexible mode
+  await flexibleBtn.click();
+  await expect(flexibleBtn).toHaveClass(/brand-primary/);
+
+  // Day count stepper should appear
+  const dayCountText = page.getByText(/days$/i).first();
+  await expect(dayCountText).toBeVisible();
+
+  // Increment days
+  const plusBtn = page
+    .locator("button")
+    .filter({ has: page.locator("svg.lucide-plus") })
+    .first();
+  await plusBtn.click();
+  await plusBtn.click();
+
+  // Calendar should still be visible in flexible mode (for availability window)
+  await expect(calendar).toBeVisible();
+
+  // Switch back to exact and pick dates
+  await exactBtn.click();
+  await calendar.getByRole("gridcell", { name: "20" }).first().click();
+  await calendar.getByRole("gridcell", { name: "25" }).first().click();
+
+  // Date summary should appear with the selected range
+  await expect(page.getByText(/→/)).toBeVisible();
+});
+
 test("E2E-06: auth pages render key form elements", async ({ page }) => {
   await page.goto("/signup");
   await expect(page.getByPlaceholder("you@example.com")).toBeVisible();
