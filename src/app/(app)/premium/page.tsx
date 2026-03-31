@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import {
   Crown,
   Loader2,
@@ -26,11 +28,50 @@ const features = [
   { icon: ShieldOff, title: "Completely ad-free experience" },
 ] as const;
 
+const PLAN_PRICES: Record<Plan | "monthly", string> = {
+  lifetime: "499",
+  yearly: "99",
+  "per-trip": "19.99",
+  monthly: "12.99",
+};
+
 export default function PremiumPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan>("yearly");
   const [showMonthly, setShowMonthly] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToastStore((s) => s.toast);
+  const posthog = usePostHog();
+  const searchParams = useSearchParams();
+  const mountedAt = useRef(Date.now());
+  const source = searchParams.get("source");
+
+  // Track paywall view on mount
+  useEffect(() => {
+    posthog?.capture("paywall_viewed", { source: source ?? "direct" });
+  }, [posthog, source]);
+
+  // Track subscription success after Stripe redirect
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      posthog?.capture("subscription_started", {
+        plan: searchParams.get("plan") ?? "unknown",
+      });
+    }
+  }, [posthog, searchParams]);
+
+  // Track dismissal via visibilitychange
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        posthog?.capture("paywall_dismissed", {
+          source: source ?? "direct",
+          time_on_page_ms: Date.now() - mountedAt.current,
+        });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [posthog, source]);
 
   const handleSubscribe = async () => {
     if (selectedPlan === "per-trip") {
@@ -40,6 +81,11 @@ export default function PremiumPage() {
 
     // When the monthly sub-option is shown and selected, checkout monthly
     const checkoutPlan = showMonthly && selectedPlan === "yearly" ? "monthly" : selectedPlan;
+
+    posthog?.capture("paywall_cta_clicked", {
+      plan: checkoutPlan,
+      price: PLAN_PRICES[checkoutPlan],
+    });
 
     setIsLoading(true);
     try {

@@ -71,7 +71,7 @@ export async function createCheckoutSession(params: {
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     mode: isSubscription ? "subscription" : "payment",
-    success_url: `${params.returnUrl}?checkout=success`,
+    success_url: `${params.returnUrl}?checkout=success&plan=${params.plan}`,
     cancel_url: params.returnUrl,
     metadata: { userId: params.userId, plan: params.plan },
   };

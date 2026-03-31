@@ -379,6 +379,7 @@ export async function proxy(request: NextRequest) {
         // Fail open: don't block users when the profile query fails
       } else if (profile && !profile.is_premium) {
         const premiumUrl = new URL("/premium", request.url);
+        premiumUrl.searchParams.set("source", pathname);
         const redirect = NextResponse.redirect(premiumUrl);
         redirect.headers.set("x-request-id", requestId);
         return redirect;
