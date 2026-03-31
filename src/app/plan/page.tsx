@@ -22,7 +22,7 @@ import { OverviewStep } from "./steps/OverviewStep";
 import { SignupGateStep } from "./steps/SignupGateStep";
 import type { CityStop } from "@/types";
 import { validate, onboardingStep1Schema, destinationStepSchema } from "@/lib/forms/schemas";
-import { daysBetween } from "@/lib/utils/format/date";
+import { daysBetween, addDays } from "@/lib/utils/format/date";
 import Link from "next/link";
 
 export default function PlanPage() {
@@ -43,6 +43,9 @@ export default function PlanPage() {
     planningPriorities,
     dateStart,
     dateEnd,
+    dateMode,
+    dayCount: flexDayCount,
+    flexMonth,
     travelers,
   } = usePlanFormStore();
 
@@ -106,10 +109,21 @@ export default function PlanPage() {
   const showSignupGate = isFinalStep && isAuthenticated === false;
   const progress = Math.round((step / totalSteps) * 100);
 
-  const dayCount = dateStart && dateEnd ? Math.max(0, daysBetween(dateStart, dateEnd)) : 0;
+  // Compute effective dates: for flexible mode, synthesize from month + day count
+  const effectiveDateStart = dateMode === "flexible" && flexMonth ? `${flexMonth}-01` : dateStart;
+  const effectiveDateEnd =
+    dateMode === "flexible" && flexMonth ? addDays(`${flexMonth}-01`, flexDayCount) : dateEnd;
+
+  const dayCount =
+    effectiveDateStart && effectiveDateEnd
+      ? Math.max(0, daysBetween(effectiveDateStart, effectiveDateEnd))
+      : 0;
 
   const canAdvance = () => {
     if (showDestination) {
+      if (dateMode === "flexible") {
+        return selectedCities.length > 0 && flexDayCount >= 1 && !!flexMonth;
+      }
       return selectedCities.length > 0 && !!dateStart && !!dateEnd && dayCount > 0;
     }
     if (showDetails) {
@@ -133,7 +147,14 @@ export default function PlanPage() {
       }
     }
     if (showDestination) {
-      const fieldErrors = validate(destinationStepSchema, { selectedCities, dateStart, dateEnd });
+      const fieldErrors = validate(destinationStepSchema, {
+        selectedCities,
+        dateMode,
+        dateStart,
+        dateEnd,
+        dayCount: flexDayCount,
+        flexMonth,
+      });
       if (fieldErrors) {
         setErrors(fieldErrors);
         return;
@@ -169,7 +190,14 @@ export default function PlanPage() {
       }
     }
 
-    const fieldErrors = validate(destinationStepSchema, { selectedCities, dateStart, dateEnd });
+    const fieldErrors = validate(destinationStepSchema, {
+      selectedCities,
+      dateMode,
+      dateStart,
+      dateEnd,
+      dayCount: flexDayCount,
+      flexMonth,
+    });
     if (fieldErrors) {
       setErrors(fieldErrors);
       return;
@@ -243,8 +271,8 @@ export default function PlanPage() {
               destinationCountryCode: firstCity.countryCode,
             }
           : {}),
-        dateStart,
-        dateEnd,
+        dateStart: effectiveDateStart,
+        dateEnd: effectiveDateEnd,
         travelers,
         ...(combinedDescription ? { description: combinedDescription } : {}),
         initialItinerary: { route, days: [] },
@@ -271,6 +299,11 @@ export default function PlanPage() {
     prioritySummary,
     dateStart,
     dateEnd,
+    dateMode,
+    flexDayCount,
+    flexMonth,
+    effectiveDateStart,
+    effectiveDateEnd,
     travelers,
     dayCount,
     effectiveNationality,

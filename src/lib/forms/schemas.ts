@@ -7,17 +7,35 @@ import { z } from "zod";
 // components (onboarding, plan, profile).
 // ============================================================
 
-/** Plan step 1: selected cities and dates. */
+/** Plan step 1: selected cities and dates (exact or flexible). */
 export const destinationStepSchema = z
   .object({
     selectedCities: z
       .array(z.object({ city: z.string() }).passthrough())
       .min(1, "Please add at least one city"),
-    dateStart: z.string().min(1, "Please select a start date"),
-    dateEnd: z.string().min(1, "Please select an end date"),
+    dateMode: z.enum(["exact", "flexible"]).default("exact"),
+    dateStart: z.string().default(""),
+    dateEnd: z.string().default(""),
+    dayCount: z.number().default(7),
+    flexMonth: z.string().default(""),
   })
   .refine(
     (d) => {
+      if (d.dateMode === "flexible") return d.dayCount >= 1;
+      return d.dateStart.length > 0;
+    },
+    { message: "Please select a start date", path: ["dateStart"] }
+  )
+  .refine(
+    (d) => {
+      if (d.dateMode === "flexible") return d.flexMonth.length > 0;
+      return d.dateEnd.length > 0;
+    },
+    { message: "Please select an end date or month", path: ["dateEnd"] }
+  )
+  .refine(
+    (d) => {
+      if (d.dateMode === "flexible") return true;
       if (!d.dateStart || !d.dateEnd) return true;
       return new Date(d.dateEnd) > new Date(d.dateStart);
     },

@@ -10,6 +10,8 @@ export interface SelectedCity {
   iataCode?: string;
 }
 
+export type DateMode = "exact" | "flexible";
+
 interface PlanFormState {
   planStep: number;
   selectedCities: SelectedCity[];
@@ -17,6 +19,9 @@ interface PlanFormState {
   planningPriorities: string[];
   dateStart: string;
   dateEnd: string;
+  dateMode: DateMode;
+  dayCount: number;
+  flexMonth: string; // "YYYY-MM" format
   travelers: number;
 }
 
@@ -31,6 +36,9 @@ interface PlanFormActions {
   togglePlanningPriority: (priority: string) => void;
   setDateStart: (date: string) => void;
   setDateEnd: (date: string) => void;
+  setDateMode: (mode: DateMode) => void;
+  setDayCount: (count: number) => void;
+  setFlexMonth: (month: string) => void;
   setTravelers: (count: number) => void;
   resetPlanForm: () => void;
 }
@@ -42,6 +50,9 @@ const initialPlanFormState: PlanFormState = {
   planningPriorities: [],
   dateStart: "",
   dateEnd: "",
+  dateMode: "exact",
+  dayCount: 7,
+  flexMonth: "",
   travelers: 2,
 };
 
@@ -77,6 +88,9 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
         })),
       setDateStart: (date) => set({ dateStart: date }),
       setDateEnd: (date) => set({ dateEnd: date }),
+      setDateMode: (dateMode) => set({ dateMode }),
+      setDayCount: (dayCount) => set({ dayCount }),
+      setFlexMonth: (flexMonth) => set({ flexMonth }),
       setTravelers: (count) => set({ travelers: count }),
       resetPlanForm: () => set(initialPlanFormState),
     }),
