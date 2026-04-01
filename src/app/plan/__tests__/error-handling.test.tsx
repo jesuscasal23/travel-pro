@@ -172,7 +172,9 @@ describe("PlanPage — authenticated API failure", () => {
       fireEvent.click(generateBtn);
     });
 
-    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledWith("/trips/trip-123"));
+    await waitFor(() =>
+      expect(mockRouterPush).toHaveBeenCalledWith("/trips/trip-123/itinerary?firstRun=1")
+    );
   }, 15_000);
 
   it("does not inject data into the store on failure", async () => {
