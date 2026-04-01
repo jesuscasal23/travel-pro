@@ -61,6 +61,8 @@ export default function HomePage() {
   const nextTrip = getNextTrip(tripList);
   const destination = nextTrip?.destination ?? "your destination";
 
+  // Run once on mount to set time-based greeting — avoids SSR/client hydration mismatch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setGreeting(getGreeting());
   }, []);

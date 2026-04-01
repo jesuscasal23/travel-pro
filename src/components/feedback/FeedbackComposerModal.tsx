@@ -37,6 +37,10 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
     return match?.[1] ?? null;
   }, [pathname]);
 
+  // Reset form state when the modal transitions from open → closed.
+  // createFeedbackMutation intentionally omitted from deps — including it caused
+  // reset() to loop (mutation reference changes after each reset call).
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
   useEffect(() => {
     if (wasOpenRef.current && !open) {
       setCategory("feature_request");
@@ -106,7 +110,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
           </div>
           <div className="space-y-2">
             <p className="text-ink text-base font-semibold">
-              You're one of the founding users helping decide what Travel Pro builds next.
+              You&apos;re one of the founding users helping decide what Travel Pro builds next.
             </p>
             <p className="text-label text-sm leading-relaxed">
               We logged <strong>{successFeedback.title}</strong> and the team now has your route,
