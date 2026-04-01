@@ -283,7 +283,7 @@ export default function PlanPage() {
         trip_id: trip.id,
         city_count: selectedCities.length,
       });
-      router.push(`/trips/${trip.id}`);
+      router.push(`/trips/${trip.id}/itinerary?firstRun=1`);
     } catch (err) {
       setIsBuilding(false);
       setGenerateError(
