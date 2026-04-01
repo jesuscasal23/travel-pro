@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { CheckCircle2, ImagePlus, Loader2, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { useCreateFeedback } from "@/hooks/api";
@@ -24,7 +24,6 @@ interface FeedbackComposerModalProps {
 export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerModalProps) {
   const pathname = usePathname();
   const createFeedbackMutation = useCreateFeedback();
-  const wasOpenRef = useRef(open);
   const [category, setCategory] = useState<FeedbackCategory>("feature_request");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -37,12 +36,8 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
     return match?.[1] ?? null;
   }, [pathname]);
 
-  // Reset form state when the modal transitions from open → closed.
-  // createFeedbackMutation intentionally omitted from deps — including it caused
-  // reset() to loop (mutation reference changes after each reset call).
-  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (wasOpenRef.current && !open) {
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
       setCategory("feature_request");
       setTitle("");
       setDescription("");
@@ -51,8 +46,8 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
       setSuccessFeedback(null);
       createFeedbackMutation.reset();
     }
-    wasOpenRef.current = open;
-  }, [open]);
+    onOpenChange(nextOpen);
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,7 +92,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title={successFeedback ? "Thank you for shaping Travel Pro" : "Share feedback"}
       maxWidth="max-w-lg"
       mobileSheet
@@ -144,8 +139,8 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
               </p>
             </div>
             <p className="text-ink text-sm leading-relaxed">
-              This is not a dead-end support form. Early users are shaping the roadmap, and what
-              you send here directly influences what we build next.
+              This is not a dead-end support form. Early users are shaping the roadmap, and what you
+              send here directly influences what we build next.
             </p>
           </div>
 

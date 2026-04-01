@@ -15,7 +15,6 @@ import {
   PlaneTakeoff,
   Settings,
   Shield,
-  SlidersHorizontal,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -49,7 +48,6 @@ import {
 const menuItems = [
   { icon: FileText, label: "Travel Documents" },
   { icon: Shield, label: "Login & Security" },
-  { icon: SlidersHorizontal, label: "App Settings" },
 ];
 
 export default function ProfilePage() {
@@ -217,13 +215,20 @@ export default function ProfilePage() {
         <div className="bg-edge h-px w-full" />
       </header>
 
-      <main className="px-6 pt-8">
+      <main className="space-y-8 px-6 pt-8 pb-6">
         {/* User Identity Header */}
         <section className="flex flex-col items-center space-y-4 text-center">
           <div className="relative">
             <div className="h-24 w-24 overflow-hidden rounded-full shadow-lg ring-4 ring-white">
-              <div className="bg-surface-soft flex h-full w-full items-center justify-center">
-                <span className="text-4xl">👤</span>
+              <div className="bg-brand-primary flex h-full w-full items-center justify-center">
+                <span className="font-display text-3xl font-bold text-white">
+                  {displayName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
+                </span>
               </div>
             </div>
             <button className="bg-brand-primary absolute right-0 bottom-0 rounded-full border-2 border-white p-2 text-white shadow-lg active:scale-90">
@@ -258,7 +263,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2">
               {isAuth && persistedProfile && (
                 <span className="text-brand-primary flex items-center gap-1 text-[10px] font-bold">
-                  <Check size={14} className="fill-brand-primary text-white" />
+                  <Check size={14} className="text-brand-primary" />
                   SAVED
                 </span>
               )}
@@ -417,7 +422,7 @@ export default function ProfilePage() {
             <h3 className="text-dim px-1 text-[10px] font-bold tracking-widest uppercase">
               Founding User Feedback
             </h3>
-            <div className="overflow-hidden rounded-[28px] border border-[#d8e6fb] bg-[#f6f9ff] p-5 shadow-[0_8px_18px_rgba(49,94,155,0.08)]">
+            <div className="border-brand-primary-border bg-brand-primary-subtle overflow-hidden rounded-2xl border p-5 shadow-sm">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80">
                   <Sparkles className="text-brand-primary h-5 w-5" />
@@ -441,7 +446,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => router.push("/feedback")}
-                  className="text-ink rounded-2xl border border-[#c6d8f2] bg-white px-4 py-3 text-sm font-semibold"
+                  className="border-brand-primary-border text-ink rounded-2xl border bg-white px-4 py-3 text-sm font-semibold"
                 >
                   View your feedback
                 </button>
@@ -487,26 +492,6 @@ export default function ProfilePage() {
               </button>
             )}
           </div>
-        </section>
-
-        {/* Need Help Card */}
-        <section className="from-brand-primary shadow-brand-primary/20 relative overflow-hidden rounded-2xl bg-gradient-to-br to-[#7b9cff] p-6 text-white shadow-xl">
-          <div className="relative z-10 flex flex-col items-start gap-4">
-            <div>
-              <h3 className="font-display text-lg font-bold">Need Help?</h3>
-              <p className="max-w-[200px] text-sm text-white/80">
-                Our travel experts are ready to assist you 24/7.
-              </p>
-            </div>
-            <button className="text-brand-primary rounded-full bg-white px-6 py-2.5 text-xs font-bold tracking-wider uppercase shadow-lg active:scale-95">
-              Start Chat
-            </button>
-          </div>
-          <Headphones
-            size={120}
-            strokeWidth={1}
-            className="absolute -right-4 -bottom-4 rotate-12 text-white opacity-10"
-          />
         </section>
 
         {/* Account Data / Danger Zone */}
