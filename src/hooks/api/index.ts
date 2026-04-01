@@ -14,6 +14,7 @@ export { useDeleteTrip } from "./trips/useDeleteTrip";
 export { useVisaEnrichment } from "./enrichment/useVisaEnrichment";
 export { useWeatherEnrichment } from "./enrichment/useWeatherEnrichment";
 export { useAccommodationEnrichment } from "./enrichment/useAccommodationEnrichment";
+export { useHealthEnrichment } from "./enrichment/useHealthEnrichment";
 export { fetchAccommodationEnrichment, getAccommodationQueryKey } from "./enrichment/shared";
 
 // Profile

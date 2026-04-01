@@ -12,7 +12,11 @@ import {
   removeHotelSelection,
   markHotelBooked,
 } from "@/lib/features/selections/selection-service";
-import { UpsertHotelSelectionSchema, SelectionIdSchema } from "@/lib/features/selections/schemas";
+import {
+  UpsertHotelSelectionSchema,
+  SelectionIdSchema,
+  MarkSelectionSchema,
+} from "@/lib/features/selections/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -57,8 +61,8 @@ export const PATCH = apiHandler(
     const userId = await requireAuth();
     const profile = await requireProfile(userId);
     await assertTripAccess(req, params.id, { requireTripOwner: true });
-    const { id } = await parseAndValidateRequest(req, SelectionIdSchema);
-    const selection = await markHotelBooked(id, profile.id);
+    const { id, booked } = await parseAndValidateRequest(req, MarkSelectionSchema);
+    const selection = await markHotelBooked(id, profile.id, booked);
     return NextResponse.json({ selection });
   }
 );

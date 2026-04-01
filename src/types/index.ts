@@ -93,6 +93,20 @@ export interface TripDay {
   travelDuration?: string;
 }
 
+/** A single health/vaccine requirement for a destination country */
+export interface HealthRequirement {
+  type: "required" | "recommended";
+  name: string;
+  notes: string;
+}
+
+/** Health info for a destination country */
+export interface HealthInfo {
+  country: string;
+  countryCode: string;
+  requirements: HealthRequirement[];
+}
+
 /** Visa info for a country */
 export interface VisaInfo {
   country: string;
@@ -201,6 +215,8 @@ export interface Itinerary {
   days: TripDay[];
   /** Populated by background enrichment after core itinerary is ready */
   visaData?: VisaInfo[];
+  /** Populated by background enrichment after core itinerary is ready */
+  healthData?: HealthInfo[];
   /** Populated by background enrichment after core itinerary is ready */
   weatherData?: CityWeather[];
   /** Hotel accommodation data populated by background enrichment */

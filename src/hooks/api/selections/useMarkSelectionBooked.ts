@@ -9,25 +9,27 @@ interface MarkBookedParams {
   tripId: string;
   selectionId: string;
   type: "flights" | "hotels";
+  booked?: boolean;
 }
 
 export function useMarkSelectionBooked() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ tripId, selectionId, type }: MarkBookedParams) => {
+    mutationFn: async ({ tripId, selectionId, type, booked = true }: MarkBookedParams) => {
       return apiFetch(`/api/v1/trips/${tripId}/selections/${type}`, {
         source: "useMarkSelectionBooked",
         method: "PATCH",
-        body: { id: selectionId },
+        body: { id: selectionId, booked },
         fallbackMessage: "Failed to mark as booked",
       });
     },
     onMutate: async (variables) => {
+      const { tripId, selectionId, type, booked = true } = variables;
       const tripSelectionsKey =
-        variables.type === "flights"
-          ? queryKeys.selections.flightsForTrip(variables.tripId)
-          : queryKeys.selections.hotelsForTrip(variables.tripId);
+        type === "flights"
+          ? queryKeys.selections.flightsForTrip(tripId)
+          : queryKeys.selections.hotelsForTrip(tripId);
       const cartKey = queryKeys.selections.cart();
       const countKey = queryKeys.selections.unbookedCount();
 
@@ -36,52 +38,45 @@ export function useMarkSelectionBooked() {
       await queryClient.cancelQueries({ queryKey: countKey });
 
       const prevTripSelections =
-        variables.type === "flights"
+        type === "flights"
           ? queryClient.getQueryData<FlightSelection[]>(tripSelectionsKey)
           : queryClient.getQueryData<HotelSelection[]>(tripSelectionsKey);
       const prevCart = queryClient.getQueryData<CartTrip[]>(cartKey);
       const prevCount = queryClient.getQueryData<number>(countKey);
 
-      // Mark as booked in trip-scoped selections
-      if (variables.type === "flights") {
+      const bookedAt = booked ? new Date().toISOString() : null;
+
+      // Update in trip-scoped selections
+      if (type === "flights") {
         queryClient.setQueryData<FlightSelection[]>(tripSelectionsKey, (old) =>
-          old?.map((s) =>
-            s.id === variables.selectionId
-              ? { ...s, booked: true, bookedAt: new Date().toISOString() }
-              : s
-          )
+          old?.map((s) => (s.id === selectionId ? { ...s, booked, bookedAt } : s))
         );
       } else {
         queryClient.setQueryData<HotelSelection[]>(tripSelectionsKey, (old) =>
-          old?.map((s) =>
-            s.id === variables.selectionId
-              ? { ...s, booked: true, bookedAt: new Date().toISOString() }
-              : s
-          )
+          old?.map((s) => (s.id === selectionId ? { ...s, booked, bookedAt } : s))
         );
       }
 
-      // Remove from cart (booked items leave the cart) and drop empty trip groups
+      // Update in-place in cart (keep item, flip the booked flag)
       queryClient.setQueryData<CartTrip[]>(cartKey, (old) => {
         if (!old) return old;
-        const field = variables.type === "flights" ? "flights" : "hotels";
-        return old
-          .map((trip) => {
-            if (trip.tripId !== variables.tripId) return trip;
-            return {
-              ...trip,
-              [field]: (trip[field] as { id: string }[]).filter(
-                (s) => s.id !== variables.selectionId
-              ),
-            };
-          })
-          .filter((trip) => trip.flights.length > 0 || trip.hotels.length > 0);
+        const field = type === "flights" ? "flights" : "hotels";
+        return old.map((trip) => {
+          if (trip.tripId !== tripId) return trip;
+          return {
+            ...trip,
+            [field]: (trip[field] as (FlightSelection | HotelSelection)[]).map((s) =>
+              s.id === selectionId ? { ...s, booked, bookedAt } : s
+            ),
+          };
+        });
       });
 
-      // Decrement unbooked count
-      queryClient.setQueryData<number>(countKey, (old) =>
-        old != null ? Math.max(0, old - 1) : old
-      );
+      // Adjust unbooked count: marking booked → decrement, un-marking → increment
+      queryClient.setQueryData<number>(countKey, (old) => {
+        if (old == null) return old;
+        return booked ? Math.max(0, old - 1) : old + 1;
+      });
 
       return { prevTripSelections, prevCart, prevCount, tripSelectionsKey };
     },

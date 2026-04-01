@@ -50,6 +50,58 @@ const HOTEL_SELECTION_SELECT = {
   updatedAt: true,
 } as const;
 
+const TRIP_DATE_SELECT = {
+  select: { dateStart: true, dateEnd: true, destination: true, region: true },
+} as const;
+
+const FLIGHT_CART_SELECT = {
+  id: true,
+  tripId: true,
+  profileId: true,
+  selectionType: true,
+  fromIata: true,
+  toIata: true,
+  departureDate: true,
+  direction: true,
+  airline: true,
+  price: true,
+  duration: true,
+  stops: true,
+  departureTime: true,
+  arrivalTime: true,
+  cabin: true,
+  bookingToken: true,
+  bookingUrl: true,
+  booked: true,
+  bookedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  trip: TRIP_DATE_SELECT,
+} as const;
+
+const HOTEL_CART_SELECT = {
+  id: true,
+  tripId: true,
+  profileId: true,
+  selectionType: true,
+  city: true,
+  countryCode: true,
+  checkIn: true,
+  checkOut: true,
+  hotelName: true,
+  hotelId: true,
+  rating: true,
+  pricePerNight: true,
+  totalPrice: true,
+  currency: true,
+  bookingUrl: true,
+  booked: true,
+  bookedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  trip: TRIP_DATE_SELECT,
+} as const;
+
 // ── Flight selections ───────────────────────────────────────────
 
 export async function getFlightSelectionsForTrip(tripId: string) {
@@ -118,10 +170,10 @@ export async function removeFlightSelection(id: string, profileId: string) {
   });
 }
 
-export async function markFlightBooked(id: string, profileId: string) {
+export async function markFlightBooked(id: string, profileId: string, booked = true) {
   return prisma.flightSelection.update({
     where: { id, profileId },
-    data: { booked: true, bookedAt: new Date() },
+    data: { booked, bookedAt: booked ? new Date() : null },
     select: FLIGHT_SELECTION_SELECT,
   }) as unknown as FlightSelection;
 }
@@ -190,10 +242,10 @@ export async function removeHotelSelection(id: string, profileId: string) {
   });
 }
 
-export async function markHotelBooked(id: string, profileId: string) {
+export async function markHotelBooked(id: string, profileId: string, booked = true) {
   return prisma.hotelSelection.update({
     where: { id, profileId },
-    data: { booked: true, bookedAt: new Date() },
+    data: { booked, bookedAt: booked ? new Date() : null },
     select: HOTEL_SELECTION_SELECT,
   }) as unknown as HotelSelection;
 }
@@ -201,22 +253,21 @@ export async function markHotelBooked(id: string, profileId: string) {
 // ── Cart (cross-trip) ───────────────────────────────────────────
 
 export async function getCartForProfile(profileId: string): Promise<CartTrip[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const todayStr = today.toISOString().split("T")[0];
+
   const [flights, hotels] = await Promise.all([
     prisma.flightSelection.findMany({
-      where: { profileId, booked: false },
-      select: {
-        ...FLIGHT_SELECTION_SELECT,
-        trip: { select: { dateStart: true, dateEnd: true, destination: true, region: true } },
-      },
-      orderBy: { createdAt: "asc" },
+      where: { profileId, trip: { dateEnd: { gte: todayStr } } },
+      select: FLIGHT_CART_SELECT,
+      orderBy: { departureDate: "asc" },
     }),
     prisma.hotelSelection.findMany({
-      where: { profileId, booked: false },
-      select: {
-        ...HOTEL_SELECTION_SELECT,
-        trip: { select: { dateStart: true, dateEnd: true, destination: true, region: true } },
-      },
-      orderBy: { createdAt: "asc" },
+      where: { profileId, trip: { dateEnd: { gte: todayStr } } },
+      select: HOTEL_CART_SELECT,
+      orderBy: { checkIn: "asc" },
     }),
   ]);
 

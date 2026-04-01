@@ -12,7 +12,11 @@ import {
   removeFlightSelection,
   markFlightBooked,
 } from "@/lib/features/selections/selection-service";
-import { UpsertFlightSelectionSchema, SelectionIdSchema } from "@/lib/features/selections/schemas";
+import {
+  UpsertFlightSelectionSchema,
+  SelectionIdSchema,
+  MarkSelectionSchema,
+} from "@/lib/features/selections/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -57,8 +61,8 @@ export const PATCH = apiHandler(
     const userId = await requireAuth();
     const profile = await requireProfile(userId);
     await assertTripAccess(req, params.id, { requireTripOwner: true });
-    const { id } = await parseAndValidateRequest(req, SelectionIdSchema);
-    const selection = await markFlightBooked(id, profile.id);
+    const { id, booked } = await parseAndValidateRequest(req, MarkSelectionSchema);
+    const selection = await markFlightBooked(id, profile.id, booked);
     return NextResponse.json({ selection });
   }
 );

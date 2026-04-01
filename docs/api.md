@@ -106,11 +106,11 @@ Every endpoint is documented twice:
 
 ### `GET /api/v1/selections/cart`
 
-|               |                                                                                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                  |
-| **Developer** | Returns all unbooked selections (flights + hotels) across all trips for the authenticated user. Requires a profile.       |
-| **PM**        | Shows the user's saved picks that they haven't booked yet — their "shopping cart" of flights and hotels across all trips. |
+|               |                                                                                                                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                                                                                                         |
+| **Developer** | Returns all selections (flights + hotels, booked and unbooked) across upcoming trips (`dateEnd >= today`) for the authenticated user, grouped by trip and sorted by departure/check-in date. Requires a profile. |
+| **PM**        | Powers the Cart page — shows everything the user has selected across upcoming trips, both pending and confirmed bookings.                                                                                        |
 
 ### `GET /api/v1/selections/count`
 
@@ -122,19 +122,19 @@ Every endpoint is documented twice:
 
 ### `GET/PUT/DELETE/PATCH /api/v1/trips/[id]/selections/flights`
 
-|               |                                                                                                                                                                                    |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner + profile)                                                                                                                                                    |
-| **Developer** | CRUD for flight selections within a trip. `PUT` creates or updates a selection. `DELETE` removes it. `PATCH` marks it as booked. `GET` returns all flight selections for the trip. |
-| **PM**        | Lets users save, update, remove, or mark as booked their preferred flight options for a trip. Think of it as a wishlist for flights.                                               |
+|               |                                                                                                                                                                                                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required (trip owner + profile)                                                                                                                                                                                                                                              |
+| **Developer** | CRUD for flight selections within a trip. `PUT` creates or updates a selection. `DELETE` removes it. `PATCH` toggles booked status — body: `{ id: uuid, booked?: boolean }` (defaults to `true`; pass `false` to un-mark). `GET` returns all flight selections for the trip. |
+| **PM**        | Lets users save, update, remove, or toggle booked status on their preferred flight options for a trip. Items can be marked booked and unmarked.                                                                                                                              |
 
 ### `GET/PUT/DELETE/PATCH /api/v1/trips/[id]/selections/hotels`
 
-|               |                                                                                                                                                          |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner + profile)                                                                                                                          |
-| **Developer** | CRUD for hotel selections within a trip. Same structure as flight selections — `PUT` to save, `DELETE` to remove, `PATCH` to mark booked, `GET` to list. |
-| **PM**        | Same as flight selections but for hotels — save, compare, and track which accommodations you want to book.                                               |
+|               |                                                                                                                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required (trip owner + profile)                                                                                                                                                                |
+| **Developer** | CRUD for hotel selections within a trip. Same structure as flight selections — `PUT` to save, `DELETE` to remove, `PATCH` to toggle booked status (`{ id, booked?: boolean }`), `GET` to list. |
+| **PM**        | Same as flight selections but for hotels — save, compare, and toggle booking status on accommodations you want to book.                                                                        |
 
 ---
 
@@ -185,6 +185,14 @@ Every endpoint is documented twice:
 | **Auth**      | Required                                                                                                  |
 | **Developer** | Generates accommodation recommendations using AI based on route, dates, traveler count, and travel style. |
 | **PM**        | Suggests hotels and places to stay that match the user's budget and travel style for each city.           |
+
+### `POST /api/v1/enrich/health`
+
+|               |                                                                                                                                                                                                                                                           |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                                                                                                                                                  |
+| **Developer** | Returns health/vaccine requirements for each unique destination country in the route. Uses a static CDC/WHO-sourced dataset (`src/data/health-requirements.ts`). Destination-based — no nationality input needed. Uses `createEnrichmentRoute()` factory. |
+| **PM**        | Tells travelers which vaccines are required for entry (e.g. Yellow Fever certificate) and which are recommended by CDC/WHO (e.g. Malaria, Hepatitis A) for each destination. Foundation for the Trip Readiness feature.                                   |
 
 ---
 

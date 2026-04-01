@@ -6,6 +6,7 @@ import {
   useVisaEnrichment,
   useWeatherEnrichment,
   useAccommodationEnrichment,
+  useHealthEnrichment,
   useAuthStatus,
   useTravelerPreferences,
   useTrip,
@@ -349,6 +350,13 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     !(localItinerary.visaData?.length && localItinerary.weatherData?.length)
   );
 
+  const shouldEnrichHealth = !!(
+    localItinerary &&
+    localItinerary.days.length > 0 &&
+    localItinerary.route.length > 0 &&
+    !localItinerary.healthData?.length
+  );
+
   const hasAccommodationWithHotels = localItinerary?.accommodationData?.some(
     (a) => a.hotels.length > 0
   );
@@ -369,6 +377,8 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     isLoading: weatherLoading,
     error: weatherError,
   } = useWeatherEnrichment(route, dateStart, shouldEnrich);
+  const { data: healthData } = useHealthEnrichment(route, shouldEnrichHealth);
+
   const {
     data: accommodationData,
     isLoading: accommodationLoading,
@@ -383,7 +393,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
 
   // Merge enrichment results into local itinerary state
   useEffect(() => {
-    if (!visaData && !weatherData && !accommodationData) return;
+    if (!visaData && !weatherData && !accommodationData && !healthData) return;
     setLocalItinerary((prev) => {
       if (!prev || prev.days.length === 0) return prev;
       const needsVisa = visaData && !prev.visaData?.length;
@@ -391,15 +401,17 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       const needsAccommodation =
         accommodationData?.some((a) => a.hotels.length > 0) &&
         !prev.accommodationData?.some((a) => a.hotels.length > 0);
-      if (!needsVisa && !needsWeather && !needsAccommodation) return prev;
+      const needsHealth = healthData && !prev.healthData?.length;
+      if (!needsVisa && !needsWeather && !needsAccommodation && !needsHealth) return prev;
       return {
         ...prev,
         ...(needsVisa ? { visaData } : {}),
         ...(needsWeather ? { weatherData } : {}),
         ...(needsAccommodation ? { accommodationData } : {}),
+        ...(needsHealth ? { healthData } : {}),
       };
     });
-  }, [visaData, weatherData, accommodationData]);
+  }, [visaData, weatherData, accommodationData, healthData]);
 
   // Callback for AccommodationTab's manual refetch — updates local state directly
   const handleAccommodationLoaded = useCallback((data: CityAccommodation[]) => {

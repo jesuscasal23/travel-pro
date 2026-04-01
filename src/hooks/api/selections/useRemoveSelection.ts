@@ -24,10 +24,11 @@ export function useRemoveSelection() {
       });
     },
     onMutate: async (variables) => {
+      const { tripId, selectionId, type } = variables;
       const tripSelectionsKey =
-        variables.type === "flights"
-          ? queryKeys.selections.flightsForTrip(variables.tripId)
-          : queryKeys.selections.hotelsForTrip(variables.tripId);
+        type === "flights"
+          ? queryKeys.selections.flightsForTrip(tripId)
+          : queryKeys.selections.hotelsForTrip(tripId);
       const cartKey = queryKeys.selections.cart();
       const countKey = queryKeys.selections.unbookedCount();
 
@@ -36,44 +37,49 @@ export function useRemoveSelection() {
       await queryClient.cancelQueries({ queryKey: countKey });
 
       const prevTripSelections =
-        variables.type === "flights"
+        type === "flights"
           ? queryClient.getQueryData<FlightSelection[]>(tripSelectionsKey)
           : queryClient.getQueryData<HotelSelection[]>(tripSelectionsKey);
       const prevCart = queryClient.getQueryData<CartTrip[]>(cartKey);
       const prevCount = queryClient.getQueryData<number>(countKey);
 
+      // Check if the item being removed is unbooked (only those affect the count)
+      const cartTrip = prevCart?.find((t) => t.tripId === tripId);
+      const field = type === "flights" ? "flights" : "hotels";
+      const removedItem = cartTrip?.[field].find((s) => s.id === selectionId);
+      const wasUnbooked = removedItem ? !removedItem.booked : false;
+
       // Remove from trip-scoped selections
-      if (variables.type === "flights") {
+      if (type === "flights") {
         queryClient.setQueryData<FlightSelection[]>(tripSelectionsKey, (old) =>
-          old?.filter((s) => s.id !== variables.selectionId)
+          old?.filter((s) => s.id !== selectionId)
         );
       } else {
         queryClient.setQueryData<HotelSelection[]>(tripSelectionsKey, (old) =>
-          old?.filter((s) => s.id !== variables.selectionId)
+          old?.filter((s) => s.id !== selectionId)
         );
       }
 
       // Remove from cart and drop empty trip groups
       queryClient.setQueryData<CartTrip[]>(cartKey, (old) => {
         if (!old) return old;
-        const field = variables.type === "flights" ? "flights" : "hotels";
         return old
           .map((trip) => {
-            if (trip.tripId !== variables.tripId) return trip;
+            if (trip.tripId !== tripId) return trip;
             return {
               ...trip,
-              [field]: (trip[field] as { id: string }[]).filter(
-                (s) => s.id !== variables.selectionId
-              ),
+              [field]: (trip[field] as { id: string }[]).filter((s) => s.id !== selectionId),
             };
           })
           .filter((trip) => trip.flights.length > 0 || trip.hotels.length > 0);
       });
 
-      // Decrement unbooked count
-      queryClient.setQueryData<number>(countKey, (old) =>
-        old != null ? Math.max(0, old - 1) : old
-      );
+      // Only decrement count if the removed item was unbooked
+      if (wasUnbooked) {
+        queryClient.setQueryData<number>(countKey, (old) =>
+          old != null ? Math.max(0, old - 1) : old
+        );
+      }
 
       return { prevTripSelections, prevCart, prevCount, tripSelectionsKey };
     },

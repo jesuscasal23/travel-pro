@@ -45,3 +45,8 @@ export type UpsertHotelSelectionInput = z.infer<typeof UpsertHotelSelectionSchem
 export const SelectionIdSchema = z.object({
   id: z.string().uuid(),
 });
+
+export const MarkSelectionSchema = z.object({
+  id: z.string().uuid(),
+  booked: z.boolean().optional().default(true),
+});

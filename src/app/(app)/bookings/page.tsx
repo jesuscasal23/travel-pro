@@ -1,96 +1,57 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Plane, Building2, Car, Ticket, ChevronLeft, ChevronRight } from "lucide-react";
-import { DevelopmentTag } from "@/components/ui/DevelopmentTag";
+import Link from "next/link";
+import { Plane, Building2, CheckCircle2, ExternalLink, ShoppingBag } from "lucide-react";
 import { FilterChips } from "@/components/ui/FilterChips";
-import { IconActionButton } from "@/components/ui/IconActionButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
+import { useCart } from "@/hooks/api/selections/useCart";
+import { useMarkSelectionBooked } from "@/hooks/api/selections/useMarkSelectionBooked";
+import { useRemoveSelection } from "@/hooks/api/selections/useRemoveSelection";
+import type { CartTrip, FlightSelection, HotelSelection } from "@/types";
 
-type BookingType = "flight" | "stay" | "transport" | "activity";
+const filters = ["All", "Flights", "Stays"] as const;
+type Filter = (typeof filters)[number];
 
-interface Booking {
-  id: string;
-  type: BookingType;
-  title: string;
-  subtitle: string;
-  date: string;
-  price?: string;
-  status: "confirmed" | "pending" | "upcoming";
-  fromCode?: string;
-  toCode?: string;
-  fromCity?: string;
-  toCity?: string;
-  airline?: string;
-  flightNumber?: string;
-  time?: string;
+function formatDate(dateStr: string) {
+  return new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
-const mockBookings: Booking[] = [
-  {
-    id: "b1",
-    type: "flight",
-    title: "Japan Airlines",
-    subtitle: "",
-    fromCode: "JFK",
-    toCode: "HND",
-    fromCity: "New York",
-    toCity: "Tokyo",
-    airline: "JAPAN AIRLINES",
-    flightNumber: "JL 005",
-    date: "Apr 05 • 10:30 AM",
-    status: "confirmed",
-  },
-  {
-    id: "b2",
-    type: "stay",
-    title: "Aman Tokyo",
-    subtitle: "The Otemachi Tower",
-    date: "Apr 05 - Apr 10",
-    price: "$4500",
-    status: "confirmed",
-  },
-  {
-    id: "b3",
-    type: "transport",
-    title: "Narita Express",
-    subtitle: "NRT → Tokyo Station",
-    date: "Apr 05 • 02:00 PM",
-    price: "$30",
-    status: "pending",
-  },
-];
+function directionLabel(direction: string) {
+  if (direction === "outbound") return "Outbound";
+  if (direction === "return") return "Return";
+  return "Connecting";
+}
 
-const filters = ["All", "Flights", "Stays", "Transport", "Activities"] as const;
+interface FlightCardProps {
+  flight: FlightSelection;
+  onMarkBooked: (booked: boolean) => void;
+  onRemove: () => void;
+}
 
-const filterTypeMap: Record<string, BookingType | null> = {
-  All: null,
-  Flights: "flight",
-  Stays: "stay",
-  Transport: "transport",
-  Activities: "activity",
-};
-
-function FlightCard({ booking }: { booking: Booking }) {
+function FlightCard({ flight, onMarkBooked, onRemove }: FlightCardProps) {
   return (
     <div className="bg-navy rounded-2xl p-5 text-white">
       {/* Top row */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Plane size={16} />
-          <span className="text-xs font-semibold tracking-wider uppercase">{booking.airline}</span>
+          <span className="text-xs font-semibold tracking-wider uppercase">{flight.airline}</span>
         </div>
         <span className="rounded-lg bg-white/15 px-2.5 py-1 text-xs font-semibold text-white">
-          {booking.flightNumber}
+          {directionLabel(flight.direction)}
         </span>
       </div>
 
       {/* Route row */}
       <div className="mb-4 flex items-center justify-between">
         <div className="text-left">
-          <p className="text-3xl font-bold">{booking.fromCode}</p>
-          <p className="text-xs text-white/60">{booking.fromCity}</p>
+          <p className="text-3xl font-bold">{flight.fromIata}</p>
+          {flight.departureTime && <p className="text-xs text-white/60">{flight.departureTime}</p>}
         </div>
         <div className="mx-4 flex flex-1 items-center gap-2">
           <div className="flex-1 border-b border-dashed border-white/30" />
@@ -98,122 +59,249 @@ function FlightCard({ booking }: { booking: Booking }) {
           <div className="flex-1 border-b border-dashed border-white/30" />
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold">{booking.toCode}</p>
-          <p className="text-xs text-white/60">{booking.toCity}</p>
+          <p className="text-3xl font-bold">{flight.toIata}</p>
+          {flight.arrivalTime && <p className="text-xs text-white/60">{flight.arrivalTime}</p>}
         </div>
       </div>
 
-      {/* Bottom row */}
-      <div className="flex items-center justify-between">
+      {/* Date + price row */}
+      <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="mb-0.5 text-[10px] tracking-wider text-white/50 uppercase">DATE</p>
-          <p className="text-sm font-semibold">{booking.date}</p>
+          <p className="text-sm font-semibold">{formatDate(flight.departureDate)}</p>
         </div>
-        <span className="bg-app-green/20 text-app-green rounded-full px-3 py-1 text-xs font-semibold">
-          Confirmed
-        </span>
+        <div className="text-right">
+          <p className="mb-0.5 text-[10px] tracking-wider text-white/50 uppercase">PRICE</p>
+          <p className="text-sm font-semibold">€{flight.price.toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between border-t border-white/10 pt-4">
+        {flight.booked ? (
+          <button
+            onClick={() => onMarkBooked(false)}
+            className="bg-app-green/20 text-app-green flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+          >
+            <CheckCircle2 size={13} />
+            Booked
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <a
+              href={flight.bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              <ExternalLink size={12} />
+              Book
+            </a>
+            <button
+              onClick={() => onMarkBooked(true)}
+              className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80"
+            >
+              Mark as booked
+            </button>
+          </div>
+        )}
+        <button onClick={onRemove} className="text-[11px] text-white/30 hover:text-white/60">
+          Remove
+        </button>
       </div>
     </div>
   );
 }
 
-function BookingCard({ booking }: { booking: Booking }) {
-  const iconConfig: Record<BookingType, { bg: string; icon: React.ReactNode }> = {
-    stay: {
-      bg: "bg-brand-primary-soft",
-      icon: <Building2 size={20} className="text-brand-primary" />,
-    },
-    transport: {
-      bg: "bg-brand-primary-soft",
-      icon: <Car size={20} className="text-brand-primary" />,
-    },
-    activity: {
-      bg: "bg-purple-50",
-      icon: <Ticket size={20} className="text-app-purple" />,
-    },
-    flight: { bg: "", icon: null },
-  };
+interface HotelCardProps {
+  hotel: HotelSelection;
+  onMarkBooked: (booked: boolean) => void;
+  onRemove: () => void;
+}
 
-  const statusColor: Record<string, string> = {
-    confirmed: "bg-app-green",
-    pending: "bg-amber-400",
-    upcoming: "bg-brand-primary",
-  };
-
-  const config = iconConfig[booking.type];
-
+function HotelCard({ hotel, onMarkBooked, onRemove }: HotelCardProps) {
   return (
-    <div className="border-edge flex items-center gap-4 rounded-xl border p-4">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.bg}`}
-      >
-        {config.icon}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-navy text-sm font-semibold">{booking.title}</p>
-        {booking.subtitle && <p className="text-dim text-xs">{booking.subtitle}</p>}
-        <div className="mt-0.5 flex items-center gap-2">
-          <span className="text-brand-primary text-xs">{booking.date}</span>
-          {booking.price && (
-            <span className="text-navy text-xs font-semibold">{booking.price}</span>
-          )}
+    <div className="border-edge rounded-xl border p-4">
+      <div className="flex items-start gap-3">
+        <div className="bg-brand-primary-soft flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+          <Building2 size={20} className="text-brand-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-navy text-sm font-semibold">{hotel.hotelName}</p>
+          <p className="text-dim text-xs">{hotel.city}</p>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-brand-primary text-xs">
+              {formatDate(hotel.checkIn)} – {formatDate(hotel.checkOut)}
+            </span>
+            {hotel.totalPrice != null && (
+              <span className="text-navy text-xs font-semibold">
+                {hotel.currency} {hotel.totalPrice.toLocaleString()}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-      <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor[booking.status]}`} />
+
+      {/* Actions */}
+      <div className="border-edge mt-3 flex items-center justify-between border-t pt-3">
+        {hotel.booked ? (
+          <button
+            onClick={() => onMarkBooked(false)}
+            className="bg-app-green/10 text-app-green flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+          >
+            <CheckCircle2 size={13} />
+            Booked
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <a
+              href={hotel.bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-xs"
+            >
+              <ExternalLink size={12} />
+              Book
+            </a>
+            <button
+              onClick={() => onMarkBooked(true)}
+              className="border-edge text-dim rounded-full border px-3 py-1.5 text-xs font-semibold"
+            >
+              Mark as booked
+            </button>
+          </div>
+        )}
+        <button onClick={onRemove} className="text-faint hover:text-dim text-[11px]">
+          Remove
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface TripGroupProps {
+  trip: CartTrip;
+  filter: Filter;
+  onMarkBooked: (params: {
+    tripId: string;
+    selectionId: string;
+    type: "flights" | "hotels";
+    booked: boolean;
+  }) => void;
+  onRemove: (params: { tripId: string; selectionId: string; type: "flights" | "hotels" }) => void;
+}
+
+function TripGroup({ trip, filter, onMarkBooked, onRemove }: TripGroupProps) {
+  const flights: FlightSelection[] = filter !== "Stays" ? trip.flights : [];
+  const hotels: HotelSelection[] = filter !== "Flights" ? trip.hotels : [];
+
+  if (flights.length === 0 && hotels.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-navy text-sm font-semibold">{trip.destination ?? trip.region}</h3>
+        <span className="text-dim text-xs">
+          {formatDate(trip.dateStart)} – {formatDate(trip.dateEnd)}
+        </span>
+      </div>
+
+      {flights.map((flight) => (
+        <FlightCard
+          key={flight.id}
+          flight={flight}
+          onMarkBooked={(booked) =>
+            onMarkBooked({ tripId: trip.tripId, selectionId: flight.id, type: "flights", booked })
+          }
+          onRemove={() =>
+            onRemove({ tripId: trip.tripId, selectionId: flight.id, type: "flights" })
+          }
+        />
+      ))}
+
+      {hotels.map((hotel) => (
+        <HotelCard
+          key={hotel.id}
+          hotel={hotel}
+          onMarkBooked={(booked) =>
+            onMarkBooked({ tripId: trip.tripId, selectionId: hotel.id, type: "hotels", booked })
+          }
+          onRemove={() => onRemove({ tripId: trip.tripId, selectionId: hotel.id, type: "hotels" })}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CartSkeleton() {
+  return (
+    <div className="space-y-6 px-6">
+      <div className="space-y-3">
+        <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
+        <div className="bg-navy h-44 animate-pulse rounded-2xl opacity-20" />
+        <div className="border-edge h-24 animate-pulse rounded-xl border" />
+      </div>
     </div>
   );
 }
 
 export default function BookingsPage() {
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState<Filter>("All");
+  const { data: trips, isLoading } = useCart();
+  const markBooked = useMarkSelectionBooked();
+  const removeSelection = useRemoveSelection();
 
-  const filteredBookings = mockBookings.filter((b) => {
-    const type = filterTypeMap[activeFilter];
-    if (!type) return true;
-    return b.type === type;
+  const hasItems = trips?.some((t) => {
+    if (activeFilter === "Flights") return t.flights.length > 0;
+    if (activeFilter === "Stays") return t.hotels.length > 0;
+    return t.flights.length > 0 || t.hotels.length > 0;
   });
 
   return (
     <AppScreen>
       <PageHeader
-        title="Wallet"
-        titleBadge={<DevelopmentTag />}
-        description="Preview data only. Booking sync and management are still in development."
-        action={
-          <IconActionButton
-            icon={<Plus size={20} className="text-white" />}
-            badge={<DevelopmentTag label="Mock" className="text-navy bg-white" />}
-          />
-        }
+        title="Cart"
+        description="Your selected flights and hotels across upcoming trips."
       />
 
-      <FilterChips options={filters} active={activeFilter} onChange={setActiveFilter} />
+      <FilterChips
+        options={filters}
+        active={activeFilter}
+        onChange={(f) => setActiveFilter(f as Filter)}
+      />
 
-      <div className="px-6 pb-2">
-        <DevelopmentTag label="Filters are preview-only" />
-      </div>
-
-      <div className="mx-6 mb-6 flex items-center gap-2">
-        <ChevronLeft size={14} className="text-faint shrink-0" />
-        <div className="h-2 flex-1 rounded-full bg-gray-200">
-          <div className="h-2 w-3/4 rounded-full bg-gray-400" />
+      {isLoading ? (
+        <CartSkeleton />
+      ) : !hasItems ? (
+        <div className="flex flex-col items-center px-6 py-16 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-white/5">
+            <ShoppingBag size={28} className="text-faint" />
+          </div>
+          <p className="text-navy mb-1 text-base font-semibold">Your cart is empty</p>
+          <p className="text-dim mb-6 text-sm">
+            Select flights or hotels from a trip to track them here.
+          </p>
+          <Link href="/trips" className="btn-primary px-5 py-2 text-sm">
+            View trips
+          </Link>
         </div>
-        <ChevronRight size={14} className="text-faint shrink-0" />
-      </div>
-
-      <div className="px-6 pb-2">
-        <DevelopmentTag label="Timeline is preview-only" />
-      </div>
-
-      <div className="space-y-3 px-6">
-        {filteredBookings.map((booking) =>
-          booking.type === "flight" ? (
-            <FlightCard key={booking.id} booking={booking} />
-          ) : (
-            <BookingCard key={booking.id} booking={booking} />
-          )
-        )}
-      </div>
+      ) : (
+        <div className="space-y-8 px-6 pb-8">
+          {trips!.map((trip) => (
+            <TripGroup
+              key={trip.tripId}
+              trip={trip}
+              filter={activeFilter}
+              onMarkBooked={({ tripId, selectionId, type, booked }) =>
+                markBooked.mutate({ tripId, selectionId, type, booked })
+              }
+              onRemove={({ tripId, selectionId, type }) =>
+                removeSelection.mutate({ tripId, selectionId, type })
+              }
+            />
+          ))}
+        </div>
+      )}
     </AppScreen>
   );
 }

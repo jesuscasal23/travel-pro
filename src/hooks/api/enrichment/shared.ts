@@ -1,7 +1,14 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
 import { apiFetch } from "@/lib/client/api-fetch";
-import type { CityAccommodation, CityStop, CityWeather, TravelStyle, VisaInfo } from "@/types";
+import type {
+  CityAccommodation,
+  CityStop,
+  CityWeather,
+  HealthInfo,
+  TravelStyle,
+  VisaInfo,
+} from "@/types";
 
 // ── Route helpers ──────────────────────────────────────────────
 
@@ -69,6 +76,16 @@ export async function fetchVisaEnrichment(
     fallbackMessage: "Failed to load visa data",
   });
   return data.visaData ?? [];
+}
+
+export async function fetchHealthEnrichment(route: CityStop[]): Promise<HealthInfo[]> {
+  const data = await apiFetch<{ healthData?: HealthInfo[] }>("/api/v1/enrich/health", {
+    source: "useHealthEnrichment",
+    method: "POST",
+    body: { route: buildRoutePayload(route) },
+    fallbackMessage: "Failed to load health data",
+  });
+  return data.healthData ?? [];
 }
 
 export async function fetchWeatherEnrichment(

@@ -12,6 +12,10 @@ export const EnrichVisaInputSchema = z.object({
   route: z.array(cityGeoSchema).min(1).max(20),
 });
 
+export const EnrichHealthInputSchema = z.object({
+  route: z.array(cityGeoSchema).min(1).max(20),
+});
+
 export const EnrichAccommodationInputSchema = z.object({
   route: z
     .array(cityStopInputSchema.extend({ days: z.number() }))
