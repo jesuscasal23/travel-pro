@@ -56,6 +56,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Next.js static assets use content-hashed filenames — skip SW caching entirely
+  // and let the browser HTTP cache handle them. Caching these here causes stale
+  // module factory errors after a new deployment.
+  if (url.pathname.startsWith("/_next/static/")) return;
+
   // Static assets (JS, CSS, images): stale-while-revalidate
   event.respondWith(
     caches.match(request).then((cached) => {
