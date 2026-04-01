@@ -135,9 +135,9 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
           </div>
         </div>
       ) : (
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <div className="rounded-[28px] border border-[#dce7f6] bg-[#f6f9ff] p-4">
-            <div className="mb-2 flex items-center gap-2">
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="rounded-[28px] border border-[#dce7f6] bg-[#f6f9ff] p-3">
+            <div className="mb-1.5 flex items-center gap-2">
               <Sparkles className="text-brand-primary h-4 w-4" />
               <p className="text-brand-primary text-xs font-bold tracking-[0.18em] uppercase">
                 Founding user channel
@@ -159,7 +159,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
                     key={option}
                     type="button"
                     onClick={() => setCategory(option)}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
+                    className={`rounded-2xl border px-4 py-2 text-left text-sm font-medium transition-colors ${
                       isActive
                         ? "border-brand-primary bg-brand-primary text-white"
                         : "border-edge text-ink bg-white"
@@ -194,14 +194,14 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Tell us what happened, what felt missing, or what you loved."
-              rows={6}
-              className="border-edge text-ink placeholder:text-label min-h-[144px] w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-[#9db7df]"
+              rows={4}
+              className="border-edge text-ink placeholder:text-label min-h-[96px] w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-[#9db7df]"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-ink text-sm font-semibold">Screenshot (optional)</label>
-            <label className="border-edge hover:bg-surface-soft flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed px-4 py-4 transition-colors">
+            <label className="border-edge hover:bg-surface-soft flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed px-4 py-3 transition-colors">
               <div className="bg-brand-primary/10 flex h-10 w-10 items-center justify-center rounded-2xl">
                 <ImagePlus className="text-brand-primary h-5 w-5" />
               </div>
