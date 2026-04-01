@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Plane, ShoppingCart, User } from "lucide-react";
+import { Home, Plane, User, Wallet } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStatus } from "@/hooks/api";
@@ -9,7 +9,7 @@ import { useUnbookedCount } from "@/hooks/api/selections/useUnbookedCount";
 const tabs = [
   { label: "Home", icon: Home, href: "/home" },
   { label: "Trips", icon: Plane, href: "/trips" },
-  { label: "Cart", icon: ShoppingCart, href: "/cart" },
+  { label: "Wallet", icon: Wallet, href: "/cart" },
   { label: "Profile", icon: User, href: "/profile" },
 ];
 

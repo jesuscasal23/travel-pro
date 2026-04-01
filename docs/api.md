@@ -106,11 +106,11 @@ Every endpoint is documented twice:
 
 ### `GET /api/v1/selections/cart`
 
-|               |                                                                                                                                                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                                                                         |
-| **Developer** | Returns all selections (flights + hotels, booked and unbooked) across upcoming trips (`dateEnd >= today`) for the authenticated user, grouped by trip and sorted by departure/check-in date. Requires a profile. |
-| **PM**        | Powers the Cart page — shows everything the user has selected across upcoming trips, both pending and confirmed bookings.                                                                                        |
+|               |                                                                                                                                                                                                                                                                             |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                                                                                                                                                                    |
+| **Developer** | Returns all selections (flights + hotels, booked and unbooked) across upcoming trips (`dateEnd >= today`) for the authenticated user, grouped by trip, with derived wallet slots (outbound/return flight + primary stay) and trip-level cost summaries. Requires a profile. |
+| **PM**        | Powers the Wallet tab — surfaces what still needs booking vs. what's already confirmed, with slot cards per trip and a rolling cost tally.                                                                                                                                  |
 
 ### `GET /api/v1/selections/count`
 

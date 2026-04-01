@@ -15,7 +15,7 @@ const PAGES = [
   { name: "11-home", url: "/home" },
   { name: "12-trips", url: "/trips" },
   { name: "13-discover", url: "/discover" },
-  { name: "14-bookings", url: "/bookings" },
+  { name: "14-wallet", url: "/cart" },
   { name: "15-profile", url: "/profile" },
 ];
 

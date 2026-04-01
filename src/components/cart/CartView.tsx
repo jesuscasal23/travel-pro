@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plane, ShoppingCart, Sparkles } from "lucide-react";
+import { Plane, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/hooks/api/selections/useCart";
 import { useMarkSelectionBooked } from "@/hooks/api/selections/useMarkSelectionBooked";
@@ -54,8 +54,8 @@ export function CartView() {
   }, []);
 
   const handleMarkBooked = useCallback(
-    (selectionId: string, type: "flights" | "hotels", tripId: string) => {
-      markBookedMutation.mutate({ tripId, selectionId, type });
+    (selectionId: string, type: "flights" | "hotels", tripId: string, booked: boolean = true) => {
+      markBookedMutation.mutate({ tripId, selectionId, type, booked });
       setAwaitingIds((prev) => {
         const next = new Set(prev);
         next.delete(selectionId);
@@ -96,7 +96,8 @@ export function CartView() {
   return (
     <AppScreen>
       <PageHeader
-        title="Shopping Cart"
+        title="Wallet"
+        description="Quick access to flights and stays you still need to book or already confirmed."
         titleBadge={totalItems > 0 ? <Badge variant="brand">{totalItems}</Badge> : undefined}
       />
 
@@ -129,8 +130,8 @@ export function CartView() {
         ) : !trips || trips.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <ShoppingCart className="text-primary/20 mb-4 h-14 w-14" />
-            <p className="font-display text-foreground text-lg font-bold">Your cart is empty</p>
+            <Wallet className="text-primary/20 mb-4 h-14 w-14" />
+            <p className="font-display text-foreground text-lg font-bold">Your wallet is empty</p>
             <p className="text-muted-foreground mt-2 max-w-xs text-sm">
               Browse flights and hotels on your trip pages to start adding selections.
             </p>
@@ -150,7 +151,7 @@ export function CartView() {
             </div>
           </div>
         ) : (
-          /* Cart items grouped by trip */
+          /* Wallet items grouped by trip */
           <div className="space-y-8">
             {trips.map((trip) => (
               <CartTripGroup

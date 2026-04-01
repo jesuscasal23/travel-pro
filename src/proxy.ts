@@ -6,15 +6,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require authentication.
-const PROTECTED_PREFIXES = [
-  "/profile",
-  "/admin",
-  "/trips",
-  "/home",
-  "/bookings",
-  "/discover",
-  "/premium",
-];
+const PROTECTED_PREFIXES = ["/profile", "/admin", "/trips", "/home", "/discover", "/premium"];
 
 // Routes that are always public
 const PUBLIC_PREFIXES = [

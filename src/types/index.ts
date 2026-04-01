@@ -342,6 +342,17 @@ export interface HotelSelection {
   updatedAt: string;
 }
 
+export interface CartTripSlots {
+  outboundFlight: FlightSelection | null;
+  returnFlight: FlightSelection | null;
+  primaryHotel: HotelSelection | null;
+}
+
+export interface CartTripCostSummary {
+  bookedTotal: number;
+  pendingTotal: number;
+}
+
 export interface CartTrip {
   tripId: string;
   dateStart: string;
@@ -350,4 +361,6 @@ export interface CartTrip {
   region: string;
   flights: FlightSelection[];
   hotels: HotelSelection[];
+  slots: CartTripSlots;
+  costSummary: CartTripCostSummary;
 }

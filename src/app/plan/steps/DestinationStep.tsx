@@ -115,7 +115,6 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const popularRef = useRef<HTMLDivElement>(null);
 
   const dateRange: DateRange | undefined = useMemo(() => {
     const from = dateStart ? parse(dateStart, "yyyy-MM-dd", new Date()) : undefined;
@@ -161,22 +160,10 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
     setOpen(false);
   };
 
-  const handleAddPopular = (city: SelectedCity) => {
-    if (!selectedKeys.has(cityKey(city))) {
-      const iataCode = city.iataCode ?? lookupIata(city.city);
-      addCity({ ...city, iataCode });
-      clearError("selectedCities");
-    }
-  };
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(target) &&
-        !popularRef.current?.contains(target)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(target)) {
         setOpen(false);
         setQuery("");
       }
@@ -290,36 +277,8 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
           <p className={`${travelFieldErrorClass} mt-2`}>{errors.selectedCities}</p>
         )}
 
-        {/* Popular destinations */}
-        <div ref={popularRef} className="border-edge/50 mt-4 border-t pt-4 dark:border-white/8">
-          <p className="text-faint mb-2.5 text-[10px] font-bold tracking-[0.2em] uppercase dark:text-white/30">
-            Popular
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {POPULAR_CITIES.map((city) => {
-              const isSelected = selectedKeys.has(cityKey(city));
-              return (
-                <button
-                  key={cityKey(city)}
-                  type="button"
-                  onClick={() => handleAddPopular(city)}
-                  disabled={isSelected}
-                  className={`rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-all ${
-                    isSelected
-                      ? "border-brand-primary bg-brand-primary-soft text-brand-primary cursor-default opacity-50"
-                      : "border-edge/80 text-prose hover:border-brand-primary-border hover:bg-brand-primary-subtle dark:hover:border-brand-primary/40 dark:hover:bg-brand-primary/10 dark:border-white/10 dark:text-white/60"
-                  }`}
-                >
-                  {city.city}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* ── Card 2: Trip details ── */}
-      <SectionCard>
+        {/* Divider */}
+        <div className="border-edge/50 my-5 border-t dark:border-white/8" />
         {/* Trip direction */}
         <SectionLabel>Trip type</SectionLabel>
         <div className="flex gap-2">

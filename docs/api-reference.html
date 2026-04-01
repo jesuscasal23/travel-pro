@@ -799,13 +799,13 @@
       <div class="endpoint-row" onclick="toggleEndpoint('ep-sel-cart')">
         <div class="method-badges"><span class="method method-get">GET</span></div>
         <span class="path">/api/v1/selections/cart</span>
-        <span class="summary">Shows the user's saved picks that they haven't booked yet — their "shopping cart" of flights and hotels across all trips.</span>
+        <span class="summary">Drives the Wallet tab — quick view of what still needs booking vs. what's already confirmed.</span>
         <span class="auth-pill auth-required">Required</span>
       </div>
       <div class="endpoint-detail">
         <div class="detail-grid">
-          <div class="detail-box"><h4>Developer</h4><p>Returns all unbooked selections (flights + hotels) across all trips for the authenticated user. Requires a profile.</p></div>
-          <div class="detail-box"><h4>PM</h4><p>Shows the user's saved picks that they haven't booked yet — their "shopping cart" of flights and hotels across all trips.</p></div>
+          <div class="detail-box"><h4>Developer</h4><p>Returns the authenticated user's flight + hotel selections across upcoming trips, grouped per trip with derived wallet slots (outbound/return flight + primary stay) and a cost summary. Requires a profile.</p></div>
+          <div class="detail-box"><h4>PM</h4><p>Feeds the Wallet tab so travelers can see, in one place, which flights/stays still need booking versus what is already confirmed, along with a running cost total.</p></div>
         </div>
         <div class="detail-meta"><span class="meta-item"><strong>Auth:</strong> Required</span></div>
       </div>

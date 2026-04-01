@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/core/prisma";
+import { deriveCartCostSummary, deriveCartSlots } from "./cart-derive";
 import type { CartTrip, FlightSelection, HotelSelection } from "@/types";
 import type { UpsertFlightSelectionInput, UpsertHotelSelectionInput } from "./schemas";
 
@@ -252,6 +253,8 @@ export async function markHotelBooked(id: string, profileId: string, booked = tr
 
 // ── Cart (cross-trip) ───────────────────────────────────────────
 
+type CartTripAccumulator = Omit<CartTrip, "slots" | "costSummary">;
+
 export async function getCartForProfile(profileId: string): Promise<CartTrip[]> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -271,7 +274,7 @@ export async function getCartForProfile(profileId: string): Promise<CartTrip[]> 
     }),
   ]);
 
-  const tripMap = new Map<string, CartTrip>();
+  const tripMap = new Map<string, CartTripAccumulator>();
 
   for (const f of flights) {
     if (!tripMap.has(f.tripId)) {
@@ -307,9 +310,13 @@ export async function getCartForProfile(profileId: string): Promise<CartTrip[]> 
     tripMap.get(h.tripId)!.hotels.push(hotelSelection as unknown as HotelSelection);
   }
 
-  return Array.from(tripMap.values()).sort(
-    (a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
-  );
+  return Array.from(tripMap.values())
+    .map((trip) => ({
+      ...trip,
+      slots: deriveCartSlots(trip.flights, trip.hotels),
+      costSummary: deriveCartCostSummary(trip.flights, trip.hotels),
+    }))
+    .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
 }
 
 export async function getUnbookedCountForProfile(profileId: string): Promise<number> {

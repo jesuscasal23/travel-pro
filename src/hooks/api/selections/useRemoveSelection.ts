@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
+import { deriveCartCostSummary, deriveCartSlots } from "@/lib/features/selections/cart-derive";
 import { apiFetch } from "@/lib/client/api-fetch";
 import type { CartTrip, FlightSelection, HotelSelection } from "@/types";
 
@@ -66,9 +67,16 @@ export function useRemoveSelection() {
         return old
           .map((trip) => {
             if (trip.tripId !== tripId) return trip;
+            const updatedFlights =
+              type === "flights" ? trip.flights.filter((s) => s.id !== selectionId) : trip.flights;
+            const updatedHotels =
+              type === "hotels" ? trip.hotels.filter((s) => s.id !== selectionId) : trip.hotels;
             return {
               ...trip,
-              [field]: (trip[field] as { id: string }[]).filter((s) => s.id !== selectionId),
+              flights: updatedFlights,
+              hotels: updatedHotels,
+              slots: deriveCartSlots(updatedFlights, updatedHotels),
+              costSummary: deriveCartCostSummary(updatedFlights, updatedHotels),
             };
           })
           .filter((trip) => trip.flights.length > 0 || trip.hotels.length > 0);

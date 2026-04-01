@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/hooks/api/keys";
+import { deriveCartCostSummary, deriveCartSlots } from "@/lib/features/selections/cart-derive";
 import { apiFetch } from "@/lib/client/api-fetch";
 import type { CartTrip, FlightSelection, HotelSelection } from "@/types";
 
@@ -60,14 +61,22 @@ export function useMarkSelectionBooked() {
       // Update in-place in cart (keep item, flip the booked flag)
       queryClient.setQueryData<CartTrip[]>(cartKey, (old) => {
         if (!old) return old;
-        const field = type === "flights" ? "flights" : "hotels";
         return old.map((trip) => {
           if (trip.tripId !== tripId) return trip;
+          const updatedFlights =
+            type === "flights"
+              ? trip.flights.map((s) => (s.id === selectionId ? { ...s, booked, bookedAt } : s))
+              : trip.flights;
+          const updatedHotels =
+            type === "hotels"
+              ? trip.hotels.map((s) => (s.id === selectionId ? { ...s, booked, bookedAt } : s))
+              : trip.hotels;
           return {
             ...trip,
-            [field]: (trip[field] as (FlightSelection | HotelSelection)[]).map((s) =>
-              s.id === selectionId ? { ...s, booked, bookedAt } : s
-            ),
+            flights: updatedFlights,
+            hotels: updatedHotels,
+            slots: deriveCartSlots(updatedFlights, updatedHotels),
+            costSummary: deriveCartCostSummary(updatedFlights, updatedHotels),
           };
         });
       });
