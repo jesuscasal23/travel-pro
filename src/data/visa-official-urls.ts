@@ -1,4 +1,4 @@
-// Official immigration authority URLs — verified as of Feb 2026
+// Official immigration authority URLs — verified as of Apr 2026
 // Update when countries launch new visa portals
 export const VISA_OFFICIAL_URLS: Record<string, { url: string; label: string }> = {
   // Asia-Pacific
@@ -23,6 +23,16 @@ export const VISA_OFFICIAL_URLS: Record<string, { url: string; label: string }> 
   IN: { url: "https://indianvisaonline.gov.in/evisa/tvoa.html", label: "India e-Visa" },
   LK: { url: "https://eta.gov.lk", label: "Sri Lanka ETA" },
   NP: { url: "https://online.nepalimmigration.gov.np", label: "Nepal Immigration" },
+  MV: { url: "https://www.immigration.gov.mv", label: "Maldives Immigration" },
+  BD: { url: "https://www.dip.gov.bd/site/page/visa-info", label: "Bangladesh Immigration" },
+  PK: { url: "https://visa.nadra.gov.pk", label: "Pakistan NADRA e-Visa" },
+  FJ: { url: "https://www.immigration.gov.fj", label: "Fiji Immigration" },
+  // Central Asia
+  KZ: { url: "https://www.evisa.gov.kz", label: "Kazakhstan e-Visa" },
+  AZ: { url: "https://evisa.gov.az", label: "Azerbaijan ASAN Visa" },
+  UZ: { url: "https://e-visa.uz", label: "Uzbekistan e-Visa" },
+  GE: { url: "https://www.geoconsul.gov.ge", label: "Georgia Consular Portal" },
+  AM: { url: "https://evisa.mfa.am", label: "Armenia e-Visa" },
   // Middle East
   AE: {
     url: "https://u.ae/en/information-and-services/visa-and-emirates-id/do-you-need-an-entry-permit-or-a-visa-to-enter-the-uae",
@@ -35,7 +45,7 @@ export const VISA_OFFICIAL_URLS: Record<string, { url: string; label: string }> 
   OM: { url: "https://evisa.rop.gov.om", label: "Oman Royal Police e-Visa" },
   SA: { url: "https://visa.visitsaudi.com", label: "Saudi Arabia e-Visa" },
   TR: { url: "https://www.evisa.gov.tr", label: "Turkey e-Visa" },
-  JO: { url: "https://www.timatic.iata.org", label: "Jordan Visa Info" },
+  JO: { url: "https://www.timatic.iata.org", label: "Jordan — IATA Timatic" },
   IL: {
     url: "https://www.gov.il/en/departments/ministry_of_interior",
     label: "Israel Interior Ministry",
@@ -55,14 +65,39 @@ export const VISA_OFFICIAL_URLS: Record<string, { url: string; label: string }> 
     url: "https://www.netherlandsworldwide.nl/visa-the-netherlands",
     label: "Netherlands Worldwide",
   },
+  IS: { url: "https://utl.is/index.php/en/visa", label: "Iceland Directorate of Immigration" },
+  HR: { url: "https://mup.gov.hr/aliens-281621/281621", label: "Croatia MUP" },
+  CZ: { url: "https://www.mzv.cz/jnp/en/information_for_aliens/index.html", label: "Czech MFA" },
+  HU: { url: "https://www.bmbah.hu/index.php?lang=en", label: "Hungary Immigration" },
+  AT: { url: "https://www.bmi.gv.at/413/Visa_Information.aspx", label: "Austria BMI" },
+  BE: { url: "https://dofi.ibz.be/en/themes/visa", label: "Belgium Immigration" },
+  SE: {
+    url: "https://www.migrationsverket.se/English/Private-individuals/Visiting-Sweden.html",
+    label: "Sweden Migration",
+  },
+  PL: { url: "https://www.gov.pl/web/mswia-en/visa-information", label: "Poland MSWiA" },
+  RU: { url: "https://evisa.kdmid.ru", label: "Russia e-Visa" },
+  UA: { url: "https://evisa.ukraine.ua", label: "Ukraine e-Visa" },
+  RS: {
+    url: "https://www.mfa.gov.rs/en/consular-affairs/entry-into-serbia/visa-information",
+    label: "Serbia MFA",
+  },
   // Africa
   EG: { url: "https://visa2egypt.gov.eg", label: "Egypt e-Visa" },
-  MA: { url: "https://www.moroccanvisa.com", label: "Morocco Visa Info" },
+  MA: { url: "https://www.diplomatie.ma/en/consular-procedures/visa", label: "Morocco MFA" },
+  TN: { url: "https://www.diplomatie.gov.tn/en/consular-services/visas", label: "Tunisia MFA" },
   KE: { url: "https://evisa.go.ke", label: "Kenya e-Visa" },
-  TZ: { url: "https://eservices.immigration.go.tz", label: "Tanzania Immigration" },
+  TZ: {
+    url: "https://immigration.go.tz/index.php/immigration-services/visa",
+    label: "Tanzania Immigration",
+  },
+  UG: { url: "https://visas.immigration.go.ug", label: "Uganda e-Visa" },
   ZA: { url: "https://www.dha.gov.za/index.php/applying-for-sa-visa", label: "South Africa DHA" },
   ET: { url: "https://www.evisa.gov.et", label: "Ethiopia e-Visa" },
   RW: { url: "https://irembo.gov.rw/rolportal/en/web/iga/single-visa", label: "Rwanda e-Visa" },
+  GH: { url: "https://www.ghanaimmigration.org/visa-application.html", label: "Ghana Immigration" },
+  SN: { url: "https://www.consulat.sn/visa", label: "Senegal Consular Services" },
+  NG: { url: "https://immigration.gov.ng/visa-on-arrival/", label: "Nigeria Immigration" },
   // Americas
   US: { url: "https://travel.state.gov/content/travel/en/us-visas.html", label: "US State Dept" },
   CA: {

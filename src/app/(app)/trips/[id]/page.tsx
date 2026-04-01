@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useTripContext } from "@/components/trip/TripContext";
 import { TripMobileShell } from "@/components/trip/mobile/TripMobileShell";
+import { VisaSection } from "@/components/trip/VisaSection";
 
 export default function TripOverviewPage() {
   const { tripId, itinerary, isPartialItinerary, totalDays } = useTripContext();
@@ -58,6 +59,8 @@ export default function TripOverviewPage() {
           </div>
         </section>
       ) : null}
+
+      <VisaSection />
     </TripMobileShell>
   );
 }

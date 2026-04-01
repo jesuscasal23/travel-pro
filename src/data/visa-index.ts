@@ -1,6 +1,6 @@
 // Auto-generated from https://github.com/imorte/passport-index-data (MIT license)
 // DO NOT EDIT MANUALLY — run scripts/generate-visa-data.js to regenerate
-// Last generated: 2026-02-18
+// Last generated: 2026-04-01
 // Coverage: 199 passports × 199 destinations (~39601 pairs)
 
 export const VISA_INDEX: Record<string, Record<string, string>> = {

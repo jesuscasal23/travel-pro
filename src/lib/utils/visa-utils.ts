@@ -4,7 +4,7 @@ import type { VisaInfo } from "@/types";
  * ISO-2 country codes for all Schengen Area member states.
  * As of 2025: 29 countries (EU Schengen + EFTA Schengen).
  */
-const SCHENGEN_COUNTRY_CODES = new Set([
+export const SCHENGEN_COUNTRY_CODES = new Set([
   "AT", // Austria
   "BE", // Belgium
   "BG", // Bulgaria
@@ -65,4 +65,24 @@ export function shouldHideVisaSection(
   }
 
   return false;
+}
+
+/**
+ * Returns true when a Schengen 90/180-day cumulative warning should be shown.
+ *
+ * Conditions: non-Schengen passport AND at least one destination is a Schengen
+ * country AND that destination allows entry (requirement is not visa-required
+ * or no-admission — those get their own separate guidance).
+ */
+export function needsSchengenWarning(
+  passportISO2: string | undefined,
+  visaData: VisaInfo[]
+): boolean {
+  if (!passportISO2 || SCHENGEN_COUNTRY_CODES.has(passportISO2)) return false;
+  return visaData.some(
+    (v) =>
+      SCHENGEN_COUNTRY_CODES.has(v.countryCode) &&
+      v.requirement !== "visa-required" &&
+      v.requirement !== "no-admission"
+  );
 }
