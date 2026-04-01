@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ImagePlus, Loader2, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { useCreateFeedback } from "@/hooks/api";
@@ -24,6 +24,7 @@ interface FeedbackComposerModalProps {
 export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerModalProps) {
   const pathname = usePathname();
   const createFeedbackMutation = useCreateFeedback();
+  const previousOpenRef = useRef(open);
   const [category, setCategory] = useState<FeedbackCategory>("feature_request");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -36,16 +37,24 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
     return match?.[1] ?? null;
   }, [pathname]);
 
-  function handleOpenChange(nextOpen: boolean) {
-    if (!nextOpen) {
-      setCategory("feature_request");
-      setTitle("");
-      setDescription("");
-      setScreenshotFile(null);
-      setErrorMessage(null);
-      setSuccessFeedback(null);
-      createFeedbackMutation.reset();
+  const resetComposer = useCallback(() => {
+    setCategory("feature_request");
+    setTitle("");
+    setDescription("");
+    setScreenshotFile(null);
+    setErrorMessage(null);
+    setSuccessFeedback(null);
+    createFeedbackMutation.reset();
+  }, [createFeedbackMutation]);
+
+  useEffect(() => {
+    if (!open && previousOpenRef.current) {
+      resetComposer();
     }
+    previousOpenRef.current = open;
+  }, [open, resetComposer]);
+
+  function handleOpenChange(nextOpen: boolean) {
     onOpenChange(nextOpen);
   }
 
