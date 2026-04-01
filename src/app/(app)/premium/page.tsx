@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
@@ -36,6 +36,14 @@ const PLAN_PRICES: Record<Plan | "monthly", string> = {
 };
 
 export default function PremiumPage() {
+  return (
+    <Suspense>
+      <PremiumPageInner />
+    </Suspense>
+  );
+}
+
+function PremiumPageInner() {
   const [selectedPlan, setSelectedPlan] = useState<Plan>("yearly");
   const [showMonthly, setShowMonthly] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
