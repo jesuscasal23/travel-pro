@@ -106,55 +106,40 @@ export function TripsPageClient() {
           <CenteredState title="Failed to load trips. Please try again." tone="error" />
         )}
 
-        {!isLoading && tripList.length === 0 && !error && (
-          <div className="space-y-6">
-            {/* Upcoming empty card */}
-            <button
-              onClick={() => router.push("/plan")}
-              className="bg-card border-edge group w-full rounded-3xl border p-8 text-left transition-shadow hover:shadow-lg"
-            >
-              <div className="mb-4 text-4xl">✈️</div>
-              <h3 className="text-ink font-display text-lg font-bold">No upcoming trips yet</h3>
-              <p className="text-label mt-1 text-sm leading-relaxed">
-                Plan your next adventure — pick your destinations and we&apos;ll handle the rest.
-              </p>
-              <span className="text-primary mt-4 inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2">
-                Start planning <ChevronRight className="h-4 w-4" />
-              </span>
-            </button>
-
-            {/* Past adventures empty card */}
-            <section>
-              <h3 className="font-display mb-6 text-2xl font-bold">Past Adventures</h3>
-              <div className="bg-card border-edge rounded-3xl border p-8 text-center">
-                <div className="mb-4 text-4xl">🗺️</div>
-                <h4 className="text-ink font-display text-lg font-bold">No past adventures</h4>
-                <p className="text-label mt-1 text-sm leading-relaxed">
-                  Your completed trips will appear here.
-                </p>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {!isLoading && tripList.length > 0 && (
+        {!isLoading && !error && (
           <>
-            <div className="grid grid-cols-1 gap-6">
-              {upcoming.map((trip) => {
-                const days = daysUntil(trip.dateStart);
-                const label = trip.destination || trip.region;
-                return (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    label={label}
-                    days={days}
-                    onClick={() => router.push(`/trips/${trip.id}`)}
-                    actions={<TripActionMenu tripId={trip.id} tripName={label} />}
-                  />
-                );
-              })}
-            </div>
+            {upcoming.length === 0 ? (
+              <button
+                onClick={() => router.push("/plan")}
+                className="bg-card border-edge group w-full rounded-3xl border p-8 text-left transition-shadow hover:shadow-lg"
+              >
+                <div className="mb-4 text-4xl">✈️</div>
+                <h3 className="text-ink font-display text-lg font-bold">No upcoming trips yet</h3>
+                <p className="text-label mt-1 text-sm leading-relaxed">
+                  Plan your next adventure — pick your destinations and we&apos;ll handle the rest.
+                </p>
+                <span className="text-primary mt-4 inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2">
+                  Start planning <ChevronRight className="h-4 w-4" />
+                </span>
+              </button>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {upcoming.map((trip) => {
+                  const days = daysUntil(trip.dateStart);
+                  const label = trip.destination || trip.region;
+                  return (
+                    <TripCard
+                      key={trip.id}
+                      trip={trip}
+                      label={label}
+                      days={days}
+                      onClick={() => router.push(`/trips/${trip.id}`)}
+                      actions={<TripActionMenu tripId={trip.id} tripName={label} />}
+                    />
+                  );
+                })}
+              </div>
+            )}
 
             {past.length > 0 && (
               <section className="mt-16 mb-8">
