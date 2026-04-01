@@ -49,6 +49,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
 
   useEffect(() => {
     if (!open && previousOpenRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       resetComposer();
     }
     previousOpenRef.current = open;
