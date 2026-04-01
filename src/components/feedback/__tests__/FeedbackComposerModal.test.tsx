@@ -40,6 +40,18 @@ describe("FeedbackComposerModal", () => {
     ).toBeInTheDocument();
   });
 
+  it("does not reset the mutation on initial closed mount, only after closing", () => {
+    const { rerender } = render(<FeedbackComposerModal open={false} onOpenChange={vi.fn()} />);
+
+    expect(mockReset).not.toHaveBeenCalled();
+
+    rerender(<FeedbackComposerModal open onOpenChange={vi.fn()} />);
+    expect(mockReset).not.toHaveBeenCalled();
+
+    rerender(<FeedbackComposerModal open={false} onOpenChange={vi.fn()} />);
+    expect(mockReset).toHaveBeenCalledTimes(1);
+  });
+
   it("validates title and description before submitting", async () => {
     render(<FeedbackComposerModal open onOpenChange={vi.fn()} />);
 

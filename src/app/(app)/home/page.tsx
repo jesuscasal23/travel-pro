@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppLogo } from "@/components/ui/AppLogo";
 import {
@@ -51,12 +51,19 @@ function getGreeting(): string {
   return "Good evening";
 }
 
+const DEFAULT_GREETING = "Good to see you";
+
 export default function HomePage() {
   const router = useRouter();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [greeting, setGreeting] = useState(DEFAULT_GREETING);
   const { trips: tripList, isSuperUser, isLoading } = useTrips();
   const nextTrip = getNextTrip(tripList);
   const destination = nextTrip?.destination ?? "your destination";
+
+  useEffect(() => {
+    setGreeting(getGreeting());
+  }, []);
 
   return (
     <AppScreen>
@@ -118,7 +125,7 @@ export default function HomePage() {
             Welcome back
           </p>
           <h1 className="text-ink font-display text-[1.75rem] leading-tight font-extrabold">
-            {getGreeting()}.
+            {greeting}.
           </h1>
         </section>
 

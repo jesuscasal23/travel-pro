@@ -101,10 +101,12 @@ export const usePlanFormStore = create<PlanFormState & PlanFormActions>()(
         const typed = persistedState as Partial<PlanFormState> & {
           planningPriority?: string;
           planningPriorities?: string[] | string;
+          flexMonth?: number; // old field name — migrated to dayCount in TRA-130
         };
         return {
           ...currentState,
           ...typed,
+          dayCount: typed.dayCount ?? typed.flexMonth ?? currentState.dayCount,
           selectedCities: Array.isArray(typed.selectedCities) ? typed.selectedCities : [],
           planningPriorities: normalizePlanningPriorities(
             typed.planningPriorities ?? typed.planningPriority

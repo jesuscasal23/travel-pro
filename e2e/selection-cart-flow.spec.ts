@@ -201,7 +201,9 @@ test.describe("Selection & Cart flow (authenticated)", () => {
 
   test.afterEach(async ({ page }) => {
     if (!hasAuthCreds || !tripId) return;
-    await page.request.delete(`/api/v1/trips/${tripId}`).catch(() => {});
+    await page.request
+      .delete(`/api/v1/trips/${tripId}`, { timeout: 10_000 })
+      .catch(() => {});
   });
 
   // ============================================================

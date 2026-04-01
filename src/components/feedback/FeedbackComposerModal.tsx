@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ImagePlus, Loader2, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { useCreateFeedback } from "@/hooks/api";
@@ -24,6 +24,7 @@ interface FeedbackComposerModalProps {
 export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerModalProps) {
   const pathname = usePathname();
   const createFeedbackMutation = useCreateFeedback();
+  const wasOpenRef = useRef(open);
   const [category, setCategory] = useState<FeedbackCategory>("feature_request");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -37,7 +38,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
   }, [pathname]);
 
   useEffect(() => {
-    if (!open) {
+    if (wasOpenRef.current && !open) {
       setCategory("feature_request");
       setTitle("");
       setDescription("");
@@ -46,7 +47,8 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
       setSuccessFeedback(null);
       createFeedbackMutation.reset();
     }
-  }, [createFeedbackMutation, open]);
+    wasOpenRef.current = open;
+  }, [open]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

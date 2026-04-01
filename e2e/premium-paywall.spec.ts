@@ -68,8 +68,9 @@ test.describe("Premium paywall gate", () => {
     });
 
     // Navigate to a protected route — should redirect to /premium
+    // Use regex to match /premium with or without query params (?source=...)
     await page.goto("/home");
-    await page.waitForURL("**/premium", { timeout: 15_000 });
+    await page.waitForURL(/\/premium/, { timeout: 15_000 });
     await expect(page).toHaveURL(/\/premium/);
 
     // Verify the paywall page renders
@@ -78,7 +79,7 @@ test.describe("Premium paywall gate", () => {
     // Attempting to navigate to other protected routes should bounce back to /premium
     for (const route of ["/trips", "/profile"]) {
       await page.goto(route);
-      await page.waitForURL("**/premium", { timeout: 10_000 });
+      await page.waitForURL(/\/premium/, { timeout: 10_000 });
       await expect(page).toHaveURL(/\/premium/);
     }
   });

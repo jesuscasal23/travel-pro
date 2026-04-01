@@ -42,4 +42,11 @@ describe("HomePage", () => {
     expect(screen.getAllByRole("button", { name: /Share feedback/i })[0]).toBeInTheDocument();
     expect(screen.getByText(/Shape Fichi/i)).toBeInTheDocument();
   });
+
+  it("renders a deterministic greeting before updating to local time", () => {
+    render(<HomePage />);
+
+    expect(screen.getByText(/Good to see you\.|Good morning\.|Good afternoon\.|Good evening\./i))
+      .toBeInTheDocument();
+  });
 });

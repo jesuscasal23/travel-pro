@@ -22,8 +22,14 @@ export async function loginViaUI(page: Page) {
   await page.getByLabel(/Email address/i).fill(TEST_EMAIL);
   await page.getByLabel(/Password/i).fill(TEST_PASSWORD);
   await page.getByRole("button", { name: /sign in|log in/i }).click();
-  await page.waitForURL("**/trips**", { timeout: 15_000 });
+  // Accept /premium as well — a non-premium user gets redirected there by the proxy.
+  // ensurePremiumProfile will grant access, then we navigate to /trips.
+  await page.waitForURL(/\/(trips|premium|home)/, { timeout: 15_000 });
   await ensurePremiumProfile(page);
+  if (!/\/trips/.test(page.url())) {
+    await page.goto("/trips");
+    await page.waitForURL("**/trips**", { timeout: 10_000 });
+  }
 }
 
 /**
