@@ -530,6 +530,11 @@ test.describe("Selection & Cart flow (authenticated)", () => {
       return;
     }
 
+    // Capture baseline unbooked count (guards against leftover state from other tests)
+    const baseRes = await page.request.get("/api/v1/selections/count");
+    expect(baseRes.status()).toBe(200);
+    const { count: baseCount } = (await baseRes.json()) as { count: number };
+
     // Create flight + hotel selections via API
     const flightRes = await page.request.put(`/api/v1/trips/${tripId}/selections/flights`, {
       data: mockFlightSelectionBody,
@@ -548,11 +553,12 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     await page.goto("/trips");
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Badge should show exactly 2 (clean state — no leftover selections)
+    // Badge should reflect baseline + 2
     const cartLink = page.locator("a[href='/cart']");
-    await expect(cartLink.locator("span").filter({ hasText: /^2$/ })).toBeVisible({
-      timeout: 5_000,
-    });
+    const expectedAfterAdd = baseCount + 2;
+    await expect(
+      cartLink.locator("span").filter({ hasText: new RegExp(`^${expectedAfterAdd}$`) })
+    ).toBeVisible({ timeout: 5_000 });
 
     // Mark the hotel as booked via API, then reload to pick up the new count
     const markRes = await page.request.patch(`/api/v1/trips/${tripId}/selections/hotels`, {
@@ -563,9 +569,10 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     await page.reload();
     await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
 
-    // Badge should show exactly 1 (flight still unbooked, hotel is booked)
-    await expect(cartLink.locator("span").filter({ hasText: /^1$/ })).toBeVisible({
-      timeout: 5_000,
-    });
+    // Badge should reflect baseline + 1 (hotel is now booked)
+    const expectedAfterMark = baseCount + 1;
+    await expect(
+      cartLink.locator("span").filter({ hasText: new RegExp(`^${expectedAfterMark}$`) })
+    ).toBeVisible({ timeout: 5_000 });
   });
 });
