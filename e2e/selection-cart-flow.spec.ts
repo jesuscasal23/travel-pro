@@ -201,9 +201,7 @@ test.describe("Selection & Cart flow (authenticated)", () => {
 
   test.afterEach(async ({ page }) => {
     if (!hasAuthCreds || !tripId) return;
-    await page.request
-      .delete(`/api/v1/trips/${tripId}`, { timeout: 10_000 })
-      .catch(() => {});
+    await page.request.delete(`/api/v1/trips/${tripId}`, { timeout: 10_000 }).catch(() => {});
   });
 
   // ============================================================
@@ -435,7 +433,7 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     expect(currentTrip?.hotels).toHaveLength(1);
     expect(currentTrip?.hotels[0]).toMatchObject({ hotelName: "Hotel Le Marais" });
 
-    // Mark flight as booked — should leave the cart immediately
+    // Mark flight as booked — cart now shows all selections (booked + unbooked)
     const markBookedRes = await page.request.patch(`/api/v1/trips/${tripId}/selections/flights`, {
       data: { id: flightSelection.id },
     });
@@ -445,15 +443,17 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     const afterBooked = (await afterBookedRes.json()) as {
       trips: Array<{
         tripId: string;
-        flights: Array<{ id: string }>;
+        flights: Array<{ id: string; booked: boolean }>;
         hotels: Array<{ id: string }>;
       }>;
     };
     const tripAfterBooked = afterBooked.trips.find((trip) => trip.tripId === tripId);
-    expect(tripAfterBooked?.flights).toHaveLength(0);
+    // Booked flights remain in cart (cart shows all selections, not just unbooked)
+    expect(tripAfterBooked?.flights).toHaveLength(1);
+    expect(tripAfterBooked?.flights[0].booked).toBe(true);
     expect(tripAfterBooked?.hotels).toHaveLength(1);
 
-    // Remove hotel — trip should leave the cart entirely
+    // Remove hotel — trip stays in cart because booked flight is still there
     const removeHotelRes = await page.request.delete(`/api/v1/trips/${tripId}/selections/hotels`, {
       data: { id: hotelSelection.id },
     });
@@ -461,9 +461,15 @@ test.describe("Selection & Cart flow (authenticated)", () => {
 
     const afterRemoveRes = await page.request.get("/api/v1/selections/cart");
     const afterRemove = (await afterRemoveRes.json()) as {
-      trips: Array<{ tripId: string }>;
+      trips: Array<{
+        tripId: string;
+        flights: Array<{ id: string }>;
+        hotels: Array<{ id: string }>;
+      }>;
     };
-    expect(afterRemove.trips.some((trip) => trip.tripId === tripId)).toBe(false);
+    const tripAfterRemove = afterRemove.trips.find((trip) => trip.tripId === tripId);
+    expect(tripAfterRemove?.flights).toHaveLength(1);
+    expect(tripAfterRemove?.hotels).toHaveLength(0);
   });
 
   // ============================================================
