@@ -9,7 +9,7 @@ import { resolvePaceInput } from "@/lib/features/profile/pace";
 import type { TravelStyle, UserProfile } from "@/types";
 import { z } from "zod";
 import { PROFILE_EXPORT_INCLUDE } from "./query-shapes";
-import { ProfilePatchInputSchema } from "./schemas";
+import { profilePatchSchema as ProfilePatchInputSchema } from "@/lib/schemas";
 
 type ProfilePatchInput = z.infer<typeof ProfilePatchInputSchema>;
 

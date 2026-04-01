@@ -15,6 +15,7 @@ import { useRemoveSelection } from "@/hooks/api/selections/useRemoveSelection";
 import { useTripContext } from "@/components/trip/TripContext";
 import { extractHomeAirportIata } from "@/lib/features/profile/traveler-preferences";
 import { buildTrackedLink } from "@/lib/features/affiliate/link-generator";
+import { addDays } from "@/lib/utils/format/date";
 import type { Itinerary, BookingClick, BookingClickMetadata, FlightDirection } from "@/types";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
 
@@ -25,13 +26,6 @@ interface FlightLegWithDirection extends FlightLegResults {
 interface FlightsTabProps {
   itinerary: Itinerary;
   tripId: string;
-}
-
-/** Add N days to a YYYY-MM-DD date string */
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
 }
 
 /** Find the most recent flight booking click matching a leg's IATA pair */

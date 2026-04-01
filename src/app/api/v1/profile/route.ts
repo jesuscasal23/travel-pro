@@ -8,7 +8,7 @@
 
 import { NextResponse } from "next/server";
 import { apiHandler, parseAndValidateRequest, requireAuth } from "@/lib/api/helpers";
-import { ProfilePatchInputSchema } from "@/lib/features/profile/schemas";
+import { profilePatchSchema as ProfilePatchInputSchema } from "@/lib/schemas";
 import {
   deleteUserProfileAndAccount,
   getProfileByUserId,
