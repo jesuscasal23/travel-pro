@@ -40,13 +40,13 @@ export default function PlanPage() {
     setPlanStep,
     selectedCities,
     tripDescription,
-    planningPriorities,
     dateStart,
     dateEnd,
     dateMode,
     dayCount: flexDayCount,
     tripDirection,
     travelers,
+    planningPriorities,
   } = usePlanFormStore();
 
   // Profile fields and build UI state — transient

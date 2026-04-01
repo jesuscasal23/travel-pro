@@ -22,11 +22,11 @@ function CelebrationCard({ badge, title, description, icon, children }: Celebrat
     <div className="shadow-glass-xl relative overflow-hidden rounded-[32px] border border-white/85 bg-white/92 px-5 py-6">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,186,142,0.32),_transparent_65%)]" />
       <div className="relative flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-          {icon ?? <PartyPopper className="h-4 w-4 text-brand-primary" />}
+        <div className="text-brand-primary flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] uppercase">
+          {icon ?? <PartyPopper className="text-brand-primary h-4 w-4" />}
           <span>{badge}</span>
         </div>
-        <h2 className="text-navy text-[1.65rem] font-bold leading-[1.05] tracking-[-0.03em]">
+        <h2 className="text-navy text-[1.65rem] leading-[1.05] font-bold tracking-[-0.03em]">
           {title}
         </h2>
         <p className="text-dim text-sm">{description}</p>
@@ -59,13 +59,12 @@ export default function TripItineraryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const firstRunQuery = searchParams?.get("firstRun") === "1";
-  const [firstRunMode, setFirstRunMode] = useState(firstRunQuery);
+  const [firstRunMode, setFirstRunMode] = useState(() => firstRunQuery);
   const [discoveryBannerDismissed, setDiscoveryBannerDismissed] = useState(false);
   const [journeyBannerDismissed, setJourneyBannerDismissed] = useState(false);
 
   useEffect(() => {
     if (firstRunQuery) {
-      setFirstRunMode(true);
       router.replace(`/trips/${tripId}/itinerary`, { scroll: false });
     }
   }, [firstRunQuery, router, tripId]);
@@ -91,6 +90,11 @@ export default function TripItineraryPage() {
     setFirstRunMode(false);
   }, []);
 
+  const plannedDayCount = useMemo(() => {
+    if (!itinerary) return 0;
+    return itinerary.days.filter((day) => !day.isTravel).length;
+  }, [itinerary]);
+
   if (!itinerary) {
     return (
       <TripMobileShell>
@@ -108,10 +112,6 @@ export default function TripItineraryPage() {
     discoveryStatus === "completed" && (assignedActivities.length > 0 || itinerary.days.length > 0);
   const currentCityName = itinerary.route[discoveryCityIndex]?.city;
   const destinationName = itinerary.route[0]?.city ?? tripTitle;
-  const plannedDayCount = useMemo(
-    () => itinerary.days.filter((day) => !day.isTravel).length,
-    [itinerary.days]
-  );
 
   const showDiscoveryCelebration =
     firstRunMode && !showJourney && discoveryStatus !== "completed" && !discoveryBannerDismissed;
@@ -124,7 +124,7 @@ export default function TripItineraryPage() {
           badge="Your trip is live"
           title={`Amazing — you're going to ${destinationName}!`}
           description="We’re celebrating with a fresh deck of experiences picked for your vibe. Swipe to keep what you love and we’ll stitch the perfect flow."
-          icon={<Sparkles className="h-4 w-4 text-brand-primary" />}
+          icon={<Sparkles className="text-brand-primary h-4 w-4" />}
         >
           <Button variant="brand" onClick={handleStartDiscovery}>
             Start swiping activities
@@ -173,7 +173,7 @@ export default function TripItineraryPage() {
       )}
 
       {firstRunMode && (
-        <div className="mt-6 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-label">
+        <div className="text-label mt-6 text-center text-[11px] font-semibold tracking-[0.2em] uppercase">
           <button type="button" onClick={disableCelebration}>
             Dismiss celebration mode
           </button>
