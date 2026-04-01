@@ -188,6 +188,16 @@ function LoginForm() {
               </Button>
             </div>
           </form>
+
+          <p className="text-dim pt-4 text-center text-sm">
+            Don't have an account?{" "}
+            <Link
+              href={`/signup${next !== "/trips" ? `?next=${encodeURIComponent(next)}` : ""}`}
+              className="text-brand-primary font-semibold transition-colors hover:brightness-95"
+            >
+              Sign up
+            </Link>
+          </p>
         </div>
       </div>
     </div>
