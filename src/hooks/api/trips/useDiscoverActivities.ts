@@ -12,6 +12,11 @@ interface DiscoverActivitiesParams {
 interface DiscoverActivitiesResponse {
   activities: DiscoveredActivityRow[];
   roundLimitReached: boolean;
+  reachability: {
+    filtered: number;
+    verifiedFiltered: number;
+    autoRegenerated: boolean;
+  };
 }
 
 export function useDiscoverActivities() {
@@ -39,6 +44,11 @@ export function useDiscoverActivities() {
       return {
         activities: data.activities ?? [],
         roundLimitReached: data.roundLimitReached ?? false,
+        reachability: data.reachability ?? {
+          filtered: 0,
+          verifiedFiltered: 0,
+          autoRegenerated: false,
+        },
       };
     },
   });

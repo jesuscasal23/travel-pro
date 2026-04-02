@@ -10,6 +10,7 @@ export const ClaudeDiscoverActivitySchema = z.object({
   duration: z.string().min(1).max(40),
   lat: z.number(),
   lng: z.number(),
+  reachableMinutes: z.number().min(1).max(180).optional(),
 });
 
 // Prompt asks for exactly 25, but Haiku consistently overshoots by 1-2.

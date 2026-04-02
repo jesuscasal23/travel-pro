@@ -26,8 +26,10 @@ import { haversineDistanceKm, distanceKmToMinutes } from "@/lib/utils/geo/distan
 import { loadTripContext } from "./trip-query-service";
 import { findActiveItinerary } from "./itinerary-service";
 import { resolveActivityImages } from "./activity-image-service";
+import { findPlace } from "@/lib/google-places/client";
 
 const log = createLogger("discover-activities-service");
+const PLACE_VERIFICATION_TIMEOUT_MS = 3_000;
 
 interface DiscoverActivitiesInput {
   tripId: string;
@@ -231,24 +233,60 @@ export async function discoverActivities(
     });
   }
 
+  const verificationResult = await verifyActivitiesWithPlaces(
+    reachableActivities.map((entry) => entry.activity),
+    city,
+    signal
+  );
+  let verifiedActivities = verificationResult.verified;
+
+  if (verificationResult.filteredNames.length > 0) {
+    reachabilityStats.verifiedFiltered += verificationResult.filteredNames.length;
+    internalExcludeNames = mergeExcludeNames(
+      internalExcludeNames,
+      verificationResult.filteredNames
+    );
+    log.info("Filtered activities without Places match", {
+      tripId,
+      cityId,
+      filtered: verificationResult.filteredNames.length,
+    });
+  }
+
+  const dedupeResult = dedupeVerifiedActivities(verifiedActivities);
+  if (dedupeResult.duplicateNames.length > 0) {
+    reachabilityStats.verifiedFiltered += dedupeResult.duplicateNames.length;
+    internalExcludeNames = mergeExcludeNames(internalExcludeNames, dedupeResult.duplicateNames);
+    log.info("Removed duplicate activities with identical place IDs", {
+      tripId,
+      cityId,
+      duplicates: dedupeResult.duplicateNames.length,
+    });
+  }
+  verifiedActivities = dedupeResult.unique;
+
   // ── Bulk-insert into DiscoveredActivity (without images) ──────────────────
-  const rows = reachableActivities.map(({ activity }) => ({
+  const rows = verifiedActivities.map((verified) => ({
     tripId,
     profileId,
     cityId,
     city: city.city,
-    name: activity.name,
-    placeName: activity.placeName,
-    venueType: activity.venueType,
-    description: activity.description,
-    highlights: activity.highlights,
-    category: activity.category,
-    duration: activity.duration,
-    googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.placeName} ${city.city}`)}`,
+    name: verified.activity.name,
+    placeName: verified.canonicalPlaceName,
+    venueType: verified.activity.venueType,
+    description: verified.activity.description,
+    highlights: verified.activity.highlights,
+    category: verified.activity.category,
+    duration: verified.activity.duration,
+    googleMapsUrl: buildGoogleMapsUrl(
+      verified.placeId,
+      `${verified.canonicalPlaceName} ${city.city}`
+    ),
+    googlePlaceId: verified.placeId,
     imageUrl: null as string | null,
     imageUrls: [] as string[],
-    lat: activity.lat,
-    lng: activity.lng,
+    lat: verified.verifiedLat ?? verified.activity.lat,
+    lng: verified.verifiedLng ?? verified.activity.lng,
   }));
 
   if (rows.length > 0) {
@@ -415,6 +453,7 @@ function toDiscoveredActivityRow(
     category: string;
     duration: string;
     googleMapsUrl: string | null;
+    googlePlaceId: string | null;
     imageUrl: string | null;
     imageUrls: string[];
     lat: number | null;
@@ -441,6 +480,7 @@ function toDiscoveredActivityRow(
     category: row.category,
     duration: row.duration,
     googleMapsUrl: row.googleMapsUrl ?? "",
+    googlePlaceId: row.googlePlaceId ?? null,
     imageUrl: row.imageUrl ?? normalizedImageUrls[0] ?? null,
     imageUrls: normalizedImageUrls,
     lat: row.lat,
@@ -507,4 +547,109 @@ function computeReachableMinutes(
   if (!isWithinReach(distanceKm)) return null;
   const minutes = distanceKmToMinutes(distanceKm, AVERAGE_CITY_DRIVE_SPEED_KMH);
   return Number.isFinite(minutes) ? minutes : null;
+}
+
+interface VerifiedActivity {
+  activity: ClaudeActivity;
+  canonicalPlaceName: string;
+  placeId: string | null;
+  verifiedLat: number | null;
+  verifiedLng: number | null;
+}
+
+interface PlaceVerificationResult {
+  verified: VerifiedActivity[];
+  filteredNames: string[];
+}
+
+async function verifyActivitiesWithPlaces(
+  activities: ClaudeActivity[],
+  city: CityStop,
+  signal?: AbortSignal
+): Promise<PlaceVerificationResult> {
+  if (activities.length === 0) {
+    return { verified: [], filteredNames: [] };
+  }
+
+  const lookups = await Promise.all(
+    activities.map(async (activity) => {
+      const controller = new AbortController();
+      const abortListener = () => controller.abort();
+      if (signal) {
+        signal.addEventListener("abort", abortListener, { once: true });
+      }
+      const timeout = setTimeout(() => controller.abort(), PLACE_VERIFICATION_TIMEOUT_MS);
+      try {
+        const searchName = activity.placeName ?? activity.name;
+        const place = await findPlace(`${searchName} ${city.city}`, controller.signal);
+        return { activity, place };
+      } catch {
+        return { activity, place: null };
+      } finally {
+        clearTimeout(timeout);
+        if (signal) {
+          signal.removeEventListener("abort", abortListener);
+        }
+      }
+    })
+  );
+
+  const verified: VerifiedActivity[] = [];
+  const filteredNames: string[] = [];
+
+  for (const { activity, place } of lookups) {
+    if (!place || !place.location) {
+      filteredNames.push(activity.name);
+      continue;
+    }
+
+    const distanceKm = haversineDistanceKm(
+      city.lat,
+      city.lng,
+      place.location.lat,
+      place.location.lng
+    );
+    if (!isWithinReach(distanceKm)) {
+      filteredNames.push(activity.name);
+      continue;
+    }
+
+    const canonicalPlaceName = place.displayName?.trim() || activity.placeName || activity.name;
+
+    verified.push({
+      activity,
+      canonicalPlaceName,
+      placeId: place.placeId ?? null,
+      verifiedLat: place.location.lat,
+      verifiedLng: place.location.lng,
+    });
+  }
+
+  return { verified, filteredNames };
+}
+
+function buildGoogleMapsUrl(placeId: string | null, fallbackQuery: string): string {
+  if (placeId) {
+    return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(placeId)}`;
+  }
+  return `https://maps.google.com/?q=${encodeURIComponent(fallbackQuery)}`;
+}
+
+function dedupeVerifiedActivities(entries: VerifiedActivity[]) {
+  const seenPlaceIds = new Set<string>();
+  const unique: VerifiedActivity[] = [];
+  const duplicateNames: string[] = [];
+
+  for (const entry of entries) {
+    if (entry.placeId && seenPlaceIds.has(entry.placeId)) {
+      duplicateNames.push(entry.activity.name);
+      continue;
+    }
+    if (entry.placeId) {
+      seenPlaceIds.add(entry.placeId);
+    }
+    unique.push(entry);
+  }
+
+  return { unique, duplicateNames };
 }

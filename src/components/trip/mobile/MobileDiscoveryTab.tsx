@@ -12,6 +12,7 @@ interface MobileDiscoveryTabProps {
   totalTarget: number;
   isLoading: boolean;
   error: string | null;
+  notice?: string | null;
   isMultiCity: boolean;
   onSwipe: (decision: "liked" | "disliked") => void;
   cityIndex: number;
@@ -92,6 +93,15 @@ function ActivityImages({ card }: { card: ActivityDiscoveryCandidate }) {
   );
 }
 
+function NoticeBanner({ notice }: { notice?: string | null }) {
+  if (!notice) return null;
+  return (
+    <div className="bg-brand-primary-soft text-brand-primary rounded-2xl px-4 py-2 text-xs font-semibold">
+      {notice}
+    </div>
+  );
+}
+
 export function MobileDiscoveryTab({
   status,
   cards,
@@ -99,6 +109,7 @@ export function MobileDiscoveryTab({
   totalTarget,
   isLoading,
   error,
+  notice,
   isMultiCity,
   onSwipe,
   cityIndex,
@@ -127,6 +138,7 @@ export function MobileDiscoveryTab({
   if (isCompleted) {
     return (
       <div className="space-y-3 py-2">
+        <NoticeBanner notice={notice} />
         <div className="shadow-glass-lg rounded-[28px] border border-white/80 bg-white/90 px-5 py-8 text-center">
           <p className="text-brand-primary text-[11px] font-bold tracking-[0.2em] uppercase">
             Discovery Complete
@@ -143,6 +155,7 @@ export function MobileDiscoveryTab({
   if (!currentCard) {
     return (
       <div className="space-y-3 py-2">
+        <NoticeBanner notice={notice} />
         <div className="shadow-glass-lg rounded-[28px] border border-white/80 bg-white/90 px-5 py-8 text-center">
           {isLoading ? (
             <>
@@ -175,6 +188,7 @@ export function MobileDiscoveryTab({
 
   return (
     <div className="space-y-3 py-2">
+      <NoticeBanner notice={notice} />
       <div className="flex items-center justify-between px-1">
         <p className="text-brand-primary text-[11px] font-bold tracking-[0.18em] uppercase">
           {currentCityName ?? "Activity Discovery"}

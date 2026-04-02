@@ -21,6 +21,7 @@ function serializeAssignedActivity(row: {
   category: string;
   duration: string;
   googleMapsUrl: string | null;
+  googlePlaceId: string | null;
   imageUrl: string | null;
   imageUrls: string[];
   lat: number | null;
@@ -31,11 +32,7 @@ function serializeAssignedActivity(row: {
   assignedOrder: number | null;
 }): AssignedActivity {
   const normalizedImageUrls =
-    row.imageUrls && row.imageUrls.length > 0
-      ? row.imageUrls
-      : row.imageUrl
-        ? [row.imageUrl]
-        : [];
+    row.imageUrls && row.imageUrls.length > 0 ? row.imageUrls : row.imageUrl ? [row.imageUrl] : [];
 
   return {
     id: row.id,
@@ -49,6 +46,7 @@ function serializeAssignedActivity(row: {
     category: row.category,
     duration: row.duration,
     googleMapsUrl: row.googleMapsUrl ?? "",
+    googlePlaceId: row.googlePlaceId,
     imageUrl: row.imageUrl ?? normalizedImageUrls[0] ?? null,
     imageUrls: normalizedImageUrls,
     lat: row.lat,

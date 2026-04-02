@@ -19,6 +19,8 @@ function getApiKey(): string | null {
 interface FindPlaceResult {
   placeId: string;
   photoNames: string[];
+  location?: { lat: number; lng: number } | null;
+  displayName?: string | null;
 }
 
 /**
@@ -38,7 +40,7 @@ export async function findPlace(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": key,
-        "X-Goog-FieldMask": "places.id,places.photos",
+        "X-Goog-FieldMask": "places.id,places.photos,places.location,places.displayName",
       },
       body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
       signal,
@@ -55,7 +57,9 @@ export async function findPlace(
     const data = (await response.json()) as {
       places?: Array<{
         id: string;
+        displayName?: { text?: string };
         photos?: Array<{ name: string }>;
+        location?: { latitude?: number; longitude?: number };
       }>;
     };
 
@@ -63,9 +67,17 @@ export async function findPlace(
     if (!place) return null;
 
     const photoNames = (place.photos ?? []).map((photo) => photo.name).filter(Boolean);
+    const location =
+      place.location &&
+      typeof place.location.latitude === "number" &&
+      typeof place.location.longitude === "number"
+        ? { lat: place.location.latitude, lng: place.location.longitude }
+        : null;
     return {
       placeId: place.id,
       photoNames,
+      location,
+      displayName: place.displayName?.text ?? null,
     };
   } catch (error) {
     if (signal?.aborted) return null;

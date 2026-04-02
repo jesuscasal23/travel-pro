@@ -21,6 +21,7 @@ function makeActivity(overrides: Partial<DiscoveredActivityRow> = {}): Discovere
     category: "culture",
     duration: "2h",
     googleMapsUrl: "https://maps.google.com/?q=A1",
+    googlePlaceId: null,
     imageUrl: null,
     imageUrls: [],
     lat: null,

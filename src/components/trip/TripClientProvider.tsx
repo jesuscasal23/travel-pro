@@ -62,6 +62,22 @@ function arraysEqual(a: string[], b: string[]): boolean {
   return true;
 }
 
+function formatReachabilityNotice(reachability?: {
+  filtered: number;
+  verifiedFiltered: number;
+  autoRegenerated: boolean;
+}): string | null {
+  if (!reachability) return null;
+  if (reachability.autoRegenerated) {
+    return "We refreshed these picks so everything stays within an hour of the city center.";
+  }
+  const filteredTotal = (reachability.filtered ?? 0) + (reachability.verifiedFiltered ?? 0);
+  if (filteredTotal > 0) {
+    return "We removed a few far-away ideas to keep recommendations close by.";
+  }
+  return null;
+}
+
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
   const { needsRebuild, setNeedsRebuild } = useTripStore(
     useShallow((s) => ({
@@ -168,6 +184,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
   const [queueState, setQueueState] = useState(createDiscoveryQueueState);
   const [discoveryDone, setDiscoveryDone] = useState(false);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
+  const [discoveryNotice, setDiscoveryNotice] = useState<string | null>(null);
   const [discoveryStatusOverride, setDiscoveryStatusOverride] = useState<DiscoveryStatus | null>(
     null
   );
@@ -205,6 +222,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     }
 
     let cancelled = false;
+    setDiscoveryNotice(null);
 
     discoverActivitiesMutation
       .mutateAsync({
@@ -215,6 +233,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       .then((result) => {
         if (cancelled) return;
         setDiscoveryError(null);
+        setDiscoveryNotice(formatReachabilityNotice(result.reachability));
         if (result.roundLimitReached) setRoundLimitReached(true);
         const queue = initDiscoveryQueue(result.activities, currentDiscoveryCity.id);
 
@@ -250,6 +269,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
         setDiscoveryError(
           error instanceof Error ? error.message : "Could not load activity recommendations"
         );
+        setDiscoveryNotice(null);
         setDiscoveryDone(true);
       });
 
@@ -344,6 +364,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
             // Need more cards for this city — generate another batch
             const allNames = discoveryCards.map((c) => c.name);
             setDiscoveryDone(false);
+            setDiscoveryNotice(null);
             discoverActivitiesMutation
               .mutateAsync({
                 tripId,
@@ -353,6 +374,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
               })
               .then((result) => {
                 if (result.roundLimitReached) setRoundLimitReached(true);
+                setDiscoveryNotice(formatReachabilityNotice(result.reachability));
                 const queue = initDiscoveryQueue(result.activities, currentDiscoveryCity.id);
                 setQueueState(queue);
                 setDiscoveryDone(true);
@@ -361,6 +383,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
                 setDiscoveryError(
                   error instanceof Error ? error.message : "Could not load more activities"
                 );
+                setDiscoveryNotice(null);
                 setDiscoveryDone(true);
               });
           }
@@ -560,6 +583,7 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
       (discoverActivitiesMutation.isPending ||
         (discoveryCards.length === 0 && !discoveryError && !discoveryDone)),
     discoveryError,
+    discoveryNotice,
     onDiscoverySwipe: handleDiscoverySwipe,
     discoveryCityIndex: currentCityIndex,
     discoveryTotalCities: discoverableCities.length,

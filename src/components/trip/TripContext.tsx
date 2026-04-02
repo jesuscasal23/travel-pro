@@ -53,6 +53,7 @@ export interface TripContextValue {
   discoveryTotalTarget: number;
   discoveryIsLoading: boolean;
   discoveryError: string | null;
+  discoveryNotice: string | null;
   onDiscoverySwipe: (decision: "liked" | "disliked") => void;
 
   // Multi-city discovery progress

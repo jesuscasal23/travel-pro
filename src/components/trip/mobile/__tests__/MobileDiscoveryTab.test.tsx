@@ -24,6 +24,7 @@ function makeCard(overrides: Partial<ActivityDiscoveryCandidate> = {}): Activity
     category: "Food",
     duration: "2h",
     googleMapsUrl: "https://maps.google.com/?q=Tsukiji",
+    googlePlaceId: null,
     imageUrl: null,
     imageUrls: [],
     lat: 35.665,

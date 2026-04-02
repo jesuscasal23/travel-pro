@@ -87,6 +87,7 @@ beforeEach(() => {
       },
     ],
     roundLimitReached: false,
+    reachability: { filtered: 0, verifiedFiltered: 0, autoRegenerated: false },
   });
 });
 

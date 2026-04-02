@@ -47,6 +47,7 @@ export default function TripItineraryPage() {
     discoveryTotalTarget,
     discoveryIsLoading,
     discoveryError,
+    discoveryNotice,
     onDiscoverySwipe,
     discoveryCityIndex,
     discoveryTotalCities,
@@ -165,6 +166,7 @@ export default function TripItineraryPage() {
           totalTarget={discoveryTotalTarget}
           isLoading={discoveryIsLoading}
           error={discoveryError}
+          notice={discoveryNotice}
           isMultiCity={itinerary.route.length > 1}
           onSwipe={onDiscoverySwipe}
           cityIndex={discoveryCityIndex}

@@ -8,6 +8,7 @@ const PER_REQUEST_TIMEOUT_MS = 3_000;
 
 interface ActivityImageResolution {
   imageUrls: string[];
+  verifiedLocation?: { lat: number; lng: number } | null;
 }
 
 const MAX_IMAGES_PER_ACTIVITY = 2;
@@ -42,9 +43,12 @@ export async function resolveActivityImages(
       try {
         const place = await findPlace(`${activity.name} ${city}`, controller.signal);
         const photoNames = place?.photoNames?.slice(0, MAX_IMAGES_PER_ACTIVITY) ?? [];
-        if (photoNames.length === 0) return { imageUrls: [] };
+        const verifiedLocation = place?.location ?? null;
+        if (photoNames.length === 0) {
+          return { imageUrls: [], verifiedLocation };
+        }
         const urls = photoNames.map((name) => getPlacePhotoUrl(name, 400));
-        return { imageUrls: urls };
+        return { imageUrls: urls, verifiedLocation };
       } finally {
         clearTimeout(timeout);
         log.debug("Image request finished", {
@@ -60,7 +64,7 @@ export async function resolveActivityImages(
   );
 
   const resolutions: ActivityImageResolution[] = results.map((r) =>
-    r.status === "fulfilled" ? r.value : { imageUrls: [] }
+    r.status === "fulfilled" ? r.value : { imageUrls: [], verifiedLocation: null }
   );
 
   const perActivity = activities.map((a, i) => ({
@@ -133,14 +137,26 @@ export async function resolveActivityImagesBatch(
         const searchName = row.placeName ?? row.name;
         const place = await findPlace(`${searchName} ${row.city}`, controller.signal);
         const photoNames = place?.photoNames?.slice(0, MAX_IMAGES_PER_ACTIVITY) ?? [];
+        const verifiedLocation = place?.location ?? null;
         if (photoNames.length === 0) {
+          if (verifiedLocation) {
+            await prisma.discoveredActivity.update({
+              where: { id: row.id },
+              data: { lat: verifiedLocation.lat, lng: verifiedLocation.lng },
+            });
+          }
           return { id: row.id, imageUrls: [] };
         }
 
         const imageUrls = photoNames.map((name) => getPlacePhotoUrl(name, 400));
+        const updateData = {
+          imageUrl: imageUrls[0] ?? null,
+          imageUrls,
+          ...(verifiedLocation ? { lat: verifiedLocation.lat, lng: verifiedLocation.lng } : {}),
+        };
         await prisma.discoveredActivity.update({
           where: { id: row.id },
-          data: { imageUrl: imageUrls[0] ?? null, imageUrls },
+          data: updateData,
         });
 
         return { id: row.id, imageUrls };

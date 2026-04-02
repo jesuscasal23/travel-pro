@@ -115,8 +115,8 @@ model Itinerary {
 
 model DiscoveredActivity {
   id        String   @id @default(cuid())
-  tripId    String   @map("trip_id")
-  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId    String?  @map("trip_id")
+  trip      Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
   profileId String?  @map("profile_id")
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
@@ -130,6 +130,7 @@ model DiscoveredActivity {
   category      String
   duration      String
   googleMapsUrl String? @map("google_maps_url")
+  googlePlaceId String? @map("google_place_id")
   imageUrl      String? @map("image_url")
   imageUrls     String[] @default([]) @map("image_urls")
   lat           Float?
@@ -146,6 +147,7 @@ model DiscoveredActivity {
   @@index([tripId])
   @@index([tripId, cityId])
   @@index([tripId, assignedDay])
+  @@unique([tripId, googlePlaceId], map: "discovered_activities_trip_place_unique")
   @@index([profileId])
   @@map("discovered_activities")
 }

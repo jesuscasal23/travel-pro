@@ -25,6 +25,15 @@ export const CONTENT_FILTER_BACKOFF_MS = 600;
 /** Maximum discovery rounds (AI calls) per city. Each round generates ~25 activities. */
 export const MAX_DISCOVERY_ROUNDS_PER_CITY = 5;
 
+/** Activities must be within roughly a 60-minute drive (~45 km / 28 mi) of the city center. */
+export const MAX_ACTIVITY_DISTANCE_KM = 45;
+
+/** Minimum number of reachable cards we try to deliver per batch before auto-regenerating. */
+export const MIN_REACHABLE_ACTIVITY_COUNT = 18;
+
+/** Average driving speed (km/h) we assume when converting reachability distance to minutes. */
+export const AVERAGE_CITY_DRIVE_SPEED_KMH = 45;
+
 // ── Build Lifecycle ─────────────────────────────────────────
 
 /** How long a "building" record can exist before being considered stale. */
