@@ -481,13 +481,16 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     );
   }
 
-  const countries = [...new Set(route.map((r) => r.country))];
+  const countries = [...new Set(route.map((r) => r.country).filter(Boolean))];
+  const cityNames = route.map((r) => r.city).filter(Boolean);
   const singleCity = route.length === 1;
   const tripTitle = singleCity
     ? `${route[0].city}, ${route[0].country}`
-    : countries.length > 0
-      ? countries.join(", ")
-      : (tripData?.destination ?? "Untitled Trip");
+    : cityNames.length > 0
+      ? cityNames.join(" → ")
+      : countries.length > 0
+        ? countries.join(", ")
+        : (tripData?.destination ?? "Untitled Trip");
   const totalDays =
     localItinerary?.days.length ||
     route.reduce((sum, r) => sum + r.days, 0) ||

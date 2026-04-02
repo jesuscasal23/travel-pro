@@ -135,6 +135,41 @@ export default function PlanPage() {
     return true;
   };
 
+  const canProceed = canAdvance();
+  const disabledReason = (() => {
+    if (canProceed) return null;
+    if (showDetails) {
+      const missing: string[] = [];
+      if (!effectiveNationality) missing.push("nationality");
+      if (!effectiveHomeAirport) missing.push("home airport");
+      if (missing.length > 0) {
+        const message =
+          missing.length === 2 ? `${missing[0]} and ${missing[1]}` : (missing[0] ?? "");
+        return `Add your ${message} to continue.`;
+      }
+    }
+    if (showDestination) {
+      if (selectedCities.length === 0) {
+        return "Add at least one city to continue.";
+      }
+      if (!dateStart) {
+        return dateMode === "flexible"
+          ? "Pick a start window to continue."
+          : "Pick a start date to continue.";
+      }
+      if (dateMode === "exact" && !dateEnd) {
+        return "Pick an end date to continue.";
+      }
+      if (dateMode === "flexible" && flexDayCount < 1) {
+        return "Increase the number of days to continue.";
+      }
+    }
+    if (showPriorities && planningPriorities.length === 0) {
+      return "Select at least one planning challenge to continue.";
+    }
+    return null;
+  })();
+
   const goNext = () => {
     if (showDetails) {
       const profileErrors = validate(onboardingStep1Schema, {
@@ -407,7 +442,7 @@ export default function PlanPage() {
               variant="brand"
               fullWidth
               onClick={handleGenerate}
-              disabled={!canAdvance() || isBuilding}
+              disabled={!canProceed || isBuilding}
               className="shadow-brand-xl gap-2 rounded-[24px] py-5 text-lg"
             >
               {isBuilding ? (
@@ -428,13 +463,16 @@ export default function PlanPage() {
             variant="brand"
             fullWidth
             onClick={goNext}
-            disabled={!canAdvance()}
+            disabled={!canProceed}
             className="shadow-brand-xl gap-3 rounded-[24px] py-5 text-lg"
           >
             <span>{showPriorities ? "Analyze My Profile" : "Continue"}</span>
             <ArrowRight className="h-5 w-5" strokeWidth={2.4} />
           </Button>
         )}
+        {!showSignupGate && disabledReason ? (
+          <p className="text-dim mt-3 text-center text-sm">{disabledReason}</p>
+        ) : null}
       </div>
     </div>
   );

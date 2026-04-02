@@ -111,7 +111,11 @@ export default function TripItineraryPage() {
   const showJourney =
     discoveryStatus === "completed" && (assignedActivities.length > 0 || itinerary.days.length > 0);
   const currentCityName = itinerary.route[discoveryCityIndex]?.city;
-  const destinationName = itinerary.route[0]?.city ?? tripTitle;
+  const celebrationCities = itinerary.route.map((stop) => stop.city).filter(Boolean);
+  const celebrationDestination =
+    celebrationCities.length > 1
+      ? celebrationCities.join(" → ")
+      : (celebrationCities[0] ?? tripTitle);
 
   const showDiscoveryCelebration =
     firstRunMode && !showJourney && discoveryStatus !== "completed" && !discoveryBannerDismissed;
@@ -122,7 +126,7 @@ export default function TripItineraryPage() {
       {showDiscoveryCelebration ? (
         <CelebrationCard
           badge="Your trip is live"
-          title={`Amazing — you're going to ${destinationName}!`}
+          title={`Amazing — you're going to ${celebrationDestination}!`}
           description="We’re celebrating with a fresh deck of experiences picked for your vibe. Swipe to keep what you love and we’ll stitch the perfect flow."
           icon={<Sparkles className="text-brand-primary h-4 w-4" />}
         >
