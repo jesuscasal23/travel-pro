@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { AlertBox } from "@/components/ui/AlertBox";
 import { Button } from "@/components/ui/Button";
 import { buildTrackedLink } from "@/lib/features/affiliate/link-generator";
@@ -22,6 +23,7 @@ import { FlightFilterPanel } from "./flight/FlightFilterPanel";
 import { useFlightOptions } from "./flight/useFlightOptions";
 import type { FlightSearchResult, FlightLegResults } from "@/lib/flights/types";
 import type { BookingClick, FlightDirection, FlightSelection } from "@/types";
+import { AffiliateEvents } from "@/lib/analytics/events";
 
 /** Format YYYY-MM-DD → "Oct 12" */
 function formatDate(dateStr: string): string {
@@ -78,6 +80,8 @@ export function FlightOptionsPanel({
   onRemoveSelection,
 }: FlightOptionsPanelProps) {
   const [showResults, setShowResults] = useState(!selectedFlight);
+  const posthog = usePostHog();
+  const affiliateImpressionRef = useRef<string | null>(null);
 
   const {
     sortMode,
@@ -228,6 +232,42 @@ export function FlightOptionsPanel({
     departureDate: leg.departureDate,
     ...(direction && { direction }),
   };
+  const legKey = `${leg.fromIata}-${leg.toIata}-${leg.departureDate}`;
+  const affiliatePlacement: "empty_state" | "footer" | null =
+    !loading && displayResults.length === 0
+      ? "empty_state"
+      : !loading && sorted.length > 0
+        ? "footer"
+        : null;
+
+  useEffect(() => {
+    if (!affiliatePlacement) return;
+    const key = `${legKey}-${affiliatePlacement}`;
+    if (affiliateImpressionRef.current === key) return;
+    affiliateImpressionRef.current = key;
+    posthog?.capture(AffiliateEvents.CardShown, {
+      provider: "skyscanner",
+      click_type: "flight",
+      placement: affiliatePlacement,
+      trip_id: tripId,
+      from_iata: leg.fromIata,
+      to_iata: leg.toIata,
+      departure_date: leg.departureDate,
+    });
+  }, [affiliatePlacement, legKey, leg.departureDate, leg.fromIata, leg.toIata, posthog, tripId]);
+
+  const handleAffiliateClick = (placement: "empty_state" | "footer") => {
+    posthog?.capture(AffiliateEvents.LinkClicked, {
+      provider: "skyscanner",
+      click_type: "flight",
+      placement,
+      trip_id: tripId,
+      from_iata: leg.fromIata,
+      to_iata: leg.toIata,
+      departure_date: leg.departureDate,
+    });
+    onSelectManual?.();
+  };
 
   // ── No results at all — show empty state + Skyscanner CTA ──
   if (displayResults.length === 0 && !loading) {
@@ -236,7 +276,7 @@ export function FlightOptionsPanel({
       type: "flight",
       itineraryId,
       dest: `https://www.skyscanner.net/transport/flights/${leg.fromIata}/${leg.toIata}/`,
-      metadata: flightMeta,
+      metadata: { ...flightMeta, placement: "empty_state" },
     });
 
     return (
@@ -284,7 +324,7 @@ export function FlightOptionsPanel({
           href={fallbackUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => onSelectManual?.()}
+          onClick={() => handleAffiliateClick("empty_state")}
           className="group dark:bg-card block rounded-xl bg-white p-5 text-center shadow-sm transition-all hover:shadow-md"
         >
           <Plane className="text-primary/30 mx-auto mb-2 h-8 w-8" />
@@ -500,11 +540,11 @@ export function FlightOptionsPanel({
                 type: "flight",
                 itineraryId,
                 dest: sorted[0].bookingUrl,
-                metadata: flightMeta,
+                metadata: { ...flightMeta, placement: "footer" },
               })}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => onSelectManual?.()}
+              onClick={() => handleAffiliateClick("footer")}
               className="dark:bg-card mt-4 flex items-center justify-center gap-2 rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-md"
             >
               <span className="text-primary text-sm font-medium">Book on Skyscanner</span>

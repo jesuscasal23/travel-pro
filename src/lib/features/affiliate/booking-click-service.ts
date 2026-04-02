@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/core/prisma";
 import { createLogger } from "@/lib/core/logger";
+import { captureServerEvent } from "@/lib/analytics/posthog-server";
+import { AffiliateEvents } from "@/lib/analytics/events";
+import { estimateAffiliateCommission } from "@/lib/analytics/affiliate-metrics";
 
 const log = createLogger("booking-click");
 
@@ -13,6 +16,7 @@ const BOOKING_CLICK_SELECT = {
   metadata: true,
   bookingConfirmed: true,
   createdAt: true,
+  userId: true,
 } as const;
 
 export async function getBookingClicksForTrip(tripId: string) {
@@ -24,11 +28,26 @@ export async function getBookingClicksForTrip(tripId: string) {
 }
 
 export async function confirmBookingClick(clickId: string, confirmed: boolean) {
-  return prisma.affiliateClick.update({
+  const click = await prisma.affiliateClick.update({
     where: { id: clickId },
     data: { bookingConfirmed: confirmed },
     select: BOOKING_CLICK_SELECT,
   });
+  if (confirmed) {
+    const metadata = click.metadata as Record<string, unknown> | null;
+    void captureServerEvent(
+      AffiliateEvents.BookingConfirmed,
+      {
+        provider: click.provider,
+        click_type: click.clickType,
+        trip_id: click.tripId,
+        city: click.city,
+        estimated_commission_eur: estimateAffiliateCommission(click.provider, metadata),
+      },
+      click.userId ?? click.tripId ?? undefined
+    );
+  }
+  return click;
 }
 
 /**
@@ -70,6 +89,26 @@ export async function trackFlightBookingClick(input: {
         },
       },
     });
+    void captureServerEvent(
+      AffiliateEvents.LinkClicked,
+      {
+        provider: input.bookWith.toLowerCase(),
+        click_type: "flight",
+        trip_id: input.tripId,
+        estimated_commission_eur: estimateAffiliateCommission(input.bookWith, {
+          price: input.price,
+        }),
+        metadata: {
+          type: "flight",
+          fromIata: input.fromIata,
+          toIata: input.toIata,
+          departureDate: input.departureDate,
+          airline: input.bookWith,
+          price: input.price,
+        },
+      },
+      input.userId ?? input.tripId ?? undefined
+    );
   } catch (error) {
     log.error("Failed to track flight booking click", {
       error: error instanceof Error ? error.message : String(error),
@@ -84,7 +123,7 @@ export async function createManualBooking(input: {
   userId?: string;
   metadata?: Record<string, unknown>;
 }) {
-  return prisma.affiliateClick.create({
+  const click = await prisma.affiliateClick.create({
     data: {
       tripId: input.tripId,
       provider: "manual",
@@ -98,4 +137,16 @@ export async function createManualBooking(input: {
     },
     select: BOOKING_CLICK_SELECT,
   });
+  void captureServerEvent(
+    AffiliateEvents.BookingConfirmed,
+    {
+      provider: click.provider,
+      click_type: click.clickType,
+      trip_id: click.tripId,
+      city: click.city ?? input.city ?? null,
+      estimated_commission_eur: estimateAffiliateCommission("booking", input.metadata ?? null),
+    },
+    input.userId ?? click.tripId ?? undefined
+  );
+  return click;
 }

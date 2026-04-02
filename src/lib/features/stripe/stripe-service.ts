@@ -5,6 +5,8 @@ import { getOptionalStripeEnv } from "@/lib/config/server-env";
 import { createLogger } from "@/lib/core/logger";
 import { BadRequestError } from "@/lib/api/errors";
 import type { CheckoutInput } from "./schemas";
+import { captureServerEvent } from "@/lib/analytics/posthog-server";
+import { MonetizationEvents } from "@/lib/analytics/events";
 
 const log = createLogger("stripe");
 
@@ -28,6 +30,33 @@ function priceIdForPlan(
     case "monthly":
       return env.priceMonthly;
   }
+}
+
+function inferPlanFromMetadata(
+  value: string | null | undefined
+): "lifetime" | "yearly" | "monthly" | null {
+  if (value === "lifetime" || value === "yearly" || value === "monthly") {
+    return value;
+  }
+  return null;
+}
+
+function planFromPriceId(priceId: string | null): "lifetime" | "yearly" | "monthly" | null {
+  if (!priceId) return null;
+  const env = getOptionalStripeEnv();
+  if (!env) return null;
+  if (priceId === env.priceLifetime) return "lifetime";
+  if (priceId === env.priceYearly) return "yearly";
+  if (priceId === env.priceMonthly) return "monthly";
+  return null;
+}
+
+async function getUserIdForCustomer(customerId: string): Promise<string | null> {
+  const profile = await prisma.profile.findFirst({
+    where: { stripeCustomerId: customerId },
+    select: { userId: true },
+  });
+  return profile?.userId ?? null;
 }
 
 // ── Customer management ────────────────────────────────────────
@@ -125,10 +154,7 @@ export async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
       await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
       break;
     case "invoice.payment_failed":
-      log.warn("Invoice payment failed", {
-        invoiceId: (event.data.object as Stripe.Invoice).id,
-        customer: String((event.data.object as Stripe.Invoice).customer),
-      });
+      await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
       break;
     default:
       log.info("Unhandled Stripe event", { type: event.type });
@@ -142,14 +168,42 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     return;
   }
 
+  const planFromMetadata = inferPlanFromMetadata(
+    typeof session.metadata?.plan === "string" ? session.metadata.plan : null
+  );
+  const distinctId =
+    (typeof session.metadata?.userId === "string" ? session.metadata.userId : null) ??
+    (await getUserIdForCustomer(customerId));
+
+  void captureServerEvent(
+    MonetizationEvents.CheckoutCompleted,
+    {
+      plan: planFromMetadata ?? (session.mode === "payment" ? "lifetime" : null),
+      mode: session.mode,
+      amount_total: session.amount_total ?? null,
+      currency: session.currency ?? "eur",
+      checkout_session_id: session.id,
+    },
+    distinctId ?? customerId
+  );
+
   // For one-time payments (lifetime), set isPremium directly.
   // Subscriptions are handled by subscription events.
   if (session.mode === "payment") {
-    await prisma.profile.update({
+    const profile = await prisma.profile.update({
       where: { stripeCustomerId: customerId },
       data: { isPremium: true },
+      select: { userId: true },
     });
     log.info("Lifetime purchase completed", { customerId });
+    void captureServerEvent(
+      MonetizationEvents.SubscriptionActivated,
+      {
+        plan: planFromMetadata ?? "lifetime",
+        mode: "payment",
+      },
+      profile.userId ?? distinctId ?? customerId
+    );
   }
 }
 
@@ -163,8 +217,9 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription): Prom
   const periodEnd = firstItem?.current_period_end
     ? new Date(firstItem.current_period_end * 1000)
     : null;
+  const plan = planFromPriceId(priceId);
 
-  await prisma.profile.update({
+  const profile = await prisma.profile.update({
     where: { stripeCustomerId: customerId },
     data: {
       isPremium: isActive,
@@ -172,6 +227,7 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription): Prom
       stripePriceId: priceId,
       stripeCurrentPeriodEnd: periodEnd,
     },
+    select: { userId: true },
   });
 
   log.info("Subscription updated", {
@@ -179,6 +235,18 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription): Prom
     status: subscription.status,
     isPremium: isActive,
   });
+
+  if (isActive) {
+    void captureServerEvent(
+      MonetizationEvents.SubscriptionActivated,
+      {
+        plan: plan ?? "subscription",
+        stripe_subscription_id: subscription.id,
+        status: subscription.status,
+      },
+      profile.userId ?? customerId
+    );
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
@@ -196,6 +264,32 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
   });
 
   log.info("Subscription deleted", { customerId });
+}
+
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+  const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  if (!customerId) {
+    log.warn("invoice.payment_failed missing customer", { invoiceId: invoice.id });
+    return;
+  }
+
+  const profile = await prisma.profile.findFirst({
+    where: { stripeCustomerId: customerId },
+    select: { userId: true, stripePriceId: true },
+  });
+
+  log.warn("Invoice payment failed", { invoiceId: invoice.id, customer: customerId });
+
+  void captureServerEvent(
+    MonetizationEvents.PaymentFailed,
+    {
+      invoice_id: invoice.id,
+      amount_due: invoice.amount_due ?? null,
+      currency: invoice.currency ?? "eur",
+      plan: planFromPriceId(profile?.stripePriceId ?? null),
+    },
+    profile?.userId ?? customerId
+  );
 }
 
 // ── GDPR cleanup ───────────────────────────────────────────────

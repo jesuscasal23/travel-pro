@@ -239,6 +239,25 @@ export function getOptionalStripeEnv(): {
   );
 }
 
+export function getOptionalPosthogServerEnv(): { apiKey: string; host: string } | null {
+  if (!hasEnvValue("POSTHOG_API_KEY")) {
+    return null;
+  }
+
+  return parseRequiredEnv(
+    "posthog",
+    z.object({
+      apiKey: nonEmptyString,
+      host: nonEmptyString,
+    }),
+    {
+      apiKey: process.env.POSTHOG_API_KEY,
+      host: process.env.POSTHOG_HOST?.trim() || "https://eu.posthog.com",
+    },
+    ["POSTHOG_API_KEY", "POSTHOG_HOST"]
+  );
+}
+
 export function getServerEnvChecks(): Record<string, EnvCheckStatus> {
   return {
     anthropic: hasEnvValue("ANTHROPIC_API_KEY") ? "ok" : "missing",
@@ -255,5 +274,6 @@ export function getServerEnvChecks(): Record<string, EnvCheckStatus> {
         : "missing",
     stripe:
       hasEnvValue("STRIPE_SECRET_KEY") && hasEnvValue("STRIPE_WEBHOOK_SECRET") ? "ok" : "missing",
+    posthog: hasEnvValue("POSTHOG_API_KEY") ? "ok" : "missing",
   };
 }

@@ -8,6 +8,9 @@ import {
   hashIpAddress,
   isAllowedAffiliateDestination,
 } from "./redirect-utils";
+import { captureServerEvent } from "@/lib/analytics/posthog-server";
+import { AffiliateEvents } from "@/lib/analytics/events";
+import { estimateAffiliateCommission } from "@/lib/analytics/affiliate-metrics";
 
 const log = createLogger("affiliate-redirect-service");
 
@@ -65,6 +68,22 @@ export async function logAffiliateRedirect(input: LogAffiliateRedirectInput) {
         metadata: (input.metadata as Prisma.InputJsonValue) ?? undefined,
       },
     });
+    void captureServerEvent(
+      AffiliateEvents.LinkClicked,
+      {
+        provider: input.provider,
+        click_type: input.type,
+        trip_id: tripId ?? null,
+        city: input.city ?? null,
+        destination: getAffiliateDestinationHostname(input.dest),
+        estimated_commission_eur: estimateAffiliateCommission(
+          input.provider,
+          input.metadata ?? null
+        ),
+        metadata: input.metadata ?? undefined,
+      },
+      input.userId ?? tripId ?? undefined
+    );
   } catch (error) {
     log.error("Failed to log click", {
       error: error instanceof Error ? error.message : String(error),

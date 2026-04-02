@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { useToastStore } from "@/stores/useToastStore";
 import { apiFetch } from "@/lib/client/api-fetch";
+import { MonetizationEvents } from "@/lib/analytics/events";
 
 type Plan = "lifetime" | "yearly" | "per-trip";
 
@@ -34,6 +35,8 @@ const PLAN_PRICES: Record<Plan | "monthly", string> = {
   "per-trip": "19.99",
   monthly: "12.99",
 };
+
+const PRESENTED_PLANS: (Plan | "monthly")[] = ["lifetime", "yearly", "monthly", "per-trip"];
 
 export default function PremiumPage() {
   return (
@@ -52,35 +55,60 @@ function PremiumPageInner() {
   const searchParams = useSearchParams();
   const mountedAt = useRef(0);
   const source = searchParams.get("source");
+  const paywallSource = source ?? "direct";
 
   // Track paywall view on mount
   useEffect(() => {
     mountedAt.current = Date.now();
-    posthog?.capture("paywall_viewed", { source: source ?? "direct" });
-  }, [posthog, source]);
+    posthog?.capture(MonetizationEvents.PaywallViewed, {
+      source: paywallSource,
+      plans_presented: PRESENTED_PLANS,
+      default_plan: selectedPlan,
+    });
+  }, [posthog, paywallSource, selectedPlan]);
 
   // Track subscription success after Stripe redirect
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      posthog?.capture("subscription_started", {
+      posthog?.capture(MonetizationEvents.CheckoutCompleted, {
         plan: searchParams.get("plan") ?? "unknown",
+        source: paywallSource,
       });
     }
-  }, [posthog, searchParams]);
+  }, [posthog, searchParams, paywallSource]);
 
   // Track dismissal via visibilitychange
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        posthog?.capture("paywall_dismissed", {
-          source: source ?? "direct",
+        posthog?.capture(MonetizationEvents.PaywallDismissed, {
+          source: paywallSource,
           time_on_page_ms: Date.now() - mountedAt.current,
         });
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [posthog, source]);
+  }, [posthog, paywallSource]);
+
+  const trackPlanSelection = (plan: Plan | "monthly") => {
+    posthog?.capture(MonetizationEvents.PlanSelected, {
+      plan,
+      source: paywallSource,
+    });
+  };
+
+  const handleSelectYearly = () => {
+    setSelectedPlan("yearly");
+    setShowMonthly(true);
+    trackPlanSelection("yearly");
+  };
+
+  const handleSelectMonthly = () => {
+    setSelectedPlan("yearly");
+    setShowMonthly(true);
+    trackPlanSelection("monthly");
+  };
 
   const handleSubscribe = async () => {
     if (selectedPlan === "per-trip") {
@@ -91,9 +119,10 @@ function PremiumPageInner() {
     // When the monthly sub-option is shown and selected, checkout monthly
     const checkoutPlan = showMonthly && selectedPlan === "yearly" ? "monthly" : selectedPlan;
 
-    posthog?.capture("paywall_cta_clicked", {
+    posthog?.capture(MonetizationEvents.CheckoutStarted, {
       plan: checkoutPlan,
       price: PLAN_PRICES[checkoutPlan],
+      source: paywallSource,
     });
 
     setIsLoading(true);
@@ -119,9 +148,16 @@ function PremiumPageInner() {
     toast({ title: "Nothing to restore", description: "No previous purchase found." });
   };
 
-  const handleSelectYearly = () => {
-    setSelectedPlan("yearly");
-    setShowMonthly(true);
+  const handleSelectLifetime = () => {
+    setShowMonthly(false);
+    setSelectedPlan("lifetime");
+    trackPlanSelection("lifetime");
+  };
+
+  const handleSelectPerTrip = () => {
+    setShowMonthly(false);
+    setSelectedPlan("per-trip");
+    trackPlanSelection("per-trip");
   };
 
   const ctaLabel: Record<Plan, string> = {
@@ -173,10 +209,7 @@ function PremiumPageInner() {
               period=""
               subtitle="One-time payment, forever yours"
               selected={selectedPlan === "lifetime"}
-              onSelect={() => {
-                setSelectedPlan("lifetime");
-                setShowMonthly(false);
-              }}
+              onSelect={handleSelectLifetime}
             />
 
             {/* Yearly — recommended */}
@@ -200,7 +233,7 @@ function PremiumPageInner() {
                   period="/mo"
                   subtitle="Cancel anytime"
                   selected={selectedPlan === "yearly" && showMonthly}
-                  onSelect={() => setSelectedPlan("yearly")}
+                  onSelect={handleSelectMonthly}
                   compact
                 />
               </div>
@@ -214,10 +247,7 @@ function PremiumPageInner() {
               period=""
               subtitle="Unlock a single trip"
               selected={selectedPlan === "per-trip"}
-              onSelect={() => {
-                setSelectedPlan("per-trip");
-                setShowMonthly(false);
-              }}
+              onSelect={handleSelectPerTrip}
             />
           </div>
 
