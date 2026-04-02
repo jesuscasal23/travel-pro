@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Check, ExternalLink, ImageOff, MapPin, Sparkles, X } from "lucide-react";
 import type { ActivityDiscoveryCandidate, DiscoveryStatus } from "@/types";
@@ -25,6 +25,11 @@ interface MobileDiscoveryTabProps {
 const SWIPE_THRESHOLD = 110;
 const FEEDBACK_DEAD_ZONE = 20;
 
+function getActivityImageKey(card: ActivityDiscoveryCandidate): string {
+  const urls = card.imageUrls?.join("|") ?? card.imageUrl ?? "";
+  return `${card.name}|${card.googleMapsUrl}|${urls}`;
+}
+
 function ActivityImages({ card }: { card: ActivityDiscoveryCandidate }) {
   const [primaryFailed, setPrimaryFailed] = useState(false);
   const [secondaryFailed, setSecondaryFailed] = useState(false);
@@ -35,11 +40,6 @@ function ActivityImages({ card }: { card: ActivityDiscoveryCandidate }) {
     }
     return card.imageUrl ? [card.imageUrl] : [];
   }, [card.imageUrls, card.imageUrl]);
-
-  useEffect(() => {
-    setPrimaryFailed(false);
-    setSecondaryFailed(false);
-  }, [card.name, card.googleMapsUrl, imageSources.join("|")]);
 
   const renderFallback = () => (
     <div className="from-brand-primary-soft to-app-blue-100 flex h-48 w-full items-center justify-center bg-gradient-to-br">
@@ -200,7 +200,7 @@ export function MobileDiscoveryTab({
             className="shadow-glass-md absolute inset-x-2 top-2 rounded-[30px] border border-white/70 bg-white/85 p-5"
           >
             <div className="mb-4 overflow-hidden rounded-2xl border border-white/75">
-              <ActivityImages card={nextCard} />
+              <ActivityImages key={getActivityImageKey(nextCard)} card={nextCard} />
             </div>
 
             <div className="mb-1 flex items-start justify-between gap-3">
@@ -287,7 +287,7 @@ export function MobileDiscoveryTab({
             </motion.div>
 
             <div className="mb-4 overflow-hidden rounded-2xl border border-white/75">
-              <ActivityImages card={currentCard} />
+              <ActivityImages key={getActivityImageKey(currentCard)} card={currentCard} />
             </div>
 
             <div className="mb-1 flex items-start justify-between gap-3">
