@@ -176,6 +176,7 @@ function SignupForm() {
                         spellCheck={false}
                         placeholder="you@example.com"
                         className={glassInputClass}
+                        suppressHydrationWarning
                       />
                       {errors.email?.message && (
                         <p className={formErrorClass}>{errors.email.message}</p>
@@ -194,6 +195,7 @@ function SignupForm() {
                         autoComplete="new-password"
                         placeholder="At least 8 characters"
                         className={glassInputClass}
+                        suppressHydrationWarning
                       />
                       {errors.password?.message && (
                         <p className={formErrorClass}>{errors.password.message}</p>
@@ -212,6 +214,7 @@ function SignupForm() {
                         autoComplete="new-password"
                         placeholder="Repeat your password"
                         className={glassInputClass}
+                        suppressHydrationWarning
                       />
                       {errors.confirmPassword?.message && (
                         <p className={formErrorClass}>{errors.confirmPassword.message}</p>

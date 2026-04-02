@@ -114,3 +114,77 @@ Use Haiku with a minimal prompt to generate a rough draft (just city names, 1 ac
 - User might interact with the draft (e.g., click into a day) before the full version replaces it — need careful state management
 - The "flash" of content changing could feel jarring
 - Two Claude calls per generation doubles the API cost
+
+---
+
+## 5. Add deterministic `data-testid` hooks for end-to-end testing
+
+**Status**: Proposed  
+**Priority**: Medium  
+**Affected areas**: Planner wizard, onboarding CTAs, premium paywall buttons
+
+Playwright + MCP automation currently relies on visible text like “Start Planning” or “Your trip is ready”. Whenever copy changes, the selectors break and the regression suite fails even though the UX still works.
+
+**Proposal**
+
+- Add `data-testid` attributes to the major CTA buttons, step headers, and summary cards that automation scripts interact with most frequently.
+- Document the IDs in `docs/testing.md` so QA and developers know what’s available.
+
+**Expected impact**
+
+- MCP/Playwright flows become far less brittle
+- Copywriters can adjust hero text without coordinating selector updates
+- Enables targeted screenshots or analytics by referencing the same IDs
+
+**Risks**
+
+- Needs coordination with design to ensure attributes don’t bleed into production DOM if they don’t want them; could gate them behind `NEXT_PUBLIC_TEST_IDS=1` if necessary.
+
+---
+
+## 6. Dev-mode analytics + monitoring guardrail
+
+**Status**: Proposed  
+**Priority**: Low  
+**Affected files**: `sentry.*.config.ts`, `src/lib/analytics/*`
+
+Even with Sentry disabled in development, other analytics providers (PostHog, custom `/monitoring` endpoint) still attempt network calls and often 401. These fill the console with noise and slow down local reloads.
+
+**Proposal**
+
+- Add a single `isAnalyticsEnabled` helper that returns `true` only when `NODE_ENV === "production"` (or when an explicit env flag is set).
+- Use the helper wherever we initialize analytics SDKs or call `/monitoring`.
+
+**Expected impact**
+
+- Quiet local consoles, less flaky screenshots and automated tests.
+- Dev builds spend less time retrying failing analytics requests.
+
+**Risks**
+
+- Need to ensure we don’t accidentally disable analytics in preview/staging deployments where we still need telemetry.
+
+---
+
+## 7. MCP audit script CLI ergonomics
+
+**Status**: Proposed  
+**Priority**: Medium  
+**Owner**: Developer Experience
+
+`scripts/playwright_mcp_audit.py` currently runs the full authenticated + anonymous suite every time. When Supabase credentials are missing, half the tests fail immediately and developers have to hack the script by hand.
+
+**Proposal**
+
+- Add `argparse` flags such as `--skip-auth` and `--only planner,premium`.
+- Teach the script to auto-detect whether `E2E_TEST_EMAIL` is available and skip auth-only routes if not.
+- Emit a concise summary table (pass/fail/duration) at the end.
+
+**Benefits**
+
+- Faster iteration when you just need to verify planner or onboarding tweaks.
+- CI can run the full suite, while local contributors opt into a subset.
+
+**Risks**
+
+- Slightly more complex CLI surface; needs documentation in the script header.

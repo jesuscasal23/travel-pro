@@ -137,6 +137,7 @@ function LoginForm() {
                   placeholder="you@example.com"
                   className={glassInputClass}
                   aria-invalid={Boolean(errors.email)}
+                  suppressHydrationWarning
                 />
                 {errors.email?.message && <p className={formErrorClass}>{errors.email.message}</p>}
               </div>
@@ -162,6 +163,7 @@ function LoginForm() {
                   placeholder="Your password"
                   className={glassInputClass}
                   aria-invalid={Boolean(errors.password)}
+                  suppressHydrationWarning
                 />
                 {errors.password?.message && (
                   <p className={formErrorClass}>{errors.password.message}</p>

@@ -3,8 +3,11 @@
 // ============================================================
 import * as Sentry from "@sentry/nextjs";
 
+const isProd = process.env.NODE_ENV === "production";
+const clientDsn = isProd ? process.env.NEXT_PUBLIC_SENTRY_DSN : undefined;
+
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: clientDsn,
   environment: process.env.NODE_ENV,
 
   // Trace a percentage of requests for performance monitoring
@@ -21,6 +24,6 @@ Sentry.init({
     }),
   ],
 
-  // Don't report errors in development
-  enabled: process.env.NODE_ENV === "production",
+  // Don't report errors or initialize transports in development
+  enabled: isProd && Boolean(clientDsn),
 });

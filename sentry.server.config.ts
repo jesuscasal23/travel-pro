@@ -4,8 +4,13 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+const isProd = process.env.NODE_ENV === "production";
+const serverDsn = isProd
+  ? process.env.SENTRY_DSN ?? "https://0d10b09d30309c5e6e00e4677045e8f4@o4509951322030080.ingest.de.sentry.io/4510906602946640"
+  : undefined;
+
 Sentry.init({
-  dsn: "https://0d10b09d30309c5e6e00e4677045e8f4@o4509951322030080.ingest.de.sentry.io/4510906602946640",
+  dsn: serverDsn,
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 1,
@@ -26,4 +31,5 @@ Sentry.init({
     }
     return event;
   },
+  enabled: isProd && Boolean(serverDsn),
 });
