@@ -147,6 +147,7 @@ export async function discoverActivities(
     duration: activity.duration,
     googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(`${activity.placeName} ${city.city}`)}`,
     imageUrl: null as string | null,
+    imageUrls: [] as string[],
     lat: activity.lat,
     lng: activity.lng,
   }));
@@ -168,18 +169,25 @@ export async function discoverActivities(
 
   // Resolve images synchronously — activities without photos are removed
   // so the swipe queue never contains placeholder cards.
-  const imageUrls = await resolveActivityImages(
+  const imageResolutions = await resolveActivityImages(
     inserted.map((r) => ({ name: r.placeName ?? r.name })),
     city.city,
     signal
   );
 
-  const hits: { id: string; imageUrl: string }[] = [];
+  const hits: { id: string; imageUrls: string[] }[] = [];
   const missIds: string[] = [];
+  const secondaryShortfallByCategory: Record<string, number> = {};
 
   for (let i = 0; i < inserted.length; i++) {
-    if (imageUrls[i]) {
-      hits.push({ id: inserted[i].id, imageUrl: imageUrls[i]! });
+    const resolution = imageResolutions[i];
+    if (resolution?.imageUrls.length) {
+      hits.push({ id: inserted[i].id, imageUrls: resolution.imageUrls });
+      if (resolution.imageUrls.length === 1) {
+        const category = inserted[i].category;
+        secondaryShortfallByCategory[category] =
+          (secondaryShortfallByCategory[category] ?? 0) + 1;
+      }
     } else {
       missIds.push(inserted[i].id);
     }
@@ -190,13 +198,22 @@ export async function discoverActivities(
     ...hits.map((h) =>
       prisma.discoveredActivity.update({
         where: { id: h.id },
-        data: { imageUrl: h.imageUrl },
+        data: { imageUrl: h.imageUrls[0] ?? null, imageUrls: h.imageUrls },
       })
     ),
     missIds.length > 0
       ? prisma.discoveredActivity.deleteMany({ where: { id: { in: missIds } } })
       : Promise.resolve(),
   ]);
+
+  if (Object.keys(secondaryShortfallByCategory).length > 0) {
+    log.info("Secondary activity images missing", {
+      tripId,
+      cityId,
+      city: city.city,
+      secondaryShortfallByCategory,
+    });
+  }
 
   log.info("Activity image resolution complete", {
     tripId,
@@ -228,6 +245,7 @@ function toDiscoveredActivityRow(row: {
   duration: string;
   googleMapsUrl: string | null;
   imageUrl: string | null;
+  imageUrls: string[];
   lat: number | null;
   lng: number | null;
   decision: string | null;
@@ -235,6 +253,13 @@ function toDiscoveredActivityRow(row: {
   assignedDay: number | null;
   assignedOrder: number | null;
 }): DiscoveredActivityRow {
+  const normalizedImageUrls =
+    row.imageUrls && row.imageUrls.length > 0
+      ? row.imageUrls
+      : row.imageUrl
+        ? [row.imageUrl]
+        : [];
+
   return {
     id: row.id,
     cityId: row.cityId,
@@ -247,7 +272,8 @@ function toDiscoveredActivityRow(row: {
     category: row.category,
     duration: row.duration,
     googleMapsUrl: row.googleMapsUrl ?? "",
-    imageUrl: row.imageUrl,
+    imageUrl: row.imageUrl ?? normalizedImageUrls[0] ?? null,
+    imageUrls: normalizedImageUrls,
     lat: row.lat,
     lng: row.lng,
     decision: row.decision as DiscoveredActivityRow["decision"],

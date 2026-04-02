@@ -16,6 +16,7 @@ Return a JSON array with EXACTLY 25 activity objects. Not 24, not 26 — the arr
 - lng (number, venue longitude in decimal degrees, e.g. 100.5018)
 
 Rules:
+- Every activity must be within a 60-minute drive (≈45 km / 28 mi) of the city's center. No remote day trips or far-off regions.
 - Every activity must be something a tourist can realistically walk in and DO within the suggested duration. Be specific about the actual visitor experience — e.g. "Watch a live Muay Thai fight" (spectator event) is valid, "Train Muay Thai at a tourist-friendly gym" is valid, but "Muay Thai Training at Lumpinee Boxing Stadium" is misleading if tourists cannot actually train there.
 - The activity name must clearly describe what the traveler will DO, not just name a venue. Prefer action-oriented names like "Watch a Muay Thai Fight at Lumpinee Stadium", "Take a Cooking Class at Silom Thai Cooking School", "Explore Chatuchak Weekend Market".
 - Activity ideas must be specific and realistic for the city.
@@ -56,6 +57,11 @@ Target city:
 - City: ${city.city}
 - Country: ${city.country}
 - Country code: ${city.countryCode}
+- City center coordinates: ${city.lat}, ${city.lng}
+
+Reachability:
+- Activities must stay within common in-city neighborhoods and be reachable in under 60 minutes by car from the coordinates above.
+- Do NOT suggest distant towns or separate metro areas unless explicitly mentioned; exclude any place beyond approximately 45 km / 28 mi.
 
 Return JSON array only (no wrapper object), max 25 activities.${excludeBlock}`;
 }

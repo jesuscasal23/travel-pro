@@ -25,6 +25,7 @@ function makeCard(overrides: Partial<ActivityDiscoveryCandidate> = {}): Activity
     duration: "2h",
     googleMapsUrl: "https://maps.google.com/?q=Tsukiji",
     imageUrl: null,
+    imageUrls: [],
     lat: 35.665,
     lng: 139.77,
     ...overrides,
@@ -81,5 +82,21 @@ describe("MobileDiscoveryTab", () => {
 
     expect(screen.getByText(/Discovery Complete/i)).toBeInTheDocument();
     expect(screen.getByText(/Thank you/i)).toBeInTheDocument();
+  });
+
+  it("renders the dual-photo collage layout when two photos are available", () => {
+    const card = makeCard({
+      imageUrl: "https://example.com/primary.jpg",
+      imageUrls: ["https://example.com/primary.jpg", "https://example.com/secondary.jpg"],
+    });
+
+    renderSubject({
+      status: "in_progress",
+      cards: [card],
+      cursor: 0,
+      totalTarget: 1,
+    });
+
+    expect(screen.getByAltText(/alternate view/i)).toBeInTheDocument();
   });
 });

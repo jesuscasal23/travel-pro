@@ -131,6 +131,7 @@ model DiscoveredActivity {
   duration      String
   googleMapsUrl String? @map("google_maps_url")
   imageUrl      String? @map("image_url")
+  imageUrls     String[] @default([]) @map("image_urls")
   lat           Float?
   lng           Float?
 

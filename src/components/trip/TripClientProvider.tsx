@@ -53,6 +53,15 @@ function getDiscoverableCities(route: CityStop[]): CityStop[] {
   });
 }
 
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 export function TripClientProvider({ tripId, children }: TripClientProviderProps) {
   const { needsRebuild, setNeedsRebuild } = useTripStore(
     useShallow((s) => ({
@@ -264,10 +273,31 @@ export function TripClientProvider({ tripId, children }: TripClientProviderProps
     () =>
       discoveryCards.map((card) => {
         const resolved = activityImageMap.get(card.id);
-        if (resolved && resolved !== card.imageUrl) {
-          return { ...card, imageUrl: resolved };
+        if (!resolved) return card;
+
+        const nextImageUrls =
+          resolved.imageUrls.length > 0
+            ? resolved.imageUrls
+            : card.imageUrls?.length
+              ? card.imageUrls
+              : resolved.imageUrl
+                ? [resolved.imageUrl]
+                : [];
+        const nextPrimary = resolved.imageUrl ?? nextImageUrls[0] ?? card.imageUrl ?? null;
+
+        const currentImageUrls = card.imageUrls ?? (card.imageUrl ? [card.imageUrl] : []);
+        const urlsChanged = !arraysEqual(currentImageUrls, nextImageUrls);
+        const primaryChanged = nextPrimary !== card.imageUrl;
+
+        if (!urlsChanged && !primaryChanged) {
+          return card;
         }
-        return card;
+
+        return {
+          ...card,
+          imageUrl: nextPrimary,
+          imageUrls: nextImageUrls,
+        };
       }),
     [discoveryCards, activityImageMap]
   );

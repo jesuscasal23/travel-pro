@@ -6,16 +6,22 @@ const log = createLogger("activity-image-service");
 
 const PER_REQUEST_TIMEOUT_MS = 3_000;
 
+interface ActivityImageResolution {
+  imageUrls: string[];
+}
+
+const MAX_IMAGES_PER_ACTIVITY = 2;
+
 /**
  * Resolve Google Places photos for a batch of activities in a given city.
- * Returns an array of photo URLs (or null for misses), in the same order as the input.
- * All lookups run in parallel; individual failures never block the batch.
+ * Returns an array of image URL arrays (each entry capped at MAX_IMAGES_PER_ACTIVITY),
+ * preserving the order of the input list. Individual failures never block the batch.
  */
 export async function resolveActivityImages(
   activities: { name: string }[],
   city: string,
   signal?: AbortSignal
-): Promise<(string | null)[]> {
+): Promise<ActivityImageResolution[]> {
   const t0 = Date.now();
   const signalAlreadyAborted = signal?.aborted ?? false;
 
@@ -35,8 +41,10 @@ export async function resolveActivityImages(
 
       try {
         const place = await findPlace(`${activity.name} ${city}`, controller.signal);
-        if (!place?.photoName) return null;
-        return getPlacePhotoUrl(place.photoName, 400);
+        const photoNames = place?.photoNames?.slice(0, MAX_IMAGES_PER_ACTIVITY) ?? [];
+        if (photoNames.length === 0) return { imageUrls: [] };
+        const urls = photoNames.map((name) => getPlacePhotoUrl(name, 400));
+        return { imageUrls: urls };
       } finally {
         clearTimeout(timeout);
         log.debug("Image request finished", {
@@ -51,12 +59,14 @@ export async function resolveActivityImages(
     })
   );
 
-  const urls = results.map((r) => (r.status === "fulfilled" ? r.value : null));
+  const resolutions: ActivityImageResolution[] = results.map((r) =>
+    r.status === "fulfilled" ? r.value : { imageUrls: [] }
+  );
 
   const perActivity = activities.map((a, i) => ({
     index: i,
     name: a.name,
-    hasImage: urls[i] != null,
+    hasPrimaryImage: resolutions[i].imageUrls.length > 0,
     status: results[i].status,
     reason:
       results[i].status === "rejected"
@@ -64,18 +74,21 @@ export async function resolveActivityImages(
         : undefined,
   }));
 
-  const hits = urls.filter(Boolean).length;
+  const hits = resolutions.filter((r) => r.imageUrls.length > 0).length;
+  const dualPhotoCount = resolutions.filter((r) => r.imageUrls.length >= 2).length;
   log.info("Activity image resolution complete", {
     city,
     total: activities.length,
     hits,
+    dualPhotoCount,
+    secondaryShortfall: Math.max(hits - dualPhotoCount, 0),
     missRate: `${(((activities.length - hits) / activities.length) * 100).toFixed(0)}%`,
     durationMs: Date.now() - t0,
     signalAbortedAtEnd: signal?.aborted ?? false,
     perActivity,
   });
 
-  return urls;
+  return resolutions;
 }
 
 /**
@@ -86,18 +99,24 @@ export async function resolveActivityImages(
  */
 export async function resolveActivityImagesBatch(
   activityIds: string[]
-): Promise<Record<string, string | null>> {
+): Promise<Record<string, { imageUrl: string | null; imageUrls: string[] }>> {
   const rows = await prisma.discoveredActivity.findMany({
     where: { id: { in: activityIds } },
-    select: { id: true, name: true, placeName: true, city: true, imageUrl: true },
+    select: { id: true, name: true, placeName: true, city: true, imageUrl: true, imageUrls: true },
   });
 
-  const result: Record<string, string | null> = {};
+  const result: Record<string, { imageUrl: string | null; imageUrls: string[] }> = {};
   const needsResolution: typeof rows = [];
 
   for (const row of rows) {
-    if (row.imageUrl) {
-      result[row.id] = row.imageUrl;
+    const normalizedUrls =
+      row.imageUrls && row.imageUrls.length > 0
+        ? row.imageUrls
+        : row.imageUrl
+          ? [row.imageUrl]
+          : [];
+    if (normalizedUrls.length > 0) {
+      result[row.id] = { imageUrl: normalizedUrls[0] ?? null, imageUrls: normalizedUrls };
     } else {
       needsResolution.push(row);
     }
@@ -113,17 +132,20 @@ export async function resolveActivityImagesBatch(
       try {
         const searchName = row.placeName ?? row.name;
         const place = await findPlace(`${searchName} ${row.city}`, controller.signal);
-        if (!place?.photoName) return { id: row.id, imageUrl: null };
+        const photoNames = place?.photoNames?.slice(0, MAX_IMAGES_PER_ACTIVITY) ?? [];
+        if (photoNames.length === 0) {
+          return { id: row.id, imageUrls: [] };
+        }
 
-        const imageUrl = getPlacePhotoUrl(place.photoName, 400);
+        const imageUrls = photoNames.map((name) => getPlacePhotoUrl(name, 400));
         await prisma.discoveredActivity.update({
           where: { id: row.id },
-          data: { imageUrl },
+          data: { imageUrl: imageUrls[0] ?? null, imageUrls },
         });
 
-        return { id: row.id, imageUrl };
+        return { id: row.id, imageUrls };
       } catch {
-        return { id: row.id, imageUrl: null };
+        return { id: row.id, imageUrls: [] };
       } finally {
         clearTimeout(timeout);
       }
@@ -132,14 +154,17 @@ export async function resolveActivityImagesBatch(
 
   for (const entry of resolved) {
     if (entry.status === "fulfilled") {
-      result[entry.value.id] = entry.value.imageUrl;
+      result[entry.value.id] = {
+        imageUrl: entry.value.imageUrls[0] ?? null,
+        imageUrls: entry.value.imageUrls,
+      };
     }
   }
 
   // Fill in any IDs that weren't found in DB at all
   for (const id of activityIds) {
     if (!(id in result)) {
-      result[id] = null;
+      result[id] = { imageUrl: null, imageUrls: [] };
     }
   }
 

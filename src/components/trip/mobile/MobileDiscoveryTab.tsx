@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Check, ExternalLink, ImageOff, MapPin, Sparkles, X } from "lucide-react";
 import type { ActivityDiscoveryCandidate, DiscoveryStatus } from "@/types";
@@ -25,28 +25,69 @@ interface MobileDiscoveryTabProps {
 const SWIPE_THRESHOLD = 110;
 const FEEDBACK_DEAD_ZONE = 20;
 
-function ActivityImage({ card }: { card: ActivityDiscoveryCandidate }) {
-  const [failed, setFailed] = useState(false);
+function ActivityImages({ card }: { card: ActivityDiscoveryCandidate }) {
+  const [primaryFailed, setPrimaryFailed] = useState(false);
+  const [secondaryFailed, setSecondaryFailed] = useState(false);
 
-  if (card.imageUrl && !failed) {
-    return (
-      <img
-        src={card.imageUrl}
-        alt={card.name}
-        className="h-48 w-full object-cover"
-        loading="eager"
-        onError={() => setFailed(true)}
-      />
-    );
-  }
+  const imageSources = useMemo(() => {
+    if (card.imageUrls && card.imageUrls.length > 0) {
+      return card.imageUrls.filter((url): url is string => Boolean(url));
+    }
+    return card.imageUrl ? [card.imageUrl] : [];
+  }, [card.imageUrls, card.imageUrl]);
 
-  return (
-    <div className="from-brand-primary-soft to-app-blue-100 flex h-36 items-center justify-center bg-gradient-to-br">
-      {failed ? (
+  useEffect(() => {
+    setPrimaryFailed(false);
+    setSecondaryFailed(false);
+  }, [card.name, card.googleMapsUrl, imageSources.join("|")]);
+
+  const renderFallback = () => (
+    <div className="from-brand-primary-soft to-app-blue-100 flex h-48 w-full items-center justify-center bg-gradient-to-br">
+      {primaryFailed ? (
         <ImageOff className="text-brand-primary h-8 w-8 opacity-50" />
       ) : (
         <MapPin className="text-brand-primary h-8 w-8" />
       )}
+    </div>
+  );
+
+  if (imageSources.length === 0 || primaryFailed) {
+    return renderFallback();
+  }
+
+  const primaryUrl = imageSources[0]!;
+  const hasSecondary = imageSources.length > 1 && !secondaryFailed;
+
+  if (!hasSecondary) {
+    return (
+      <img
+        src={primaryUrl}
+        alt={card.name}
+        className="h-48 w-full object-cover"
+        loading="eager"
+        onError={() => setPrimaryFailed(true)}
+      />
+    );
+  }
+
+  const secondaryUrl = imageSources[1]!;
+
+  return (
+    <div className="grid h-48 w-full grid-cols-[1.6fr_1fr] gap-[2px] bg-white/30">
+      <img
+        src={primaryUrl}
+        alt={card.name}
+        className="h-full w-full object-cover"
+        loading="eager"
+        onError={() => setPrimaryFailed(true)}
+      />
+      <img
+        src={secondaryUrl}
+        alt={`${card.name} alternate view`}
+        className="h-full w-full object-cover"
+        loading="eager"
+        onError={() => setSecondaryFailed(true)}
+      />
     </div>
   );
 }
@@ -159,7 +200,7 @@ export function MobileDiscoveryTab({
             className="shadow-glass-md absolute inset-x-2 top-2 rounded-[30px] border border-white/70 bg-white/85 p-5"
           >
             <div className="mb-4 overflow-hidden rounded-2xl border border-white/75">
-              <ActivityImage card={nextCard} />
+              <ActivityImages card={nextCard} />
             </div>
 
             <div className="mb-1 flex items-start justify-between gap-3">
@@ -246,7 +287,7 @@ export function MobileDiscoveryTab({
             </motion.div>
 
             <div className="mb-4 overflow-hidden rounded-2xl border border-white/75">
-              <ActivityImage card={currentCard} />
+              <ActivityImages card={currentCard} />
             </div>
 
             <div className="mb-1 flex items-start justify-between gap-3">

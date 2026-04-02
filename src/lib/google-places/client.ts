@@ -18,7 +18,7 @@ function getApiKey(): string | null {
 
 interface FindPlaceResult {
   placeId: string;
-  photoName: string | null;
+  photoNames: string[];
 }
 
 /**
@@ -62,9 +62,10 @@ export async function findPlace(
     const place = data.places?.[0];
     if (!place) return null;
 
+    const photoNames = (place.photos ?? []).map((photo) => photo.name).filter(Boolean);
     return {
       placeId: place.id,
-      photoName: place.photos?.[0]?.name ?? null,
+      photoNames,
     };
   } catch (error) {
     if (signal?.aborted) return null;

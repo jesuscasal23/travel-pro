@@ -52,6 +52,7 @@ export interface ActivityDiscoveryCandidate {
   duration: string;
   googleMapsUrl: string;
   imageUrl: string | null;
+  imageUrls: string[];
   lat: number | null;
   lng: number | null;
 }

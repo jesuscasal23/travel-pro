@@ -5,7 +5,31 @@ import type { DiscoveredActivityRow } from "@/types";
 const PREFETCH_BUFFER = 5;
 
 interface ActivityImagesResponse {
-  images: Record<string, string | null>;
+  images: Record<
+    string,
+    {
+      imageUrl: string | null;
+      imageUrls: string[];
+    }
+  >;
+}
+
+interface ResolvedImageEntry {
+  imageUrl: string | null;
+  imageUrls: string[];
+}
+
+function normalizeImageEntry(card: DiscoveredActivityRow): ResolvedImageEntry {
+  const urls =
+    card.imageUrls && card.imageUrls.length > 0
+      ? card.imageUrls
+      : card.imageUrl
+        ? [card.imageUrl]
+        : [];
+  return {
+    imageUrl: card.imageUrl ?? urls[0] ?? null,
+    imageUrls: urls,
+  };
 }
 
 /**
@@ -19,8 +43,8 @@ export function useActivityImages(
   tripId: string,
   cards: DiscoveredActivityRow[],
   cursor: number
-): Map<string, string | null> {
-  const [imageMap, setImageMap] = useState<Map<string, string | null>>(new Map());
+): Map<string, ResolvedImageEntry> {
+  const [imageMap, setImageMap] = useState<Map<string, ResolvedImageEntry>>(new Map());
   const inflightRef = useRef(false);
 
   // Seed map with any imageUrls that already exist on the cards
@@ -29,8 +53,18 @@ export function useActivityImages(
       let changed = false;
       const next = new Map(prev);
       for (const card of cards) {
-        if (card.imageUrl && !next.has(card.id)) {
-          next.set(card.id, card.imageUrl);
+        const normalized = normalizeImageEntry(card);
+        const existing = next.get(card.id);
+        if (!existing) {
+          next.set(card.id, normalized);
+          changed = true;
+          continue;
+        }
+        const urlsChanged =
+          existing.imageUrls.length !== normalized.imageUrls.length ||
+          existing.imageUrls.some((url, idx) => url !== normalized.imageUrls[idx]);
+        if (existing.imageUrl !== normalized.imageUrl || urlsChanged) {
+          next.set(card.id, normalized);
           changed = true;
         }
       }
@@ -56,8 +90,12 @@ export function useActivityImages(
 
         setImageMap((prev) => {
           const next = new Map(prev);
-          for (const [id, url] of Object.entries(data.images)) {
-            next.set(id, url);
+          for (const [id, payload] of Object.entries(data.images)) {
+            const normalized: ResolvedImageEntry = {
+              imageUrl: payload.imageUrl ?? payload.imageUrls[0] ?? null,
+              imageUrls: payload.imageUrls ?? [],
+            };
+            next.set(id, normalized);
           }
           return next;
         });
@@ -66,7 +104,7 @@ export function useActivityImages(
         setImageMap((prev) => {
           const next = new Map(prev);
           for (const id of ids) {
-            if (!next.has(id)) next.set(id, null);
+            if (!next.has(id)) next.set(id, { imageUrl: null, imageUrls: [] });
           }
           return next;
         });
