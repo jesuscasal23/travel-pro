@@ -194,6 +194,32 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
       <SectionCard>
         <SectionLabel>Cities</SectionLabel>
 
+        {/* Quick picks */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          {POPULAR_CITIES.map((city) => {
+            const key = cityKey(city);
+            const alreadySelected = selectedKeys.has(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  if (alreadySelected) return;
+                  addCity({ ...city, iataCode: city.iataCode ?? lookupIata(city.city) });
+                  clearError("selectedCities");
+                }}
+                disabled={alreadySelected}
+                className={`border-edge/80 text-navy hover:bg-surface-soft flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition-colors dark:border-white/10 dark:text-white dark:hover:bg-white/10 ${
+                  alreadySelected ? "cursor-default opacity-40" : ""
+                }`}
+              >
+                <MapPin className="text-brand-primary h-3.5 w-3.5" />
+                {city.city}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Search */}
         <div ref={containerRef} className="relative">
           <div className="text-subtext pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2">

@@ -551,7 +551,7 @@ test.describe("Selection & Cart flow (authenticated)", () => {
 
     // Navigate to trips page to see the BottomNav
     await page.goto("/trips");
-    await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Wallet")).toBeVisible({ timeout: 10_000 });
 
     // Badge should reflect baseline + 2
     const cartLink = page.locator("a[href='/cart']");
@@ -567,7 +567,7 @@ test.describe("Selection & Cart flow (authenticated)", () => {
     expect(markRes.status()).toBe(200);
 
     await page.reload();
-    await expect(page.getByText("Cart")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Wallet")).toBeVisible({ timeout: 10_000 });
 
     // Badge should reflect baseline + 1 (hotel is now booked)
     const expectedAfterMark = baseCount + 1;
