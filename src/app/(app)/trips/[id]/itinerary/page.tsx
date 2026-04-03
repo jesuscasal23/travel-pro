@@ -8,6 +8,7 @@ import { MobileJourneyTab } from "@/components/trip/mobile/MobileJourneyTab";
 import { MobileDiscoveryTab } from "@/components/trip/mobile/MobileDiscoveryTab";
 import { TripMobileShell } from "@/components/trip/mobile/TripMobileShell";
 import { useTripContext } from "@/components/trip/TripContext";
+import { buildTripPresentation } from "@/lib/utils/trip/presentation";
 
 interface CelebrationCardProps {
   badge: string;
@@ -62,7 +63,7 @@ export default function TripItineraryPage() {
   const firstRunQuery = searchParams?.get("firstRun") === "1";
   const [firstRunMode, setFirstRunMode] = useState(() => firstRunQuery);
   const [discoveryBannerDismissed, setDiscoveryBannerDismissed] = useState(false);
-  const [journeyBannerDismissed, setJourneyBannerDismissed] = useState(false);
+  const [itineraryBannerDismissed, setItineraryBannerDismissed] = useState(false);
 
   useEffect(() => {
     if (firstRunQuery) {
@@ -73,7 +74,7 @@ export default function TripItineraryPage() {
   const disableCelebration = useCallback(() => {
     setFirstRunMode(false);
     setDiscoveryBannerDismissed(true);
-    setJourneyBannerDismissed(true);
+    setItineraryBannerDismissed(true);
   }, []);
 
   const handleStartDiscovery = useCallback(() => {
@@ -81,13 +82,13 @@ export default function TripItineraryPage() {
   }, []);
 
   const handleViewHotels = useCallback(() => {
-    setJourneyBannerDismissed(true);
+    setItineraryBannerDismissed(true);
     setFirstRunMode(false);
     router.push(`/trips/${tripId}/hotels?fromItinerary=1`);
   }, [router, tripId]);
 
   const handleKeepPlanning = useCallback(() => {
-    setJourneyBannerDismissed(true);
+    setItineraryBannerDismissed(true);
     setFirstRunMode(false);
   }, []);
 
@@ -109,18 +110,18 @@ export default function TripItineraryPage() {
     );
   }
 
-  const showJourney =
+  const showItinerary =
     discoveryStatus === "completed" && (assignedActivities.length > 0 || itinerary.days.length > 0);
   const currentCityName = itinerary.route[discoveryCityIndex]?.city;
-  const celebrationCities = itinerary.route.map((stop) => stop.city).filter(Boolean);
-  const celebrationDestination =
-    celebrationCities.length > 1
-      ? celebrationCities.join(" → ")
-      : (celebrationCities[0] ?? tripTitle);
+  const { destinationLabel: celebrationDestination } = buildTripPresentation({
+    route: itinerary.route,
+    fallbackLabel: tripTitle,
+    fallbackTitle: tripTitle,
+  });
 
   const showDiscoveryCelebration =
-    firstRunMode && !showJourney && discoveryStatus !== "completed" && !discoveryBannerDismissed;
-  const showJourneyCelebration = firstRunMode && showJourney && !journeyBannerDismissed;
+    firstRunMode && !showItinerary && discoveryStatus !== "completed" && !discoveryBannerDismissed;
+  const showItineraryCelebration = firstRunMode && showItinerary && !itineraryBannerDismissed;
 
   return (
     <TripMobileShell showBanners showHero={firstRunMode}>
@@ -140,11 +141,11 @@ export default function TripItineraryPage() {
         </CelebrationCard>
       ) : null}
 
-      {showJourneyCelebration ? (
+      {showItineraryCelebration ? (
         <CelebrationCard
           badge="Itinerary created"
           title={`We built the first ${plannedDayCount} days for you`}
-          description="Based on your picks, here’s a draft journey. Want us to carry that momentum into your stay?"
+          description="Based on your picks, here’s a draft itinerary. Want us to carry that momentum into your stay?"
         >
           <Button variant="brand" onClick={handleViewHotels}>
             <HotelIcon className="mr-2 h-4 w-4" />
@@ -156,7 +157,7 @@ export default function TripItineraryPage() {
         </CelebrationCard>
       ) : null}
 
-      {showJourney ? (
+      {showItinerary ? (
         <MobileJourneyTab itinerary={itinerary} assignedActivities={assignedActivities} />
       ) : (
         <MobileDiscoveryTab

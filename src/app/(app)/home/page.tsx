@@ -61,10 +61,12 @@ export default function HomePage() {
   const nextTrip = getNextTrip(tripList);
   const destination = nextTrip?.destination ?? "your destination";
 
-  // Run once on mount to set time-based greeting — avoids SSR/client hydration mismatch.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // Defer the client-only greeting update until after mount to avoid hydration mismatch.
   useEffect(() => {
-    setGreeting(getGreeting());
+    const frame = window.requestAnimationFrame(() => {
+      setGreeting(getGreeting());
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   return (
@@ -168,7 +170,7 @@ function NoTripsCard() {
         className="bg-card border-edge group w-full rounded-3xl border p-8 text-left transition-shadow hover:shadow-lg"
       >
         <div className="mb-4 text-4xl">🌍</div>
-        <h2 className="text-ink font-display text-lg font-bold">Your next adventure awaits</h2>
+        <h2 className="text-ink font-display text-lg font-bold">Your next trip awaits</h2>
         <p className="text-label mt-1 text-sm leading-relaxed">
           Plan your first trip — pick your destinations and we&apos;ll handle the rest.
         </p>

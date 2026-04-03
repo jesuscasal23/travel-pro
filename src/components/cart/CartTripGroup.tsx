@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, Clock, Hotel, MapPin, Plane, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { buildTripPresentation } from "@/lib/utils/trip/presentation";
 import { CartFlightItem } from "./CartFlightItem";
 import { CartHotelItem } from "./CartHotelItem";
 import type { CartTrip, FlightSelection, HotelSelection } from "@/types";
@@ -68,7 +69,10 @@ export function CartTripGroup({
   onConfirmBooking,
 }: CartTripGroupProps) {
   const totalItems = trip.flights.length + trip.hotels.length;
-  const destination = trip.destination || trip.region || "Trip";
+  const { destinationLabel } = buildTripPresentation({
+    destination: trip.destination,
+    region: trip.region,
+  });
 
   const outboundFlight = trip.slots.outboundFlight;
   const returnFlight = trip.slots.returnFlight;
@@ -88,7 +92,7 @@ export function CartTripGroup({
       <div className="flex items-center gap-2 overflow-x-auto px-1">
         <span className="bg-surface-soft text-foreground inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm">
           <MapPin className="text-primary h-3 w-3" />
-          {destination}
+          {destinationLabel}
         </span>
         <span className="bg-surface-soft text-foreground inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-medium shadow-sm">
           {formatDate(trip.dateStart)} - {formatDate(trip.dateEnd)}

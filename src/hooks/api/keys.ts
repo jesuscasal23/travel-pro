@@ -81,4 +81,8 @@ export const queryKeys = {
     cart: () => [...queryKeys.selections.all, "cart"] as const,
     unbookedCount: () => [...queryKeys.selections.all, "unbooked-count"] as const,
   },
+  cities: {
+    all: ["cities"] as const,
+    list: () => [...queryKeys.cities.all, "list"] as const,
+  },
 } as const;

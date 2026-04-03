@@ -14,6 +14,29 @@ export interface CityStop {
   iataCode?: string; // main international airport (populated when flight optimization runs)
 }
 
+/** Canonical city catalog entry sourced from the database */
+export interface CityRecord {
+  id: string;
+  slug: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  lat: number;
+  lng: number;
+  popular?: boolean;
+  region?: string;
+  iataCode?: string | null;
+}
+
+/** Aggregated country option derived from the city catalog */
+export interface CountryRecord {
+  country: string;
+  countryCode: string;
+  lat: number;
+  lng: number;
+  popular?: boolean;
+}
+
 /** A real flight leg stored in the itinerary after price optimization */
 export interface ItineraryFlightLeg {
   fromCity: string;

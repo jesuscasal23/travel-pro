@@ -15,9 +15,8 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip, label, days, onClick, actions }: TripCardProps) {
-  const cityName = trip.destination || label;
   const countryCode = trip.destinationCountryCode ?? "";
-  const [src, onImgError] = useCityImage(cityName, countryCode || undefined);
+  const [src, onImgError] = useCityImage(label, countryCode || undefined);
 
   return (
     <div

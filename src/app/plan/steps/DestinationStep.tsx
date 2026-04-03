@@ -14,11 +14,12 @@ import {
 } from "lucide-react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import { format, parse } from "date-fns";
-import { CITIES, type CityEntry } from "@/data/cities";
 import { lookupIata } from "@/lib/flights/city-iata-map";
 import { usePlanFormStore, type SelectedCity } from "@/stores/usePlanFormStore";
 import { travelFieldErrorClass, travelInputClass } from "@/components/ui/styles";
 import { StepBadge } from "./StepBadge";
+import type { CityRecord } from "@/types";
+import { useCities } from "@/hooks/api";
 
 interface DestinationStepProps {
   errors: Record<string, string>;
@@ -38,6 +39,17 @@ const POPULAR_CITIES: SelectedCity[] = [
 
 function cityKey(city: SelectedCity) {
   return `${city.countryCode}-${city.city}`;
+}
+
+function toSelectedCity(entry: CityRecord): SelectedCity {
+  return {
+    city: entry.city,
+    country: entry.country,
+    countryCode: entry.countryCode,
+    lat: entry.lat,
+    lng: entry.lng,
+    iataCode: lookupIata(entry.city),
+  };
 }
 
 /* ── Toggle pill (shared by date mode + trip direction) ── */
@@ -111,6 +123,19 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const setDayCount = usePlanFormStore((s) => s.setDayCount);
   const tripDirection = usePlanFormStore((s) => s.tripDirection);
   const setTripDirection = usePlanFormStore((s) => s.setTripDirection);
+  const { data: cityCatalog, isPending: isCitiesLoading, error: citiesError } = useCities();
+  const cities = cityCatalog ?? [];
+  const quickPickCities = useMemo(() => {
+    if (cities.length === 0) return POPULAR_CITIES;
+    return POPULAR_CITIES.map((preset) => {
+      const match = cities.find(
+        (entry) =>
+          entry.countryCode === preset.countryCode &&
+          entry.city.toLowerCase() === preset.city.toLowerCase()
+      );
+      return match ? toSelectedCity(match) : preset;
+    });
+  }, [cities]);
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -133,25 +158,19 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return [] as CityEntry[];
-    return CITIES.filter(
-      (entry) =>
-        entry.city.toLowerCase().includes(normalized) ||
-        entry.country.toLowerCase().includes(normalized) ||
-        entry.countryCode.toLowerCase().startsWith(normalized)
-    ).slice(0, 8);
-  }, [query]);
+    if (!normalized) return [] as CityRecord[];
+    return cities
+      .filter(
+        (entry) =>
+          entry.city.toLowerCase().includes(normalized) ||
+          entry.country.toLowerCase().includes(normalized) ||
+          entry.countryCode.toLowerCase().startsWith(normalized)
+      )
+      .slice(0, 8);
+  }, [cities, query]);
 
-  const handleSelect = (entry: CityEntry) => {
-    const iataCode = lookupIata(entry.city);
-    const city: SelectedCity = {
-      city: entry.city,
-      country: entry.country,
-      countryCode: entry.countryCode,
-      lat: entry.lat,
-      lng: entry.lng,
-      iataCode,
-    };
+  const handleSelect = (entry: CityRecord) => {
+    const city = toSelectedCity(entry);
     if (!selectedKeys.has(cityKey(city))) {
       addCity(city);
       clearError("selectedCities");
@@ -196,7 +215,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
 
         {/* Quick picks */}
         <div className="mb-4 flex flex-wrap gap-2">
-          {POPULAR_CITIES.map((city) => {
+          {quickPickCities.map((city) => {
             const key = cityKey(city);
             const alreadySelected = selectedKeys.has(key);
             return (
@@ -270,6 +289,11 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
             </div>
           )}
         </div>
+        {citiesError && (
+          <p className="text-destructive mt-2 text-sm">
+            City catalog failed to load — showing limited suggestions.
+          </p>
+        )}
 
         {/* Selected cities */}
         {selectedCities.length > 0 && (

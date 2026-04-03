@@ -207,6 +207,30 @@ model DiscoveredCity {
 }
 
 // ============================================================
+// City Catalog — canonical list of supported destinations
+// ============================================================
+
+model City {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  city        String
+  country     String
+  countryCode String   @map("country_code")
+  lat         Float
+  lng         Float
+  region      String?  @map("region")
+  iataCode    String?  @map("iata_code")
+  popular     Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([city, countryCode], map: "cities_city_country_code_key")
+  @@index([countryCode])
+  @@index([popular])
+  @@map("cities")
+}
+
+// ============================================================
 // FlightSelection — user-selected flights for booking cart
 // ============================================================
 

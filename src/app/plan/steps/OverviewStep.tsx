@@ -3,6 +3,7 @@
 import { travelStyles } from "@/data/travelStyles";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useProfileState } from "@/hooks/useProfileState";
+import { buildTripPresentation } from "@/lib/utils/trip/presentation";
 import { StepBadge } from "./StepBadge";
 
 interface OverviewStepProps {
@@ -14,12 +15,11 @@ export function OverviewStep({ step, totalSteps }: OverviewStepProps) {
   const selectedCities = usePlanFormStore((s) => s.selectedCities);
   const { travelStyle, interests, pace } = useProfileState();
 
-  const destinationLabel =
-    selectedCities.length === 0
-      ? "TBD"
-      : selectedCities.length === 1
-        ? `${selectedCities[0].city}, ${selectedCities[0].country}`
-        : selectedCities.map((c) => c.city).join(" → ");
+  const { destinationLabel } = buildTripPresentation({
+    route: selectedCities,
+    fallbackLabel: "TBD",
+    fallbackTitle: "TBD",
+  });
   const budgetLabel =
     travelStyles.find((style) => style.id === travelStyle)?.label ?? "Smart Budget";
   const paceLabel =

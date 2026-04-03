@@ -68,11 +68,11 @@ describe("getTripTitle", () => {
   });
 
   it("returns joined country names for multi-city with different countries", () => {
-    expect(getTripTitle([tokyo, bangkok])).toBe("Japan, Thailand");
+    expect(getTripTitle([tokyo, bangkok])).toBe("Tokyo → Bangkok");
   });
 
-  it("deduplicates countries when multiple cities are in the same country", () => {
-    expect(getTripTitle([tokyo, kyoto, bangkok])).toBe("Japan, Thailand");
+  it("returns route order for multi-city trips", () => {
+    expect(getTripTitle([tokyo, kyoto, bangkok])).toBe("Tokyo → Kyoto → Bangkok");
   });
 });
 

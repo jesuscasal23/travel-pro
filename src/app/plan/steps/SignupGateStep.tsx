@@ -5,6 +5,7 @@ import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { useProfileState } from "@/hooks/useProfileState";
 import { travelStyles } from "@/data/travelStyles";
 import { formatDateRange, daysBetween } from "@/lib/utils/format/date";
+import { buildTripPresentation } from "@/lib/utils/trip/presentation";
 
 export function SignupGateStep() {
   const selectedCities = usePlanFormStore((s) => s.selectedCities);
@@ -12,12 +13,11 @@ export function SignupGateStep() {
   const dateEnd = usePlanFormStore((s) => s.dateEnd);
   const { travelStyle, interests, pace } = useProfileState();
 
-  const destinationLabel =
-    selectedCities.length === 0
-      ? ""
-      : selectedCities.length === 1
-        ? `${selectedCities[0].city}, ${selectedCities[0].country}`
-        : selectedCities.map((c) => c.city).join(" → ");
+  const { destinationLabel } = buildTripPresentation({
+    route: selectedCities,
+    fallbackLabel: "",
+    fallbackTitle: "",
+  });
 
   const dateRange = formatDateRange(dateStart, dateEnd);
   const dayCount = dateStart && dateEnd ? daysBetween(dateStart, dateEnd) : 0;

@@ -20,6 +20,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
+    "db:seed:cities": "npx tsx scripts/sync-city-catalog.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:set-superuser": "npx tsx scripts/set-superuser.ts",

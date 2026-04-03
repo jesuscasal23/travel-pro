@@ -1,17 +1,32 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+import type { CountryRecord } from "@/types";
 import { CountryCombobox } from "../CountryCombobox";
+
+const MOCK_COUNTRIES: CountryRecord[] = [
+  { country: "Japan", countryCode: "JP", lat: 35.6, lng: 139.7, popular: true },
+  { country: "France", countryCode: "FR", lat: 48.8, lng: 2.3, popular: true },
+  { country: "Peru", countryCode: "PE", lat: -12.0, lng: -77.0, popular: false },
+];
+
+function renderCountryCombobox(
+  overrides: Partial<React.ComponentProps<typeof CountryCombobox>> = {}
+) {
+  return render(
+    <CountryCombobox countries={MOCK_COUNTRIES} value="" onChange={vi.fn()} {...overrides} />
+  );
+}
 
 describe("CountryCombobox", () => {
   it("shows selected value when input is not focused", () => {
-    render(<CountryCombobox value="Japan" onChange={vi.fn()} />);
+    renderCountryCombobox({ value: "Japan" });
     expect(screen.getByText("Japan")).toBeInTheDocument();
   });
 
   it("shows popular countries on focus and selects by keyboard", async () => {
     const onChange = vi.fn();
-    render(<CountryCombobox value="" onChange={onChange} />);
+    renderCountryCombobox({ onChange });
     const input = screen.getByRole("textbox");
 
     fireEvent.focus(input);
@@ -30,7 +45,7 @@ describe("CountryCombobox", () => {
   });
 
   it("shows no-results state for unmatched query", () => {
-    render(<CountryCombobox value="" onChange={vi.fn()} />);
+    renderCountryCombobox();
     const input = screen.getByRole("textbox");
 
     fireEvent.focus(input);
@@ -39,7 +54,7 @@ describe("CountryCombobox", () => {
   });
 
   it("closes dropdown on escape when results are visible", () => {
-    render(<CountryCombobox value="" onChange={vi.fn()} />);
+    renderCountryCombobox();
     const input = screen.getByRole("textbox");
 
     fireEvent.focus(input);
@@ -50,7 +65,7 @@ describe("CountryCombobox", () => {
   });
 
   it("closes dropdown on outside click", () => {
-    render(<CountryCombobox value="" onChange={vi.fn()} />);
+    renderCountryCombobox();
     const input = screen.getByRole("textbox");
 
     fireEvent.focus(input);

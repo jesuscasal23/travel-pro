@@ -1,40 +1,53 @@
 "use client";
 
-import { CITIES, type CityEntry } from "@/data/cities";
+import { useCallback, useEffect, useMemo } from "react";
+import type { CityRecord } from "@/types";
 import { Combobox } from "./Combobox";
 import { useCombobox } from "./useCombobox";
 
 interface Props {
+  cities: CityRecord[];
   value: string; // stored as "Tokyo, Japan"
-  onChange: (entry: CityEntry) => void;
+  onChange: (entry: CityRecord) => void;
   className?: string;
   placeholder?: string;
   variant?: "subtle" | "branded";
 }
 
-const filterCities = (query: string): CityEntry[] => {
+const filterCities = (cities: CityRecord[], query: string): CityRecord[] => {
   const q = query.toLowerCase().trim();
-  if (!q) return CITIES.filter((c) => c.popular);
-  return CITIES.filter(
-    (c) =>
-      c.city.toLowerCase().includes(q) ||
-      c.country.toLowerCase().includes(q) ||
-      c.countryCode.toLowerCase().startsWith(q)
-  ).slice(0, 8);
+  const dataset = q ? cities : cities.filter((c) => c.popular);
+  return dataset
+    .filter(
+      (c) =>
+        c.city.toLowerCase().includes(q) ||
+        c.country.toLowerCase().includes(q) ||
+        c.countryCode.toLowerCase().startsWith(q)
+    )
+    .slice(0, 8);
 };
 
 export function CityCombobox({
+  cities,
   value,
   onChange,
   className = "",
   placeholder = "Search city or country\u2026",
   variant = "subtle",
 }: Props) {
-  const { results, hasQuery, handleQueryChange } = useCombobox({ filter: filterCities });
+  const popularDefaults = useMemo(() => cities.filter((c) => c.popular).slice(0, 8), [cities]);
+  const filter = useCallback((query: string) => filterCities(cities, query), [cities]);
+  const { results, hasQuery, handleQueryChange } = useCombobox({
+    filter,
+    initialResults: popularDefaults,
+  });
+  useEffect(() => {
+    handleQueryChange("");
+  }, [cities, handleQueryChange]);
   const isBranded = variant === "branded";
 
   return (
-    <Combobox<CityEntry>
+    <Combobox<CityRecord>
       value={value}
       results={results}
       onQueryChange={handleQueryChange}
@@ -45,7 +58,7 @@ export function CityCombobox({
       variant={variant}
       emptyMessage={(q) => <>No cities found for &ldquo;{q}&rdquo;</>}
       listHeader={
-        !hasQuery ? (
+        !hasQuery && popularDefaults.length > 0 ? (
           <li
             className={`border-b px-4 py-1.5 text-xs font-medium ${
               isBranded ? "border-edge text-dim bg-chip-bg" : "text-muted-foreground border-border"

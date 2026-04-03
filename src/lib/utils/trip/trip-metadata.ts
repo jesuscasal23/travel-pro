@@ -1,5 +1,6 @@
 import type { CityStop, Itinerary } from "@/types";
 import { itinerarySchema } from "@/lib/itinerary/schema";
+import { buildTripPresentation } from "./presentation";
 
 /** Parse Prisma JSON `data` into a validated Itinerary. */
 export function parseItineraryData(data: unknown): Itinerary {
@@ -24,10 +25,7 @@ export function isSingleCity(itinerary: Itinerary): boolean {
   return itinerary.route.length === 1;
 }
 
-/** Derive trip title from route — "Tokyo, Japan" for single-city, "Japan, Vietnam, Thailand" for multi-city. */
+/** Derive trip title from route — "Tokyo, Japan" for single-city, "Tokyo → Kyoto" for multi-city. */
 export function getTripTitle(route: CityStop[]): string {
-  if (route.length === 1) {
-    return `${route[0].city}, ${route[0].country}`;
-  }
-  return getUniqueCountries(route).join(", ");
+  return buildTripPresentation({ route }).tripTitle;
 }

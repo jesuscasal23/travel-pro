@@ -36,3 +36,6 @@ export type { AdminStats, AdminTrip } from "./admin/shared";
 // Booking Clicks
 export { useBookingClicks } from "./booking-clicks/useBookingClicks";
 export { useManualBooking } from "./booking-clicks/useManualBooking";
+
+// City catalog
+export { useCities } from "./cities/useCities";
