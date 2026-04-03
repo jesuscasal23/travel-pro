@@ -1,32 +1,35 @@
 # Monetization & Affiliate Analytics
 
-_Last updated: 2026-04-02_
+_Last verified: 2026-04-03_
 
-This document tracks the event taxonomy introduced for TRA-300 and how to review it in PostHog.
+This document tracks the current event taxonomy used for monetization and affiliate reporting in PostHog.
 
 ## Event taxonomy
 
-| Event                                 | Fired from                                                                        | Properties                                                                                          | Notes                                                                     |
-| ------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `monetization_paywall_viewed`         | Premium page mount                                                                | `source`, `plans_presented`, `default_plan`                                                         | Triggers once per visit; `source` comes from `?source=` query.            |
-| `monetization_paywall_dismissed`      | Premium page when tab hidden                                                      | `source`, `time_on_page_ms`                                                                         | Helps quantify short vs long engagements.                                 |
-| `monetization_plan_selected`          | Plan card selections                                                              | `plan`, `source`                                                                                    | `plan` can be `lifetime`, `yearly`, `monthly`, `per-trip`.                |
-| `monetization_checkout_started`       | Premium CTA click                                                                 | `plan`, `price`, `source`                                                                           | Sent before hitting `/api/v1/stripe/checkout`.                            |
-| `monetization_checkout_completed`     | Stripe webhook + premium redirect                                                 | `plan`, `mode`, `amount_total`, `currency`, `checkout_session_id`, `source`                         | Server version is authoritative; filter by `channel = server`.            |
-| `monetization_payment_failed`         | Stripe `invoice.payment_failed` webhook                                           | `invoice_id`, `amount_due`, `currency`, `plan`                                                      | Distinct ID is the customer/user.                                         |
-| `monetization_subscription_activated` | Stripe webhook (`checkout.session.completed` for lifetime + subscription updates) | `plan`, `mode`, `stripe_subscription_id`, `status`                                                  | Fires whenever a user transitions into an active premium state.           |
-| `affiliate_card_shown`                | Flight options CTA render                                                         | `provider`, `click_type`, `trip_id`, `placement`, `from_iata`, `to_iata`, `departure_date`          | Placement = `empty_state` or `footer`.                                    |
-| `affiliate_link_clicked`              | Affiliate redirect endpoint + flight CTA click                                    | `provider`, `click_type`, `trip_id`, `city`, `destination`, `estimated_commission_eur`, `placement` | Server-side event guarantees capture; client copy adds placement context. |
-| `affiliate_booking_confirmed`         | Booking confirmation API (manual + click confirmation)                            | `provider`, `click_type`, `trip_id`, `city`, `estimated_commission_eur`                             | Distinct ID = userId or tripId.                                           |
+| Event                                 | Fired from                                                               | Properties                                                                                          | Notes                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `monetization_paywall_viewed`         | Premium page mount                                                       | `source`, `plans_presented`, `default_plan`                                                         | Triggers once per visit.                                      |
+| `monetization_paywall_dismissed`      | Premium page when tab becomes hidden                                     | `source`, `time_on_page_ms`                                                                         | Useful for measuring short vs long paywall sessions.          |
+| `monetization_plan_selected`          | Premium plan-card selection                                              | `plan`, `source`                                                                                    | `plan` may be `lifetime`, `yearly`, `monthly`, or `per-trip`. |
+| `monetization_checkout_started`       | Premium CTA click                                                        | `plan`, `price`, `source`                                                                           | Fired before calling `/api/v1/stripe/checkout`.               |
+| `monetization_checkout_completed`     | Stripe webhook and premium redirect confirmation                         | `plan`, `mode`, `amount_total`, `currency`, `checkout_session_id`, `source`                         | Server events are authoritative for reporting.                |
+| `monetization_payment_failed`         | Stripe `invoice.payment_failed` webhook                                  | `invoice_id`, `amount_due`, `currency`, `plan`                                                      | Use server events for subscription health reporting.          |
+| `monetization_subscription_activated` | Stripe webhook after premium state activation                            | `plan`, `mode`, `stripe_subscription_id`, `status`                                                  | Fires on active premium transitions.                          |
+| `affiliate_card_shown`                | Flight options CTA render                                                | `provider`, `click_type`, `trip_id`, `placement`, `from_iata`, `to_iata`, `departure_date`          | Placement is currently emitted from the flight options UI.    |
+| `affiliate_link_clicked`              | Affiliate redirect endpoint, booking-click service, and flight CTA click | `provider`, `click_type`, `trip_id`, `city`, `destination`, `estimated_commission_eur`, `placement` | Prefer server-captured events for monetization analysis.      |
+| `affiliate_booking_confirmed`         | Booking confirmation API and manual booking creation                     | `provider`, `click_type`, `trip_id`, `city`, `estimated_commission_eur`                             | Distinct ID is userId when available, otherwise tripId.       |
 
-## Recommended PostHog views
+## Notes
 
-Create a dashboard named **“Monetization Funnel”** with the following saved insights:
+- The premium page still presents a `per-trip` option in analytics even though checkout for that plan is not yet enabled.
+- For revenue or funnel reporting, prefer server-captured Stripe and affiliate events over client-only copies.
 
-1. **Checkout Conversion** – Funnel: `monetization_paywall_viewed` → `monetization_plan_selected` → `monetization_checkout_started` → server `monetization_checkout_completed`. Filter `channel = server` for the terminal step; break down by `plan`.
-2. **Plan Mix** – Bar chart counting `monetization_plan_selected` grouped by `plan`. Add property filter `source != 'direct'` to see campaign traffic.
-3. **Subscription Health** – Timeseries of `monetization_subscription_activated` minus `monetization_payment_failed` grouped by `plan`. Highlights retention pressure.
-4. **Affiliate CTR** – Funnel using `affiliate_card_shown` → **client** `affiliate_link_clicked` filtered by `placement`. Break down by `provider` once other partners come online.
-5. **Affiliate Revenue Estimate** – Trend of the sum of `estimated_commission_eur` on server-side `affiliate_link_clicked` events (property filter `channel = server`). Add a table view grouped by `trip_id` to identify top earning itineraries.
+## Recommended PostHog Views
 
-Document any future after-the-fact dashboards in this file so we keep taxonomy + analysis in sync.
+Create a dashboard named **Monetization Funnel** with these saved insights:
+
+1. Checkout conversion: `monetization_paywall_viewed` -> `monetization_plan_selected` -> `monetization_checkout_started` -> server `monetization_checkout_completed`
+2. Plan mix: count `monetization_plan_selected` by `plan`
+3. Subscription health: trend `monetization_subscription_activated` against `monetization_payment_failed`
+4. Affiliate CTR: `affiliate_card_shown` -> `affiliate_link_clicked`, broken down by `provider` or `placement`
+5. Affiliate revenue estimate: sum `estimated_commission_eur` on server `affiliate_link_clicked`

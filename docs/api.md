@@ -2,321 +2,415 @@
 
 Every endpoint is documented twice:
 
-- **Developer** — technical details for engineers and AI agents
-- **PM** — plain-language explanation of what it does and why it exists
+- **Developer**: implementation-oriented summary
+- **PM**: plain-language product purpose
 
-**Base URL:** `/api` (all versioned endpoints under `/api/v1`)
+**Base URL:** `/api` with versioned endpoints under `/api/v1`
 
----
+> Rate limits are enforced centrally in `src/proxy.ts`. The main buckets are: discovery `5/hour`, flight search and booking resolution `20/min`, enrichment and places/image helpers `60/min`, general API reads `120/min`, and general API mutations `30/min`.
 
 ## Trips
 
 ### `GET /api/v1/trips`
 
-|               |                                                                                                                                                                 |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                        |
-| **Developer** | Returns the authenticated user's trips with active itinerary metadata, destination info derived from route data, and a `isSuperUser` flag. Supports pagination. |
-| **PM**        | Fetches the user's list of saved trips so they can see all their planned travels in one place.                                                                  |
+|               |                                                                                                                                                                                                      |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                                                                                             |
+| **Developer** | Returns the authenticated profile's trips plus active-itinerary metadata, derived destination fallback fields, and an `isSuperUser` flag. If the user has no profile row yet, returns an empty list. |
+| **PM**        | Loads the signed-in user's saved trips for the trips list and home surfaces.                                                                                                                         |
 
 ### `POST /api/v1/trips`
 
-|               |                                                                                                                                                                                                                                  |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                                                                                         |
-| **Developer** | Creates a new trip record. Accepts trip intent fields (region, dates, travelers, budget). Builds the initial itinerary skeleton and prefetches flights. Requires authentication — the plan flow gates sign-up before submission. |
-| **PM**        | Creates a new trip when a user finishes the planning questionnaire. Users must sign up or log in before the trip is created.                                                                                                     |
+|               |                                                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Optional                                                                                                                                                                  |
+| **Developer** | Creates a trip from validated planner input, links it to the user's profile when one exists, and sets a guest-owner cookie when it does not. Returns the serialized trip. |
+| **PM**        | Creates a new trip record from planner input and attaches it to the current user when possible.                                                                           |
 
 ### `GET /api/v1/trips/[id]`
 
-|               |                                                                                                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                                                                                                                 |
-| **Developer** | Returns a single trip with its active itinerary and assigned discovered activities (where `assignedDay` is set), serialized via `tripSerializer`. 404 if not found, 403 if not owner. |
-| **PM**        | Loads a specific trip's full details — the itinerary, cities, assigned activities from discovery, budget — everything needed to display the trip page.                                |
+|               |                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Trip owner access                                                                                                          |
+| **Developer** | Loads one trip with its active itinerary set. Access is enforced through profile ownership or the guest-owner cookie path. |
+| **PM**        | Fetches the full data needed to render a specific trip workspace.                                                          |
 
 ### `DELETE /api/v1/trips/[id]`
 
-|               |                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                          |
-| **Developer** | Deletes a trip and all associated data (itineraries, swipes, edits, clicks). Cascading delete. |
-| **PM**        | Lets a user permanently delete a trip they no longer want.                                     |
-
----
+|               |                                                                            |
+| ------------- | -------------------------------------------------------------------------- |
+| **Auth**      | Trip owner access                                                          |
+| **Developer** | Deletes a trip through the trip collection service after ownership checks. |
+| **PM**        | Permanently removes one trip and its dependent records.                    |
 
 ## Activity Discovery
 
 ### `POST /api/v1/trips/[id]/discover-activities`
 
-|                |                                                                                                                                                                                                                                                                                                                          |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**       | Required (trip owner)                                                                                                                                                                                                                                                                                                    |
-| **Rate limit** | 60s timeout                                                                                                                                                                                                                                                                                                              |
-| **Developer**  | Calls Claude Haiku to generate swipeable activity candidates for a specific city. Accepts optional `excludeNames` to generate additional batches without duplicates. Respects `req.signal` for client-side cancellation. Resolves user profile from trip or request context. Returns cached results on first batch call. |
-| **PM**         | Uses AI to suggest fun things to do in each city. If the user swipes through all cards without enough likes, a new batch is generated. The user sees activity cards they can swipe through (like/dislike) to personalize their itinerary.                                                                                |
+|                |                                                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**       | Trip owner access                                                                                                                                                                  |
+| **Rate limit** | `5/hour` per IP, `maxDuration = 60`                                                                                                                                                |
+| **Developer**  | Validates discovery input, resolves the effective traveler profile, calls Claude-backed activity discovery, and returns activity cards plus round-limit and reachability metadata. |
+| **PM**         | Generates swipeable activity suggestions for one city in the trip.                                                                                                                 |
 
 ### `POST /api/v1/trips/[id]/activity-swipes`
 
-|               |                                                                                                                                                                                                                                                                                                                                                    |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                                                                                                                                                                                                                                                                              |
-| **Developer** | Records a like/dislike decision on a discovered activity. Requires `cityId`. Returns `cityProgress` (likedCount, requiredCount, cityComplete), `batchComplete`, `nextCityId`, and `allCitiesComplete`. When all cities are complete, automatically triggers server-side activity assignment to itinerary days based on the user's pace preference. |
-| **PM**        | Saves the user's choice when they swipe right (want it) or left (skip it) on a suggested activity. Tracks progress per city — once enough activities are liked for all cities, the system automatically builds the personalized itinerary.                                                                                                         |
+|               |                                                                                                                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Trip owner access                                                                                                                                                                        |
+| **Developer** | Records a like or dislike on a discovered activity and returns city and trip completion progress. When all cities are complete, the server assigns liked activities into itinerary days. |
+| **PM**        | Saves the user's activity choices and advances the discovery flow.                                                                                                                       |
 
 ### `POST /api/v1/trips/[id]/activity-images`
 
-|               |                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                             |
-| **Developer** | Batch-resolves images for 1-30 activities by ID. Returns image URLs for rendering activity cards. |
-| **PM**        | Loads photos for activity cards so users can see what each place looks like before deciding.      |
-
----
+|                |                                                                 |
+| -------------- | --------------------------------------------------------------- |
+| **Auth**       | Trip owner access                                               |
+| **Rate limit** | `60/min` per IP                                                 |
+| **Developer**  | Resolves image URLs for batches of discovered activities by ID. |
+| **PM**         | Loads photos for discovery cards and activity surfaces.         |
 
 ## Flights
 
 ### `POST /api/v1/trips/[id]/flights`
 
-|               |                                                                                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Optional (supports guests)                                                                                                                                                 |
-| **Developer** | On-demand flight search for a trip leg. Calls SerpApi with optional filters (non-stop, max price). Returns up to 5 options per leg. Requires trip access (owner or guest). |
-| **PM**        | Searches for real flight options between cities in the trip so users can compare prices and times.                                                                         |
+|                |                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| **Auth**       | Trip access                                                                                          |
+| **Rate limit** | `20/min` per IP                                                                                      |
+| **Developer**  | Runs an on-demand flight search for a trip leg with validated filters and current trip access rules. |
+| **PM**         | Finds flight options between cities in the trip.                                                     |
 
 ### `POST /api/v1/trips/[id]/optimize`
 
-|               |                                                                                                                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                                                                                                                          |
-| **Developer** | Runs SerpApi flight price optimization across the full itinerary route. Returns a `FlightSkeleton` with per-leg pricing and a baseline total. Client is responsible for persisting the result. |
-| **PM**        | Finds the best flight prices across the entire trip route and shows users how much the whole journey would cost.                                                                               |
+|               |                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| **Auth**      | Trip owner access                                                                                 |
+| **Developer** | Runs route-wide flight price optimization and returns a priced flight skeleton for the itinerary. |
+| **PM**        | Estimates the best overall flight plan for the whole trip.                                        |
 
 ### `GET /api/v1/flights/book`
 
-|               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Optional                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| **Developer** | **Returns HTML, not JSON.** Resolves a flight booking token via SerpApi, logs an affiliate click (best-effort, non-blocking via `trackFlightBookingClick`), validates destination URL against allowlist, and returns an auto-submitting HTML form that POSTs to the airline. This preserves browser context (cookies, session, referrer) that airlines require. Falls back to a Skyscanner deep link on SerpApi failure/rate-limit. Rate-limited at 20 req/min (shared with flight search). |
-| **PM**        | When a user clicks "Book" on a flight, this sends them to the airline's booking page in a way that actually works (airlines are picky about how you arrive). We track the click for analytics.                                                                                                                                                                                                                                                                                              |
+|                |                                                                                                                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**       | Optional                                                                                                                                                                            |
+| **Rate limit** | `20/min` per IP                                                                                                                                                                     |
+| **Developer**  | Resolves a booking token into an airline or OTA handoff, logs the affiliate click best-effort, validates the destination URL, and returns an HTML auto-submit form instead of JSON. |
+| **PM**         | Sends the user from a saved flight option to the actual booking destination.                                                                                                        |
 
----
-
-## Selections (Travel Wallet)
+## Selections & Booking
 
 ### `GET /api/v1/selections/cart`
 
-|               |                                                                                                                                                                                                                                                                             |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                                                                                                                                    |
-| **Developer** | Returns all selections (flights + hotels, booked and unbooked) across upcoming trips (`dateEnd >= today`) for the authenticated user, grouped by trip, with derived wallet slots (outbound/return flight + primary stay) and trip-level cost summaries. Requires a profile. |
-| **PM**        | Powers the Wallet tab — surfaces what still needs booking vs. what's already confirmed, with slot cards per trip and a rolling cost tally.                                                                                                                                  |
+|               |                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------- |
+| **Auth**      | Required profile                                                                        |
+| **Developer** | Returns grouped flight and hotel selections for the authenticated profile across trips. |
+| **PM**        | Powers the cart or wallet page that aggregates saved bookings.                          |
 
 ### `GET /api/v1/selections/count`
 
-|               |                                                                                              |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                     |
-| **Developer** | Returns a count of unbooked selections. Lightweight endpoint for badge/notification display. |
-| **PM**        | Powers the notification badge that shows how many unbooked picks the user has saved.         |
+|               |                                                                     |
+| ------------- | ------------------------------------------------------------------- |
+| **Auth**      | Required profile                                                    |
+| **Developer** | Returns the unbooked selection count for the authenticated profile. |
+| **PM**        | Drives lightweight "items left to book" indicators.                 |
 
-### `GET/PUT/DELETE/PATCH /api/v1/trips/[id]/selections/flights`
+### `GET /api/v1/trips/[id]/selections/flights`
 
-|               |                                                                                                                                                                                                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner + profile)                                                                                                                                                                                                                                              |
-| **Developer** | CRUD for flight selections within a trip. `PUT` creates or updates a selection. `DELETE` removes it. `PATCH` toggles booked status — body: `{ id: uuid, booked?: boolean }` (defaults to `true`; pass `false` to un-mark). `GET` returns all flight selections for the trip. |
-| **PM**        | Lets users save, update, remove, or toggle booked status on their preferred flight options for a trip. Items can be marked booked and unmarked.                                                                                                                              |
+|               |                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                                                             |
+| **Developer** | Returns all saved flight selections for a trip after auth, profile, and ownership checks. |
+| **PM**        | Loads the flights the user has saved for one trip.                                        |
 
-### `GET/PUT/DELETE/PATCH /api/v1/trips/[id]/selections/hotels`
+### `PUT /api/v1/trips/[id]/selections/flights`
 
-|               |                                                                                                                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner + profile)                                                                                                                                                                |
-| **Developer** | CRUD for hotel selections within a trip. Same structure as flight selections — `PUT` to save, `DELETE` to remove, `PATCH` to toggle booked status (`{ id, booked?: boolean }`), `GET` to list. |
-| **PM**        | Same as flight selections but for hotels — save, compare, and toggle booking status on accommodations you want to book.                                                                        |
+|               |                                                                            |
+| ------------- | -------------------------------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                                              |
+| **Developer** | Validates and upserts one saved flight selection for the trip and profile. |
+| **PM**        | Saves or updates the flight option the user wants to keep.                 |
 
----
+### `DELETE /api/v1/trips/[id]/selections/flights`
 
-## Booking & Affiliate Tracking
+|               |                                                               |
+| ------------- | ------------------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                                 |
+| **Developer** | Removes one saved flight selection by validated selection ID. |
+| **PM**        | Deletes a saved flight option from the trip.                  |
 
-### `GET/POST/PATCH /api/v1/trips/[id]/booking-clicks`
+### `PATCH /api/v1/trips/[id]/selections/flights`
 
-|               |                                                                                                                                                                                                                                                            |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required (trip owner)                                                                                                                                                                                                                                      |
-| **Developer** | Manages booking confirmations in the trip preparation checklist. `GET` fetches existing clicks for a trip. `POST` creates a manual booking record (user booked outside the app). `PATCH` confirms or denies whether a click resulted in an actual booking. |
-| **PM**        | Part of the trip preparation checklist. Users can confirm "yes, I booked this flight/hotel" or manually add bookings they made elsewhere. Helps track what's done vs. what still needs booking.                                                            |
+|               |                                                            |
+| ------------- | ---------------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                              |
+| **Developer** | Marks a saved flight selection booked or unbooked.         |
+| **PM**        | Lets the user mark whether a saved flight has been booked. |
+
+### `GET /api/v1/trips/[id]/selections/hotels`
+
+|               |                                                   |
+| ------------- | ------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                     |
+| **Developer** | Returns all saved hotel selections for a trip.    |
+| **PM**        | Loads the hotels the user has saved for one trip. |
+
+### `PUT /api/v1/trips/[id]/selections/hotels`
+
+|               |                                                                     |
+| ------------- | ------------------------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                                       |
+| **Developer** | Validates and upserts one hotel selection for the trip and profile. |
+| **PM**        | Saves or updates the hotel option the user wants to keep.           |
+
+### `DELETE /api/v1/trips/[id]/selections/hotels`
+
+|               |                                                              |
+| ------------- | ------------------------------------------------------------ |
+| **Auth**      | Required profile + trip owner                                |
+| **Developer** | Removes one saved hotel selection by validated selection ID. |
+| **PM**        | Deletes a saved hotel option from the trip.                  |
+
+### `PATCH /api/v1/trips/[id]/selections/hotels`
+
+|               |                                                           |
+| ------------- | --------------------------------------------------------- |
+| **Auth**      | Required profile + trip owner                             |
+| **Developer** | Marks a saved hotel selection booked or unbooked.         |
+| **PM**        | Lets the user mark whether a saved hotel has been booked. |
+
+### `GET /api/v1/trips/[id]/booking-clicks`
+
+|               |                                                                             |
+| ------------- | --------------------------------------------------------------------------- |
+| **Auth**      | Required trip owner                                                         |
+| **Developer** | Returns booking-click records for one trip after auth and ownership checks. |
+| **PM**        | Loads tracked booking interactions for a specific trip.                     |
+
+### `POST /api/v1/trips/[id]/booking-clicks`
+
+|               |                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| **Auth**      | Required trip owner                                                                                    |
+| **Developer** | Creates a manual booking record for a `flight` or `hotel` click type, with optional city and metadata. |
+| **PM**        | Lets the user record a booking that happened outside the tracked affiliate flow.                       |
+
+### `PATCH /api/v1/trips/[id]/booking-clicks`
+
+|               |                                                                             |
+| ------------- | --------------------------------------------------------------------------- |
+| **Auth**      | Required trip owner                                                         |
+| **Developer** | Confirms or unconfirms an existing booking-click row using validated input. |
+| **PM**        | Lets the user say whether a booking handoff turned into a real booking.     |
 
 ### `GET /api/v1/affiliate/redirect`
 
-|               |                                                                                                                                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | None (tracks guests too)                                                                                                                                                                                                   |
-| **Developer** | Logs an affiliate click (provider, city, IP hash, optional metadata) to the `affiliateClick` table, then 302 redirects to the partner URL. Domain whitelist enforced. Used by `buildTrackedLink()` in frontend components. |
-| **PM**        | When a user clicks a link to Skyscanner, Booking.com, or GetYourGuide, this logs the click for analytics and sends them to the partner site. Works for non-logged-in users too.                                            |
-
----
+|               |                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| **Auth**      | None                                                                                                     |
+| **Developer** | Validates the outbound destination, logs the affiliate click, and returns a redirect to the partner URL. |
+| **PM**        | Tracks outbound booking clicks before sending the user to a partner site.                                |
 
 ## Enrichment
 
-> **Note:** These endpoints require authentication. Rate limiting is handled at the proxy layer (60 req/min).
+> All enrichment routes are created through `createEnrichmentRoute(...)`, require auth, and use the shared auxiliary `60/min` rate-limit bucket.
 
 ### `POST /api/v1/enrich/weather`
 
-|               |                                                                                                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                         |
-| **Developer** | Enriches a trip route with weather forecasts. Uses Open-Meteo API with Redis 7-day cache. Accepts city stops with dates. Uses `createEnrichmentRoute()` factory. |
-| **PM**        | Adds weather forecasts to each city in the trip so users know what to expect and can pack accordingly.                                                           |
+|               |                                                                                 |
+| ------------- | ------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                        |
+| **Developer** | Enriches a route with weather data through the shared enrichment route factory. |
+| **PM**        | Adds weather context to each stop in the trip.                                  |
 
 ### `POST /api/v1/enrich/visa`
 
-|               |                                                                                                                                   |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                          |
-| **Developer** | Enriches a trip with visa requirements based on user nationality and destination countries. Uses Passport Index static data.      |
-| **PM**        | Checks if the user needs a visa for any of their destinations based on their passport, and shows requirements like max stay days. |
-
-### `POST /api/v1/enrich/accommodation`
-
-|               |                                                                                                           |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                  |
-| **Developer** | Generates accommodation recommendations using AI based on route, dates, traveler count, and travel style. |
-| **PM**        | Suggests hotels and places to stay that match the user's budget and travel style for each city.           |
+|               |                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                |
+| **Developer** | Enriches a route with visa requirements based on traveler nationality and destinations. |
+| **PM**        | Shows whether the traveler needs a visa for each destination.                           |
 
 ### `POST /api/v1/enrich/health`
 
-|               |                                                                                                                                                                                                                                                           |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                                                                                                                  |
-| **Developer** | Returns health/vaccine requirements for each unique destination country in the route. Uses a static CDC/WHO-sourced dataset (`src/data/health-requirements.ts`). Destination-based — no nationality input needed. Uses `createEnrichmentRoute()` factory. |
-| **PM**        | Tells travelers which vaccines are required for entry (e.g. Yellow Fever certificate) and which are recommended by CDC/WHO (e.g. Malaria, Hepatitis A) for each destination. Foundation for the Trip Readiness feature.                                   |
+|               |                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                       |
+| **Developer** | Returns destination-level health and vaccination guidance from the health enrichment pipeline. |
+| **PM**        | Shows health-entry and vaccination guidance for the trip.                                      |
 
----
+### `POST /api/v1/enrich/accommodation`
+
+|               |                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                    |
+| **Developer** | Builds accommodation recommendations for each city using the accommodation enrichment flow. |
+| **PM**        | Suggests places to stay that match the route and traveler preferences.                      |
 
 ## Profile
 
 ### `GET /api/v1/profile`
 
-|               |                                                                                                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                                              |
-| **Developer** | Returns the authenticated user's profile (nationality, home airport, travel style, interests, vibes, onboarding status, premium/superuser flags). Serialized via `profileSerializer`. |
-| **PM**        | Loads the user's travel preferences and account info for the profile/settings page.                                                                                                   |
+|               |                                                                            |
+| ------------- | -------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                   |
+| **Developer** | Loads the authenticated user's profile and serializes it for frontend use. |
+| **PM**        | Fetches the user's saved travel preferences and account-level flags.       |
 
 ### `PATCH /api/v1/profile`
 
-|               |                                                                                                           |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                  |
-| **Developer** | Upserts profile fields. Accepts partial updates. Validates with Zod schema.                               |
-| **PM**        | Saves changes when a user updates their travel preferences, nationality, home airport, or other settings. |
+|               |                                                                  |
+| ------------- | ---------------------------------------------------------------- |
+| **Auth**      | Required                                                         |
+| **Developer** | Validates a profile patch and upserts the stored profile record. |
+| **PM**        | Saves profile changes from the planner or profile page.          |
 
 ### `DELETE /api/v1/profile`
 
-|               |                                                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                              |
-| **Developer** | GDPR account deletion. Deletes the profile, all associated trips, and calls Supabase admin API to remove the auth user. Irreversible. |
-| **PM**        | Lets a user permanently delete their account and all their data. Required for GDPR compliance.                                        |
+|               |                                                                     |
+| ------------- | ------------------------------------------------------------------- |
+| **Auth**      | Required                                                            |
+| **Developer** | Deletes the user's profile and account through the profile service. |
+| **PM**        | Permanently removes the user's account and saved data.              |
 
 ### `GET /api/v1/profile/export`
 
-|               |                                                                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                       |
-| **Developer** | Exports all user data as a JSON download (profile, trips, itineraries, swipes, clicks). Includes timestamp. GDPR data portability requirement. |
-| **PM**        | Lets a user download all their data as a file. Required for GDPR — users have the right to take their data with them.                          |
+|               |                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                            |
+| **Developer** | Exports the authenticated user's profile data bundle and returns it with an `exportedAt` timestamp. |
+| **PM**        | Lets the user download their stored data.                                                           |
 
----
+## Feedback
+
+### `GET /api/v1/feedback`
+
+|               |                                                          |
+| ------------- | -------------------------------------------------------- |
+| **Auth**      | Required                                                 |
+| **Developer** | Returns feedback submissions for the authenticated user. |
+| **PM**        | Loads the signed-in user's feedback history.             |
+
+### `POST /api/v1/feedback`
+
+|               |                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Required                                                                                                                            |
+| **Developer** | Validates a feedback submission, enriches it with user metadata and request user-agent, and stores it through the feedback service. |
+| **PM**        | Creates a new feedback ticket from the product UI.                                                                                  |
+
+### `GET /api/v1/feedback/[id]`
+
+|               |                                                                   |
+| ------------- | ----------------------------------------------------------------- |
+| **Auth**      | Required                                                          |
+| **Developer** | Returns one feedback submission scoped to the authenticated user. |
+| **PM**        | Loads the detail view for one feedback item.                      |
 
 ## Stripe (Payments)
 
 ### `POST /api/v1/stripe/checkout`
 
-|               |                                                                                                                                                                                                                                                           |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                                                                                                                                                  |
-| **Developer** | Creates a Stripe Checkout Session for the selected plan (`lifetime`, `yearly`, or `monthly`). Lifetime uses `payment` mode; yearly/monthly use `subscription` mode. Yearly includes a 7-day free trial. Returns `{ url }` to redirect the user to Stripe. |
-| **PM**        | Starts the payment flow when a user clicks "Subscribe" on the premium page. They're redirected to Stripe's hosted checkout to enter payment details.                                                                                                      |
-
-### `POST /api/v1/stripe/webhook`
-
-|               |                                                                                                                                                                                                                                                                                  |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | None (verified via Stripe signature)                                                                                                                                                                                                                                             |
-| **Developer** | Receives Stripe webhook events. Reads raw body for signature verification. Handles `checkout.session.completed` (lifetime), `customer.subscription.created/updated/deleted`, and `invoice.payment_failed`. Updates `isPremium` and Stripe fields on Profile. Always returns 200. |
-| **PM**        | Stripe calls this endpoint when a payment succeeds, a subscription changes, or a payment fails. It keeps the user's premium status in sync with their billing.                                                                                                                   |
+|               |                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| **Auth**      | Required                                                                                   |
+| **Developer** | Creates a Stripe Checkout Session for the selected paid plan and returns the redirect URL. |
+| **PM**        | Starts the premium checkout flow.                                                          |
 
 ### `POST /api/v1/stripe/portal`
 
-|               |                                                                                                                                    |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Required                                                                                                                           |
-| **Developer** | Creates a Stripe Billing Portal session for the authenticated user's Stripe customer. Returns `{ url }` to redirect to the portal. |
-| **PM**        | Opens Stripe's self-service portal where users can cancel their subscription, update payment methods, or view invoices.            |
+|               |                                                                         |
+| ------------- | ----------------------------------------------------------------------- |
+| **Auth**      | Required                                                                |
+| **Developer** | Creates a Stripe billing portal session for the authenticated customer. |
+| **PM**        | Opens self-serve subscription management.                               |
 
----
+### `POST /api/v1/stripe/webhook`
+
+|               |                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | None, Stripe signature required                                                                                           |
+| **Developer** | Verifies the Stripe signature on the raw request body, hands the event to the Stripe service, and returns a JSON receipt. |
+| **PM**        | Keeps premium billing state in sync after Stripe events.                                                                  |
 
 ## Admin (Superuser Only)
 
-These endpoints are restricted to superuser accounts (currently two people). They power internal tooling for monitoring and managing the platform.
-
 ### `GET /api/v1/admin/stats`
 
-|               |                                                                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | Superuser                                                                                                                                              |
-| **Developer** | Returns aggregate platform statistics: total users, trips, itineraries, and counts by build/discovery status. Uses `Promise.all` for parallel queries. |
-| **PM**        | Dashboard numbers — how many users, trips, and itineraries exist, and how many are in each stage of the build lifecycle.                               |
+|               |                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Superuser                                                                                                           |
+| **Developer** | Returns aggregate counts for users, trips, itineraries, recent signups, recent trips, and itinerary build statuses. |
+| **PM**        | Powers the admin overview dashboard.                                                                                |
 
 ### `GET /api/v1/admin/users`
 
-|               |                                                                                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Superuser                                                                                                                                       |
-| **Developer** | Paginated user list with search (by nationality, home airport, user ID). Includes trip count per user. Query params: `page`, `limit`, `search`. |
-| **PM**        | Browse and search all users on the platform. See who they are and how many trips they've planned.                                               |
+|               |                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------- |
+| **Auth**      | Superuser                                                                           |
+| **Developer** | Returns a paginated, searchable user list with trip counts and core profile fields. |
+| **PM**        | Lets staff browse and search users.                                                 |
 
 ### `GET /api/v1/admin/trips`
 
-|               |                                                                                                                      |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Auth**      | Superuser                                                                                                            |
-| **Developer** | Paginated trip list with search (by destination, region, trip ID). Includes profile association and itinerary count. |
-| **PM**        | Browse and search all trips on the platform. Useful for debugging user issues or understanding usage patterns.       |
+|               |                                                                                               |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| **Auth**      | Superuser                                                                                     |
+| **Developer** | Returns a paginated, searchable trip list with itinerary counts and profile linkage metadata. |
+| **PM**        | Lets staff browse and search trips.                                                           |
 
 ### `DELETE /api/v1/admin/trips/[id]`
 
-|               |                                                                                           |
-| ------------- | ----------------------------------------------------------------------------------------- |
-| **Auth**      | Superuser                                                                                 |
-| **Developer** | Admin-level trip deletion. Bypasses ownership check.                                      |
-| **PM**        | Delete any trip on the platform — for cleaning up test data or handling support requests. |
+|               |                                                 |
+| ------------- | ----------------------------------------------- |
+| **Auth**      | Superuser                                       |
+| **Developer** | Deletes any trip as an admin action.            |
+| **PM**        | Lets staff remove trips for support or cleanup. |
 
----
+### `GET /api/v1/admin/feedback`
+
+|               |                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Superuser                                                                                                     |
+| **Developer** | Returns the admin feedback queue through the feedback service, including URL-driven filtering and pagination. |
+| **PM**        | Lets staff review incoming user feedback.                                                                     |
+
+### `PATCH /api/v1/admin/feedback/[id]`
+
+|               |                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Auth**      | Superuser                                                                                                              |
+| **Developer** | Validates a feedback status update, records the acting profile, and publishes the update through the feedback service. |
+| **PM**        | Lets staff change the visible status or note on a feedback item.                                                       |
 
 ## Infrastructure
 
 ### `GET /api/health`
 
-|               |                                                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | None                                                                                                                                             |
-| **Developer** | Returns service health with individual component checks (Supabase, database). Returns 200 if all healthy, 207 if partial failure. Force-dynamic. |
-| **PM**        | A simple "is the app working?" check. Monitoring tools ping this to alert us if something is down.                                               |
+|               |                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| **Auth**      | None                                                                                                |
+| **Developer** | Returns `healthy` plus component checks, with HTTP `200` for healthy and `207` for partial failure. |
+| **PM**        | Simple health endpoint for monitoring and diagnostics.                                              |
+
+### `GET /api/v1/places/cities`
+
+|               |                                                                     |
+| ------------- | ------------------------------------------------------------------- |
+| **Auth**      | None                                                                |
+| **Developer** | Returns the supported city catalog from the cities feature service. |
+| **PM**        | Loads searchable destination options for the planner.               |
 
 ### `GET /api/v1/places/photo`
 
-|               |                                                                                                                                                                                |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | Required                                                                                                                                                                       |
-| **Developer** | Proxies Google Places photos to keep the API key server-side. Query params: `ref` (photo reference), `w` (width). Returns image bytes with 24h client cache / 7d server cache. |
-| **PM**        | Loads city and place photos throughout the app without exposing our Google API key to the browser.                                                                             |
-
----
+|                |                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**       | Required                                                                                                                  |
+| **Rate limit** | `60/min` per IP                                                                                                           |
+| **Developer**  | Proxies Google Places photo bytes so the browser never receives the API key. Accepts `ref` and optional `w` query params. |
+| **PM**         | Loads place photos securely inside the app.                                                                               |
 
 ## Related Linear Tickets
 
