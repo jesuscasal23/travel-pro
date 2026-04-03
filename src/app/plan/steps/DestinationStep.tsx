@@ -147,6 +147,23 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
     return from ? { from, to } : undefined;
   }, [dateStart, dateEnd]);
 
+  const defaultMonth = useMemo(() => {
+    if (dateRange?.from) {
+      return new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), 1);
+    }
+
+    const today = new Date();
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const selectableDaysLeft = lastDayOfMonth.getDate() - normalizedToday.getDate() + 1;
+
+    if (selectableDaysLeft < 3) {
+      return new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    }
+
+    return normalizedToday;
+  }, [dateRange]);
+
   const handleDateRangeSelect = (range: DateRange | undefined) => {
     setDateStart(range?.from ? format(range.from, "yyyy-MM-dd") : "");
     setDateEnd(range?.to ? format(range.to, "yyyy-MM-dd") : "");
@@ -412,6 +429,7 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
             mode="range"
             selected={dateRange}
             onSelect={handleDateRangeSelect}
+            defaultMonth={defaultMonth}
             disabled={{ before: new Date() }}
             numberOfMonths={1}
             showOutsideDays
