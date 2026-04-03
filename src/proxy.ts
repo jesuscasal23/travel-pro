@@ -24,8 +24,14 @@ const PUBLIC_PREFIXES = [
   "/api/v1/stripe/",
 ];
 
+const PUBLIC_API_PREFIXES = ["/api/v1/places/cities"];
+
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isPublicApiRoute(pathname: string): boolean {
+  return PUBLIC_API_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
 }
 
 // ── Rate limiting (Upstash Redis sliding window) ───────────────────────────
@@ -235,6 +241,10 @@ export async function proxy(request: NextRequest) {
     if (rateLimitResponse) {
       rateLimitResponse.headers.set("x-request-id", requestId);
       return rateLimitResponse;
+    }
+
+    if (isPublicApiRoute(pathname)) {
+      return next();
     }
 
     // ── Premium paywall gate for API ────────────────────────────
