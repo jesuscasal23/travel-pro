@@ -95,6 +95,48 @@ function setValidFinalStepState() {
   });
 }
 
+function mockJsonResponse(status: number, body: unknown) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+  } as Response;
+}
+
+function installPlanFetchMock(options?: {
+  saveProfileStatus?: number;
+  createTripResponses?: Array<{ status: number; body: unknown }>;
+}) {
+  const createTripResponses = options?.createTripResponses ?? [];
+  let createTripIndex = 0;
+
+  global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const method = init?.method ?? "GET";
+
+    if (url === "/api/v1/places/cities" && method === "GET") {
+      return mockJsonResponse(200, { cities: [] });
+    }
+
+    if (url === "/api/v1/profile" && method === "GET") {
+      return mockJsonResponse(404, {});
+    }
+
+    if (url === "/api/v1/profile" && method === "PATCH") {
+      return mockJsonResponse(options?.saveProfileStatus ?? 200, { profile: {} });
+    }
+
+    if (url === "/api/v1/trips" && method === "POST") {
+      const response = createTripResponses[createTripIndex] ?? { status: 500, body: {} };
+      createTripIndex += 1;
+      return mockJsonResponse(response.status, response.body);
+    }
+
+    throw new Error(`Unexpected fetch in test: ${method} ${url}`);
+  });
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 // New unified flow:
@@ -110,19 +152,11 @@ describe("PlanPage — authenticated API failure", () => {
   });
 
   it("shows an error message when trip creation returns a non-200 response", async () => {
-    global.fetch = vi
-      .fn()
-      // 1. GET /api/v1/profile (after auth resolves) → 404 = no profile
-      .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
-      // 2. PATCH /api/v1/profile (saveProfile on generate) → ok
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
-      // 3. POST /api/v1/trips (createTrip) → 500 failure
-      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) });
+    installPlanFetchMock({
+      createTripResponses: [{ status: 500, body: {} }],
+    });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    // Wait for auth + profile queries to settle before interacting
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my trip/i })
@@ -138,26 +172,14 @@ describe("PlanPage — authenticated API failure", () => {
   }, 15_000);
 
   it("clears the error message when the user clicks Generate again", async () => {
-    global.fetch = vi
-      .fn()
-      // 1. GET /api/v1/profile → 404
-      .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
-      // 2. PATCH /api/v1/profile (1st generate) → ok
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
-      // 3. POST /api/v1/trips (1st generate) → 500 failure
-      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
-      // 4. PATCH /api/v1/profile (2nd generate) → ok
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
-      // 5. POST /api/v1/trips (2nd generate) → success
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ trip: { id: "trip-123" } }),
-      });
+    installPlanFetchMock({
+      createTripResponses: [
+        { status: 500, body: {} },
+        { status: 200, body: { trip: { id: "trip-123" } } },
+      ],
+    });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my trip/i })
@@ -178,18 +200,11 @@ describe("PlanPage — authenticated API failure", () => {
   }, 15_000);
 
   it("does not inject data into the store on failure", async () => {
-    global.fetch = vi
-      .fn()
-      // 1. GET /api/v1/profile → 404
-      .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
-      // 2. PATCH /api/v1/profile → ok
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ profile: {} }) })
-      // 3. POST /api/v1/trips → 500 failure
-      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) });
+    installPlanFetchMock({
+      createTripResponses: [{ status: 500, body: {} }],
+    });
 
     render(<PlanPage />, { wrapper: createTestQueryWrapper() });
-
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
     const generateBtn = await waitFor(() =>
       screen.getByRole("button", { name: /generate my trip/i })
