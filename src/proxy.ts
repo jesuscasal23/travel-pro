@@ -281,7 +281,7 @@ export async function proxy(request: NextRequest) {
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("is_premium")
+        .select("is_premium, is_super_user")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -291,7 +291,7 @@ export async function proxy(request: NextRequest) {
             `path=${pathname}, requestId=${requestId} — failing open`
         );
         // Fail open: don't block API calls when the profile query fails
-      } else if (profile && !profile.is_premium) {
+      } else if (profile && !profile.is_premium && !profile.is_super_user) {
         return new NextResponse(
           JSON.stringify({ error: "Forbidden", message: "Premium subscription required." }),
           {
@@ -359,7 +359,7 @@ export async function proxy(request: NextRequest) {
     if (!pathname.startsWith("/premium")) {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("is_premium")
+        .select("is_premium, is_super_user")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -369,7 +369,7 @@ export async function proxy(request: NextRequest) {
             `path=${pathname}, requestId=${requestId} — failing open`
         );
         // Fail open: don't block users when the profile query fails
-      } else if (profile && !profile.is_premium) {
+      } else if (profile && !profile.is_premium && !profile.is_super_user) {
         const premiumUrl = new URL("/premium", request.url);
         premiumUrl.searchParams.set("source", pathname);
         const redirect = NextResponse.redirect(premiumUrl);
