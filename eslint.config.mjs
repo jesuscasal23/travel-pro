@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     "build/**",
     "tmp/**",
     "next-env.d.ts",
+    "eslint-rules/**",
+    "evals/**",
+    "public/sw.js",
     // Scripts and config files are not part of the app — skip strict rules
     "scripts/**",
     "prisma/seed.ts",

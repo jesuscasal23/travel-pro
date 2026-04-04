@@ -4,7 +4,7 @@ export type Node = {
   id: string;
   type: NodeType;
   label: string;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 };
 
 export type EdgeKind = "page-endpoint" | "endpoint-db" | "page-ui";
@@ -13,7 +13,7 @@ export type Edge = {
   from: string;
   to: string;
   kind: EdgeKind;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 };
 
 export type Graph = {
