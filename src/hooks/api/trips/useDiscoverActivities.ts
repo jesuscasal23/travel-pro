@@ -21,6 +21,7 @@ interface DiscoverActivitiesResponse {
 
 export function useDiscoverActivities() {
   return useMutation({
+    retry: false,
     mutationFn: async ({
       tripId,
       cityId,

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAuthStatus, useTravelerPreferences, useTrip } from "@/hooks/api";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { ApiError } from "@/lib/client/api-fetch";
@@ -44,9 +45,15 @@ export function useTripIdentity({ tripId }: TripIdentityParams): TripIdentityRes
   const homeAirport = travelerPreferences.data?.homeAirport ?? "";
   const travelStyle: TravelStyle = travelerPreferences.data?.travelStyle ?? "smart-budget";
   const interests = travelerPreferences.data?.interests ?? [];
-  const transientProfile =
-    nationality && homeAirport ? { nationality, homeAirport, travelStyle, interests } : null;
-  const requestProfile = travelerPreferences.source === "server" ? undefined : transientProfile;
+  const transientProfile = useMemo(
+    () =>
+      nationality && homeAirport ? { nationality, homeAirport, travelStyle, interests } : null,
+    [nationality, homeAirport, travelStyle, interests]
+  );
+  const requestProfile = useMemo(
+    () => (travelerPreferences.source === "server" ? undefined : transientProfile),
+    [travelerPreferences.source, transientProfile]
+  );
   const hasDiscoveryProfile = travelerPreferences.source === "server" || requestProfile !== null;
 
   const tripQueryEnabled = !isGuest;

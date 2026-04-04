@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useActivityImages, useDiscoverActivities, useRecordActivitySwipe } from "@/hooks/api";
 import {
   advanceDiscoveryCursor,
@@ -40,6 +40,23 @@ interface UseDiscoveryFlowResult {
   discoveryRoundLimitReached: boolean;
 }
 
+function buildAutoDiscoveryRequestKey(
+  tripId: string,
+  cityId: string,
+  requestProfile?: UseDiscoveryFlowOptions["requestProfile"]
+) {
+  const profileKey = requestProfile
+    ? [
+        requestProfile.nationality,
+        requestProfile.homeAirport,
+        requestProfile.travelStyle,
+        requestProfile.interests.join(","),
+      ].join("|")
+    : "server-profile";
+
+  return `${tripId}:${cityId}:${profileKey}`;
+}
+
 export function useDiscoveryFlow({
   tripId,
   itinerary,
@@ -50,6 +67,7 @@ export function useDiscoveryFlow({
 }: UseDiscoveryFlowOptions): UseDiscoveryFlowResult {
   const discoverActivitiesMutation = useDiscoverActivities();
   const recordActivitySwipeMutation = useRecordActivitySwipe();
+  const autoDiscoveryRequestKeyRef = useRef<string | null>(null);
   const [queueState, setQueueState] = useState(createDiscoveryQueueState);
   const [discoveryDone, setDiscoveryDone] = useState(false);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
@@ -70,6 +88,10 @@ export function useDiscoveryFlow({
     [itinerary?.route]
   );
   const currentDiscoveryCity = discoverableCities[currentCityIndex] ?? null;
+  const autoDiscoveryRequestKey = useMemo(() => {
+    if (!currentDiscoveryCity) return null;
+    return buildAutoDiscoveryRequestKey(tripId, currentDiscoveryCity.id, requestProfile);
+  }, [currentDiscoveryCity, requestProfile, tripId]);
 
   const shouldRunDiscovery =
     !isGuest &&
@@ -83,12 +105,20 @@ export function useDiscoveryFlow({
       discoveryDone ||
       discoverActivitiesMutation.isPending ||
       !currentDiscoveryCity ||
-      !hasDiscoveryProfile
+      !hasDiscoveryProfile ||
+      !autoDiscoveryRequestKey
     ) {
       return;
     }
 
+    if (autoDiscoveryRequestKeyRef.current === autoDiscoveryRequestKey) {
+      return;
+    }
+
+    autoDiscoveryRequestKeyRef.current = autoDiscoveryRequestKey;
+
     let cancelled = false;
+    setDiscoveryError(null);
     setDiscoveryNotice(null);
 
     discoverActivitiesMutation
@@ -144,6 +174,7 @@ export function useDiscoveryFlow({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    autoDiscoveryRequestKey,
     shouldRunDiscovery,
     discoveryDone,
     currentDiscoveryCity?.id,
@@ -226,6 +257,7 @@ export function useDiscoveryFlow({
                 return;
               }
               const allNames = discoveryCards.map((c) => c.name);
+              setDiscoveryError(null);
               setDiscoveryDone(false);
               setDiscoveryNotice(null);
               discoverActivitiesMutation
