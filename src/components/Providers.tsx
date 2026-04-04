@@ -8,6 +8,7 @@ import { useTripStore } from "@/stores/useTripStore";
 import { usePlanFormStore } from "@/stores/usePlanFormStore";
 import { ToastContainer } from "@/components/ui/Toast";
 import type { PostHog } from "posthog-js";
+import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { createClient } from "@/lib/core/supabase-client";
 import { queryKeys } from "@/hooks/api/keys";
 import { shouldRetryQuery } from "@/lib/client/query-retry";
@@ -73,7 +74,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
+    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       if (event === "SIGNED_OUT") {
         useTripStore.getState().resetAll();
         usePlanFormStore.getState().resetPlanForm();
