@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fichi Code Structure Review</title>
+    <style>
+      :root {
+        --paper: #f6f1e8;
+        --paper-strong: #fffaf2;
+        --ink: #1f1a17;
+        --ink-soft: #5f564f;
+        --line: #d8ccbc;
+        --line-strong: #b6a48e;
+        --brand: #9c4f2d;
+        --brand-soft: #edd5c3;
+        --teal: #205b5a;
+        --teal-soft: #d6ecea;
+        --blue: #2f4d75;
+        --blue-soft: #dbe6f5;
+        --gold: #8a6a16;
+        --gold-soft: #f2e5b9;
+        --red: #8b2f2f;
+        --red-soft: #f2dada;
+        --shadow: 0 18px 40px rgba(77, 53, 31, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(156, 79, 45, 0.08), transparent 28%),
+          radial-gradient(circle at top right, rgba(32, 91, 90, 0.08), transparent 24%),
+          linear-gradient(180deg, #fbf7f0 0%, var(--paper) 100%);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.6;
+      }
+
+      a {
+        color: var(--brand);
+      }
+
+      .shell {
+        width: min(1180px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 32px 0 72px;
+      }
+
+      .hero,
+      .panel {
+        background: rgba(255, 250, 242, 0.82);
+        border: 1px solid rgba(182, 164, 142, 0.65);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        border-radius: 28px;
+        padding: 36px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(10px);
+        opacity: 0.55;
+      }
+
+      .hero::before {
+        width: 220px;
+        height: 220px;
+        right: -40px;
+        top: -50px;
+        background: rgba(156, 79, 45, 0.12);
+      }
+
+      .hero::after {
+        width: 190px;
+        height: 190px;
+        left: -30px;
+        bottom: -60px;
+        background: rgba(32, 91, 90, 0.1);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.1;
+      }
+
+      h1 {
+        font-size: clamp(2.5rem, 4vw, 4.6rem);
+        margin-top: 18px;
+        letter-spacing: -0.04em;
+        max-width: 820px;
+      }
+
+      .hero p.lead {
+        max-width: 760px;
+        font-size: 1.1rem;
+        color: var(--ink-soft);
+        margin: 18px 0 0;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 26px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-stat {
+        padding: 16px 18px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.64);
+      }
+
+      .hero-stat strong {
+        display: block;
+        font-size: 1.8rem;
+        margin-bottom: 4px;
+      }
+
+      .hero-stat span {
+        color: var(--ink-soft);
+        font-size: 0.95rem;
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 24px 0 0;
+      }
+
+      .toc a {
+        display: block;
+        padding: 14px 16px;
+        border-radius: 16px;
+        text-decoration: none;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.52);
+        color: var(--ink);
+        font-size: 0.95rem;
+      }
+
+      .toc a small {
+        display: block;
+        color: var(--ink-soft);
+        margin-top: 4px;
+        font-size: 0.8rem;
+      }
+
+      .section {
+        margin-top: 28px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 14px;
+      }
+
+      .section-header h2 {
+        font-size: clamp(1.8rem, 3vw, 2.8rem);
+        letter-spacing: -0.04em;
+      }
+
+      .section-header p {
+        max-width: 560px;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+
+      .panel {
+        border-radius: 24px;
+        padding: 24px;
+      }
+
+      .panel + .panel {
+        margin-top: 16px;
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid transparent;
+      }
+
+      .chip-brand {
+        background: var(--brand-soft);
+        border-color: #d0b09b;
+      }
+
+      .chip-teal {
+        background: var(--teal-soft);
+        border-color: #aacbc8;
+      }
+
+      .chip-blue {
+        background: var(--blue-soft);
+        border-color: #becfe8;
+      }
+
+      .chip-gold {
+        background: var(--gold-soft);
+        border-color: #dbc573;
+      }
+
+      .chip-red {
+        background: var(--red-soft);
+        border-color: #d9aaaa;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 18px;
+      }
+
+      .three-col {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .note-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .note {
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .note h3 {
+        font-size: 1.15rem;
+        margin-bottom: 10px;
+      }
+
+      .note p,
+      .note li,
+      .panel li,
+      .panel p {
+        color: var(--ink-soft);
+      }
+
+      ul {
+        margin: 10px 0 0 18px;
+        padding: 0;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      .code {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.7);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.9em;
+        color: var(--blue);
+      }
+
+      .diagram {
+        margin-top: 16px;
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(250, 245, 236, 0.84)),
+          repeating-linear-gradient(
+            90deg,
+            rgba(182, 164, 142, 0.06) 0,
+            rgba(182, 164, 142, 0.06) 1px,
+            transparent 1px,
+            transparent 42px
+          );
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .layer {
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+        display: grid;
+        grid-template-columns: 190px 1fr;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .layer .label {
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--ink-soft);
+      }
+
+      .layer strong {
+        display: block;
+        font-size: 1.15rem;
+        margin-bottom: 4px;
+      }
+
+      .arrow {
+        text-align: center;
+        color: var(--brand);
+        font-size: 1.6rem;
+        line-height: 1;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .mini {
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.65);
+      }
+
+      .mini strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .matrix {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+
+      .card small {
+        color: var(--ink-soft);
+      }
+
+      .flowline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: var(--brand);
+        font-size: 1.1rem;
+        margin: 10px 0 2px;
+      }
+
+      .compare {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .compare .column {
+        padding: 18px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        min-height: 100%;
+      }
+
+      .column.current {
+        background: rgba(139, 47, 47, 0.05);
+      }
+
+      .column.future {
+        background: rgba(32, 91, 90, 0.06);
+      }
+
+      .rail {
+        display: grid;
+        gap: 12px;
+        position: relative;
+      }
+
+      .rail::before {
+        content: "";
+        position: absolute;
+        left: 17px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: linear-gradient(180deg, var(--line-strong), transparent);
+      }
+
+      .step {
+        position: relative;
+        padding-left: 42px;
+      }
+
+      .step::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: 7px;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--paper-strong);
+        border: 2px solid var(--brand);
+      }
+
+      .step strong {
+        display: block;
+      }
+
+      .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+
+      .summary-table th,
+      .summary-table td {
+        text-align: left;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      .summary-table th {
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+
+      .callout {
+        padding: 20px 22px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(156, 79, 45, 0.11), rgba(32, 91, 90, 0.09));
+        border: 1px solid rgba(156, 79, 45, 0.24);
+      }
+
+      .callout strong {
+        display: block;
+        font-size: 1.18rem;
+        margin-bottom: 8px;
+      }
+
+      .footer {
+        margin-top: 24px;
+        color: var(--ink-soft);
+        text-align: center;
+        font-size: 0.94rem;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .toc,
+        .two-col,
+        .three-col,
+        .note-grid,
+        .matrix,
+        .compare {
+          grid-template-columns: 1fr;
+        }
+
+        .layer {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="eyebrow">Architecture review · repository scan on 2026-04-04</div>
+        <h1>The app is not chaotic, but its seams are getting expensive.</h1>
+        <p class="lead">
+          Fichi already has a recognizable architecture: pages call client hooks, hooks call route
+          handlers, route handlers call feature services, and feature services call Prisma or
+          external APIs. The problem is that the same product concepts are implemented repeatedly
+          across those layers, so every feature change requires synchronized edits in several places.
+        </p>
+
+        <div class="hero-grid">
+          <div class="hero-stat">
+            <strong>46</strong>
+            <span>files under <span class="code">src/hooks/api</span></span>
+          </div>
+          <div class="hero-stat">
+            <strong>33</strong>
+            <span>route handlers under <span class="code">src/app/api/v1</span></span>
+          </div>
+          <div class="hero-stat">
+            <strong>2</strong>
+            <span>main refactors would remove most structural friction</span>
+          </div>
+        </div>
+
+        <nav class="toc">
+          <a href="#current-state">
+            Current state
+            <small>How the app is structured today and where it works well</small>
+          </a>
+          <a href="#friction">
+            Friction map
+            <small>Where duplication and inconsistency are actually happening</small>
+          </a>
+          <a href="#proposal-one">
+            Proposal 1
+            <small>Selection resource deep module</small>
+          </a>
+          <a href="#proposal-two">
+            Proposal 2
+            <small>Planning session boundary</small>
+          </a>
+        </nav>
+      </section>
+
+      <section class="section" id="current-state">
+        <div class="section-header">
+          <h2>1. Current state</h2>
+          <p>
+            The codebase already has a sensible feature split. The issue is not the top-level
+            layout. The issue is how often a single concept is re-described in multiple layers.
+          </p>
+        </div>
+
+        <div class="panel">
+          <div class="chips">
+            <span class="chip chip-brand">Good foundation</span>
+            <span class="chip chip-teal">Feature modules exist</span>
+            <span class="chip chip-blue">Shared route helper exists</span>
+            <span class="chip chip-gold">Some factories already prove the pattern</span>
+          </div>
+
+          <div class="diagram">
+            <div class="stack">
+              <div class="layer">
+                <div class="label">UI surfaces</div>
+                <div>
+                  <strong>Pages and components</strong>
+                  <div>
+                    <span class="code">src/app/(app)</span>,
+                    <span class="code">src/app/plan</span>,
+                    <span class="code">src/components/*</span>
+                  </div>
+                </div>
+              </div>
+              <div class="arrow">↓</div>
+              <div class="layer">
+                <div class="label">Client data layer</div>
+                <div>
+                  <strong>React Query hooks and Zustand stores</strong>
+                  <div>
+                    <span class="code">src/hooks/api/*</span>,
+                    <span class="code">src/stores/*</span>
+                  </div>
+                </div>
+              </div>
+              <div class="arrow">↓</div>
+              <div class="layer">
+                <div class="label">HTTP layer</div>
+                <div>
+                  <strong>Next.js route handlers</strong>
+                  <div>
+                    <span class="code">src/app/api/v1/**/route.ts</span>
+                  </div>
+                </div>
+              </div>
+              <div class="arrow">↓</div>
+              <div class="layer">
+                <div class="label">Business logic</div>
+                <div>
+                  <strong>Feature services and transforms</strong>
+                  <div>
+                    <span class="code">src/lib/features/*</span>,
+                    <span class="code">src/lib/ai/*</span>
+                  </div>
+                </div>
+              </div>
+              <div class="arrow">↓</div>
+              <div class="layer">
+                <div class="label">Infra</div>
+                <div>
+                  <strong>Prisma, Supabase, Stripe, SerpApi, Google Places</strong>
+                  <div>
+                    <span class="code">src/lib/core/*</span>,
+                    <span class="code">src/lib/config/*</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-grid" style="margin-top: 18px">
+            <div class="note">
+              <h3>What is already good</h3>
+              <ul>
+                <li>Feature folders are real and not cosmetic.</li>
+                <li>The route layer has a standard wrapper via <span class="code">apiHandler</span>.</li>
+                <li>The enrichment feature already uses factories instead of copy-paste.</li>
+                <li>Backend conventions are documented and mostly coherent.</li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>What feels expensive</h3>
+              <ul>
+                <li>A single product concept often exists as route code, hook code, service code, query keys, and store glue.</li>
+                <li>Many modules are thin enough that reading the interface is almost the same work as reading the implementation.</li>
+                <li>Some conventions are documented, but a few important routes still bypass them.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="friction">
+        <div class="section-header">
+          <h2>2. Friction map</h2>
+          <p>
+            These are the areas where structural complexity is materially affecting maintainability,
+            not just stylistic preferences.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h3>Friction A: selection handling is duplicated across three layers</h3>
+          <p>
+            The flights and hotels selection flows are implemented as parallel universes. The route
+            files are almost identical. The service layer repeats the same CRUD shape. The client
+            hooks repeat the same query and mutation patterns.
+          </p>
+
+          <div class="diagram">
+            <div class="matrix">
+              <div class="card">
+                <strong>Route layer</strong>
+                <small>
+                  <span class="code">.../selections/flights/route.ts</span> and
+                  <span class="code">.../selections/hotels/route.ts</span>
+                </small>
+              </div>
+              <div class="card">
+                <strong>Service layer</strong>
+                <small>
+                  <span class="code">get/upsert/remove/mark</span> exists twice in
+                  <span class="code">selection-service.ts</span>
+                </small>
+              </div>
+              <div class="card">
+                <strong>Client layer</strong>
+                <small>
+                  query hooks and mutation helpers mirror the same split again
+                </small>
+              </div>
+            </div>
+            <div class="flowline">
+              <span>flights</span>
+              <span>↔</span>
+              <span>hotels</span>
+              <span>↔</span>
+              <span>same control flow, renamed fields</span>
+            </div>
+          </div>
+
+          <div class="three-col" style="margin-top: 16px">
+            <div class="note">
+              <h3>Why this matters</h3>
+              <p>
+                Every bug fix or behavior change has to be remembered in multiple places. That
+                multiplies risk and slows review because the important part is buried under
+                mechanical repetition.
+              </p>
+            </div>
+            <div class="note">
+              <h3>What this signals</h3>
+              <p>
+                The real abstraction is not "flight route" or "hotel route". The real abstraction
+                is "selection resource with kind-specific schema and persistence rules".
+              </p>
+            </div>
+            <div class="note">
+              <h3>What already points the way</h3>
+              <p>
+                The enrichment endpoints already use a shared factory. The selections feature should
+                be pulled in the same direction.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Friction B: planner state is split across too many owners</h3>
+          <p>
+            Traveler preferences, trip draft fields, guest fallback behavior, server profile
+            hydration, and trip identity are spread across stores, hooks, providers, and pages.
+          </p>
+
+          <div class="diagram">
+            <div class="compare">
+              <div class="column current">
+                <strong>Current ownership map</strong>
+                <div class="rail" style="margin-top: 14px">
+                  <div class="step">
+                    <strong><span class="code">useTripStore</span></strong>
+                    transient nationality, airport, interests, pace, vibes, build flags
+                  </div>
+                  <div class="step">
+                    <strong><span class="code">usePlanFormStore</span></strong>
+                    route draft, dates, travelers, priorities, step state
+                  </div>
+                  <div class="step">
+                    <strong><span class="code">useTravelerPreferences</span></strong>
+                    merges server profile with transient fallback
+                  </div>
+                  <div class="step">
+                    <strong><span class="code">PlanPage</span> and <span class="code">ProfilePage</span></strong>
+                    do manual hydration and manual sync back into stores
+                  </div>
+                  <div class="step">
+                    <strong><span class="code">useTripIdentity</span></strong>
+                    reassembles trip-level inputs from trip query plus plan store plus preference hook
+                  </div>
+                </div>
+              </div>
+              <div class="column future">
+                <strong>What the app actually needs</strong>
+                <div class="rail" style="margin-top: 14px">
+                  <div class="step">
+                    <strong>One planning session boundary</strong>
+                    one place owns the shape of in-progress planning state
+                  </div>
+                  <div class="step">
+                    <strong>Explicit hydration rules</strong>
+                    server profile, guest draft, and sign-out reset live in one module
+                  </div>
+                  <div class="step">
+                    <strong>Selectors and commands</strong>
+                    pages ask for "traveler preferences" or "trip draft", not raw stores
+                  </div>
+                  <div class="step">
+                    <strong>Cleaner UI pages</strong>
+                    pages become orchestration and rendering, not reconciliation engines
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Friction C: conventions drift in a few important places</h3>
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current state</th>
+                <th>Why it matters</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Admin routes</td>
+                <td>Some admin endpoints query Prisma directly in route files.</td>
+                <td>The route layer becomes heavier and can drift from the stated "thin route" convention.</td>
+              </tr>
+              <tr>
+                <td>Env access</td>
+                <td>Most config has a boundary, but some routes still read <span class="code">process.env</span> directly.</td>
+                <td>Validation and fallback behavior become inconsistent.</td>
+              </tr>
+              <tr>
+                <td>Naming</td>
+                <td>The repo still contains both Fichi and Travel Pro terminology.</td>
+                <td>That is less about architecture and more about maintenance confusion, docs drift, and product polish.</td>
+              </tr>
+              <tr>
+                <td>Dev routes</td>
+                <td>Both <span class="code">_dev</span> and <span class="code">%5Fdev</span> route entrypoints exist.</td>
+                <td>It is a small example of route-surface duplication that future maintainers need to mentally explain.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="proposal-one">
+        <div class="section-header">
+          <h2>3. Proposal 1: selection resource deep module</h2>
+          <p>
+            This is the highest-leverage next refactor. It is localized, measurable, and it removes
+            copy-paste from the exact area where the app currently repeats itself most aggressively.
+          </p>
+        </div>
+
+        <div class="panel">
+          <div class="chips">
+            <span class="chip chip-brand">Recommended first</span>
+            <span class="chip chip-teal">Low product risk</span>
+            <span class="chip chip-blue">High duplication payoff</span>
+          </div>
+
+          <div class="compare">
+            <div class="column current">
+              <strong>Current selections model</strong>
+              <ul>
+                <li>Two route files with near-identical auth, validation, and response flow.</li>
+                <li>Two CRUD clusters in the same service file.</li>
+                <li>Parallel query hooks and parallel mutation logic.</li>
+                <li>Any third selection kind would add another full vertical slice.</li>
+              </ul>
+            </div>
+            <div class="column future">
+              <strong>Proposed selections model</strong>
+              <ul>
+                <li>One shared selection resource factory for route handlers.</li>
+                <li>One kind descriptor per selection type.</li>
+                <li>One client query factory and one mutation factory.</li>
+                <li>Kind-specific differences become data and adapters, not control-flow duplication.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="diagram">
+            <div class="layer">
+              <div class="label">Descriptor</div>
+              <div>
+                <strong>Define the resource once per kind</strong>
+                route path, query key, Zod schema, Prisma select, upsert strategy, booked mutation,
+                remove mutation, serializer
+              </div>
+            </div>
+            <div class="arrow">↓</div>
+            <div class="mini-grid">
+              <div class="mini">
+                <strong>Server factory</strong>
+                generate GET / PUT / DELETE / PATCH handlers from the descriptor
+              </div>
+              <div class="mini">
+                <strong>Client factory</strong>
+                generate query and mutation hooks from the same descriptor
+              </div>
+            </div>
+            <div class="arrow">↓</div>
+            <div class="layer">
+              <div class="label">Result</div>
+              <div>
+                <strong>One deep module instead of several shallow twins</strong>
+                callers use a small interface while the module hides auth, schemas, cache updates,
+                Prisma specifics, and optimistic update rules
+              </div>
+            </div>
+          </div>
+
+          <div class="two-col" style="margin-top: 18px">
+            <div class="note">
+              <h3>Concrete shape</h3>
+              <ul>
+                <li>Create <span class="code">selection-resource.ts</span> with a generic descriptor type.</li>
+                <li>Move flight-specific and hotel-specific persistence details into separate descriptor modules.</li>
+                <li>Generate route handlers instead of hand-writing two route files.</li>
+                <li>Generate query hooks instead of keeping mirrored files for flights and hotels.</li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>What stays kind-specific</h3>
+              <ul>
+                <li>Unique keys for upsert.</li>
+                <li>Field-level Zod schema differences.</li>
+                <li>Prisma model name and select shape.</li>
+                <li>How optimistic cart updates map a stored record back into flight or hotel arrays.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 18px; padding: 18px">
+            <h3>Migration sequence</h3>
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Step</th>
+                  <th>Change</th>
+                  <th>Why this order</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Extract shared route factory and descriptor types.</td>
+                  <td>Reduces server duplication without changing endpoint contracts.</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Refactor the service layer into kind descriptors plus common operations.</td>
+                  <td>Keeps business rules behind one boundary before touching client hooks.</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Collapse query hooks and mutation helpers onto shared factories.</td>
+                  <td>Lets the client side consume the new deep module cleanly.</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Backfill boundary tests around the generated resource behavior.</td>
+                  <td>Replaces repeated per-kind test setup with more valuable behavior tests.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="proposal-two">
+        <div class="section-header">
+          <h2>4. Proposal 2: planning session boundary</h2>
+          <p>
+            This is the more strategic refactor. It addresses the hardest-to-explain part of the
+            app: where planning state comes from, who owns it, and how guest and authenticated flows
+            merge.
+          </p>
+        </div>
+
+        <div class="panel">
+          <div class="chips">
+            <span class="chip chip-gold">Do second</span>
+            <span class="chip chip-red">Broader blast radius</span>
+            <span class="chip chip-teal">High architectural payoff</span>
+          </div>
+
+          <div class="diagram">
+            <div class="compare">
+              <div class="column current">
+                <strong>Today</strong>
+                <p>
+                  The planner is spread across two stores, a preference-merging hook, page-level
+                  hydration logic, and provider-level reconstruction. The model works, but it is
+                  hard to answer simple questions like "what is the current traveler profile?" or
+                  "which date values are authoritative right now?"
+                </p>
+              </div>
+              <div class="column future">
+                <strong>After refactor</strong>
+                <p>
+                  One planning session module owns the lifecycle of in-progress planning. Pages
+                  consume stable selectors like traveler preferences, trip draft, and session
+                  commands. Hydration and fallback logic stop leaking into UI files.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="two-col" style="margin-top: 18px">
+            <div class="note">
+              <h3>What this boundary should own</h3>
+              <ul>
+                <li>Traveler preferences for both guest and authenticated users.</li>
+                <li>Trip draft fields such as route, dates, travelers, and priorities.</li>
+                <li>Hydration from profile query into local draft state.</li>
+                <li>Reset semantics on sign-out.</li>
+                <li>Derivations used by trip generation and trip identity.</li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>What UI files should stop doing</h3>
+              <ul>
+                <li>Calling <span class="code">useTripStore.setState(...)</span> directly.</li>
+                <li>Re-deriving effective nationality and airport from multiple sources.</li>
+                <li>Mixing planner state reconciliation with rendering.</li>
+                <li>Reaching into both stores plus server query results for the same user intent.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 18px; padding: 18px">
+            <h3>Practical target design</h3>
+            <div class="rail">
+              <div class="step">
+                <strong>Create a <span class="code">planning-session</span> module</strong>
+                It can still be backed by Zustand internally, but external consumers should not need
+                to know about multiple stores.
+              </div>
+              <div class="step">
+                <strong>Expose selectors, not storage details</strong>
+                For example: traveler preferences, trip draft, effective dates, can-generate,
+                session reset, hydrate-from-profile.
+              </div>
+              <div class="step">
+                <strong>Move merging logic out of pages</strong>
+                <span class="code">PlanPage</span>, <span class="code">ProfilePage</span>, and
+                <span class="code">useTripIdentity</span> should stop being mini state managers.
+              </div>
+              <div class="step">
+                <strong>Treat guest and auth as session modes</strong>
+                That turns conditional fallback behavior into a modeled state concern instead of a
+                repeated UI concern.
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 18px; padding: 18px">
+            <h3>Migration sequence</h3>
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Step</th>
+                  <th>Change</th>
+                  <th>Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Introduce planning-session selectors that read from existing stores.</td>
+                  <td>No behavior change yet; just adds a stable facade.</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Move profile hydration and guest fallback into the facade.</td>
+                  <td>Pages stop doing manual merge logic.</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Update <span class="code">PlanPage</span>, <span class="code">ProfilePage</span>, and <span class="code">useTripIdentity</span> to consume the facade only.</td>
+                  <td>The boundary becomes real and externally visible.</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Collapse internal storage if desired.</td>
+                  <td>The app can then choose one store or keep multiple stores hidden behind one interface.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2>5. Recommendation and sequencing</h2>
+          <p>
+            The two proposals are complementary. One reduces duplication in a bounded feature. The
+            other clarifies the ownership model of the planner.
+          </p>
+        </div>
+
+        <div class="panel">
+          <div class="callout">
+            <strong>What I would do next</strong>
+            Start with proposal 1. It has the best ratio of impact to risk, it removes obvious
+            repeated code immediately, and it gives the codebase a reusable pattern for future
+            feature surfaces. Then do proposal 2 as the larger architectural cleanup once the team
+            has confidence in the more factory-driven approach.
+          </div>
+
+          <div class="three-col" style="margin-top: 18px">
+            <div class="note">
+              <h3>Why proposal 1 first</h3>
+              <ul>
+                <li>Localized scope.</li>
+                <li>Clear before/after reduction in file count and duplication.</li>
+                <li>Low user-facing behavior risk.</li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>Why proposal 2 second</h3>
+              <ul>
+                <li>Touches more screens and more state assumptions.</li>
+                <li>Needs stronger behavioral confidence first.</li>
+                <li>Benefits from having one successful deep-module refactor already in place.</li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>What not to do</h3>
+              <ul>
+                <li>Do not flatten everything into generic utilities with no domain vocabulary.</li>
+                <li>Do not delete the feature split.</li>
+                <li>Do not refactor planner state and selections at the same time.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer">
+        This document is intentionally opinionated. The goal is not to describe every file. The
+        goal is to show where the structure is costing you real maintenance effort, and how to
+        improve it without destabilizing the product.
+      </p>
+    </main>
+  </body>
+</html>

@@ -265,6 +265,44 @@ export async function discoverActivities(
   }
   verifiedActivities = dedupeResult.unique;
 
+  const existingPlaceIds = await loadExistingTripPlaceIds(
+    tripId,
+    verifiedActivities
+      .map((entry) => entry.placeId)
+      .filter((placeId): placeId is string => !!placeId)
+  );
+  if (existingPlaceIds.size > 0) {
+    const uniqueAgainstTrip: VerifiedActivity[] = [];
+    const duplicateNames: string[] = [];
+    const duplicatePlaceNames: string[] = [];
+
+    for (const entry of verifiedActivities) {
+      if (entry.placeId && existingPlaceIds.has(entry.placeId)) {
+        duplicateNames.push(entry.activity.name);
+        if (entry.canonicalPlaceName !== entry.activity.name) {
+          duplicatePlaceNames.push(entry.canonicalPlaceName);
+        }
+        continue;
+      }
+      uniqueAgainstTrip.push(entry);
+    }
+
+    if (duplicateNames.length > 0) {
+      reachabilityStats.verifiedFiltered += duplicateNames.length;
+      internalExcludeNames = mergeExcludeNames(internalExcludeNames, [
+        ...duplicateNames,
+        ...duplicatePlaceNames,
+      ]);
+      log.info("Skipped activities already discovered for trip", {
+        tripId,
+        cityId,
+        duplicates: duplicateNames.length,
+      });
+    }
+
+    verifiedActivities = uniqueAgainstTrip;
+  }
+
   // ── Bulk-insert into DiscoveredActivity (without images) ──────────────────
   const rows = verifiedActivities.map((verified) => ({
     tripId,
@@ -290,7 +328,10 @@ export async function discoverActivities(
   }));
 
   if (rows.length > 0) {
-    await prisma.discoveredActivity.createMany({ data: rows });
+    await prisma.discoveredActivity.createMany({
+      data: rows,
+      skipDuplicates: true,
+    });
   }
 
   // Re-read to get generated IDs and timestamps for just-inserted rows (imageUrl null)
@@ -652,4 +693,23 @@ function dedupeVerifiedActivities(entries: VerifiedActivity[]) {
   }
 
   return { unique, duplicateNames };
+}
+
+async function loadExistingTripPlaceIds(tripId: string, placeIds: string[]) {
+  const uniquePlaceIds = [...new Set(placeIds)];
+  if (uniquePlaceIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const existing = await prisma.discoveredActivity.findMany({
+    where: {
+      tripId,
+      googlePlaceId: { in: uniquePlaceIds },
+    },
+    select: { googlePlaceId: true },
+  });
+
+  return new Set(
+    existing.map((row) => row.googlePlaceId).filter((placeId): placeId is string => !!placeId)
+  );
 }

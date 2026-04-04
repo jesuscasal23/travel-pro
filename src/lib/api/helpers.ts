@@ -141,42 +141,48 @@ export function apiHandler(routeName: string, handler: ApiRouteHandler) {
   return async (req: NextRequest, ctx?: { params?: Promise<Record<string, string>> }) => {
     const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
 
-    return requestContext.run({ requestId }, async () => {
-      try {
-        const resolvedParams = ctx?.params ? await ctx.params : {};
-        const response = await handler(req, resolvedParams);
-        response.headers.set("x-request-id", requestId);
-        return response;
-      } catch (err) {
-        if (err instanceof ApiError) {
-          log.warn("API error response", {
+    return requestContext.run(
+      {
+        requestId,
+        isE2ETest: req.headers.get("x-e2e-test") === "1",
+      },
+      async () => {
+        try {
+          const resolvedParams = ctx?.params ? await ctx.params : {};
+          const response = await handler(req, resolvedParams);
+          response.headers.set("x-request-id", requestId);
+          return response;
+        } catch (err) {
+          if (err instanceof ApiError) {
+            log.warn("API error response", {
+              route: routeName,
+              requestId,
+              method: req.method,
+              path: req.nextUrl?.pathname,
+              status: err.status,
+              error: err.message,
+              errorType: err.constructor.name,
+              ...(err.details ? { details: err.details } : {}),
+            });
+            const body: Record<string, unknown> = { error: err.message };
+            if (err.details) body.details = err.details;
+            const response = NextResponse.json(body, { status: err.status });
+            response.headers.set("x-request-id", requestId);
+            return response;
+          }
+          log.error("Unhandled route error", {
             route: routeName,
             requestId,
             method: req.method,
             path: req.nextUrl?.pathname,
-            status: err.status,
-            error: err.message,
-            errorType: err.constructor.name,
-            ...(err.details ? { details: err.details } : {}),
+            errorName: err instanceof Error ? err.name : "unknown",
+            error: err instanceof Error ? (err.stack ?? err.message) : String(err),
           });
-          const body: Record<string, unknown> = { error: err.message };
-          if (err.details) body.details = err.details;
-          const response = NextResponse.json(body, { status: err.status });
+          const response = NextResponse.json({ error: "Internal server error" }, { status: 500 });
           response.headers.set("x-request-id", requestId);
           return response;
         }
-        log.error("Unhandled route error", {
-          route: routeName,
-          requestId,
-          method: req.method,
-          path: req.nextUrl?.pathname,
-          errorName: err instanceof Error ? err.name : "unknown",
-          error: err instanceof Error ? (err.stack ?? err.message) : String(err),
-        });
-        const response = NextResponse.json({ error: "Internal server error" }, { status: 500 });
-        response.headers.set("x-request-id", requestId);
-        return response;
       }
-    });
+    );
   };
 }

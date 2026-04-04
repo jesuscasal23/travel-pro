@@ -12,6 +12,7 @@ import { getErrorMessage } from "@/lib/utils/error";
 import { createLogger } from "@/lib/core/logger";
 import { abortableDelay, isAbortError } from "@/lib/core/abort";
 import { getAnthropicApiKey } from "@/lib/config/server-env";
+import { getIsE2ETest } from "@/lib/core/request-context";
 import {
   CLAUDE_TIMEOUT_MS,
   CONTENT_FILTER_MAX_RETRIES,
@@ -57,6 +58,10 @@ export async function callClaude(
   retryCount = 0,
   signal?: AbortSignal
 ): Promise<ClaudeResult> {
+  if (getIsE2ETest()) {
+    throw new Error("Claude API calls are disabled for E2E requests");
+  }
+
   const t0 = Date.now();
   const model = "claude-haiku-4-5-20251001";
 
