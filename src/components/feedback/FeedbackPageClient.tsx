@@ -47,7 +47,7 @@ export function FeedbackPageClient() {
 
       <main className="space-y-6 px-6 pt-8 pb-8">
         <section className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#eef5ff] px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-[#2f5f9f] uppercase">
+          <div className="bg-brand-primary-soft text-brand-primary inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold tracking-[0.18em] uppercase">
             <Sparkles className="h-3.5 w-3.5" />
             Founding user loop
           </div>
@@ -56,8 +56,8 @@ export function FeedbackPageClient() {
               Your feedback
             </h1>
             <p className="text-label mt-2 max-w-[34ch] text-sm leading-relaxed">
-              Every note here is part of the product conversation. You can track what you shared
-              and what the team did with it.
+              Every note here is part of the product conversation. You can track what you shared and
+              what the team did with it.
             </p>
           </div>
         </section>
@@ -104,7 +104,7 @@ export function FeedbackPageClient() {
                 <div className="flex items-start justify-between gap-4 px-5 pt-5">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-[#eef5ff] px-3 py-1 text-[11px] font-bold tracking-[0.12em] text-[#2f5f9f] uppercase">
+                      <span className="bg-brand-primary-soft text-brand-primary rounded-full px-3 py-1 text-[11px] font-bold tracking-[0.12em] uppercase">
                         {item.categoryLabel}
                       </span>
                       <span

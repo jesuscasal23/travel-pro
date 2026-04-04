@@ -329,7 +329,6 @@ export default function PlanPage() {
     needsProfileStep,
     selectedCities,
     tripDescription,
-    planningPriorities,
     prioritySummary,
     dateStart,
     dateEnd,

@@ -123,8 +123,8 @@ export function DestinationStep({ errors, clearError, step, totalSteps }: Destin
   const setDayCount = usePlanFormStore((s) => s.setDayCount);
   const tripDirection = usePlanFormStore((s) => s.tripDirection);
   const setTripDirection = usePlanFormStore((s) => s.setTripDirection);
-  const { data: cityCatalog, isPending: isCitiesLoading, error: citiesError } = useCities();
-  const cities = cityCatalog ?? [];
+  const { data: cityCatalog, error: citiesError } = useCities();
+  const cities = useMemo(() => cityCatalog ?? [], [cityCatalog]);
   const quickPickCities = useMemo(() => {
     if (cities.length === 0) return POPULAR_CITIES;
     return POPULAR_CITIES.map((preset) => {

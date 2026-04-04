@@ -8,7 +8,6 @@ import {
   CreditCard,
   Download,
   FileText,
-  Headphones,
   Loader2,
   LogOut,
   Pencil,

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Check, ExternalLink, ImageOff, MapPin, Sparkles, X } from "lucide-react";
@@ -61,13 +62,18 @@ function ActivityImages({ card }: { card: ActivityDiscoveryCandidate }) {
 
   if (!hasSecondary) {
     return (
-      <img
-        src={primaryUrl}
-        alt={card.name}
-        className="h-48 w-full object-cover"
-        loading="eager"
-        onError={() => setPrimaryFailed(true)}
-      />
+      <div className="relative h-48 w-full">
+        <Image
+          src={primaryUrl}
+          alt={card.name}
+          fill
+          unoptimized
+          loader={({ src }) => src}
+          sizes="100vw"
+          className="object-cover"
+          onError={() => setPrimaryFailed(true)}
+        />
+      </div>
     );
   }
 
@@ -75,20 +81,30 @@ function ActivityImages({ card }: { card: ActivityDiscoveryCandidate }) {
 
   return (
     <div className="grid h-48 w-full grid-cols-[1.6fr_1fr] gap-[2px] bg-white/30">
-      <img
-        src={primaryUrl}
-        alt={card.name}
-        className="h-full w-full object-cover"
-        loading="eager"
-        onError={() => setPrimaryFailed(true)}
-      />
-      <img
-        src={secondaryUrl}
-        alt={`${card.name} alternate view`}
-        className="h-full w-full object-cover"
-        loading="eager"
-        onError={() => setSecondaryFailed(true)}
-      />
+      <div className="relative h-full w-full">
+        <Image
+          src={primaryUrl}
+          alt={card.name}
+          fill
+          unoptimized
+          loader={({ src }) => src}
+          sizes="(min-width: 768px) 40vw, 65vw"
+          className="object-cover"
+          onError={() => setPrimaryFailed(true)}
+        />
+      </div>
+      <div className="relative h-full w-full">
+        <Image
+          src={secondaryUrl}
+          alt={`${card.name} alternate view`}
+          fill
+          unoptimized
+          loader={({ src }) => src}
+          sizes="(min-width: 768px) 25vw, 35vw"
+          className="object-cover"
+          onError={() => setSecondaryFailed(true)}
+        />
+      </div>
     </div>
   );
 }

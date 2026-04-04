@@ -141,7 +141,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
         </div>
       ) : (
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="rounded-[28px] border border-[#dce7f6] bg-[#f6f9ff] p-3">
+          <div className="border-brand-primary-border bg-brand-primary-subtle rounded-[28px] border p-3">
             <div className="mb-1.5 flex items-center gap-2">
               <Sparkles className="text-brand-primary h-4 w-4" />
               <p className="text-brand-primary text-xs font-bold tracking-[0.18em] uppercase">
@@ -186,7 +186,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="What should we know?"
-              className="border-edge text-ink placeholder:text-label w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-[#9db7df]"
+              className="border-edge text-ink placeholder:text-label focus:border-brand-primary-border-strong w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
             />
           </div>
 
@@ -200,7 +200,7 @@ export function FeedbackComposerModal({ open, onOpenChange }: FeedbackComposerMo
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Tell us what happened, what felt missing, or what you loved."
               rows={4}
-              className="border-edge text-ink placeholder:text-label min-h-[96px] w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-[#9db7df]"
+              className="border-edge text-ink placeholder:text-label focus:border-brand-primary-border-strong min-h-[96px] w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
             />
           </div>
 

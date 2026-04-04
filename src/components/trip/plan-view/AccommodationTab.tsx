@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -98,10 +99,14 @@ function HotelCard({
       {/* Hotel image or gradient fallback */}
       <div className="relative h-48 overflow-hidden">
         {hotel.imageUrl ? (
-          <img
+          <Image
             src={hotel.imageUrl}
             alt={hotel.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            unoptimized
+            loader={({ src }) => src}
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="from-primary/10 to-primary/5 flex h-full w-full items-center justify-center bg-gradient-to-br">

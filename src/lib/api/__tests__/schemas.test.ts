@@ -84,7 +84,8 @@ describe("TripIntentInputSchema", () => {
   });
 
   it("defaults tripType to multi-city", () => {
-    const { tripType: _tripType, ...rest } = validMultiCity;
+    const { tripType, ...rest } = validMultiCity;
+    expect(tripType).toBe("multi-city");
     const result = TripIntentInputSchema.safeParse(rest);
     expect(result.success).toBe(true);
     if (result.success) {
