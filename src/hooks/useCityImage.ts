@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getCityImage, getCityPlaceholder } from "@/lib/utils/city-images";
 
 /**
@@ -8,9 +8,15 @@ import { getCityImage, getCityPlaceholder } from "@/lib/utils/city-images";
  * Returns [src, onError] — wire onError to the <img>/<Image> element.
  */
 export function useCityImage(cityName: string, countryCode?: string) {
-  const [src, setSrc] = useState(() =>
-    countryCode ? getCityImage(cityName, countryCode) : getCityPlaceholder(cityName)
-  );
+  const desiredSrc = countryCode
+    ? getCityImage(cityName, countryCode)
+    : getCityPlaceholder(cityName);
+  const [src, setSrc] = useState(desiredSrc);
+
+  useEffect(() => {
+    setSrc(desiredSrc);
+  }, [desiredSrc]);
+
   const onError = useCallback(() => setSrc(getCityPlaceholder(cityName)), [cityName]);
   return [src, onError] as const;
 }
